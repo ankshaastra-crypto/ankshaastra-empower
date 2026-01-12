@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Menu, X } from "lucide-react";
 import logo from "@/assets/logo.png";
@@ -33,11 +34,13 @@ const Header = () => {
     >
       <div className="container mx-auto flex items-center justify-between">
         {/* Logo */}
-        <img 
-            src={logo} 
-            alt="Ankshaastra Logo"
-            className="h-12 w-auto object-contain"
-          />
+        <Link to="/">
+          <img 
+              src={logo} 
+              alt="Ankshaastra Logo"
+              className="h-12 w-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
+            />
+        </Link>
 
         {/* Desktop CTA */}
         <div className="hidden md:block">

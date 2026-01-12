@@ -18,14 +18,13 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
           {/* Logo */}
-          <div className="flex items-center justify-center gap-2 mb-6">
-            {/* Logo */}
+          <Link to="/" className="flex items-center justify-center gap-2 mb-6">
             <img 
                 src={logo} 
                 alt="Ankshaastra Logo"
-                className="h-12 w-auto object-contain"
+                className="h-12 w-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
               />
-          </div>
+          </Link>
 
           {/* Social Media Icons */}
           <div className="flex items-center justify-center gap-4 mb-8">

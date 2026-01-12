@@ -55,8 +55,26 @@ const OrderFormSection = () => {
     });
   };
 
-  const price = packageType === "single" ? 1997 : 3994;
-  const originalPrice = packageType === "single" ? 5100 : 10200;
+  const getPrice = () => {
+    switch (packageType) {
+      case "namecheck": return 199;
+      case "single": return 1997;
+      case "family": return 3994;
+      default: return 1997;
+    }
+  };
+
+  const getOriginalPrice = () => {
+    switch (packageType) {
+      case "namecheck": return 199;
+      case "single": return 5100;
+      case "family": return 10200;
+      default: return 5100;
+    }
+  };
+
+  const price = getPrice();
+  const originalPrice = getOriginalPrice();
 
   return (
     <section className="section-padding bg-background" id="order-form" ref={ref}>
@@ -83,6 +101,27 @@ const OrderFormSection = () => {
                     onValueChange={setPackageType}
                     className="grid gap-4"
                   >
+                    <label
+                      className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
+                        packageType === "namecheck"
+                          ? "border-secondary bg-secondary/5"
+                          : "border-border hover:border-secondary/50"
+                      }`}
+                    >
+                      <RadioGroupItem value="namecheck" id="namecheck" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-ink-black">
+                            Name Check
+                          </span>
+                          <span className="bg-secondary/20 text-secondary text-xs font-bold px-2 py-0.5 rounded-full">
+                            NOT SURE?
+                          </span>
+                        </div>
+                        <span className="text-secondary font-bold">₹199</span>
+                      </div>
+                    </label>
+
                     <label
                       className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
                         packageType === "single"
@@ -123,7 +162,7 @@ const OrderFormSection = () => {
                 </div>
 
                 {/* Form Fields */}
-                {packageType === "single" ? (
+                {(packageType === "single" || packageType === "namecheck") ? (
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="person1Name">Full Name (As per Aadhar Card) *</Label>
@@ -305,10 +344,12 @@ const OrderFormSection = () => {
                   Order Summary
                 </h3>
 
-                <div className="space-y-4 pb-6 border-b border-border">
+                  <div className="space-y-4 pb-6 border-b border-border">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">
-                      {packageType === "single"
+                      {packageType === "namecheck"
+                        ? "Name Check Analysis"
+                        : packageType === "single"
                         ? "Name Alignment Blueprint"
                         : "Family Package - 3 Reports"}
                     </span>

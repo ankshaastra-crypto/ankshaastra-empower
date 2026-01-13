@@ -95,7 +95,7 @@ const PricingSection = () => {
             </ul>
 
             {/* CTA */}
-            <Button variant="outline" size="default" className="w-full group border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground" onClick={() => scrollToForm('namecheck')}>
+            <Button variant="secondary" size="default" className="w-full group" onClick={() => scrollToForm('namecheck')}>
               <span className="group-hover:scale-105 transition-transform duration-300 inline-block">Get Name Check</span>
             </Button>
 

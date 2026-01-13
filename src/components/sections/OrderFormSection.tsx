@@ -150,7 +150,11 @@ const handleSubmit = async (e: React.FormEvent) => {
                           : "border-border hover:border-secondary/50"
                       }`}
                     >
-                      <RadioGroupItem value="namecheck" id="namecheck" />
+                      <RadioGroupItem
+                        value="namecheck"
+                        id="namecheck"
+                        className="border-border text-secondary"
+                      />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-ink-black">

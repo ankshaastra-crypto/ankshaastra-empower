@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +23,18 @@ const OrderFormSection = () => {
     mobile: "",
     email: "",
   });
+
+  // Listen for package type changes from PricingSection
+  useEffect(() => {
+    const handleSetPackageType = (e: CustomEvent) => {
+      setPackageType(e.detail);
+    };
+    
+    window.addEventListener('setPackageType', handleSetPackageType as EventListener);
+    return () => {
+      window.removeEventListener('setPackageType', handleSetPackageType as EventListener);
+    };
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -89,8 +101,20 @@ const handleSubmit = async (e: React.FormEvent) => {
     });
   };
 */
-  const price = packageType === "single" ? 1997 : 3994;
-  const originalPrice = packageType === "single" ? 5100 : 10200;
+  const getPrice = () => {
+    if (packageType === "namecheck") return 199;
+    if (packageType === "single") return 1997;
+    return 3994;
+  };
+  
+  const getOriginalPrice = () => {
+    if (packageType === "namecheck") return 199;
+    if (packageType === "single") return 5100;
+    return 10200;
+  };
+  
+  const price = getPrice();
+  const originalPrice = getOriginalPrice();
 
   return (
     <section className="section-padding bg-background" id="order-form" ref={ref}>
@@ -117,6 +141,27 @@ const handleSubmit = async (e: React.FormEvent) => {
                     onValueChange={setPackageType}
                     className="grid gap-4"
                   >
+                    <label
+                      className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
+                        packageType === "namecheck"
+                          ? "border-secondary bg-secondary/5"
+                          : "border-border hover:border-secondary/50"
+                      }`}
+                    >
+                      <RadioGroupItem value="namecheck" id="namecheck" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-ink-black">
+                            Name Check
+                          </span>
+                          <span className="bg-secondary text-secondary-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                            NOT SURE?
+                          </span>
+                        </div>
+                        <span className="text-secondary font-bold">₹199</span>
+                      </div>
+                    </label>
+
                     <label
                       className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
                         packageType === "single"
@@ -157,7 +202,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </div>
 
                 {/* Form Fields */}
-                {packageType === "single" ? (
+                {(packageType === "namecheck" || packageType === "single") ? (
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="person1Name">Full Name (As per Aadhar Card) *</Label>
@@ -342,7 +387,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <div className="space-y-4 pb-6 border-b border-border">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">
-                      {packageType === "single"
+                      {packageType === "namecheck"
+                        ? "Name Check"
+                        : packageType === "single"
                         ? "Name Alignment Blueprint"
                         : "Family Package - 3 Reports"}
                     </span>

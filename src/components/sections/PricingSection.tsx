@@ -5,10 +5,14 @@ import useScrollAnimation from "@/hooks/useScrollAnimation";
 const PricingSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
 
-  const scrollToForm = () => {
+  const scrollToForm = (packageType?: string) => {
     const formSection = document.getElementById("order-form");
     if (formSection) {
       formSection.scrollIntoView({ behavior: "smooth" });
+      // Dispatch custom event to set package type
+      if (packageType) {
+        window.dispatchEvent(new CustomEvent('setPackageType', { detail: packageType }));
+      }
     }
   };
 
@@ -91,7 +95,7 @@ const PricingSection = () => {
             </ul>
 
             {/* CTA */}
-            <Button variant="outline" size="default" className="w-full group border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground" onClick={scrollToForm}>
+            <Button variant="outline" size="default" className="w-full group border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground" onClick={() => scrollToForm('namecheck')}>
               <span className="group-hover:scale-105 transition-transform duration-300 inline-block">Get Name Check</span>
             </Button>
 
@@ -139,7 +143,7 @@ const PricingSection = () => {
             </ul>
 
             {/* CTA */}
-            <Button variant="gold" size="default" className="w-full group" onClick={scrollToForm}>
+            <Button variant="gold" size="default" className="w-full group" onClick={() => scrollToForm('single')}>
               <span className="group-hover:scale-105 transition-transform duration-300 inline-block">Get Single Report</span>
             </Button>
 
@@ -207,7 +211,7 @@ const PricingSection = () => {
             </ul>
 
             {/* CTA */}
-            <Button variant="hero" size="default" className="w-full group" onClick={scrollToForm}>
+            <Button variant="hero" size="default" className="w-full group" onClick={() => scrollToForm('family')}>
               <span className="group-hover:scale-105 transition-transform duration-300 inline-block">Get Family Package</span>
             </Button>
 

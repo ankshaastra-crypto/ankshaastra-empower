@@ -115,6 +115,12 @@ const Footer = () => {
             >
               Shipping Policy
             </Link>
+            <Link 
+              to="/terms-of-service"
+              className="text-white/70 hover:text-accent transition-colors text-sm"
+            >
+              Terms of Service
+            </Link>
           </div>
 
           {/* Disclaimer */}

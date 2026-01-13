@@ -8,81 +8,57 @@ const ShippingPolicy = () => {
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h1 className="heading-lg text-ink-black mb-8">Shipping & Delivery Policy</h1>
+            <h1 className="heading-lg text-ink-black mb-4">Shipping & Delivery Policy</h1>
+            <p className="text-muted-foreground mb-8">Effective Date: 1 January 2025</p>
             
             <div className="prose prose-lg max-w-none text-body-text space-y-6">
-              <p className="text-lg">
-                At Ankshaastra, we deliver our numerology reports digitally via email. 
-                Here's everything you need to know about our delivery process.
-              </p>
-
               <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                Digital Delivery
+                1. Digital Product Delivery
               </h2>
-              <p>
-                All our numerology reports are delivered digitally as PDF documents 
-                to the email address you provide during checkout. There is no physical 
-                shipping involved.
-              </p>
-
-              <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                Delivery Timeline
-              </h2>
+              <p>For Name Correction Reports (Digital PDF):</p>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Standard Delivery:</strong> 24-48 hours after successful payment</li>
-                <li><strong>Family Package:</strong> 24-48 hours for all three reports</li>
-              </ul>
-              <p>
-                Each report is personally analyzed and prepared by Himansshu Ji, 
-                ensuring accuracy and quality. This personalized approach requires 
-                adequate time for thorough analysis.
-              </p>
-
-              <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                Report Format
-              </h2>
-              <p>
-                Your personalized numerology report will be delivered as:
-              </p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>High-quality PDF document (50+ pages)</li>
-                <li>Optimized for both screen viewing and printing</li>
-                <li>Includes detailed analysis, charts, and recommendations</li>
+                <li>Reports are delivered within 24-48 hours after successful payment</li>
+                <li>Delivered via email/WhatsApp as a high-quality PDF document</li>
+                <li>Each report is personally analyzed and prepared by our expert numerologist</li>
               </ul>
 
               <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                Delivery Confirmation
+                2. Physical Product Delivery
               </h2>
-              <p>
-                Once your report is ready, you will receive an email with:
-              </p>
+              <p>For any Physical Products (if applicable):</p>
               <ul className="list-disc pl-6 space-y-2">
-                <li>Your complete numerology report as a PDF attachment</li>
-                <li>Instructions on how to access and use your report</li>
-                <li>Contact information for any follow-up questions</li>
+                <li>Delivery timelines will be communicated at the time of purchase</li>
+                <li>Shipping charges may apply based on location</li>
+                <li>Tracking information will be provided once shipped</li>
               </ul>
 
               <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                Didn't Receive Your Report?
+                3. Delivery Confirmation
               </h2>
-              <p>
-                If you haven't received your report within 48 hours:
-              </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li>Check your spam/junk folder</li>
-                <li>Verify the email address provided during checkout</li>
-                <li>Contact us immediately for assistance</li>
+                <li>For digital reports: Delivery is confirmed once the email/WhatsApp is successfully sent.</li>
+                <li>For physical products: Delivery is confirmed based on courier tracking status.</li>
+                <li>Please ensure your contact details (email, phone, address) are accurate at the time of ordering.</li>
               </ul>
 
               <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                Contact Us
+                4. Non-Delivery Issues
               </h2>
-              <p>
-                For delivery inquiries or support, please contact us:
-              </p>
-              <p className="text-accent font-semibold">
-                Phone: 9667305577
-              </p>
+              <p>If you do not receive your digital report within 48 hours:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Check your spam/junk/promotions folder.</li>
+                <li>Contact us at 966 730 5577 or email us with your order details.</li>
+                <li>We will resend the report within 24 hours of your notification.</li>
+              </ul>
+
+              <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
+                5. Contact for Delivery Queries
+              </h2>
+              <div className="bg-muted p-4 rounded-lg mt-4">
+                <p className="font-semibold">Business Name: Ankshaastra Occult Experts LLP</p>
+                <p>Service Hours: Monday to Sunday, 8:34 AM – 8:34 PM IST</p>
+                <p className="text-accent font-semibold mt-2">Phone: 9667305577</p>
+              </div>
             </div>
           </div>
         </div>

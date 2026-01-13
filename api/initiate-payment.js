@@ -15,6 +15,20 @@ export default async function handler(req, res) {
     const saltKey = process.env.PHONEPE_SALT_KEY;
     const saltIndex = process.env.PHONEPE_SALT_INDEX;
 
+    // Validate environment variables
+    if (!merchantId || !saltKey || !saltIndex) {
+      console.error("Missing PhonePe credentials:", {
+        hasMerchantId: !!merchantId,
+        hasSaltKey: !!saltKey,
+        hasSaltIndex: !!saltIndex
+      });
+      return res.status(500).json({ 
+        success: false,
+        error: "Payment configuration error. Please check PhonePe API keys in environment variables.",
+        message: "PHONEPE_MERCHANT_ID, PHONEPE_SALT_KEY, and PHONEPE_SALT_INDEX must be set."
+      });
+    }
+
     // 1. Build the Payment Payload
     const payload = {
       merchantId,

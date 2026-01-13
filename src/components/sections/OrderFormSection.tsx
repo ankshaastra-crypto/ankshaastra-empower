@@ -142,6 +142,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                     className="grid gap-4"
                   >
                     <label
+                      htmlFor="namecheck"
+                      onClick={() => setPackageType("namecheck")}
                       className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
                         packageType === "namecheck"
                           ? "border-secondary bg-secondary/5"
@@ -163,6 +165,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                     </label>
 
                     <label
+                      htmlFor="single"
+                      onClick={() => setPackageType("single")}
                       className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
                         packageType === "single"
                           ? "border-secondary bg-secondary/5"
@@ -179,6 +183,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                     </label>
 
                     <label
+                      htmlFor="family"
+                      onClick={() => setPackageType("family")}
                       className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
                         packageType === "family"
                           ? "border-accent bg-accent/5"

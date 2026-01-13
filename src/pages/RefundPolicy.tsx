@@ -8,68 +8,106 @@ const RefundPolicy = () => {
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h1 className="heading-lg text-ink-black mb-8">Refund Policy</h1>
+            <h1 className="heading-lg text-ink-black mb-4">Refund & Cancellation Policy</h1>
+            <p className="text-muted-foreground mb-8">Effective Date: January 2025</p>
             
             <div className="prose prose-lg max-w-none text-body-text space-y-6">
-              <p className="text-lg">
-                At Ankshaastra, we strive to provide the highest quality numerology 
-                reports and customer satisfaction. Please read our refund policy carefully.
-              </p>
-
               <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                Digital Product Nature
+                1. No Refund Policy
               </h2>
               <p>
-                Our numerology reports are personalized digital products created 
-                specifically for each individual based on their unique birth details 
-                and name. Each report is hand-crafted by Himansshu Ji himself and 
-                involves significant time and expertise.
-              </p>
-
-              <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                Refund Eligibility
-              </h2>
-              <p>
-                Due to the personalized nature of our reports, refunds are generally 
-                not available once the report preparation has begun. However, we may 
-                consider refunds in the following cases:
+                Ankshaastra Occult Experts LLP operates a strict NO REFUND policy for all products 
+                and services, including but not limited to:
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li>Request made within 24 hours of payment, before report preparation begins</li>
-                <li>Technical issues preventing report delivery (we will resolve or refund)</li>
-                <li>Duplicate payments made by error</li>
+                <li>Name Correction Reports (Digital PDF)</li>
+                <li>Personalized Numerology Analysis</li>
+                <li>Any physical products purchased</li>
+                <li>Family Package deals</li>
               </ul>
 
               <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                Report Corrections
+                2. Reason for No Refund Policy
               </h2>
+              <p>Our services involve:</p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Personalized consultation and analysis specific to your details (name, date of birth)</li>
+                <li>Hand-crafted reports prepared individually by our expert numerologist</li>
+                <li>Intellectual property and expertise that cannot be "returned" once delivered</li>
+                <li>Time and effort invested in creating customized solutions</li>
+              </ul>
               <p>
-                If you find any errors in your report due to incorrect information 
-                provided during the order, we will happily provide corrections at no 
-                additional cost. Please contact us within 7 days of receiving your report.
+                Once a report is generated or service is rendered, it cannot be reversed, returned, 
+                or resold. Therefore, no refunds will be issued under any circumstances.
               </p>
 
               <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                How to Request a Refund
+                3. Cancellation Policy
               </h2>
-              <p>
-                To request a refund, please contact us with your order details:
-              </p>
+              
+              <h3 className="text-xl font-heading font-semibold text-ink-black mt-6 mb-3">
+                Before Report Generation:
+              </h3>
               <ul className="list-disc pl-6 space-y-2">
-                <li>Your full name</li>
-                <li>Order date</li>
-                <li>Email used for the order</li>
-                <li>Reason for refund request</li>
+                <li>If you wish to cancel your order, you must do so within 2 hours of payment</li>
+                <li>Contact us immediately at 966 730 5577 with your order details</li>
+                <li>Cancellation is subject to verification that work has not yet begun</li>
+                <li>If work has already commenced, cancellation will not be possible</li>
+              </ul>
+
+              <h3 className="text-xl font-heading font-semibold text-ink-black mt-6 mb-3">
+                After Report Generation/Delivery:
+              </h3>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Once the report is prepared or delivered, cancellation is not possible</li>
+                <li>No refunds will be issued after the report is sent to your email</li>
               </ul>
 
               <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                Contact Us
+                4. Wrong Information Provided
               </h2>
               <p>
-                For refund inquiries or any concerns, please reach out to us:
+                If you provide incorrect details (name, date of birth, email, etc.), we are not 
+                responsible for inaccurate reports. No refunds or revisions will be provided for 
+                errors made by the customer. Please double-check all information before submitting your order.
               </p>
-              <p className="text-accent font-semibold">
-                Phone: 9667305577
+
+              <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
+                5. Payment Issues
+              </h2>
+              <p>
+                In case of payment failure or technical errors where money is debited but order 
+                is not confirmed:
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Contact us immediately at 9667305577</li>
+                <li>Provide transaction details and payment proof</li>
+                <li>We will verify with our payment gateway and resolve within 7-10 business days</li>
+                <li>Refunds for genuine payment errors will be processed to the original payment method</li>
+              </ul>
+
+              <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
+                6. Disputes
+              </h2>
+              <p>
+                All sales are final. By purchasing our services, you acknowledge and agree to this 
+                No Refund Policy. Any disputes will be subject to the jurisdiction of courts in India.
+              </p>
+
+              <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
+                7. Contact for Queries
+              </h2>
+              <p>If you have questions about this policy before purchasing:</p>
+              <div className="bg-muted p-4 rounded-lg mt-4">
+                <p className="font-semibold">Himanshu Agarwal</p>
+                <p>Designated Partner (DIN: 07441145)</p>
+                <p>Ankshaastra Occult Experts LLP</p>
+                <p className="text-accent font-semibold mt-2">Phone: 9667305577</p>
+              </div>
+              
+              <p className="mt-6 text-muted-foreground italic">
+                We encourage you to review our services carefully and contact us with any questions 
+                BEFORE making a purchase.
               </p>
             </div>
           </div>

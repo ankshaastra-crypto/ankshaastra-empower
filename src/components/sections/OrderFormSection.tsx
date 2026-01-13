@@ -63,9 +63,24 @@ const OrderFormSection = () => {
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
+  // Validate form data
+  if (!formData.mobile || !formData.email) {
+    toast({
+      title: "Missing Information",
+      description: "Please fill in all required fields.",
+      variant: "destructive",
+    });
+    return;
+  }
+
   const orderId = "ORD" + Date.now();
   
   try {
+    toast({
+      title: "Processing...",
+      description: "Initiating payment...",
+    });
+
     // We call our Vercel API, not PhonePe directly!
     const response = await fetch('/api/initiate-payment', {
       method: 'POST',
@@ -80,14 +95,39 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     const result = await response.json();
 
-    if (result.success && result.data.instrumentResponse.redirectInfo.url) {
+    // Check for API errors
+    if (!response.ok || !result.success) {
+      const errorMessage = result.error || result.message || "Payment failed to start. Please check your PhonePe API keys configuration.";
+      toast({
+        title: "Payment Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      console.error("Payment API Error:", result);
+      return;
+    }
+
+    // Check for redirect URL in response
+    const redirectUrl = result.data?.instrumentResponse?.redirectInfo?.url;
+    
+    if (redirectUrl) {
       // Redirect the user to PhonePe
-      window.location.href = result.data.instrumentResponse.redirectInfo.url;
+      window.location.href = redirectUrl;
     } else {
-      alert("Payment failed to start. Check your keys!");
+      toast({
+        title: "Payment Error",
+        description: "Payment gateway did not return a valid redirect URL. Please check your PhonePe API configuration.",
+        variant: "destructive",
+      });
+      console.error("Invalid response structure:", result);
     }
   } catch (error) {
     console.error("Error:", error);
+    toast({
+      title: "Network Error",
+      description: "Failed to connect to payment server. Please try again.",
+      variant: "destructive",
+    });
   }
 };
   
@@ -141,9 +181,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                     onValueChange={setPackageType}
                     className="grid gap-4"
                   >
+                    {/* Name Check Option */}
                     <label
                       htmlFor="namecheck"
-                      onClick={() => setPackageType("namecheck")}
                       className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
                         packageType === "namecheck"
                           ? "border-secondary bg-secondary/5"
@@ -153,7 +193,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       <RadioGroupItem
                         value="namecheck"
                         id="namecheck"
-                        className="border-border text-secondary"
+                        className="text-secondary flex-shrink-0"
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
@@ -168,16 +208,20 @@ const handleSubmit = async (e: React.FormEvent) => {
                       </div>
                     </label>
 
+                    {/* Single Report Option */}
                     <label
                       htmlFor="single"
-                      onClick={() => setPackageType("single")}
                       className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
                         packageType === "single"
                           ? "border-secondary bg-secondary/5"
                           : "border-border hover:border-secondary/50"
                       }`}
                     >
-                      <RadioGroupItem value="single" id="single" />
+                      <RadioGroupItem 
+                        value="single" 
+                        id="single"
+                        className="text-secondary flex-shrink-0"
+                      />
                       <div className="flex-1">
                         <span className="font-semibold text-ink-black">
                           Single Report
@@ -186,16 +230,20 @@ const handleSubmit = async (e: React.FormEvent) => {
                       </div>
                     </label>
 
+                    {/* Family Package Option */}
                     <label
                       htmlFor="family"
-                      onClick={() => setPackageType("family")}
                       className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
                         packageType === "family"
                           ? "border-accent bg-accent/5"
                           : "border-border hover:border-accent/50"
                       }`}
                     >
-                      <RadioGroupItem value="family" id="family" />
+                      <RadioGroupItem 
+                        value="family" 
+                        id="family"
+                        className="text-accent flex-shrink-0"
+                      />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-ink-black">

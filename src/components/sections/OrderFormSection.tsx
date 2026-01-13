@@ -24,7 +24,7 @@ const OrderFormSection = () => {
     email: "",
   });
 
-  // Listen for package type changes from PricingSection
+  // Listen for package type changes from PricingSection.
   useEffect(() => {
     const handleSetPackageType = (e: CustomEvent) => {
       setPackageType(e.detail);

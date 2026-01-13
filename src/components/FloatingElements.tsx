@@ -17,20 +17,18 @@ const FloatingElements = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const openWhatsApp = () => {
-    window.open("https://wa.me/919667305577", "_blank");
-  };
-
   return (
     <>
       {/* WhatsApp Button */}
-      <button
-        onClick={openWhatsApp}
+      <a
+        href="https://wa.me/919667305577"
+        target="_blank"
+        rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full shadow-purple transition-all duration-300 hover:scale-110 hover:shadow-2xl group"
         aria-label="Contact on WhatsApp"
       >
         <FaWhatsapp className="w-6 h-6" />
-      </button>
+      </a>
 
       {/* Back to Top Button */}
       {showBackToTop && (

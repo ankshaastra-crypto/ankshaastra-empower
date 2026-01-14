@@ -1,7 +1,12 @@
+import { useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const ShippingPolicy = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -23,26 +28,15 @@ const ShippingPolicy = () => {
               </ul>
 
               <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                2. Physical Product Delivery
-              </h2>
-              <p>For any Physical Products (if applicable):</p>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Delivery timelines will be communicated at the time of purchase</li>
-                <li>Shipping charges may apply based on location</li>
-                <li>Tracking information will be provided once shipped</li>
-              </ul>
-
-              <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                3. Delivery Confirmation
+                2. Delivery Confirmation
               </h2>
               <ul className="list-disc pl-6 space-y-2">
                 <li>For digital reports: Delivery is confirmed once the email/WhatsApp is successfully sent.</li>
-                <li>For physical products: Delivery is confirmed based on courier tracking status.</li>
-                <li>Please ensure your contact details (email, phone, address) are accurate at the time of ordering.</li>
+                <li>Please ensure your contact details (email, phone) are accurate at the time of ordering.</li>
               </ul>
 
               <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                4. Non-Delivery Issues
+                3. Non-Delivery Issues
               </h2>
               <p>If you do not receive your digital report within 48 hours:</p>
               <ul className="list-disc pl-6 space-y-2">
@@ -52,10 +46,10 @@ const ShippingPolicy = () => {
               </ul>
 
               <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
-                5. Contact for Delivery Queries
+                4. Contact for Delivery Queries
               </h2>
               <div className="bg-muted p-4 rounded-lg mt-4">
-                <p className="font-semibold">Business Name: Ankshaastra Occult Experts LLP</p>
+                <p className="font-semibold">Ankshaastra</p>
                 <p>Service Hours: Monday to Sunday, 8:34 AM – 8:34 PM IST</p>
                 <p className="text-accent font-semibold mt-2">Phone: 9667305577</p>
               </div>

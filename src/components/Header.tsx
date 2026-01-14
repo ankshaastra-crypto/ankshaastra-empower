@@ -24,6 +24,14 @@ const Header = () => {
     setIsMobileMenuOpen(false);
   };
 
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById("pricing");
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: "smooth" });
+    }
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -59,7 +67,15 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-primary/98 backdrop-blur-lg md:hidden py-4 px-6 border-t border-white/10">
+          <div className="absolute top-full left-0 right-0 bg-primary/98 backdrop-blur-lg md:hidden py-4 px-6 border-t border-white/10 flex flex-col gap-3">
+            <Button
+              variant="hero-small"
+              size="default"
+              onClick={scrollToPricing}
+              className="w-full"
+            >
+              Get My Personalized Report
+            </Button>
             <Button
               variant="hero-small"
               size="default"

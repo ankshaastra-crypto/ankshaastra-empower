@@ -1,7 +1,12 @@
+import { useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
 const PrivacyPolicy = () => {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -178,9 +183,7 @@ const PrivacyPolicy = () => {
               </h2>
               <p>For privacy-related questions or concerns:</p>
               <div className="bg-muted p-4 rounded-lg mt-4">
-                <p className="font-semibold">Himanshu Agarwal</p>
-                <p>Designated Partner (DIN: 07441145)</p>
-                <p>Ankshaastra Occult Experts LLP</p>
+                <p className="font-semibold">Ankshaastra</p>
                 <p className="text-accent font-semibold mt-2">Phone: 9667305577</p>
               </div>
               

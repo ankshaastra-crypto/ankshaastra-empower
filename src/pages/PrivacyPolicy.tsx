@@ -18,7 +18,7 @@ const PrivacyPolicy = () => {
             
             <div className="prose prose-lg max-w-none text-body-text space-y-6">
               <p className="text-lg">
-                Ankshaastra Occult Experts LLP ("we," "us," "our") is committed to protecting your privacy. 
+                We ("we," "us," "our") are committed to protecting your privacy. 
                 This Privacy Policy explains how we collect, use, disclose, and safeguard your information 
                 when you use our website and services.
               </p>
@@ -183,7 +183,7 @@ const PrivacyPolicy = () => {
               </h2>
               <p>For privacy-related questions or concerns:</p>
               <div className="bg-muted p-4 rounded-lg mt-4">
-                <p className="font-semibold">Ankshaastra</p>
+                <p className="font-semibold">Himanshu Agarwal</p>
                 <p className="text-accent font-semibold mt-2">Phone: 9667305577</p>
               </div>
               

@@ -21,7 +21,7 @@ const RefundPolicy = () => {
                 1. No Refund Policy
               </h2>
               <p>
-                Ankshaastra Occult Experts LLP operates a strict NO REFUND policy for all products 
+                We operate a strict NO REFUND policy for all products 
                 and services, including but not limited to:
               </p>
               <ul className="list-disc pl-6 space-y-2">
@@ -104,7 +104,7 @@ const RefundPolicy = () => {
               </h2>
               <p>If you have questions about this policy before purchasing:</p>
               <div className="bg-muted p-4 rounded-lg mt-4">
-                <p className="font-semibold">Ankshaastra</p>
+                <p className="font-semibold">Himanshu Agarwal</p>
                 <p className="text-accent font-semibold mt-2">Phone: 9667305577</p>
               </div>
               

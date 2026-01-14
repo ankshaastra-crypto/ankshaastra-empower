@@ -87,7 +87,7 @@ const TermsOfService = () => {
               </h2>
               <p>For questions about these Terms of Service:</p>
               <div className="bg-muted p-4 rounded-lg mt-4">
-                <p className="font-semibold">Ankshaastra</p>
+                <p className="font-semibold">Himanshu Agarwal</p>
                 <p className="text-accent font-semibold mt-2">Phone: 9667305577</p>
               </div>
               

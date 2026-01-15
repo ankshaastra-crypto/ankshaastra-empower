@@ -45,12 +45,12 @@ const ProblemSection = () => {
           {problems.map((problem, index) => (
             <div
               key={index}
-              className={`bg-card rounded-2xl p-8 shadow-card card-hover group transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              className={`bg-card rounded-2xl p-8 shadow-card card-hover group transition-all duration-700 hover-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               style={{ transitionDelay: `${150 + index * 100}ms` }}
             >
               <div className="flex items-start gap-5">
-                <div className="flex-shrink-0 w-14 h-14 bg-secondary/10 rounded-xl flex items-center justify-center group-hover:bg-secondary/20 group-hover:scale-110 transition-all duration-300">
-                  <problem.icon className="w-7 h-7 text-secondary" />
+                <div className="flex-shrink-0 w-14 h-14 bg-secondary/10 rounded-xl flex items-center justify-center group-hover:bg-secondary/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                  <problem.icon className="w-7 h-7 text-secondary transition-transform duration-500 group-hover:scale-110" />
                 </div>
                 <div>
                   <h3 className="heading-sm text-ink-black mb-2 group-hover:text-secondary transition-colors duration-300">

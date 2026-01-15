@@ -61,10 +61,10 @@ const TestimonialsSection = () => {
               {testimonials.map((testimonial, index) => (
                 <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
                   <br />
-                  <div className="bg-card rounded-2xl p-8 shadow-card card-hover group relative h-full transition-all duration-300 hover:shadow-card-hover">
+                  <div className="bg-card rounded-2xl p-8 shadow-card card-hover group relative h-full transition-all duration-300 hover:shadow-card-hover hover-glow">
                     {/* Quote Icon */}
                     <div className="absolute -top-4 left-8">
-                      <div className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center shadow-purple group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center shadow-purple group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300">
                         <Quote className="w-5 h-5 text-accent" />
                       </div>
                     </div>

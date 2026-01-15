@@ -63,11 +63,11 @@ const BenefitsSection = () => {
           {benefits.map((benefit, index) => (
             <div
               key={index}
-              className={`glass-card-dark rounded-2xl p-6 card-hover group transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              className={`glass-card-dark rounded-2xl p-6 card-hover group transition-all duration-700 hover:border-accent/30 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               style={{ transitionDelay: `${150 + index * 80}ms` }}
             >
-              <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mb-5 group-hover:bg-accent/30 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                <benefit.icon className="w-6 h-6 text-accent" />
+              <div className={`w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mb-5 group-hover:bg-accent/30 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 ${isVisible ? 'animate-float-subtle' : ''}`} style={{ animationDelay: `${index * 100}ms` }}>
+                <benefit.icon className="w-6 h-6 text-accent transition-transform duration-300 group-hover:scale-110" />
               </div>
               
               <h3 className="text-xl font-heading font-semibold text-white mb-3 group-hover:text-accent transition-colors duration-300">

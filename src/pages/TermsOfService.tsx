@@ -48,7 +48,7 @@ const TermsOfService = () => {
                 4. Intellectual Property
               </h2>
               <ul className="list-disc pl-6 space-y-2">
-                <li>All reports, content, and materials are the intellectual property of Ankshaastra Occult Experts LLP</li>
+                <li>All reports, content, and materials are the intellectual property of Ankshaastra</li>
                 <li>Reports are for personal use only and may not be reproduced, shared, or resold</li>
                 <li>Unauthorized distribution may result in legal action</li>
               </ul>
@@ -66,7 +66,7 @@ const TermsOfService = () => {
               <h2 className="text-2xl font-heading font-bold text-ink-black mt-8 mb-4">
                 6. Limitation of Liability
               </h2>
-              <p>Ankshaastra Occult Experts LLP shall not be liable for:</p>
+              <p>Ankshaastra shall not be liable for:</p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Any indirect, incidental, or consequential damages</li>
                 <li>Decisions made based on our reports</li>

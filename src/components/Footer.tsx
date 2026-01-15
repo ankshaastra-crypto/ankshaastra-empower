@@ -132,7 +132,7 @@ const Footer = () => {
 
           {/* Copyright */}
           <p className="text-white/40 text-sm">
-            © 2026 Ankshaastra Occult Experts LLP. All Rights Reserved.
+            © 2026 Ankshaastra. All Rights Reserved.
           </p>
         </div>
       </div>

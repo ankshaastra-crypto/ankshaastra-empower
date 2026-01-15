@@ -24,10 +24,11 @@ const FloatingElements = () => {
         href="https://wa.me/919667305577"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full shadow-purple transition-all duration-300 hover:scale-110 hover:shadow-2xl group"
+        className="fixed bottom-6 right-6 z-50 bg-green-500 text-white px-4 py-3 rounded-full shadow-purple transition-all duration-300 hover:scale-110 hover:shadow-2xl group flex items-center gap-2"
         aria-label="Contact on WhatsApp"
       >
         <FaWhatsapp className="w-6 h-6" />
+        <span className="text-sm font-medium">Chat With Me</span>
       </a>
 
       {/* Back to Top Button */}

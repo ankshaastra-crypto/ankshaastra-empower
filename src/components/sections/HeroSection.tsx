@@ -59,9 +59,10 @@ const HeroSection = () => {
             {trustBadges.map((badge, index) => (
               <div
                 key={index}
-                className="flex items-center gap-2 text-white/90"
+                className="flex items-center gap-2 text-white/90 hover-lift"
+                style={{ animationDelay: `${500 + index * 100}ms` }}
               >
-                <CheckCircle className="w-5 h-5 text-accent" />
+                <CheckCircle className="w-5 h-5 text-accent animate-float-subtle" style={{ animationDelay: `${index * 200}ms` }} />
                 <span className="text-sm md:text-base font-medium">{badge}</span>
               </div>
             ))}

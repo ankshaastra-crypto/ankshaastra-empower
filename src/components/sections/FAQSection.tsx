@@ -54,12 +54,13 @@ const FAQSection = () => {
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className="bg-card rounded-2xl px-6 shadow-card border-none transition-all duration-300 hover:shadow-card-hover"
+                className={`bg-card rounded-2xl px-6 shadow-card border-none transition-all duration-500 hover:shadow-card-hover hover-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                style={{ transitionDelay: `${200 + index * 80}ms` }}
               >
                 <AccordionTrigger className="text-left text-lg font-semibold text-ink-black hover:text-secondary py-6 hover:no-underline transition-colors duration-300">
                   {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground leading-relaxed pb-6">
+                <AccordionContent className="text-muted-foreground leading-relaxed pb-6 animate-fade-in">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>

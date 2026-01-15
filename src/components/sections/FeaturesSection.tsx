@@ -45,11 +45,11 @@ const FeaturesSection = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`bg-card rounded-2xl p-8 shadow-card card-hover card-hover-gold group transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              className={`bg-card rounded-2xl p-8 shadow-card card-hover card-hover-gold group transition-all duration-700 hover-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               style={{ transitionDelay: `${150 + index * 100}ms` }}
             >
-              <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                <feature.icon className="w-7 h-7 text-accent" />
+              <div className={`w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 ${isVisible ? 'animate-float-subtle' : ''}`} style={{ animationDelay: `${index * 150}ms` }}>
+                <feature.icon className="w-7 h-7 text-accent transition-transform duration-300 group-hover:scale-110" />
               </div>
               
               <h3 className="heading-sm text-ink-black mb-4 group-hover:text-secondary transition-colors duration-300">

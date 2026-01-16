@@ -26,13 +26,15 @@ const PaymentStatus = () => {
     const checkPaymentStatus = async () => {
       // PhonePe may redirect with different parameter names
       // Check multiple possible parameter names that PhonePe might use
+      // Also check for orderId which we include in our redirect URL
       const merchantTransactionId =
         searchParams.get("merchantTransactionId") ||
         searchParams.get("txnId") ||
         searchParams.get("transactionId") ||
         searchParams.get("transaction_id") ||
+        searchParams.get("orderId") || // Use orderId as fallback since we include it in redirect URL
         searchParams.get("merchantTransactionId");
-      
+
       const email = searchParams.get("email");
       const name = searchParams.get("name");
       const packageType = searchParams.get("package");
@@ -43,11 +45,14 @@ const PaymentStatus = () => {
         email,
         name,
         packageType,
-        allParams: Object.fromEntries(searchParams.entries())
+        allParams: Object.fromEntries(searchParams.entries()),
       });
 
       if (!merchantTransactionId) {
-        console.error("No transaction ID found in URL parameters");
+        console.error(
+          "No transaction ID found in URL parameters. Available params:",
+          Object.fromEntries(searchParams.entries())
+        );
         setStatus("failed");
         return;
       }
@@ -73,7 +78,7 @@ const PaymentStatus = () => {
         }
 
         const result = await response.json();
-        
+
         // Log the result for debugging
         console.log("Payment Status API Result:", result);
 

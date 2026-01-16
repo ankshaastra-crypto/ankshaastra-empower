@@ -167,6 +167,15 @@ export default async function handler(req, res) {
     if (customerEmail) {
       try {
         console.log("Attempting to send emails for order:", orderId);
+        console.log("Email details:", {
+          customerEmail,
+          customerName,
+          orderId,
+          amount,
+          packageType,
+          status: paymentStatus
+        });
+        
         const emailResult = await sendPaymentEmail({
           to: customerEmail,
           customerEmail,
@@ -178,32 +187,44 @@ export default async function handler(req, res) {
           transactionId: transactionId || '',
         });
 
+        console.log("Email result:", JSON.stringify(emailResult, null, 2));
+
         if (emailResult && emailResult.success) {
-          console.log("Emails sent successfully:", {
+          console.log("✅ Emails sent successfully:", {
             customerMessageId: emailResult.customerMessageId,
             adminMessageId: emailResult.adminMessageId
           });
           emailStatus = {
             success: true,
-            message: "Email sent successfully"
+            message: "Emails sent successfully",
+            customerMessageId: emailResult.customerMessageId,
+            adminMessageId: emailResult.adminMessageId
           };
         } else {
-          console.error("Failed to send emails:", emailResult?.error || "Unknown error");
+          const errorMsg = emailResult?.error || "Unknown error";
+          console.error("❌ Failed to send emails:", errorMsg);
+          console.error("Email error details:", emailResult?.details || {});
           emailStatus = {
             success: false,
-            message: emailResult?.error || "Failed to send email"
+            message: errorMsg,
+            error: errorMsg,
+            details: emailResult?.details || {},
+            customerError: emailResult?.customerError,
+            adminError: emailResult?.adminError
           };
         }
       } catch (emailError) {
-        console.error("Error in email sending function:", emailError);
+        console.error("❌ Exception in email sending function:", emailError);
         console.error("Email error stack:", emailError.stack);
         emailStatus = {
           success: false,
-          message: emailError.message || "Error sending email"
+          message: emailError.message || "Error sending email",
+          error: emailError.message,
+          stack: process.env.NODE_ENV === 'development' ? emailError.stack : undefined
         };
       }
     } else {
-      console.warn("Customer email not provided in query params, skipping email notification. Available params:", Object.keys(req.query));
+      console.warn("⚠️ Customer email not provided in query params, skipping email notification. Available params:", Object.keys(req.query));
       emailStatus = {
         success: false,
         message: "Email not provided"

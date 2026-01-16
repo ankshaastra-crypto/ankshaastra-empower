@@ -11,11 +11,13 @@ export default async function handler(req, res) {
     // PhonePe redirects with query parameters
     // Note: PhonePe may redirect with different parameter names
     // PhonePe might append its own params, so check all possible parameter names
+    // Also check for orderId which we include in our redirect URL
     const merchantTransactionId = 
       req.query.merchantTransactionId || 
       req.query.txnId || 
       req.query.transactionId ||
       req.query.transaction_id ||
+      req.query.orderId || // Use orderId as fallback since we include it in redirect URL
       req.query.merchantTransactionId;
     
     // Log all query parameters for debugging

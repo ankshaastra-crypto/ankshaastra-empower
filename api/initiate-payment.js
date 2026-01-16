@@ -11,6 +11,39 @@ export default async function handler(req, res) {
   try {
     const { amount, mobile, orderId, email, name, dob, packageType, person1Name, person1Dob, person2Name, person2Dob, person3Name, person3Dob } = req.body;
 
+    // Validate required fields
+    if (!email || !email.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: "Email is required",
+        message: "Customer email address is mandatory for payment processing"
+      });
+    }
+    
+    if (!mobile || !mobile.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: "Mobile number is required",
+        message: "Customer mobile number is mandatory for payment processing"
+      });
+    }
+    
+    if (!name || !name.trim() || !person1Name || !person1Name.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: "Customer name is required",
+        message: "Customer name is mandatory for payment processing"
+      });
+    }
+    
+    if (!dob || !dob.trim() || !person1Dob || !person1Dob.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: "Date of birth is required",
+        message: "Customer date of birth is mandatory for payment processing"
+      });
+    }
+
     // Get your keys from Vercel Environment Variables
     const merchantId = process.env.PHONEPE_MERCHANT_ID;
     const saltKey = process.env.PHONEPE_SALT_KEY;
@@ -30,23 +63,41 @@ export default async function handler(req, res) {
       });
     }
 
-    // Prepare customer data object for encryption
+    // Prepare customer data object for encryption (all fields are validated above)
     const customerData = {
-      email: email || '',
-      name: name || '',
-      mobile: mobile || '',
-      dob: dob || '',
-      packageType: packageType || 'single',
-      person1Name: person1Name || '',
-      person1Dob: person1Dob || '',
-      person2Name: person2Name || '',
-      person2Dob: person2Dob || '',
-      person3Name: person3Name || '',
-      person3Dob: person3Dob || '',
+      email: email.trim(),
+      name: name.trim(),
+      mobile: mobile.trim(),
+      dob: dob.trim(),
+      packageType: (packageType && packageType.trim()) || 'single',
+      person1Name: (person1Name && person1Name.trim()) || name.trim(),
+      person1Dob: (person1Dob && person1Dob.trim()) || dob.trim(),
+      person2Name: (person2Name && person2Name.trim()) || '',
+      person2Dob: (person2Dob && person2Dob.trim()) || '',
+      person3Name: (person3Name && person3Name.trim()) || '',
+      person3Dob: (person3Dob && person3Dob.trim()) || '',
     };
 
     // Encrypt customer data for secure transmission in URL
-    const encryptedData = encryptCustomerData(customerData);
+    let encryptedData = '';
+    try {
+      encryptedData = encryptCustomerData(customerData);
+      
+      // Validate encryption succeeded
+      if (!encryptedData || encryptedData.trim() === '') {
+        return res.status(500).json({
+          success: false,
+          error: "Encryption failed",
+          message: "Failed to encrypt customer data. Please check ENCRYPTION_KEY environment variable is set in Vercel."
+        });
+      }
+    } catch (encryptionError) {
+      return res.status(500).json({
+        success: false,
+        error: "Encryption error",
+        message: encryptionError.message || "Failed to encrypt customer data. Please check ENCRYPTION_KEY environment variable."
+      });
+    }
 
     // Build redirect URL with encrypted customer data
     // We include orderId unencrypted because we need it to check payment status

@@ -58,10 +58,33 @@ export default async function handler(req, res) {
       },
     });
 
+    if (!statusResponse.ok) {
+      const errorText = await statusResponse.text();
+      console.error("PhonePe API Error:", {
+        status: statusResponse.status,
+        statusText: statusResponse.statusText,
+        body: errorText
+      });
+      return res.status(500).json({ 
+        error: "Failed to fetch payment status from PhonePe",
+        details: `PhonePe API returned ${statusResponse.status}: ${statusResponse.statusText}`
+      });
+    }
+
     const statusResult = await statusResponse.json();
     
     // Log raw response for debugging
     console.log("PhonePe Status API Raw Response:", JSON.stringify(statusResult, null, 2));
+    
+    // Check if response has the expected structure
+    if (!statusResult || !statusResult.response) {
+      console.error("Invalid PhonePe response structure:", statusResult);
+      return res.status(500).json({ 
+        error: "Invalid response from PhonePe",
+        details: "Response missing 'response' field",
+        received: statusResult
+      });
+    }
     
     // Decode the response
     let paymentData;
@@ -70,7 +93,20 @@ export default async function handler(req, res) {
       console.log("Decoded Payment Data:", JSON.stringify(paymentData, null, 2));
     } catch (error) {
       console.error("Error decoding status response:", error);
-      return res.status(500).json({ error: "Failed to decode payment status" });
+      console.error("Raw response string:", statusResult.response);
+      return res.status(500).json({ 
+        error: "Failed to decode payment status",
+        details: error.message
+      });
+    }
+
+    // Validate paymentData structure
+    if (!paymentData || typeof paymentData !== 'object') {
+      console.error("Invalid paymentData structure:", paymentData);
+      return res.status(500).json({ 
+        error: "Invalid payment data structure",
+        details: "Payment data is not a valid object"
+      });
     }
 
     // Check multiple possible success indicators from PhonePe
@@ -110,30 +146,51 @@ export default async function handler(req, res) {
     });
 
     // Send emails if customer email is provided
+    let emailStatus = null;
     if (customerEmail) {
-      console.log("Attempting to send emails for order:", orderId);
-      const emailResult = await sendPaymentEmail({
-        to: customerEmail,
-        customerEmail,
-        customerName: customerName || 'Customer',
-        orderId,
-        amount: amount,
-        packageType: packageType || 'single',
-        status: paymentStatus,
-        transactionId: transactionId || '',
-      });
-
-      if (emailResult.success) {
-        console.log("Emails sent successfully:", {
-          customerMessageId: emailResult.customerMessageId,
-          adminMessageId: emailResult.adminMessageId
+      try {
+        console.log("Attempting to send emails for order:", orderId);
+        const emailResult = await sendPaymentEmail({
+          to: customerEmail,
+          customerEmail,
+          customerName: customerName || 'Customer',
+          orderId,
+          amount: amount,
+          packageType: packageType || 'single',
+          status: paymentStatus,
+          transactionId: transactionId || '',
         });
-      } else {
-        console.error("Failed to send emails:", emailResult.error);
-        // Log error but don't fail the payment status check
+
+        if (emailResult && emailResult.success) {
+          console.log("Emails sent successfully:", {
+            customerMessageId: emailResult.customerMessageId,
+            adminMessageId: emailResult.adminMessageId
+          });
+          emailStatus = {
+            success: true,
+            message: "Email sent successfully"
+          };
+        } else {
+          console.error("Failed to send emails:", emailResult?.error || "Unknown error");
+          emailStatus = {
+            success: false,
+            message: emailResult?.error || "Failed to send email"
+          };
+        }
+      } catch (emailError) {
+        console.error("Error in email sending function:", emailError);
+        console.error("Email error stack:", emailError.stack);
+        emailStatus = {
+          success: false,
+          message: emailError.message || "Error sending email"
+        };
       }
     } else {
       console.warn("Customer email not provided in query params, skipping email notification. Available params:", Object.keys(req.query));
+      emailStatus = {
+        success: false,
+        message: "Email not provided"
+      };
     }
 
     // Return payment status for frontend
@@ -143,11 +200,17 @@ export default async function handler(req, res) {
       orderId,
       transactionId,
       amount,
+      emailStatus,
       data: paymentData,
     });
 
   } catch (error) {
     console.error("Payment Status Error:", error);
-    return res.status(500).json({ error: "Internal Server Error", details: error.message });
+    console.error("Error Stack:", error.stack);
+    return res.status(500).json({ 
+      error: "Internal Server Error", 
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 }

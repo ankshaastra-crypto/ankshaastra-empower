@@ -151,14 +151,31 @@ export default async function handler(req, res) {
     // Extract customer info from query params (passed from redirect URL)
     const customerEmail = req.query.email || '';
     const customerName = req.query.name || 'Customer';
+    const customerMobile = req.query.mobile || '';
+    const customerDob = req.query.dob || '';
     const packageType = req.query.package || 'single';
+    // Extract person details for family package
+    const person1Name = req.query.person1Name || customerName;
+    const person1Dob = req.query.person1Dob || customerDob;
+    const person2Name = req.query.person2Name || '';
+    const person2Dob = req.query.person2Dob || '';
+    const person3Name = req.query.person3Name || '';
+    const person3Dob = req.query.person3Dob || '';
 
     // Log query parameters for debugging
     console.log("Payment Status - Query Params:", {
       merchantTransactionId,
       email: customerEmail,
       name: customerName,
+      mobile: customerMobile,
+      dob: customerDob,
       package: packageType,
+      person1Name,
+      person1Dob,
+      person2Name,
+      person2Dob,
+      person3Name,
+      person3Dob,
       paymentStatus
     });
 
@@ -180,6 +197,14 @@ export default async function handler(req, res) {
           to: customerEmail,
           customerEmail,
           customerName: customerName || 'Customer',
+          customerMobile: customerMobile,
+          customerDob: customerDob,
+          person1Name: person1Name,
+          person1Dob: person1Dob,
+          person2Name: person2Name,
+          person2Dob: person2Dob,
+          person3Name: person3Name,
+          person3Dob: person3Dob,
           orderId,
           amount: amount,
           packageType: packageType || 'single',
@@ -189,7 +214,12 @@ export default async function handler(req, res) {
 
         console.log("Email result:", JSON.stringify(emailResult, null, 2));
 
-        if (emailResult && emailResult.success) {
+        // Strict validation: only mark as success if we have explicit success flag AND messageIds
+        const hasSuccessFlag = emailResult && emailResult.success === true;
+        const hasCustomerMessageId = emailResult && emailResult.customerMessageId;
+        const hasAdminMessageId = emailResult && emailResult.adminMessageId;
+        
+        if (hasSuccessFlag && hasCustomerMessageId && hasAdminMessageId) {
           console.log("✅ Emails sent successfully:", {
             customerMessageId: emailResult.customerMessageId,
             adminMessageId: emailResult.adminMessageId
@@ -201,16 +231,34 @@ export default async function handler(req, res) {
             adminMessageId: emailResult.adminMessageId
           };
         } else {
-          const errorMsg = emailResult?.error || "Unknown error";
+          // If success flag is false, missing, or messageIds are missing, mark as failed
+          const errorMsg = emailResult?.error || 
+            (!hasSuccessFlag ? "Email sending failed - no success confirmation" : 
+             !hasCustomerMessageId ? "Customer email failed - no message ID" :
+             !hasAdminMessageId ? "Admin email failed - no message ID" : 
+             "Unknown error sending emails");
+          
           console.error("❌ Failed to send emails:", errorMsg);
+          console.error("Email validation:", {
+            hasSuccessFlag,
+            hasCustomerMessageId,
+            hasAdminMessageId,
+            emailResult: emailResult
+          });
           console.error("Email error details:", emailResult?.details || {});
+          
           emailStatus = {
             success: false,
             message: errorMsg,
             error: errorMsg,
             details: emailResult?.details || {},
             customerError: emailResult?.customerError,
-            adminError: emailResult?.adminError
+            adminError: emailResult?.adminError,
+            validation: {
+              hasSuccessFlag,
+              hasCustomerMessageId,
+              hasAdminMessageId
+            }
           };
         }
       } catch (emailError) {

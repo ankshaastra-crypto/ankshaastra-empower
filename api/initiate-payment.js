@@ -48,6 +48,21 @@ export default async function handler(req, res) {
     
     const redirectUrl = `https://${req.headers.host}/payment-status${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
 
+    // Prepare metadata with customer details (PhonePe requires metadata as JSON string)
+    const metadataObject = {
+      email: email || '',
+      name: name || '',
+      mobile: mobile || '',
+      dob: dob || '',
+      packageType: packageType || 'single',
+      person1Name: person1Name || '',
+      person1Dob: person1Dob || '',
+      person2Name: person2Name || '',
+      person2Dob: person2Dob || '',
+      person3Name: person3Name || '',
+      person3Dob: person3Dob || '',
+    };
+
     // 1. Build the Payment Payload
     const payload = {
       merchantId,
@@ -57,6 +72,10 @@ export default async function handler(req, res) {
       redirectUrl: redirectUrl,
       redirectMode: "REDIRECT",
       paymentInstrument: { type: "PAY_PAGE" },
+      // PhonePe accepts metadata as a JSON string in the payload
+      // Note: Some PhonePe versions might use 'metaInfo' instead of 'metadata'
+      metadata: JSON.stringify(metadataObject),
+      metaInfo: JSON.stringify(metadataObject), // Try both field names
     };
 
     // 2. Create the Checksum (Digital Signature)

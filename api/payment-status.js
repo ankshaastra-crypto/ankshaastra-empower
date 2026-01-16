@@ -44,9 +44,17 @@ export default async function handler(req, res) {
 
     // Check payment status with PhonePe
     const statusUrl = `/pg/v1/status/${merchantId}/${merchantTransactionId}`;
-    const checksumString = statusUrl + saltKey + "###" + saltIndex;
+    // PhonePe checksum format: sha256(statusUrl + saltKey) + "###" + saltIndex
+    const checksumString = statusUrl + saltKey;
     const sha256 = crypto.createHash('sha256').update(checksumString).digest('hex');
     const checksum = sha256 + "###" + saltIndex;
+    
+    console.log("Status API Checksum Debug:", {
+      statusUrl,
+      checksumString,
+      checksumHash: sha256,
+      checksum
+    });
 
     const statusResponse = await fetch(`https://api.phonepe.com/apis/hermes${statusUrl}`, {
       method: 'GET',

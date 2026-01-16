@@ -89,6 +89,15 @@ const PaymentStatus = () => {
         if (result.success && result.status === "SUCCESS") {
           setStatus("success");
           setPaymentData(result);
+          
+          // Track purchase event with Meta Pixel
+          const amount = result.amount || 0;
+          const orderId = result.orderId || merchantTransactionId;
+          const pkgType = packageType || "single";
+
+          if (amount > 0) {
+            trackPurchase(amount, "INR", orderId, pkgType);
+          }
         } else {
           console.warn("Payment marked as failed:", result);
           setStatus("failed");

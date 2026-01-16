@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { amount, mobile, orderId, email, name, packageType } = req.body;
+    const { amount, mobile, orderId, email, name, dob, packageType, person1Name, person1Dob, person2Name, person2Dob, person3Name, person3Dob } = req.body;
 
     // Get your keys from Vercel Environment Variables
     const merchantId = process.env.PHONEPE_MERCHANT_ID;
@@ -35,7 +35,16 @@ export default async function handler(req, res) {
     redirectParams.append('orderId', orderId); // Include orderId so we can check payment status
     if (email) redirectParams.append('email', email);
     if (name) redirectParams.append('name', name);
+    if (mobile) redirectParams.append('mobile', mobile);
+    if (dob) redirectParams.append('dob', dob);
     if (packageType) redirectParams.append('package', packageType);
+    // Include all person details for family package
+    if (person1Name) redirectParams.append('person1Name', person1Name);
+    if (person1Dob) redirectParams.append('person1Dob', person1Dob);
+    if (person2Name) redirectParams.append('person2Name', person2Name);
+    if (person2Dob) redirectParams.append('person2Dob', person2Dob);
+    if (person3Name) redirectParams.append('person3Name', person3Name);
+    if (person3Dob) redirectParams.append('person3Dob', person3Dob);
     
     const redirectUrl = `https://${req.headers.host}/payment-status${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
 

@@ -1,216 +1,309 @@
-import crypto from 'crypto';
-import { sendPaymentEmail } from './send-email.js';
+import { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
-export default async function handler(req, res) {
-  // Handle both GET (redirect) and POST requests
-  if (req.method !== 'GET' && req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
+interface PaymentData {
+  success: boolean;
+  status: "SUCCESS" | "FAILED";
+  orderId: string;
+  transactionId?: string;
+  amount?: number;
+  emailStatus?: {
+    success: boolean;
+    message: string;
+  };
+  data?: unknown;
+}
 
-  try {
-    // PhonePe redirects with query parameters
-    // Note: PhonePe may redirect with different parameter names
-    // PhonePe might append its own params, so check all possible parameter names
-    // Also check for orderId which we include in our redirect URL
-    const merchantTransactionId = 
-      req.query.merchantTransactionId || 
-      req.query.txnId || 
-      req.query.transactionId ||
-      req.query.transaction_id ||
-      req.query.orderId || // Use orderId as fallback since we include it in redirect URL
-      req.query.merchantTransactionId;
-    
-    // Log all query parameters for debugging
-    console.log("All Query Parameters:", JSON.stringify(req.query, null, 2));
-    
-    // Get PhonePe keys
-    const merchantId = process.env.PHONEPE_MERCHANT_ID;
-    const saltKey = process.env.PHONEPE_SALT_KEY;
-    const saltIndex = process.env.PHONEPE_SALT_INDEX;
+const PaymentStatus = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [status, setStatus] = useState<"loading" | "success" | "failed">(
+    "loading"
+  );
+  const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
 
-    if (!merchantId || !saltKey || !saltIndex) {
-      console.error("Missing PhonePe credentials");
-      return res.status(500).json({ error: "Server configuration error" });
-    }
+  useEffect(() => {
+    const checkPaymentStatus = async () => {
+      // PhonePe may redirect with different parameter names
+      // Check multiple possible parameter names that PhonePe might use
+      // Also check for orderId which we include in our redirect URL
+      const merchantTransactionId =
+        searchParams.get("merchantTransactionId") ||
+        searchParams.get("txnId") ||
+        searchParams.get("transactionId") ||
+        searchParams.get("transaction_id") ||
+        searchParams.get("orderId") || // Use orderId as fallback since we include it in redirect URL
+        searchParams.get("merchantTransactionId");
 
-    if (!merchantTransactionId) {
-      console.error("Missing transaction ID. Available query params:", Object.keys(req.query));
-      return res.status(400).json({ 
-        error: "Missing transaction ID",
-        availableParams: Object.keys(req.query),
-        query: req.query
+      const email = searchParams.get("email");
+      const name = searchParams.get("name");
+      const packageType = searchParams.get("package");
+
+      // Log all parameters for debugging
+      console.log("Payment Status Page - All URL Params:", {
+        merchantTransactionId,
+        email,
+        name,
+        packageType,
+        allParams: Object.fromEntries(searchParams.entries()),
       });
-    }
 
-    // Check payment status with PhonePe
-    const statusUrl = `/pg/v1/status/${merchantId}/${merchantTransactionId}`;
-    const checksumString = statusUrl + saltKey + "###" + saltIndex;
-    const sha256 = crypto.createHash('sha256').update(checksumString).digest('hex');
-    const checksum = sha256 + "###" + saltIndex;
+      if (!merchantTransactionId) {
+        console.error(
+          "No transaction ID found in URL parameters. Available params:",
+          Object.fromEntries(searchParams.entries())
+        );
+        setStatus("failed");
+        return;
+      }
 
-    const statusResponse = await fetch(`https://api.phonepe.com/apis/hermes${statusUrl}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-VERIFY': checksum,
-        'X-MERCHANT-ID': merchantId,
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!statusResponse.ok) {
-      const errorText = await statusResponse.text();
-      console.error("PhonePe API Error:", {
-        status: statusResponse.status,
-        statusText: statusResponse.statusText,
-        body: errorText
-      });
-      return res.status(500).json({ 
-        error: "Failed to fetch payment status from PhonePe",
-        details: `PhonePe API returned ${statusResponse.status}: ${statusResponse.statusText}`
-      });
-    }
-
-    const statusResult = await statusResponse.json();
-    
-    // Log raw response for debugging
-    console.log("PhonePe Status API Raw Response:", JSON.stringify(statusResult, null, 2));
-    
-    // Check if response has the expected structure
-    if (!statusResult || !statusResult.response) {
-      console.error("Invalid PhonePe response structure:", statusResult);
-      return res.status(500).json({ 
-        error: "Invalid response from PhonePe",
-        details: "Response missing 'response' field",
-        received: statusResult
-      });
-    }
-    
-    // Decode the response
-    let paymentData;
-    try {
-      paymentData = JSON.parse(Buffer.from(statusResult.response, 'base64').toString('utf-8'));
-      console.log("Decoded Payment Data:", JSON.stringify(paymentData, null, 2));
-    } catch (error) {
-      console.error("Error decoding status response:", error);
-      console.error("Raw response string:", statusResult.response);
-      return res.status(500).json({ 
-        error: "Failed to decode payment status",
-        details: error.message
-      });
-    }
-
-    // Validate paymentData structure
-    if (!paymentData || typeof paymentData !== 'object') {
-      console.error("Invalid paymentData structure:", paymentData);
-      return res.status(500).json({ 
-        error: "Invalid payment data structure",
-        details: "Payment data is not a valid object"
-      });
-    }
-
-    // Check multiple possible success indicators from PhonePe
-    const isSuccess = 
-      paymentData.code === 'PAYMENT_SUCCESS' ||
-      paymentData.code === 'SUCCESS' ||
-      paymentData.success === true ||
-      (paymentData.data && paymentData.data.state === 'COMPLETED') ||
-      (paymentData.state === 'COMPLETED');
-    
-    const paymentStatus = isSuccess ? 'SUCCESS' : 'FAILED';
-    
-    console.log("Payment Status Determination:", {
-      code: paymentData.code,
-      success: paymentData.success,
-      state: paymentData.data?.state || paymentData.state,
-      isSuccess,
-      paymentStatus
-    });
-    const orderId = merchantTransactionId;
-    const transactionId = paymentData.data?.transactionId || paymentData.data?.merchantTransactionId || '';
-    // PhonePe returns amount in paise, use it directly (send-email.js will divide by 100)
-    const amount = paymentData.data?.amount || 0;
-
-    // Extract customer info from query params (passed from redirect URL)
-    const customerEmail = req.query.email || '';
-    const customerName = req.query.name || 'Customer';
-    const packageType = req.query.package || 'single';
-
-    // Log query parameters for debugging
-    console.log("Payment Status - Query Params:", {
-      merchantTransactionId,
-      email: customerEmail,
-      name: customerName,
-      package: packageType,
-      paymentStatus
-    });
-
-    // Send emails if customer email is provided
-    let emailStatus = null;
-    if (customerEmail) {
       try {
-        console.log("Attempting to send emails for order:", orderId);
-        const emailResult = await sendPaymentEmail({
-          to: customerEmail,
-          customerEmail,
-          customerName: customerName || 'Customer',
-          orderId,
-          amount: amount,
-          packageType: packageType || 'single',
-          status: paymentStatus,
-          transactionId: transactionId || '',
+        // Build query parameters
+        const params = new URLSearchParams({
+          merchantTransactionId,
+          email: email || "",
+          name: name || "",
+          package: packageType || "single",
         });
 
-        if (emailResult && emailResult.success) {
-          console.log("Emails sent successfully:", {
-            customerMessageId: emailResult.customerMessageId,
-            adminMessageId: emailResult.adminMessageId
-          });
-          emailStatus = {
-            success: true,
-            message: "Email sent successfully"
-          };
-        } else {
-          console.error("Failed to send emails:", emailResult?.error || "Unknown error");
-          emailStatus = {
-            success: false,
-            message: emailResult?.error || "Failed to send email"
-          };
+        // Call our API to check payment status
+        const response = await fetch(
+          `/api/payment-status?${params.toString()}`
+        );
+
+        if (!response.ok) {
+          console.error("API Error:", response.status, response.statusText);
+          setStatus("failed");
+          return;
         }
-      } catch (emailError) {
-        console.error("Error in email sending function:", emailError);
-        console.error("Email error stack:", emailError.stack);
-        emailStatus = {
-          success: false,
-          message: emailError.message || "Error sending email"
-        };
+
+        const result = await response.json();
+
+        // Log the result for debugging
+        console.log("Payment Status API Result:", result);
+
+        if (result.success && result.status === "SUCCESS") {
+          setStatus("success");
+          setPaymentData(result);
+        } else {
+          console.warn("Payment marked as failed:", result);
+          setStatus("failed");
+          setPaymentData(result);
+        }
+      } catch (error) {
+        console.error("Error checking payment status:", error);
+        setStatus("failed");
       }
-    } else {
-      console.warn("Customer email not provided in query params, skipping email notification. Available params:", Object.keys(req.query));
-      emailStatus = {
-        success: false,
-        message: "Email not provided"
-      };
-    }
+    };
 
-    // Return payment status for frontend
-    return res.status(200).json({
-      success: true,
-      status: paymentStatus,
-      orderId,
-      transactionId,
-      amount,
-      emailStatus,
-      data: paymentData,
-    });
+    checkPaymentStatus();
+  }, [searchParams]);
 
-  } catch (error) {
-    console.error("Payment Status Error:", error);
-    console.error("Error Stack:", error.stack);
-    return res.status(500).json({ 
-      error: "Internal Server Error", 
-      details: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
-  }
-}
+  const packageNames: Record<string, string> = {
+    namecheck: "Name Check",
+    single: "Single Report",
+    family: "Family Package (3 Reports)",
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-1">
+        <section className="section-padding bg-background">
+          <div className="container mx-auto px-4">
+            <div className="max-w-2xl mx-auto">
+              {status === "loading" && (
+                <div className="text-center py-20">
+                  <Loader2 className="w-16 h-16 animate-spin text-accent mx-auto mb-4" />
+                  <h2 className="text-2xl font-heading font-bold text-ink-black mb-2">
+                    Checking Payment Status...
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Please wait while we verify your payment
+                  </p>
+                </div>
+              )}
+
+              {status === "success" && (
+                <div className="bg-card rounded-2xl p-8 shadow-card text-center">
+                  <div className="mb-6">
+                    <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle2 className="w-12 h-12 text-green-600" />
+                    </div>
+                    <h1 className="text-3xl font-heading font-bold text-ink-black mb-2">
+                      Payment Successful!
+                    </h1>
+                    <p className="text-muted-foreground">
+                      Your payment has been processed successfully
+                    </p>
+                  </div>
+
+                  {paymentData && (
+                    <div className="bg-muted/50 rounded-xl p-6 mb-6 text-left">
+                      <div className="space-y-3">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Order ID:
+                          </span>
+                          <span className="font-semibold text-ink-black">
+                            {paymentData.orderId}
+                          </span>
+                        </div>
+                        {paymentData.transactionId && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">
+                              Transaction ID:
+                            </span>
+                            <span className="font-semibold text-ink-black">
+                              {paymentData.transactionId}
+                            </span>
+                          </div>
+                        )}
+                        {paymentData.amount && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">
+                              Amount Paid:
+                            </span>
+                            <span className="font-semibold text-accent">
+                              ₹{(paymentData.amount / 100).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+                        {paymentData.emailStatus && (
+                          <div className="flex justify-between items-center pt-2 border-t border-muted">
+                            <span className="text-muted-foreground">
+                              Email Status:
+                            </span>
+                            <span
+                              className={`font-semibold ${
+                                paymentData.emailStatus.success
+                                  ? "text-green-600"
+                                  : "text-orange-600"
+                              }`}
+                            >
+                              {paymentData.emailStatus.success
+                                ? "✓ Sent Successfully"
+                                : `✗ ${paymentData.emailStatus.message}`}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {paymentData?.emailStatus && (
+                    <div
+                      className={`rounded-xl p-4 mb-6 ${
+                        paymentData.emailStatus.success
+                          ? "bg-green-50 border border-green-200"
+                          : "bg-orange-50 border border-orange-200"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {paymentData.emailStatus.success ? (
+                          <CheckCircle2 className="w-5 h-5 text-green-600" />
+                        ) : (
+                          <XCircle className="w-5 h-5 text-orange-600" />
+                        )}
+                        <p
+                          className={`text-sm font-medium ${
+                            paymentData.emailStatus.success
+                              ? "text-green-800"
+                              : "text-orange-800"
+                          }`}
+                        >
+                          {paymentData.emailStatus.success
+                            ? "Email sent successfully! Check your inbox for confirmation."
+                            : `Email Status: ${paymentData.emailStatus.message}`}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="bg-accent/10 border border-accent/30 rounded-xl p-6 mb-6">
+                    <p className="text-ink-black mb-2">
+                      <strong>What's Next?</strong>
+                    </p>
+                    <p className="text-muted-foreground text-sm">
+                      You will receive your personalized numerology report via
+                      email within 24-48 hours. Please check your inbox (and
+                      spam folder) for the delivery confirmation.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-4 justify-center">
+                    <Button variant="hero" onClick={() => navigate("/")}>
+                      Return to Home
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {status === "failed" && (
+                <div className="bg-card rounded-2xl p-8 shadow-card text-center">
+                  <div className="mb-6">
+                    <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <XCircle className="w-12 h-12 text-red-600" />
+                    </div>
+                    <h1 className="text-3xl font-heading font-bold text-ink-black mb-2">
+                      Payment Failed
+                    </h1>
+                    <p className="text-muted-foreground">
+                      We're sorry, but your payment could not be processed
+                    </p>
+                  </div>
+
+                  {paymentData?.orderId && (
+                    <div className="bg-muted/50 rounded-xl p-6 mb-6 text-left">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Order ID:</span>
+                        <span className="font-semibold text-ink-black">
+                          {paymentData.orderId}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
+                    <p className="text-red-800 mb-2">
+                      <strong>What to do?</strong>
+                    </p>
+                    <p className="text-red-700 text-sm">
+                      Please try again or contact us at{" "}
+                      <a
+                        href="tel:9667305577"
+                        className="underline font-semibold"
+                      >
+                        9667305577
+                      </a>{" "}
+                      for assistance.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-4 justify-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate("/#order-form")}
+                    >
+                      Try Again
+                    </Button>
+                    <Button variant="hero" onClick={() => navigate("/")}>
+                      Return to Home
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default PaymentStatus;

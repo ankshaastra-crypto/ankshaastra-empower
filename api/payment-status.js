@@ -63,8 +63,18 @@ export default async function handler(req, res) {
     const customerName = req.query.name || 'Customer';
     const packageType = req.query.package || 'single';
 
+    // Log query parameters for debugging
+    console.log("Payment Status - Query Params:", {
+      merchantTransactionId,
+      email: customerEmail,
+      name: customerName,
+      package: packageType,
+      paymentStatus
+    });
+
     // Send emails if customer email is provided
     if (customerEmail) {
+      console.log("Attempting to send emails for order:", orderId);
       const emailResult = await sendPaymentEmail({
         to: customerEmail,
         customerEmail,
@@ -76,12 +86,17 @@ export default async function handler(req, res) {
         transactionId: transactionId || '',
       });
 
-      if (!emailResult.success) {
+      if (emailResult.success) {
+        console.log("Emails sent successfully:", {
+          customerMessageId: emailResult.customerMessageId,
+          adminMessageId: emailResult.adminMessageId
+        });
+      } else {
         console.error("Failed to send emails:", emailResult.error);
         // Log error but don't fail the payment status check
       }
     } else {
-      console.warn("Customer email not provided, skipping email notification");
+      console.warn("Customer email not provided in query params, skipping email notification. Available params:", Object.keys(req.query));
     }
 
     // Return payment status for frontend

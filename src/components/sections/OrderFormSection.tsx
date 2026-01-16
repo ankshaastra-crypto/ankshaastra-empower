@@ -89,6 +89,8 @@ const handleSubmit = async (e: React.FormEvent) => {
         amount: price,
         mobile: formData.mobile,
         email: formData.email,
+        name: formData.person1Name || '',
+        packageType: packageType,
         orderId: orderId
       }),
     });

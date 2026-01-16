@@ -156,28 +156,90 @@ export default async function handler(req, res) {
     if (encryptedData) {
       try {
         decryptedData = decryptCustomerData(encryptedData);
+        // Validate decryption worked - check if we got actual data
+        if (!decryptedData || Object.keys(decryptedData).length === 0) {
+          console.error("Decryption returned empty data");
+        }
       } catch (error) {
         console.error("Error decrypting customer data");
       }
     }
 
-    // Extract customer info - prefer decrypted data, then metadata (from PhonePe response), then empty defaults
-    const customerEmail = decryptedData.email || metadata.email || '';
-    const customerName = decryptedData.name || metadata.name || 'Customer';
-    const customerMobile = decryptedData.mobile || metadata.mobile || '';
-    const customerDob = decryptedData.dob || metadata.dob || '';
-    const packageType = decryptedData.packageType || metadata.packageType || 'single';
+    // Helper function to safely extract query params (fallback if decryption fails)
+    const getQueryParam = (param) => {
+      const value = req.query[param];
+      if (!value) return '';
+      try {
+        return decodeURIComponent(value.toString()).trim();
+      } catch {
+        return value.toString().trim();
+      }
+    };
+
+    // Extract customer info - prefer decrypted data, then query params (backward compatibility), then metadata, then empty defaults
+    const customerEmail = (decryptedData.email && decryptedData.email.trim()) || 
+                          getQueryParam('email') || 
+                          (metadata.email && metadata.email.trim()) || 
+                          '';
+    const customerName = (decryptedData.name && decryptedData.name.trim()) || 
+                         getQueryParam('name') || 
+                         (metadata.name && metadata.name.trim()) || 
+                         'Customer';
+    const customerMobile = (decryptedData.mobile && decryptedData.mobile.trim()) || 
+                           getQueryParam('mobile') || 
+                           (metadata.mobile && metadata.mobile.trim()) || 
+                           '';
+    const customerDob = (decryptedData.dob && decryptedData.dob.trim()) || 
+                        getQueryParam('dob') || 
+                        (metadata.dob && metadata.dob.trim()) || 
+                        '';
+    const packageType = (decryptedData.packageType && decryptedData.packageType.trim()) || 
+                       getQueryParam('package') || 
+                       (metadata.packageType && metadata.packageType.trim()) || 
+                       'single';
     // Extract person details for family package
-    const person1Name = decryptedData.person1Name || metadata.person1Name || customerName;
-    const person1Dob = decryptedData.person1Dob || metadata.person1Dob || customerDob;
-    const person2Name = decryptedData.person2Name || metadata.person2Name || '';
-    const person2Dob = decryptedData.person2Dob || metadata.person2Dob || '';
-    const person3Name = decryptedData.person3Name || metadata.person3Name || '';
-    const person3Dob = decryptedData.person3Dob || metadata.person3Dob || '';
+    const person1Name = (decryptedData.person1Name && decryptedData.person1Name.trim()) || 
+                       getQueryParam('person1Name') || 
+                       (metadata.person1Name && metadata.person1Name.trim()) || 
+                       customerName;
+    const person1Dob = (decryptedData.person1Dob && decryptedData.person1Dob.trim()) || 
+                      getQueryParam('person1Dob') || 
+                      (metadata.person1Dob && metadata.person1Dob.trim()) || 
+                      customerDob;
+    const person2Name = (decryptedData.person2Name && decryptedData.person2Name.trim()) || 
+                       getQueryParam('person2Name') || 
+                       (metadata.person2Name && metadata.person2Name.trim()) || 
+                       '';
+    const person2Dob = (decryptedData.person2Dob && decryptedData.person2Dob.trim()) || 
+                      getQueryParam('person2Dob') || 
+                      (metadata.person2Dob && metadata.person2Dob.trim()) || 
+                      '';
+    const person3Name = (decryptedData.person3Name && decryptedData.person3Name.trim()) || 
+                       getQueryParam('person3Name') || 
+                       (metadata.person3Name && metadata.person3Name.trim()) || 
+                       '';
+    const person3Dob = (decryptedData.person3Dob && decryptedData.person3Dob.trim()) || 
+                      getQueryParam('person3Dob') || 
+                      (metadata.person3Dob && metadata.person3Dob.trim()) || 
+                      '';
+
+    // Validate customer email is present (required field)
+    if (!customerEmail || customerEmail.trim() === '') {
+      console.error("❌ Customer email is missing - cannot send email notifications");
+      return res.status(400).json({
+        success: false,
+        error: "Customer email is required",
+        message: "Email address is mandatory for payment processing. Please ensure email is provided in the payment form.",
+        status: paymentStatus,
+        orderId,
+        transactionId,
+        amount
+      });
+    }
 
     // Send emails if customer email is provided
     let emailStatus = null;
-    if (customerEmail) {
+    if (customerEmail && customerEmail.trim() !== '') {
       try {
         const emailResult = await sendPaymentEmail({
           to: customerEmail,
@@ -244,10 +306,10 @@ export default async function handler(req, res) {
         };
       }
     } else {
-      console.warn("⚠️ Customer email not provided in query params, skipping email notification");
+      console.warn("⚠️ Customer email not provided, skipping email notification");
       emailStatus = {
         success: false,
-        message: "Email not provided"
+        message: "Email not provided - customer email is required for notifications"
       };
     }
 

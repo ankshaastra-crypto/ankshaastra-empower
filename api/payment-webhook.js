@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { response, customerEmail, customerName, packageType, amount } = req.body;
+    const { response, customerEmail, customerName, customerMobile, customerDob, packageType, amount, person1Name, person1Dob, person2Name, person2Dob, person3Name, person3Dob } = req.body;
 
     // Get PhonePe keys for verification
     const saltKey = process.env.PHONEPE_SALT_KEY;
@@ -64,6 +64,14 @@ export default async function handler(req, res) {
       to: customerEmail,
       customerEmail,
       customerName: customerName || 'Customer',
+      customerMobile: customerMobile || '',
+      customerDob: customerDob || '',
+      person1Name: person1Name || customerName || '',
+      person1Dob: person1Dob || customerDob || '',
+      person2Name: person2Name || '',
+      person2Dob: person2Dob || '',
+      person3Name: person3Name || '',
+      person3Dob: person3Dob || '',
       orderId,
       amount: paymentAmount,
       packageType: packageType || 'single',

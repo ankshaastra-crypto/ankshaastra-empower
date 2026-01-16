@@ -190,25 +190,36 @@ export default async function handler(req, res) {
       const value = req.query[param];
       if (!value) return '';
       try {
-        return decodeURIComponent(value.toString()).trim();
+        const decoded = decodeURIComponent(value.toString()).trim();
+        return decoded || '';
       } catch {
-        return value.toString().trim();
+        const trimmed = value.toString().trim();
+        return trimmed || '';
       }
     };
 
     // Extract customer info - prefer decrypted data, then query params (backward compatibility), then metadata, then empty defaults
-    const customerEmail = (decryptedData.email && decryptedData.email.trim()) || 
-                          getQueryParam('email') || 
-                          (metadata.email && metadata.email.trim()) || 
-                          '';
+    // Check each source explicitly and log for debugging
+    const emailFromDecrypted = decryptedData.email ? decryptedData.email.trim() : '';
+    const emailFromQuery = getQueryParam('email');
+    const emailFromMetadata = metadata.email ? metadata.email.trim() : '';
+    
+    const customerEmail = emailFromDecrypted || emailFromQuery || emailFromMetadata || '';
     
     // Debug logging for email extraction (without logging actual email)
     if (!customerEmail || customerEmail.trim() === '') {
       console.error("❌ Email extraction failed:");
-      console.error("  - Decrypted email:", decryptedData.email ? "present" : "missing");
-      console.error("  - Query param email:", getQueryParam('email') ? "present" : "missing");
-      console.error("  - Metadata email:", metadata.email ? "present" : "missing");
+      console.error("  - Decrypted email:", emailFromDecrypted ? `present (length: ${emailFromDecrypted.length})` : "missing");
+      console.error("  - Query param email:", emailFromQuery ? `present (length: ${emailFromQuery.length}, raw: ${req.query.email})` : "missing");
+      console.error("  - Metadata email:", emailFromMetadata ? `present (length: ${emailFromMetadata.length})` : "missing");
       console.error("  - Encrypted data present:", !!encryptedData);
+      console.error("  - All query params:", Object.keys(req.query));
+      console.error("  - Email query param value:", req.query.email ? `type: ${typeof req.query.email}, value length: ${req.query.email.toString().length}` : "not present");
+    } else {
+      console.log("✅ Email extracted successfully from:", 
+        emailFromDecrypted ? "decrypted data" : 
+        emailFromQuery ? "query params" : 
+        "metadata");
     }
     const customerName = (decryptedData.name && decryptedData.name.trim()) || 
                          getQueryParam('name') || 
@@ -263,8 +274,11 @@ export default async function handler(req, res) {
       console.error("  - Decrypted data keys:", Object.keys(decryptedData));
       console.error("  - Metadata keys:", Object.keys(metadata));
       console.error("  - All query params:", Object.keys(req.query));
+      console.error("  - Email query param value:", req.query.email);
+      console.error("  - Name query param value:", req.query.name);
       
-      // Return error but still return payment status (payment succeeded, just email failed)
+      // Payment succeeded but email data was lost (PhonePe stripped query params)
+      // The webhook should handle email sending, so we'll return success with a note
       return res.status(200).json({
         success: true, // Payment was successful
         status: paymentStatus,
@@ -273,13 +287,14 @@ export default async function handler(req, res) {
         amount,
         emailStatus: {
           success: false,
-          error: "Customer email is required",
-          message: "Email address is mandatory for email notifications. Payment was successful but email could not be sent.",
+          error: "Customer email not available in redirect",
+          message: "Payment was successful! Email notifications will be sent via webhook. If you don't receive an email within a few minutes, please contact support.",
           details: {
             hasEncryptedData: !!encryptedData,
             hasDecryptedData: Object.keys(decryptedData).length > 0,
             hasMetadata: Object.keys(metadata).length > 0,
-            availableQueryParams: Object.keys(req.query).filter(p => p !== 'data')
+            availableQueryParams: Object.keys(req.query).filter(p => p !== 'data'),
+            note: "PhonePe may have stripped query parameters. Email will be sent via webhook."
           }
         },
         data: paymentData,

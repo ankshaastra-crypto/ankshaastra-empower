@@ -144,6 +144,39 @@ ADMIN_EMAIL=admin@yourcompany.com
 
 ---
 
+### Step 6: Set Up Ankshaastra Email
+
+If you're using Ankshaastra's email service:
+
+Add these settings to your `.env` file:
+
+```
+SMTP_HOST=mail.ankshaastra.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=noreply@ankshaastra.com
+SMTP_PASSWORD=password
+SMTP_REJECT_UNAUTHORIZED=true
+FROM_EMAIL=Ankshaastra <noreply@ankshaastra.com>
+ADMIN_EMAIL=social@ankshaastra.com
+```
+
+**Note:**
+
+- SMTP server: `mail.ankshaastra.com`
+- SMTP user: `noreply@ankshaastra.com` (for sending emails)
+- Admin email: `social@ankshaastra.com` (for receiving notifications)
+- IMAP server: `imap.ankshaastra.com` (for receiving emails)
+- POP server: `pop.ankshaastra.com` (for receiving emails)
+- Replace `password` with the actual password for `noreply@ankshaastra.com`
+
+**Alternative Port Settings:**
+If port 587 doesn't work, try:
+
+- Port `465` with `SMTP_SECURE=true` (for SSL)
+
+---
+
 ## How to Add Settings to Your System
 
 ### For Local Testing (On Your Computer)
@@ -264,6 +297,16 @@ To test if your email setup is working:
 - Port: `587`
 - Secure: `false`
 - Requires: App Password
+
+### Ankshaastra
+
+- Host: `mail.ankshaastra.com`
+- Port: `587` (or `465` with secure: `true`)
+- Secure: `false` (or `true` if using port 465)
+- SMTP User: `noreply@ankshaastra.com`
+- Admin Email: `social@ankshaastra.com`
+- IMAP: `imap.ankshaastra.com`
+- POP: `pop.ankshaastra.com`
 
 ---
 

@@ -33,6 +33,14 @@ export async function sendPaymentEmail({
   to, 
   customerEmail, 
   customerName, 
+  customerMobile,
+  customerDob,
+  person1Name,
+  person1Dob,
+  person2Name,
+  person2Dob,
+  person3Name,
+  person3Dob,
   orderId, 
   amount, 
   packageType, 
@@ -42,21 +50,58 @@ export async function sendPaymentEmail({
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@ankshaastra.com';
   const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';
   
+  // Log email addresses being used
+  console.log("📧 Email Configuration:", {
+    customerEmail,
+    adminEmail,
+    fromEmail,
+    orderId,
+    status
+  });
+  
   // Validate required parameters
   if (!customerEmail || !orderId) {
-    console.error('Missing required parameters for email:', { customerEmail, orderId });
+    console.error('❌ Missing required parameters for email:', { customerEmail, orderId });
     return {
       success: false,
       error: 'Missing required parameters: customerEmail and orderId are required.',
     };
   }
 
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(customerEmail)) {
+    console.error('❌ Invalid customer email format:', customerEmail);
+    return {
+      success: false,
+      error: `Invalid customer email format: ${customerEmail}`,
+    };
+  }
+  
+  if (!emailRegex.test(adminEmail)) {
+    console.error('❌ Invalid admin email format:', adminEmail);
+    return {
+      success: false,
+      error: `Invalid admin email format: ${adminEmail}`,
+    };
+  }
+
   // Validate SMTP configuration
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
-    console.error('SMTP configuration is missing');
+    console.error('❌ SMTP configuration is missing');
+    console.error('Missing variables:', {
+      SMTP_HOST: !process.env.SMTP_HOST,
+      SMTP_USER: !process.env.SMTP_USER,
+      SMTP_PASSWORD: !process.env.SMTP_PASSWORD
+    });
     return {
       success: false,
       error: 'SMTP configuration is missing. Please check your environment variables.',
+      missing: {
+        SMTP_HOST: !process.env.SMTP_HOST,
+        SMTP_USER: !process.env.SMTP_USER,
+        SMTP_PASSWORD: !process.env.SMTP_PASSWORD
+      }
     };
   }
 
@@ -187,18 +232,92 @@ export async function sendPaymentEmail({
   // Admin email template
   const adminSubject = `Payment ${status === 'SUCCESS' ? 'Success' : 'Failed'} - Order ${orderId}`;
   
+  // Format DOB for display
+  const formatDob = (dob) => {
+    if (!dob) return 'N/A';
+    try {
+      const date = new Date(dob);
+      return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch {
+      return dob;
+    }
+  };
+
+  // Build customer details section
+  let customerDetailsHtml = '';
+  
+  if (packageType === 'family') {
+    // Family package - show all 3 persons
+    customerDetailsHtml = `
+      <div class="person-section">
+        <h3 style="color: #2E1A47; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #2E1A47; padding-bottom: 5px;">Person 1 Details:</h3>
+        <div class="detail-row">
+          <strong>Name:</strong>
+          <span>${person1Name || customerName || 'N/A'}</span>
+        </div>
+        <div class="detail-row">
+          <strong>Date of Birth:</strong>
+          <span>${formatDob(person1Dob || customerDob)}</span>
+        </div>
+      </div>
+      ${person2Name ? `
+      <div class="person-section">
+        <h3 style="color: #2E1A47; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #2E1A47; padding-bottom: 5px;">Person 2 Details:</h3>
+        <div class="detail-row">
+          <strong>Name:</strong>
+          <span>${person2Name}</span>
+        </div>
+        <div class="detail-row">
+          <strong>Date of Birth:</strong>
+          <span>${formatDob(person2Dob)}</span>
+        </div>
+      </div>
+      ` : ''}
+      ${person3Name ? `
+      <div class="person-section">
+        <h3 style="color: #2E1A47; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #2E1A47; padding-bottom: 5px;">Person 3 Details:</h3>
+        <div class="detail-row">
+          <strong>Name:</strong>
+          <span>${person3Name}</span>
+        </div>
+        <div class="detail-row">
+          <strong>Date of Birth:</strong>
+          <span>${formatDob(person3Dob)}</span>
+        </div>
+      </div>
+      ` : ''}
+    `;
+  } else {
+    // Single/Name Check package - show single person
+    customerDetailsHtml = `
+      <div class="detail-row">
+        <strong>Customer Name:</strong>
+        <span>${person1Name || customerName || 'N/A'}</span>
+      </div>
+      <div class="detail-row">
+        <strong>Date of Birth:</strong>
+        <span>${formatDob(person1Dob || customerDob)}</span>
+      </div>
+    `;
+  }
+  
   const adminHtml = `
     <!DOCTYPE html>
     <html>
     <head>
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 700px; margin: 0 auto; padding: 20px; }
         .header { background: ${status === 'SUCCESS' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)'}; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
         .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
         .status-badge { background: ${status === 'SUCCESS' ? '#10b981' : '#dc2626'}; color: white; padding: 10px 20px; border-radius: 5px; display: inline-block; margin: 20px 0; }
-        .details { background: white; padding: 20px; border-radius: 5px; margin: 20px 0; }
-        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .details { background: white; padding: 25px; border-radius: 5px; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .detail-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-row strong { color: #2E1A47; font-weight: 600; }
+        .person-section { margin-top: 15px; padding-top: 15px; border-top: 2px solid #f0f0f0; }
+        .contact-info { background: #e8f5e9; padding: 15px; border-radius: 5px; margin-top: 15px; }
+        .contact-info strong { color: #2E1A47; }
       </style>
     </head>
     <body>
@@ -210,17 +329,10 @@ export async function sendPaymentEmail({
           <div class="status-badge">${status === 'SUCCESS' ? '✓ Payment Confirmed' : '✗ Payment Failed'}</div>
           
           <div class="details">
+            <h2 style="color: #2E1A47; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #2E1A47; padding-bottom: 10px;">Order Information</h2>
             <div class="detail-row">
               <strong>Order ID:</strong>
               <span>${orderId}</span>
-            </div>
-            <div class="detail-row">
-              <strong>Customer Name:</strong>
-              <span>${customerName || 'N/A'}</span>
-            </div>
-            <div class="detail-row">
-              <strong>Customer Email:</strong>
-              <span>${customerEmail}</span>
             </div>
             <div class="detail-row">
               <strong>Package:</strong>
@@ -236,7 +348,22 @@ export async function sendPaymentEmail({
             </div>
             <div class="detail-row">
               <strong>Status:</strong>
-              <span>${status}</span>
+              <span style="color: ${status === 'SUCCESS' ? '#10b981' : '#dc2626'}; font-weight: bold;">${status}</span>
+            </div>
+          </div>
+
+          <div class="details">
+            <h2 style="color: #2E1A47; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #2E1A47; padding-bottom: 10px;">Customer Details</h2>
+            ${customerDetailsHtml}
+            <div class="contact-info">
+              <div class="detail-row">
+                <strong>Email ID:</strong>
+                <span><a href="mailto:${customerEmail}" style="color: #2E1A47;">${customerEmail}</a></span>
+              </div>
+              <div class="detail-row">
+                <strong>Mobile Number:</strong>
+                <span><a href="tel:${customerMobile || ''}" style="color: #2E1A47;">${customerMobile || 'N/A'}</a></span>
+              </div>
             </div>
           </div>
         </div>
@@ -270,6 +397,7 @@ export async function sendPaymentEmail({
     console.log(`Sending customer email to: ${customerEmail}`);
     let customerEmailResult = null;
     let customerError = null;
+    let customerSuccess = false;
     
     try {
       customerEmailResult = await transporter.sendMail({
@@ -278,16 +406,27 @@ export async function sendPaymentEmail({
         subject: customerSubject,
         html: customerHtml,
       });
-      console.log("Customer email sent successfully:", customerEmailResult.messageId);
+      
+      // Validate that we got a valid response
+      if (customerEmailResult && customerEmailResult.messageId) {
+        customerSuccess = true;
+        console.log("✅ Customer email sent successfully:", customerEmailResult.messageId);
+        console.log("Customer email response:", JSON.stringify(customerEmailResult, null, 2));
+      } else {
+        customerError = new Error("Email sent but no messageId returned");
+        console.error("❌ Customer email sent but invalid response:", customerEmailResult);
+      }
     } catch (customerErr) {
       customerError = customerErr;
-      console.error("Failed to send customer email:", customerErr);
+      customerSuccess = false;
+      console.error("❌ Failed to send customer email:", customerErr);
       console.error("Customer email error details:", {
         code: customerErr.code,
         response: customerErr.response,
         responseCode: customerErr.responseCode,
         command: customerErr.command,
-        message: customerErr.message
+        message: customerErr.message,
+        stack: customerErr.stack
       });
     }
 
@@ -295,6 +434,7 @@ export async function sendPaymentEmail({
     console.log(`Sending admin email to: ${adminEmail}`);
     let adminEmailResult = null;
     let adminError = null;
+    let adminSuccess = false;
     
     try {
       adminEmailResult = await transporter.sendMail({
@@ -303,56 +443,83 @@ export async function sendPaymentEmail({
         subject: adminSubject,
         html: adminHtml,
       });
-      console.log("Admin email sent successfully:", adminEmailResult.messageId);
+      
+      // Validate that we got a valid response
+      if (adminEmailResult && adminEmailResult.messageId) {
+        adminSuccess = true;
+        console.log("✅ Admin email sent successfully:", adminEmailResult.messageId);
+        console.log("Admin email response:", JSON.stringify(adminEmailResult, null, 2));
+      } else {
+        adminError = new Error("Email sent but no messageId returned");
+        console.error("❌ Admin email sent but invalid response:", adminEmailResult);
+      }
     } catch (adminErr) {
       adminError = adminErr;
-      console.error("Failed to send admin email:", adminErr);
+      adminSuccess = false;
+      console.error("❌ Failed to send admin email:", adminErr);
       console.error("Admin email error details:", {
         code: adminErr.code,
         response: adminErr.response,
         responseCode: adminErr.responseCode,
         command: adminErr.command,
-        message: adminErr.message
+        message: adminErr.message,
+        stack: adminErr.stack
       });
     }
 
     // Check if both emails were sent successfully
-    if (customerError && adminError) {
+    if (!customerSuccess && !adminSuccess) {
+      const errorMsg = customerError && adminError 
+        ? `Both emails failed: Customer - ${customerError.message}, Admin - ${adminError.message}`
+        : customerError 
+          ? `Both emails failed: Customer - ${customerError.message}`
+          : `Both emails failed: Admin - ${adminError.message}`;
+      
+      console.error("❌ Both emails failed to send");
       return {
         success: false,
-        error: "Both customer and admin emails failed to send",
-        customerError: customerError.message,
-        adminError: adminError.message,
+        error: errorMsg,
+        customerError: customerError?.message,
+        adminError: adminError?.message,
         details: {
-          customerCode: customerError.code,
-          adminCode: adminError.code
+          customerCode: customerError?.code,
+          adminCode: adminError?.code,
+          customerResponse: customerError?.response,
+          adminResponse: adminError?.response
         }
       };
-    } else if (customerError) {
+    } else if (!customerSuccess) {
+      console.error("❌ Customer email failed, admin succeeded");
       return {
         success: false,
-        error: `Customer email failed: ${customerError.message}`,
-        customerError: customerError.message,
+        error: `Customer email failed: ${customerError?.message || 'Unknown error'}`,
+        customerError: customerError?.message,
         adminMessageId: adminEmailResult?.messageId,
+        adminSuccess: true,
         details: {
-          code: customerError.code,
-          responseCode: customerError.responseCode
+          code: customerError?.code,
+          responseCode: customerError?.responseCode,
+          response: customerError?.response
         }
       };
-    } else if (adminError) {
+    } else if (!adminSuccess) {
+      console.error("❌ Admin email failed, customer succeeded");
       return {
         success: false,
-        error: `Admin email failed: ${adminError.message}`,
+        error: `Admin email failed: ${adminError?.message || 'Unknown error'}`,
         customerMessageId: customerEmailResult?.messageId,
-        adminError: adminError.message,
+        customerSuccess: true,
+        adminError: adminError?.message,
         details: {
-          code: adminError.code,
-          responseCode: adminError.responseCode
+          code: adminError?.code,
+          responseCode: adminError?.responseCode,
+          response: adminError?.response
         }
       };
     }
 
     // Both emails sent successfully
+    console.log("✅ Both emails sent successfully");
     return {
       success: true,
       customerMessageId: customerEmailResult.messageId,

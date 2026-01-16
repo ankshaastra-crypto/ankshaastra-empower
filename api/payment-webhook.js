@@ -53,28 +53,59 @@ export default async function handler(req, res) {
     // PhonePe returns amount in paise, use it directly or fallback to request amount
     const paymentAmount = paymentData.data?.amount || amount || 0;
 
+    // Extract metaInfo from PhonePe response (PhonePe returns it as metaInfo)
+    let metadata = {};
+    const metaInfo = paymentData.data?.metaInfo || paymentData.metaInfo;
+    
+    if (metaInfo) {
+      try {
+        // If metaInfo is a string, parse it; if it's already an object, use it directly
+        if (typeof metaInfo === 'string') {
+          metadata = JSON.parse(metaInfo);
+        } else if (typeof metaInfo === 'object') {
+          metadata = metaInfo;
+        }
+      } catch (error) {
+        // If parsing fails, metadata remains empty object
+        console.error("Error parsing metaInfo");
+      }
+    }
+    
+    // Use metadata if available, otherwise use request body values
+    const finalCustomerEmail = (metadata.email && metadata.email.trim()) || customerEmail || '';
+    const finalCustomerName = (metadata.name && metadata.name.trim()) || customerName || 'Customer';
+    const finalCustomerMobile = (metadata.mobile && metadata.mobile.trim()) || customerMobile || '';
+    const finalCustomerDob = (metadata.dob && metadata.dob.trim()) || customerDob || '';
+    const finalPackageType = (metadata.packageType && metadata.packageType.trim()) || packageType || 'single';
+    const finalPerson1Name = (metadata.person1Name && metadata.person1Name.trim()) || person1Name || finalCustomerName;
+    const finalPerson1Dob = (metadata.person1Dob && metadata.person1Dob.trim()) || person1Dob || finalCustomerDob;
+    const finalPerson2Name = (metadata.person2Name && metadata.person2Name.trim()) || person2Name || '';
+    const finalPerson2Dob = (metadata.person2Dob && metadata.person2Dob.trim()) || person2Dob || '';
+    const finalPerson3Name = (metadata.person3Name && metadata.person3Name.trim()) || person3Name || '';
+    const finalPerson3Dob = (metadata.person3Dob && metadata.person3Dob.trim()) || person3Dob || '';
+
     // Validate required fields before sending email
-    if (!customerEmail || !orderId) {
+    if (!finalCustomerEmail || !orderId) {
       console.error("Missing required fields for email");
       return res.status(400).json({ error: "Missing required fields" });
     }
 
     // Send emails
     const emailResult = await sendPaymentEmail({
-      to: customerEmail,
-      customerEmail,
-      customerName: customerName || 'Customer',
-      customerMobile: customerMobile || '',
-      customerDob: customerDob || '',
-      person1Name: person1Name || customerName || '',
-      person1Dob: person1Dob || customerDob || '',
-      person2Name: person2Name || '',
-      person2Dob: person2Dob || '',
-      person3Name: person3Name || '',
-      person3Dob: person3Dob || '',
+      to: finalCustomerEmail,
+      customerEmail: finalCustomerEmail,
+      customerName: finalCustomerName,
+      customerMobile: finalCustomerMobile,
+      customerDob: finalCustomerDob,
+      person1Name: finalPerson1Name,
+      person1Dob: finalPerson1Dob,
+      person2Name: finalPerson2Name,
+      person2Dob: finalPerson2Dob,
+      person3Name: finalPerson3Name,
+      person3Dob: finalPerson3Dob,
       orderId,
       amount: paymentAmount,
-      packageType: packageType || 'single',
+      packageType: finalPackageType,
       status,
       transactionId: transactionId || '',
     });

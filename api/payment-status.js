@@ -84,27 +84,34 @@ export default async function handler(req, res) {
     // Log raw response for debugging
     console.log("PhonePe Status API Raw Response:", JSON.stringify(statusResult, null, 2));
     
-    // Check if response has the expected structure
-    if (!statusResult || !statusResult.response) {
+    // Handle both response formats:
+    // 1. Old format: response field with base64-encoded data
+    // 2. New format: direct JSON response
+    let paymentData;
+    
+    if (statusResult.response) {
+      // Old format: decode base64 response
+      try {
+        paymentData = JSON.parse(Buffer.from(statusResult.response, 'base64').toString('utf-8'));
+        console.log("Decoded Payment Data (base64 format):", JSON.stringify(paymentData, null, 2));
+      } catch (error) {
+        console.error("Error decoding base64 response:", error);
+        console.error("Raw response string:", statusResult.response);
+        return res.status(500).json({ 
+          error: "Failed to decode payment status",
+          details: error.message
+        });
+      }
+    } else if (statusResult.code || statusResult.data) {
+      // New format: direct JSON response
+      paymentData = statusResult;
+      console.log("Using direct JSON response format:", JSON.stringify(paymentData, null, 2));
+    } else {
       console.error("Invalid PhonePe response structure:", statusResult);
       return res.status(500).json({ 
         error: "Invalid response from PhonePe",
-        details: "Response missing 'response' field",
+        details: "Response format not recognized",
         received: statusResult
-      });
-    }
-    
-    // Decode the response
-    let paymentData;
-    try {
-      paymentData = JSON.parse(Buffer.from(statusResult.response, 'base64').toString('utf-8'));
-      console.log("Decoded Payment Data:", JSON.stringify(paymentData, null, 2));
-    } catch (error) {
-      console.error("Error decoding status response:", error);
-      console.error("Raw response string:", statusResult.response);
-      return res.status(500).json({ 
-        error: "Failed to decode payment status",
-        details: error.message
       });
     }
 
@@ -123,6 +130,7 @@ export default async function handler(req, res) {
       paymentData.code === 'SUCCESS' ||
       paymentData.success === true ||
       (paymentData.data && paymentData.data.state === 'COMPLETED') ||
+      (paymentData.data && paymentData.data.responseCode === 'SUCCESS') ||
       (paymentData.state === 'COMPLETED');
     
     const paymentStatus = isSuccess ? 'SUCCESS' : 'FAILED';
@@ -131,6 +139,7 @@ export default async function handler(req, res) {
       code: paymentData.code,
       success: paymentData.success,
       state: paymentData.data?.state || paymentData.state,
+      responseCode: paymentData.data?.responseCode,
       isSuccess,
       paymentStatus
     });

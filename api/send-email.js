@@ -24,14 +24,14 @@ export async function sendPaymentEmail({
   to, 
   customerEmail, 
   customerName, 
-  customerMobile,
-  customerDob,
-  person1Name,
-  person1Dob,
-  person2Name,
-  person2Dob,
-  person3Name,
-  person3Dob,
+  customerMobile = '',
+  customerDob = '',
+  person1Name = '',
+  person1Dob = '',
+  person2Name = '',
+  person2Dob = '',
+  person3Name = '',
+  person3Dob = '',
   orderId, 
   amount, 
   packageType, 
@@ -40,6 +40,13 @@ export async function sendPaymentEmail({
 }) {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@ankshaastra.com';
   const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';
+  
+  // Normalize values - ensure we have proper fallbacks
+  // Use person1Dob first, then fallback to customerDob
+  const finalCustomerMobile = (customerMobile && customerMobile.toString().trim()) || '';
+  const finalCustomerDob = (customerDob && customerDob.toString().trim()) || '';
+  const finalPerson1Name = (person1Name && person1Name.toString().trim()) || (customerName && customerName.toString().trim()) || '';
+  const finalPerson1Dob = (person1Dob && person1Dob.toString().trim()) || finalCustomerDob;
   
   // Email configuration logged (customer data removed for privacy)
   
@@ -243,11 +250,11 @@ export async function sendPaymentEmail({
         <h3 style="color: #2E1A47; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #2E1A47; padding-bottom: 5px;">Person 1 Details:</h3>
         <div class="detail-row">
           <strong>Name:</strong>
-          <span>${hasValue(person1Name) ? person1Name : (hasValue(customerName) ? customerName : 'N/A')}</span>
+          <span>${hasValue(finalPerson1Name) ? finalPerson1Name : 'N/A'}</span>
         </div>
         <div class="detail-row">
           <strong>Date of Birth:</strong>
-          <span>${formatDob(hasValue(person1Dob) ? person1Dob : customerDob)}</span>
+          <span>${formatDob(finalPerson1Dob)}</span>
         </div>
       </div>
       ${person2Name ? `
@@ -282,11 +289,11 @@ export async function sendPaymentEmail({
     customerDetailsHtml = `
       <div class="detail-row">
         <strong>Customer Name:</strong>
-        <span>${hasValue(person1Name) ? person1Name : (hasValue(customerName) ? customerName : 'N/A')}</span>
+        <span>${hasValue(finalPerson1Name) ? finalPerson1Name : 'N/A'}</span>
       </div>
       <div class="detail-row">
         <strong>Date of Birth:</strong>
-        <span>${formatDob(hasValue(person1Dob) ? person1Dob : customerDob)}</span>
+        <span>${formatDob(finalPerson1Dob)}</span>
       </div>
     `;
   }
@@ -352,7 +359,7 @@ export async function sendPaymentEmail({
               </div>
               <div class="detail-row">
                 <strong>Mobile Number:</strong>
-                <span><a href="tel:${hasValue(customerMobile) ? customerMobile : ''}" style="color: #2E1A47;">${hasValue(customerMobile) ? customerMobile : 'N/A'}</a></span>
+                <span><a href="tel:${hasValue(finalCustomerMobile) ? finalCustomerMobile : ''}" style="color: #2E1A47;">${hasValue(finalCustomerMobile) ? finalCustomerMobile : 'N/A'}</a></span>
               </div>
             </div>
           </div>

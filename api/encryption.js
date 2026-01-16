@@ -17,7 +17,11 @@ const ENCRYPTED_POSITION = TAG_POSITION + TAG_LENGTH;
  * Falls back to a default key if not set (for development only)
  */
 function getEncryptionKey() {
-  const key = process.env.ENCRYPTION_KEY || 'default-key-change-in-production-32-chars!!';
+  const key = process.env.ENCRYPTION_KEY;
+  
+  if (!key || key.trim() === '') {
+    throw new Error('ENCRYPTION_KEY environment variable is not set. Please set it in Vercel environment variables.');
+  }
   
   if (key.length < 32) {
     throw new Error('ENCRYPTION_KEY must be at least 32 characters long');
@@ -119,11 +123,22 @@ export function encryptCustomerData(data) {
  */
 export function decryptCustomerData(encryptedData) {
   try {
-    const decrypted = decrypt(encryptedData);
-    if (!decrypted) {
+    if (!encryptedData || encryptedData.trim() === '') {
       return {};
     }
-    return JSON.parse(decrypted);
+    
+    const decrypted = decrypt(encryptedData);
+    if (!decrypted || decrypted.trim() === '') {
+      return {};
+    }
+    
+    const parsed = JSON.parse(decrypted);
+    // Validate that we got actual data
+    if (!parsed || typeof parsed !== 'object') {
+      return {};
+    }
+    
+    return parsed;
   } catch (error) {
     console.error('Error decrypting customer data');
     return {};

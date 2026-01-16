@@ -33,18 +33,18 @@ export default async function handler(req, res) {
     // We include orderId because PhonePe might not include merchantTransactionId in redirect
     const redirectParams = new URLSearchParams();
     redirectParams.append('orderId', orderId); // Include orderId so we can check payment status
-    if (email) redirectParams.append('email', email);
-    if (name) redirectParams.append('name', name);
-    if (mobile) redirectParams.append('mobile', mobile);
-    if (dob) redirectParams.append('dob', dob);
-    if (packageType) redirectParams.append('package', packageType);
+    if (email && email.trim()) redirectParams.append('email', email.trim());
+    if (name && name.trim()) redirectParams.append('name', name.trim());
+    if (mobile && mobile.trim()) redirectParams.append('mobile', mobile.trim());
+    if (dob && dob.trim()) redirectParams.append('dob', dob.trim());
+    if (packageType && packageType.trim()) redirectParams.append('package', packageType.trim());
     // Include all person details for family package
-    if (person1Name) redirectParams.append('person1Name', person1Name);
-    if (person1Dob) redirectParams.append('person1Dob', person1Dob);
-    if (person2Name) redirectParams.append('person2Name', person2Name);
-    if (person2Dob) redirectParams.append('person2Dob', person2Dob);
-    if (person3Name) redirectParams.append('person3Name', person3Name);
-    if (person3Dob) redirectParams.append('person3Dob', person3Dob);
+    if (person1Name && person1Name.trim()) redirectParams.append('person1Name', person1Name.trim());
+    if (person1Dob && person1Dob.trim()) redirectParams.append('person1Dob', person1Dob.trim());
+    if (person2Name && person2Name.trim()) redirectParams.append('person2Name', person2Name.trim());
+    if (person2Dob && person2Dob.trim()) redirectParams.append('person2Dob', person2Dob.trim());
+    if (person3Name && person3Name.trim()) redirectParams.append('person3Name', person3Name.trim());
+    if (person3Dob && person3Dob.trim()) redirectParams.append('person3Dob', person3Dob.trim());
     
     const redirectUrl = `https://${req.headers.host}/payment-status${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
 
@@ -82,7 +82,7 @@ export default async function handler(req, res) {
     return res.status(200).json(result);
 
   } catch (error) {
-    console.error("API Error:", error);
-    return res.status(500).json({ error: "Internal Server Error", details: error.message });
+    console.error("API Error");
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 }

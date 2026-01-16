@@ -248,22 +248,111 @@ export async function sendPaymentEmail({
   try {
     const transporter = createTransporter();
 
+    // Verify SMTP connection before sending
+    console.log("Verifying SMTP connection...");
+    try {
+      await transporter.verify();
+      console.log("SMTP connection verified successfully");
+    } catch (verifyError) {
+      console.error("SMTP verification failed:", verifyError);
+      return {
+        success: false,
+        error: `SMTP connection failed: ${verifyError.message}`,
+        details: {
+          code: verifyError.code,
+          response: verifyError.response,
+          responseCode: verifyError.responseCode
+        }
+      };
+    }
+
     // Send email to customer
-    const customerEmailResult = await transporter.sendMail({
-      from: fromEmail,
-      to: customerEmail,
-      subject: customerSubject,
-      html: customerHtml,
-    });
+    console.log(`Sending customer email to: ${customerEmail}`);
+    let customerEmailResult = null;
+    let customerError = null;
+    
+    try {
+      customerEmailResult = await transporter.sendMail({
+        from: fromEmail,
+        to: customerEmail,
+        subject: customerSubject,
+        html: customerHtml,
+      });
+      console.log("Customer email sent successfully:", customerEmailResult.messageId);
+    } catch (customerErr) {
+      customerError = customerErr;
+      console.error("Failed to send customer email:", customerErr);
+      console.error("Customer email error details:", {
+        code: customerErr.code,
+        response: customerErr.response,
+        responseCode: customerErr.responseCode,
+        command: customerErr.command,
+        message: customerErr.message
+      });
+    }
 
     // Send email to admin
-    const adminEmailResult = await transporter.sendMail({
-      from: fromEmail,
-      to: adminEmail,
-      subject: adminSubject,
-      html: adminHtml,
-    });
+    console.log(`Sending admin email to: ${adminEmail}`);
+    let adminEmailResult = null;
+    let adminError = null;
+    
+    try {
+      adminEmailResult = await transporter.sendMail({
+        from: fromEmail,
+        to: adminEmail,
+        subject: adminSubject,
+        html: adminHtml,
+      });
+      console.log("Admin email sent successfully:", adminEmailResult.messageId);
+    } catch (adminErr) {
+      adminError = adminErr;
+      console.error("Failed to send admin email:", adminErr);
+      console.error("Admin email error details:", {
+        code: adminErr.code,
+        response: adminErr.response,
+        responseCode: adminErr.responseCode,
+        command: adminErr.command,
+        message: adminErr.message
+      });
+    }
 
+    // Check if both emails were sent successfully
+    if (customerError && adminError) {
+      return {
+        success: false,
+        error: "Both customer and admin emails failed to send",
+        customerError: customerError.message,
+        adminError: adminError.message,
+        details: {
+          customerCode: customerError.code,
+          adminCode: adminError.code
+        }
+      };
+    } else if (customerError) {
+      return {
+        success: false,
+        error: `Customer email failed: ${customerError.message}`,
+        customerError: customerError.message,
+        adminMessageId: adminEmailResult?.messageId,
+        details: {
+          code: customerError.code,
+          responseCode: customerError.responseCode
+        }
+      };
+    } else if (adminError) {
+      return {
+        success: false,
+        error: `Admin email failed: ${adminError.message}`,
+        customerMessageId: customerEmailResult?.messageId,
+        adminError: adminError.message,
+        details: {
+          code: adminError.code,
+          responseCode: adminError.responseCode
+        }
+      };
+    }
+
+    // Both emails sent successfully
     return {
       success: true,
       customerMessageId: customerEmailResult.messageId,

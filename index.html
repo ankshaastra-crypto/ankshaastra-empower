@@ -32,16 +32,19 @@
       t.src=v;s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)}(window, document,'script',
       'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', 'YOUR_PIXEL_ID'); 
+      fbq('init', 'YOUR_PIXEL_ID');
       fbq('track', 'PageView');
     </script>
+    <!-- End Meta Pixel Code -->
+  </head>
+  <body>
+    <!-- Meta Pixel Noscript -->
+    <!-- ⚠️ REPLACE THIS: Line 50 - Replace YOUR_PIXEL_ID with your actual Pixel ID -->
     <noscript>
       <img height="1" width="1" style="display:none"
       src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1"/>
     </noscript>
-    <!-- End Meta Pixel Code -->
-  </head>
-  <body>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

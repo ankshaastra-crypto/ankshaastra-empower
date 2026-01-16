@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { sendPaymentEmail } from './send-email.js';
+import { decryptCustomerData } from './encryption.js';
 
 export default async function handler(req, res) {
   // Handle both GET (redirect) and POST requests
@@ -148,31 +149,31 @@ export default async function handler(req, res) {
       }
     }
     
-    // Helper function to safely extract and decode query params (fallback if metadata missing)
-    const getQueryParam = (param) => {
-      const value = req.query[param];
-      if (!value) return '';
+    // Extract encrypted customer data from query parameters
+    const encryptedData = req.query.data || '';
+    let decryptedData = {};
+    
+    if (encryptedData) {
       try {
-        // Decode URL-encoded values
-        return decodeURIComponent(value.toString()).trim();
-      } catch {
-        return value.toString().trim();
+        decryptedData = decryptCustomerData(encryptedData);
+      } catch (error) {
+        console.error("Error decrypting customer data");
       }
-    };
+    }
 
-    // Extract customer info - prefer metadata (from PhonePe response), fallback to query params
-    const customerEmail = (metadata.email && metadata.email.trim()) || getQueryParam('email') || '';
-    const customerName = (metadata.name && metadata.name.trim()) || getQueryParam('name') || 'Customer';
-    const customerMobile = (metadata.mobile && metadata.mobile.trim()) || getQueryParam('mobile') || '';
-    const customerDob = (metadata.dob && metadata.dob.trim()) || getQueryParam('dob') || '';
-    const packageType = (metadata.packageType && metadata.packageType.trim()) || getQueryParam('package') || 'single';
+    // Extract customer info - prefer decrypted data, then metadata (from PhonePe response), then empty defaults
+    const customerEmail = decryptedData.email || metadata.email || '';
+    const customerName = decryptedData.name || metadata.name || 'Customer';
+    const customerMobile = decryptedData.mobile || metadata.mobile || '';
+    const customerDob = decryptedData.dob || metadata.dob || '';
+    const packageType = decryptedData.packageType || metadata.packageType || 'single';
     // Extract person details for family package
-    const person1Name = (metadata.person1Name && metadata.person1Name.trim()) || getQueryParam('person1Name') || customerName;
-    const person1Dob = (metadata.person1Dob && metadata.person1Dob.trim()) || getQueryParam('person1Dob') || customerDob;
-    const person2Name = (metadata.person2Name && metadata.person2Name.trim()) || getQueryParam('person2Name') || '';
-    const person2Dob = (metadata.person2Dob && metadata.person2Dob.trim()) || getQueryParam('person2Dob') || '';
-    const person3Name = (metadata.person3Name && metadata.person3Name.trim()) || getQueryParam('person3Name') || '';
-    const person3Dob = (metadata.person3Dob && metadata.person3Dob.trim()) || getQueryParam('person3Dob') || '';
+    const person1Name = decryptedData.person1Name || metadata.person1Name || customerName;
+    const person1Dob = decryptedData.person1Dob || metadata.person1Dob || customerDob;
+    const person2Name = decryptedData.person2Name || metadata.person2Name || '';
+    const person2Dob = decryptedData.person2Dob || metadata.person2Dob || '';
+    const person3Name = decryptedData.person3Name || metadata.person3Name || '';
+    const person3Dob = decryptedData.person3Dob || metadata.person3Dob || '';
 
     // Send emails if customer email is provided
     let emailStatus = null;

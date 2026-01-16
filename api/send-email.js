@@ -47,6 +47,11 @@ export async function sendPaymentEmail({
   const finalCustomerDob = (customerDob && customerDob.toString().trim()) || '';
   const finalPerson1Name = (person1Name && person1Name.toString().trim()) || (customerName && customerName.toString().trim()) || '';
   const finalPerson1Dob = (person1Dob && person1Dob.toString().trim()) || finalCustomerDob;
+  // Normalize person details for family package
+  const finalPerson2Name = (person2Name && person2Name.toString().trim()) || '';
+  const finalPerson2Dob = (person2Dob && person2Dob.toString().trim()) || '';
+  const finalPerson3Name = (person3Name && person3Name.toString().trim()) || '';
+  const finalPerson3Dob = (person3Dob && person3Dob.toString().trim()) || '';
   
   // Email configuration logged (customer data removed for privacy)
   
@@ -244,7 +249,7 @@ export async function sendPaymentEmail({
   let customerDetailsHtml = '';
   
   if (packageType === 'family') {
-    // Family package - show all 3 persons
+    // Family package - ALWAYS show all 3 persons (they are required fields)
     customerDetailsHtml = `
       <div class="person-section">
         <h3 style="color: #2E1A47; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #2E1A47; padding-bottom: 5px;">Person 1 Details:</h3>
@@ -257,32 +262,28 @@ export async function sendPaymentEmail({
           <span>${formatDob(finalPerson1Dob)}</span>
         </div>
       </div>
-      ${person2Name ? `
       <div class="person-section">
         <h3 style="color: #2E1A47; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #2E1A47; padding-bottom: 5px;">Person 2 Details:</h3>
         <div class="detail-row">
           <strong>Name:</strong>
-          <span>${person2Name}</span>
+          <span>${hasValue(finalPerson2Name) ? finalPerson2Name : 'N/A'}</span>
         </div>
         <div class="detail-row">
           <strong>Date of Birth:</strong>
-          <span>${formatDob(person2Dob)}</span>
+          <span>${formatDob(finalPerson2Dob)}</span>
         </div>
       </div>
-      ` : ''}
-      ${person3Name ? `
       <div class="person-section">
         <h3 style="color: #2E1A47; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #2E1A47; padding-bottom: 5px;">Person 3 Details:</h3>
         <div class="detail-row">
           <strong>Name:</strong>
-          <span>${person3Name}</span>
+          <span>${hasValue(finalPerson3Name) ? finalPerson3Name : 'N/A'}</span>
         </div>
         <div class="detail-row">
           <strong>Date of Birth:</strong>
-          <span>${formatDob(person3Dob)}</span>
+          <span>${formatDob(finalPerson3Dob)}</span>
         </div>
       </div>
-      ` : ''}
     `;
   } else {
     // Single/Name Check package - show single person

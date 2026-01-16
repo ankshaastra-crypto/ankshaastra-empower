@@ -55,7 +55,7 @@ export default async function handler(req, res) {
 
     // Validate required fields before sending email
     if (!customerEmail || !orderId) {
-      console.error("Missing required fields for email:", { customerEmail, orderId });
+      console.error("Missing required fields for email");
       return res.status(400).json({ error: "Missing required fields" });
     }
 

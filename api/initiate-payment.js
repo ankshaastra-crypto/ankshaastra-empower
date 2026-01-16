@@ -1,5 +1,6 @@
 // Use 'import' instead of 'require'
 import crypto from 'crypto';
+import { encryptCustomerData } from './encryption.js';
 
 export default async function handler(req, res) {
   // Only allow POST requests.
@@ -29,27 +30,8 @@ export default async function handler(req, res) {
       });
     }
 
-    // Build redirect URL with customer information and orderId as query parameters
-    // We include orderId because PhonePe might not include merchantTransactionId in redirect
-    const redirectParams = new URLSearchParams();
-    redirectParams.append('orderId', orderId); // Include orderId so we can check payment status
-    if (email && email.trim()) redirectParams.append('email', email.trim());
-    if (name && name.trim()) redirectParams.append('name', name.trim());
-    if (mobile && mobile.trim()) redirectParams.append('mobile', mobile.trim());
-    if (dob && dob.trim()) redirectParams.append('dob', dob.trim());
-    if (packageType && packageType.trim()) redirectParams.append('package', packageType.trim());
-    // Include all person details for family package
-    if (person1Name && person1Name.trim()) redirectParams.append('person1Name', person1Name.trim());
-    if (person1Dob && person1Dob.trim()) redirectParams.append('person1Dob', person1Dob.trim());
-    if (person2Name && person2Name.trim()) redirectParams.append('person2Name', person2Name.trim());
-    if (person2Dob && person2Dob.trim()) redirectParams.append('person2Dob', person2Dob.trim());
-    if (person3Name && person3Name.trim()) redirectParams.append('person3Name', person3Name.trim());
-    if (person3Dob && person3Dob.trim()) redirectParams.append('person3Dob', person3Dob.trim());
-    
-    const redirectUrl = `https://${req.headers.host}/payment-status${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
-
-    // Prepare metadata with customer details (PhonePe requires metadata as JSON string)
-    const metadataObject = {
+    // Prepare customer data object for encryption
+    const customerData = {
       email: email || '',
       name: name || '',
       mobile: mobile || '',
@@ -63,7 +45,22 @@ export default async function handler(req, res) {
       person3Dob: person3Dob || '',
     };
 
-    // 1. Build the Payment Payload
+    // Encrypt customer data for secure transmission in URL
+    const encryptedData = encryptCustomerData(customerData);
+
+    // Build redirect URL with encrypted customer data
+    // We include orderId unencrypted because we need it to check payment status
+    const redirectParams = new URLSearchParams();
+    redirectParams.append('orderId', orderId); // Include orderId so we can check payment status
+    if (encryptedData) {
+      redirectParams.append('data', encryptedData); // Encrypted customer data
+    }
+    
+    const redirectUrl = `https://${req.headers.host}/payment-status${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
+
+    // 1. Build the Payment Payload (PhonePe standard fields only)
+    // Note: PhonePe doesn't accept metadata/metaInfo in payment payload
+    // Customer data is passed via redirect URL query parameters instead
     const payload = {
       merchantId,
       merchantTransactionId: orderId,
@@ -72,10 +69,6 @@ export default async function handler(req, res) {
       redirectUrl: redirectUrl,
       redirectMode: "REDIRECT",
       paymentInstrument: { type: "PAY_PAGE" },
-      // PhonePe accepts metadata as a JSON string in the payload
-      // Note: Some PhonePe versions might use 'metaInfo' instead of 'metadata'
-      metadata: JSON.stringify(metadataObject),
-      metaInfo: JSON.stringify(metadataObject), // Try both field names
     };
 
     // 2. Create the Checksum (Digital Signature)

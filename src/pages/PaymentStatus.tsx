@@ -44,12 +44,35 @@ const PaymentStatus = () => {
       const name = searchParams.get("name");
       const packageType = searchParams.get("package");
 
+      // Try to retrieve order data from localStorage (backup if PhonePe stripped query params)
+      let storedOrderData = null;
+      if (merchantTransactionId) {
+        try {
+          const stored = localStorage.getItem(`order_${merchantTransactionId}`);
+          if (stored) {
+            storedOrderData = JSON.parse(stored);
+            console.log("✅ Retrieved order data from localStorage");
+            // Clean up localStorage after retrieving
+            localStorage.removeItem(`order_${merchantTransactionId}`);
+          }
+        } catch (e) {
+          console.warn("Could not retrieve order data from localStorage:", e);
+        }
+      }
+
+      // Use stored data if available, otherwise use URL params
+      const finalEmail = storedOrderData?.email || email || "";
+      const finalName = storedOrderData?.name || name || "";
+      const finalPackageType =
+        storedOrderData?.packageType || packageType || "single";
+
       // Log all parameters for debugging
       console.log("Payment Status Page - All URL Params:", {
         merchantTransactionId,
         email,
         name,
         packageType,
+        hasStoredData: !!storedOrderData,
         allParams: Object.fromEntries(searchParams.entries()),
       });
 
@@ -63,13 +86,32 @@ const PaymentStatus = () => {
       }
 
       try {
-        // Build query parameters
+        // Build query parameters - include stored order data if available
         const params = new URLSearchParams({
           merchantTransactionId,
-          email: email || "",
-          name: name || "",
-          package: packageType || "single",
+          email: finalEmail,
+          name: finalName,
+          package: finalPackageType,
         });
+
+        // Add person details if available from stored data
+        if (storedOrderData) {
+          if (storedOrderData.person1Name)
+            params.append("person1Name", storedOrderData.person1Name);
+          if (storedOrderData.person1Dob)
+            params.append("person1Dob", storedOrderData.person1Dob);
+          if (storedOrderData.person2Name)
+            params.append("person2Name", storedOrderData.person2Name);
+          if (storedOrderData.person2Dob)
+            params.append("person2Dob", storedOrderData.person2Dob);
+          if (storedOrderData.person3Name)
+            params.append("person3Name", storedOrderData.person3Name);
+          if (storedOrderData.person3Dob)
+            params.append("person3Dob", storedOrderData.person3Dob);
+          if (storedOrderData.mobile)
+            params.append("mobile", storedOrderData.mobile);
+          if (storedOrderData.dob) params.append("dob", storedOrderData.dob);
+        }
 
         // Call our API to check payment status
         const response = await fetch(
@@ -90,7 +132,7 @@ const PaymentStatus = () => {
         if (result.success && result.status === "SUCCESS") {
           setStatus("success");
           setPaymentData(result);
-          
+
           // Track purchase event with Meta Pixel
           const amount = result.amount || 0;
           const orderId = result.orderId || merchantTransactionId;

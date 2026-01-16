@@ -10,7 +10,16 @@ export default async function handler(req, res) {
   try {
     // PhonePe redirects with query parameters
     // Note: PhonePe may redirect with different parameter names
-    const merchantTransactionId = req.query.merchantTransactionId || req.query.txnId || req.query.transactionId;
+    // PhonePe might append its own params, so check all possible parameter names
+    const merchantTransactionId = 
+      req.query.merchantTransactionId || 
+      req.query.txnId || 
+      req.query.transactionId ||
+      req.query.transaction_id ||
+      req.query.merchantTransactionId;
+    
+    // Log all query parameters for debugging
+    console.log("All Query Parameters:", JSON.stringify(req.query, null, 2));
     
     // Get PhonePe keys
     const merchantId = process.env.PHONEPE_MERCHANT_ID;
@@ -18,11 +27,17 @@ export default async function handler(req, res) {
     const saltIndex = process.env.PHONEPE_SALT_INDEX;
 
     if (!merchantId || !saltKey || !saltIndex) {
+      console.error("Missing PhonePe credentials");
       return res.status(500).json({ error: "Server configuration error" });
     }
 
     if (!merchantTransactionId) {
-      return res.status(400).json({ error: "Missing transaction ID" });
+      console.error("Missing transaction ID. Available query params:", Object.keys(req.query));
+      return res.status(400).json({ 
+        error: "Missing transaction ID",
+        availableParams: Object.keys(req.query),
+        query: req.query
+      });
     }
 
     // Check payment status with PhonePe
@@ -43,16 +58,36 @@ export default async function handler(req, res) {
 
     const statusResult = await statusResponse.json();
     
+    // Log raw response for debugging
+    console.log("PhonePe Status API Raw Response:", JSON.stringify(statusResult, null, 2));
+    
     // Decode the response
     let paymentData;
     try {
       paymentData = JSON.parse(Buffer.from(statusResult.response, 'base64').toString('utf-8'));
+      console.log("Decoded Payment Data:", JSON.stringify(paymentData, null, 2));
     } catch (error) {
       console.error("Error decoding status response:", error);
       return res.status(500).json({ error: "Failed to decode payment status" });
     }
 
-    const paymentStatus = paymentData.code === 'PAYMENT_SUCCESS' ? 'SUCCESS' : 'FAILED';
+    // Check multiple possible success indicators from PhonePe
+    const isSuccess = 
+      paymentData.code === 'PAYMENT_SUCCESS' ||
+      paymentData.code === 'SUCCESS' ||
+      paymentData.success === true ||
+      (paymentData.data && paymentData.data.state === 'COMPLETED') ||
+      (paymentData.state === 'COMPLETED');
+    
+    const paymentStatus = isSuccess ? 'SUCCESS' : 'FAILED';
+    
+    console.log("Payment Status Determination:", {
+      code: paymentData.code,
+      success: paymentData.success,
+      state: paymentData.data?.state || paymentData.state,
+      isSuccess,
+      paymentStatus
+    });
     const orderId = merchantTransactionId;
     const transactionId = paymentData.data?.transactionId || paymentData.data?.merchantTransactionId || '';
     // PhonePe returns amount in paise, use it directly (send-email.js will divide by 100)

@@ -129,21 +129,50 @@ export default async function handler(req, res) {
     // PhonePe returns amount in paise, use it directly (send-email.js will divide by 100)
     const amount = paymentData.data?.amount || 0;
 
-    // Extract customer info from query params (passed from redirect URL)
-    const customerEmail = (req.query.email && req.query.email.trim()) || '';
-    const customerName = (req.query.name && req.query.name.trim()) || 'Customer';
-    const customerMobile = (req.query.mobile && req.query.mobile.trim()) || '';
-    const customerDob = (req.query.dob && req.query.dob.trim()) || '';
-    const packageType = (req.query.package && req.query.package.trim()) || 'single';
-    // Extract person details for family package
-    const person1Name = (req.query.person1Name && req.query.person1Name.trim()) || customerName;
-    const person1Dob = (req.query.person1Dob && req.query.person1Dob.trim()) || customerDob;
-    const person2Name = (req.query.person2Name && req.query.person2Name.trim()) || '';
-    const person2Dob = (req.query.person2Dob && req.query.person2Dob.trim()) || '';
-    const person3Name = (req.query.person3Name && req.query.person3Name.trim()) || '';
-    const person3Dob = (req.query.person3Dob && req.query.person3Dob.trim()) || '';
+    // Extract metaInfo from PhonePe response (PhonePe returns it as metaInfo at data.data.metaInfo)
+    // Based on your response structure: data.data.metaInfo
+    let metadata = {};
+    const metaInfo = paymentData.data?.data?.metaInfo || paymentData.data?.metaInfo || paymentData.metaInfo;
+    
+    if (metaInfo && metaInfo !== null) {
+      try {
+        // If metaInfo is a string, parse it; if it's already an object, use it directly
+        if (typeof metaInfo === 'string') {
+          metadata = JSON.parse(metaInfo);
+        } else if (typeof metaInfo === 'object' && metaInfo !== null) {
+          metadata = metaInfo;
+        }
+      } catch (error) {
+        // If parsing fails, metadata remains empty object
+        console.error("Error parsing metaInfo");
+      }
+    }
+    
+    // Helper function to safely extract and decode query params (fallback if metadata missing)
+    const getQueryParam = (param) => {
+      const value = req.query[param];
+      if (!value) return '';
+      try {
+        // Decode URL-encoded values
+        return decodeURIComponent(value.toString()).trim();
+      } catch {
+        return value.toString().trim();
+      }
+    };
 
-    // Customer details extracted (not logged for privacy)
+    // Extract customer info - prefer metadata (from PhonePe response), fallback to query params
+    const customerEmail = (metadata.email && metadata.email.trim()) || getQueryParam('email') || '';
+    const customerName = (metadata.name && metadata.name.trim()) || getQueryParam('name') || 'Customer';
+    const customerMobile = (metadata.mobile && metadata.mobile.trim()) || getQueryParam('mobile') || '';
+    const customerDob = (metadata.dob && metadata.dob.trim()) || getQueryParam('dob') || '';
+    const packageType = (metadata.packageType && metadata.packageType.trim()) || getQueryParam('package') || 'single';
+    // Extract person details for family package
+    const person1Name = (metadata.person1Name && metadata.person1Name.trim()) || getQueryParam('person1Name') || customerName;
+    const person1Dob = (metadata.person1Dob && metadata.person1Dob.trim()) || getQueryParam('person1Dob') || customerDob;
+    const person2Name = (metadata.person2Name && metadata.person2Name.trim()) || getQueryParam('person2Name') || '';
+    const person2Dob = (metadata.person2Dob && metadata.person2Dob.trim()) || getQueryParam('person2Dob') || '';
+    const person3Name = (metadata.person3Name && metadata.person3Name.trim()) || getQueryParam('person3Name') || '';
+    const person3Dob = (metadata.person3Dob && metadata.person3Dob.trim()) || getQueryParam('person3Dob') || '';
 
     // Send emails if customer email is provided
     let emailStatus = null;

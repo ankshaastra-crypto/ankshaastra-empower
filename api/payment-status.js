@@ -143,26 +143,46 @@ export default async function handler(req, res) {
         } else if (typeof metaInfo === 'object' && metaInfo !== null) {
           metadata = metaInfo;
         }
+        console.log("✅ Found metadata in PhonePe response");
       } catch (error) {
         // If parsing fails, metadata remains empty object
         console.error("Error parsing metaInfo");
       }
+    } else {
+      console.warn("⚠️ No metaInfo found in PhonePe response");
+    }
+    
+    // Also check if PhonePe returns customer data in other fields
+    // Some payment gateways return customer info in different locations
+    const phonePeCustomerInfo = paymentData.data?.customerInfo || paymentData.customerInfo || {};
+    if (phonePeCustomerInfo && Object.keys(phonePeCustomerInfo).length > 0) {
+      console.log("✅ Found customer info in PhonePe response");
+      // Merge PhonePe customer info into metadata as fallback
+      metadata = { ...metadata, ...phonePeCustomerInfo };
     }
     
     // Extract encrypted customer data from query parameters
     const encryptedData = req.query.data || '';
     let decryptedData = {};
     
+    // Log available query parameters for debugging (without sensitive data)
+    const availableQueryParams = Object.keys(req.query);
+    console.log("📋 Available query parameters:", availableQueryParams.filter(p => p !== 'data'));
+    
     if (encryptedData) {
       try {
         decryptedData = decryptCustomerData(encryptedData);
         // Validate decryption worked - check if we got actual data
         if (!decryptedData || Object.keys(decryptedData).length === 0) {
-          console.error("Decryption returned empty data");
+          console.error("❌ Decryption returned empty data");
+        } else {
+          console.log("✅ Successfully decrypted customer data");
         }
       } catch (error) {
-        console.error("Error decrypting customer data");
+        console.error("❌ Error decrypting customer data:", error.message);
       }
+    } else {
+      console.warn("⚠️ No encrypted data parameter found in query string");
     }
 
     // Helper function to safely extract query params (fallback if decryption fails)
@@ -181,6 +201,15 @@ export default async function handler(req, res) {
                           getQueryParam('email') || 
                           (metadata.email && metadata.email.trim()) || 
                           '';
+    
+    // Debug logging for email extraction (without logging actual email)
+    if (!customerEmail || customerEmail.trim() === '') {
+      console.error("❌ Email extraction failed:");
+      console.error("  - Decrypted email:", decryptedData.email ? "present" : "missing");
+      console.error("  - Query param email:", getQueryParam('email') ? "present" : "missing");
+      console.error("  - Metadata email:", metadata.email ? "present" : "missing");
+      console.error("  - Encrypted data present:", !!encryptedData);
+    }
     const customerName = (decryptedData.name && decryptedData.name.trim()) || 
                          getQueryParam('name') || 
                          (metadata.name && metadata.name.trim()) || 
@@ -226,14 +255,34 @@ export default async function handler(req, res) {
     // Validate customer email is present (required field)
     if (!customerEmail || customerEmail.trim() === '') {
       console.error("❌ Customer email is missing - cannot send email notifications");
-      return res.status(400).json({
-        success: false,
-        error: "Customer email is required",
-        message: "Email address is mandatory for payment processing. Please ensure email is provided in the payment form.",
+      console.error("📋 Debug info:");
+      console.error("  - Order ID:", orderId);
+      console.error("  - Transaction ID:", transactionId);
+      console.error("  - Payment Status:", paymentStatus);
+      console.error("  - Has encrypted data param:", !!encryptedData);
+      console.error("  - Decrypted data keys:", Object.keys(decryptedData));
+      console.error("  - Metadata keys:", Object.keys(metadata));
+      console.error("  - All query params:", Object.keys(req.query));
+      
+      // Return error but still return payment status (payment succeeded, just email failed)
+      return res.status(200).json({
+        success: true, // Payment was successful
         status: paymentStatus,
         orderId,
         transactionId,
-        amount
+        amount,
+        emailStatus: {
+          success: false,
+          error: "Customer email is required",
+          message: "Email address is mandatory for email notifications. Payment was successful but email could not be sent.",
+          details: {
+            hasEncryptedData: !!encryptedData,
+            hasDecryptedData: Object.keys(decryptedData).length > 0,
+            hasMetadata: Object.keys(metadata).length > 0,
+            availableQueryParams: Object.keys(req.query).filter(p => p !== 'data')
+          }
+        },
+        data: paymentData,
       });
     }
 

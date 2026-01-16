@@ -6,6 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Check, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
+import { trackInitiateCheckout } from "@/lib/metaPixel";
 
 const OrderFormSection = () => {
   const { toast } = useToast();
@@ -74,6 +75,9 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 
   const orderId = "ORD" + Date.now();
+
+  // Track checkout initiation with Meta Pixel
+  trackInitiateCheckout(price, 'INR', packageType);
   
   try {
     toast({

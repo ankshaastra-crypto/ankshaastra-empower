@@ -29,8 +29,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // Build redirect URL with customer information as query parameters
+    // Build redirect URL with customer information and orderId as query parameters
+    // We include orderId because PhonePe might not include merchantTransactionId in redirect
     const redirectParams = new URLSearchParams();
+    redirectParams.append('orderId', orderId); // Include orderId so we can check payment status
     if (email) redirectParams.append('email', email);
     if (name) redirectParams.append('name', name);
     if (packageType) redirectParams.append('package', packageType);

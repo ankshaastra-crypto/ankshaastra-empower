@@ -64,18 +64,30 @@ const OrderFormSection = () => {
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
-  // Validate form data
-  if (!formData.mobile || !formData.email) {
+  // Validate form data - check all required fields
+  if (!formData.mobile || !formData.email || !formData.person1Name || !formData.person1Dob) {
     toast({
       title: "Missing Information",
-      description: "Please fill in all required fields.",
+      description: "Please fill in all required fields (Name, Date of Birth, Mobile Number, and Email).",
       variant: "destructive",
     });
     return;
   }
 
-  const orderId = "ORD" + Date.now();
+  // For family package, validate all 3 persons
+  if (packageType === "family") {
+    if (!formData.person2Name || !formData.person2Dob || !formData.person3Name || !formData.person3Dob) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all details for all 3 persons.",
+        variant: "destructive",
+      });
+      return;
+    }
+  }
 
+  const orderId = "ORD" + Date.now();
+  
   // Track checkout initiation with Meta Pixel
   trackInitiateCheckout(price, 'INR', packageType);
   
@@ -94,8 +106,16 @@ const handleSubmit = async (e: React.FormEvent) => {
         mobile: formData.mobile,
         email: formData.email,
         name: formData.person1Name || '',
+        dob: formData.person1Dob || '',
         packageType: packageType,
-        orderId: orderId
+        orderId: orderId,
+        // Include all person details for family package
+        person1Name: formData.person1Name || '',
+        person1Dob: formData.person1Dob || '',
+        person2Name: formData.person2Name || '',
+        person2Dob: formData.person2Dob || '',
+        person3Name: formData.person3Name || '',
+        person3Dob: formData.person3Dob || '',
       }),
     });
 

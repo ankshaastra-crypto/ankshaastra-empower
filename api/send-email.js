@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 
 // Create SMTP transporter
 const createTransporter = () => {
-  return nodemailer.createTransport({
+  const config = {
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT || '587'),
     secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
@@ -13,7 +13,20 @@ const createTransporter = () => {
     tls: {
       rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED !== 'false',
     },
+  };
+  
+  // Log configuration (without password) for debugging
+  console.log("SMTP Configuration:", {
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    user: config.auth.user,
+    hasPassword: !!config.auth.pass,
+    passwordLength: config.auth.pass ? config.auth.pass.length : 0,
+    rejectUnauthorized: config.tls.rejectUnauthorized
   });
+  
+  return nodemailer.createTransport(config);
 };
 
 export async function sendPaymentEmail({ 
@@ -258,9 +271,36 @@ export async function sendPaymentEmail({
     };
   } catch (error) {
     console.error('Error sending emails:', error);
+    console.error('Error details:', {
+      code: error.code,
+      response: error.response,
+      responseCode: error.responseCode,
+      command: error.command,
+      message: error.message
+    });
+    
+    // Provide more helpful error messages
+    let errorMessage = error.message;
+    if (error.code === 'EAUTH') {
+      if (error.responseCode === 535) {
+        errorMessage = 'SMTP Authentication failed. Please check your email credentials (SMTP_USER and SMTP_PASSWORD) in environment variables.';
+      } else {
+        errorMessage = `SMTP Authentication error (${error.responseCode}): ${error.response || error.message}`;
+      }
+    } else if (error.code === 'ECONNECTION') {
+      errorMessage = `Cannot connect to SMTP server. Please check SMTP_HOST and SMTP_PORT settings.`;
+    } else if (error.code === 'ETIMEDOUT') {
+      errorMessage = 'SMTP connection timeout. Please check your network and SMTP server settings.';
+    }
+    
     return {
       success: false,
-      error: error.message,
+      error: errorMessage,
+      details: {
+        code: error.code,
+        responseCode: error.responseCode,
+        response: error.response
+      }
     };
   }
 }

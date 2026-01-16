@@ -24,6 +24,14 @@ const OrderFormSection = () => {
     mobile: "",
     email: "",
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Calculate yesterday's date for DOB max attribute (prevents today and future dates)
+  const getYesterdayDate = (): string => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return yesterday.toISOString().split('T')[0];
+  };
 
   // Listen for package type changes from PricingSection
   useEffect(() => {
@@ -37,11 +45,138 @@ const OrderFormSection = () => {
     };
   }, []);
 
+  // Validation functions
+  const validateEmail = (email: string): boolean => {
+    if (!email || email.trim() === '') return false;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email.trim()) && email.length <= 254; // Max email length
+  };
+
+  const validateMobile = (mobile: string): boolean => {
+    if (!mobile || mobile.trim() === '') return false;
+    const cleanedMobile = mobile.replace(/\D/g, ''); // Remove non-digits
+    // Indian mobile number: exactly 10 digits starting with 6-9
+    const mobileRegex = /^[6-9]\d{9}$/;
+    return cleanedMobile.length === 10 && mobileRegex.test(cleanedMobile);
+  };
+
+  const validateDob = (dob: string): boolean => {
+    if (!dob) return false;
+    const dobDate = new Date(dob);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // Set to end of today
+    
+    // Check if DOB is in the future
+    if (dobDate >= today) return false;
+    
+    // Check if DOB is too old (more than 150 years ago - reasonable limit)
+    const minDate = new Date();
+    minDate.setFullYear(minDate.getFullYear() - 150);
+    if (dobDate < minDate) return false;
+    
+    // Check if date is valid (not invalid date)
+    if (isNaN(dobDate.getTime())) return false;
+    
+    return true;
+  };
+
+  const validateName = (name: string): boolean => {
+    if (!name || name.trim() === '') return false;
+    const trimmedName = name.trim();
+    
+    // Name should be between 2 and 100 characters
+    if (trimmedName.length < 2 || trimmedName.length > 100) return false;
+    
+    // Name should contain only letters, spaces, hyphens, apostrophes, and dots
+    // Allow common Indian name characters
+    const nameRegex = /^[a-zA-Z\s\-'\.]+$/;
+    if (!nameRegex.test(trimmedName)) return false;
+    
+    // Name should not be all spaces or special characters
+    if (trimmedName.replace(/[\s\-'\.]/g, '').length < 2) return false;
+    
+    return true;
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
+    // For mobile, only allow digits
+    let processedValue = value;
+    if (name === 'mobile') {
+      processedValue = value.replace(/\D/g, ''); // Remove non-digits
+      if (processedValue.length > 10) {
+        processedValue = processedValue.substring(0, 10); // Limit to 10 digits
+      }
+    }
+    
+    // For name fields, limit length and allow only valid characters
+    if (name.includes('Name')) {
+      // Allow letters, spaces, hyphens, apostrophes, and dots
+      processedValue = value.replace(/[^a-zA-Z\s\-'\.]/g, '');
+      if (processedValue.length > 100) {
+        processedValue = processedValue.substring(0, 100); // Limit to 100 characters
+      }
+    }
+    
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: processedValue,
     }));
+
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+
+    // Real-time validation
+    if (name === 'email' && processedValue) {
+      if (!validateEmail(processedValue)) {
+        setErrors((prev) => ({ 
+          ...prev, 
+          email: 'Please enter a valid email address (e.g., name@example.com)' 
+        }));
+      }
+    }
+
+    if (name === 'mobile' && processedValue) {
+      if (processedValue.length > 0 && !validateMobile(processedValue)) {
+        setErrors((prev) => ({ 
+          ...prev, 
+          mobile: 'Please enter a valid 10-digit mobile number starting with 6-9' 
+        }));
+      }
+    }
+
+    // Real-time validation for names
+    if (name.includes('Name') && processedValue) {
+      if (!validateName(processedValue)) {
+        const fieldLabel = name === 'person1Name' ? 'Person 1 name' :
+                          name === 'person2Name' ? 'Person 2 name' :
+                          name === 'person3Name' ? 'Person 3 name' : 'Name';
+        setErrors((prev) => ({ 
+          ...prev, 
+          [name]: `${fieldLabel} must be 2-100 characters and contain only letters, spaces, hyphens, apostrophes, and dots` 
+        }));
+      }
+    }
+
+    // Real-time validation for DOB
+    if (name.includes('Dob') && processedValue) {
+      if (!validateDob(processedValue)) {
+        const fieldLabel = name === 'person1Dob' ? 'Person 1 date of birth' :
+                          name === 'person2Dob' ? 'Person 2 date of birth' :
+                          name === 'person3Dob' ? 'Person 3 date of birth' : 'Date of birth';
+        setErrors((prev) => ({ 
+          ...prev, 
+          [name]: `${fieldLabel} must be a valid date in the past (not today or future)` 
+        }));
+      }
+    }
   };
 
   const applyPromo = () => {
@@ -64,27 +199,145 @@ const OrderFormSection = () => {
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
-  // Validate form data - check all required fields
-  if (!formData.mobile || !formData.email || !formData.person1Name || !formData.person1Dob) {
-    toast({
-      title: "Missing Information",
-      description: "Please fill in all required fields (Name, Date of Birth, Mobile Number, and Email).",
-      variant: "destructive",
-    });
-    return;
+  // Clear previous errors
+  const newErrors: Record<string, string> = {};
+
+  // Validate Person 1 (required for all packages)
+  if (!formData.person1Name || !validateName(formData.person1Name)) {
+    if (!formData.person1Name || formData.person1Name.trim() === '') {
+      newErrors.person1Name = 'Full name is required';
+    } else if (formData.person1Name.trim().length < 2) {
+      newErrors.person1Name = 'Full name must be at least 2 characters';
+    } else if (formData.person1Name.trim().length > 100) {
+      newErrors.person1Name = 'Full name must be less than 100 characters';
+    } else {
+      newErrors.person1Name = 'Full name can only contain letters, spaces, hyphens, apostrophes, and dots';
+    }
+  }
+
+  if (!formData.person1Dob || !validateDob(formData.person1Dob)) {
+    if (!formData.person1Dob || formData.person1Dob.trim() === '') {
+      newErrors.person1Dob = 'Date of birth is required';
+    } else {
+      const dobDate = new Date(formData.person1Dob);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      if (dobDate >= today) {
+        newErrors.person1Dob = 'Date of birth cannot be today or in the future';
+      } else {
+        newErrors.person1Dob = 'Please enter a valid date of birth';
+      }
+    }
+  }
+
+  // Validate Contact Details
+  if (!formData.mobile || !validateMobile(formData.mobile)) {
+    if (!formData.mobile || formData.mobile.trim() === '') {
+      newErrors.mobile = 'Mobile number is required';
+    } else {
+      const cleanedMobile = formData.mobile.replace(/\D/g, '');
+      if (cleanedMobile.length !== 10) {
+        newErrors.mobile = 'Mobile number must be exactly 10 digits';
+      } else if (!/^[6-9]/.test(cleanedMobile)) {
+        newErrors.mobile = 'Mobile number must start with 6, 7, 8, or 9';
+      } else {
+        newErrors.mobile = 'Please enter a valid 10-digit Indian mobile number';
+      }
+    }
+  }
+
+  if (!formData.email || !validateEmail(formData.email)) {
+    if (!formData.email || formData.email.trim() === '') {
+      newErrors.email = 'Email address is required';
+    } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email.trim())) {
+      newErrors.email = 'Please enter a valid email address (e.g., name@example.com)';
+    } else {
+      newErrors.email = 'Email address is invalid or too long';
+    }
   }
 
   // For family package, validate all 3 persons
   if (packageType === "family") {
-    if (!formData.person2Name || !formData.person2Dob || !formData.person3Name || !formData.person3Dob) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all details for all 3 persons.",
-        variant: "destructive",
-      });
-      return;
+    if (!formData.person2Name || !validateName(formData.person2Name)) {
+      if (!formData.person2Name || formData.person2Name.trim() === '') {
+        newErrors.person2Name = 'Person 2 name is required';
+      } else if (formData.person2Name.trim().length < 2) {
+        newErrors.person2Name = 'Person 2 name must be at least 2 characters';
+      } else if (formData.person2Name.trim().length > 100) {
+        newErrors.person2Name = 'Person 2 name must be less than 100 characters';
+      } else {
+        newErrors.person2Name = 'Person 2 name can only contain letters, spaces, hyphens, apostrophes, and dots';
+      }
+    }
+
+    if (!formData.person2Dob || !validateDob(formData.person2Dob)) {
+      if (!formData.person2Dob || formData.person2Dob.trim() === '') {
+        newErrors.person2Dob = 'Person 2 date of birth is required';
+      } else {
+        const dobDate = new Date(formData.person2Dob);
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+        if (dobDate >= today) {
+          newErrors.person2Dob = 'Person 2 date of birth cannot be today or in the future';
+        } else {
+          newErrors.person2Dob = 'Please enter a valid date of birth for Person 2';
+        }
+      }
+    }
+
+    if (!formData.person3Name || !validateName(formData.person3Name)) {
+      if (!formData.person3Name || formData.person3Name.trim() === '') {
+        newErrors.person3Name = 'Person 3 name is required';
+      } else if (formData.person3Name.trim().length < 2) {
+        newErrors.person3Name = 'Person 3 name must be at least 2 characters';
+      } else if (formData.person3Name.trim().length > 100) {
+        newErrors.person3Name = 'Person 3 name must be less than 100 characters';
+      } else {
+        newErrors.person3Name = 'Person 3 name can only contain letters, spaces, hyphens, apostrophes, and dots';
+      }
+    }
+
+    if (!formData.person3Dob || !validateDob(formData.person3Dob)) {
+      if (!formData.person3Dob || formData.person3Dob.trim() === '') {
+        newErrors.person3Dob = 'Person 3 date of birth is required';
+      } else {
+        const dobDate = new Date(formData.person3Dob);
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+        if (dobDate >= today) {
+          newErrors.person3Dob = 'Person 3 date of birth cannot be today or in the future';
+        } else {
+          newErrors.person3Dob = 'Please enter a valid date of birth for Person 3';
+        }
+      }
     }
   }
+
+  // If there are validation errors, show them and stop submission
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    
+    // Show toast with first error
+    const firstError = Object.values(newErrors)[0];
+    toast({
+      title: "Validation Error",
+      description: firstError,
+      variant: "destructive",
+    });
+
+    // Scroll to first error field
+    const firstErrorField = Object.keys(newErrors)[0];
+    const errorElement = document.getElementById(firstErrorField);
+    if (errorElement) {
+      errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      errorElement.focus();
+    }
+
+    return;
+  }
+
+  // Clear any previous errors if validation passes
+  setErrors({});
 
   const orderId = "ORD" + Date.now();
   
@@ -297,8 +550,13 @@ const handleSubmit = async (e: React.FormEvent) => {
                         onChange={handleInputChange}
                         placeholder="Enter your full name"
                         required
-                        className="mt-1.5 transition-all duration-300 focus:shadow-card"
+                        className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+                          errors.person1Name ? 'border-red-500 focus:border-red-500' : ''
+                        }`}
                       />
+                      {errors.person1Name && (
+                        <p className="text-red-500 text-sm mt-1">{errors.person1Name}</p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="person1Dob">Date of Birth (DD/MM/YYYY) *</Label>
@@ -308,9 +566,15 @@ const handleSubmit = async (e: React.FormEvent) => {
                         type="date"
                         value={formData.person1Dob}
                         onChange={handleInputChange}
+                        max={getYesterdayDate()} // Prevent today and future dates
                         required
-                        className="mt-1.5 transition-all duration-300 focus:shadow-card"
+                        className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+                          errors.person1Dob ? 'border-red-500 focus:border-red-500' : ''
+                        }`}
                       />
+                      {errors.person1Dob && (
+                        <p className="text-red-500 text-sm mt-1">{errors.person1Dob}</p>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -327,8 +591,13 @@ const handleSubmit = async (e: React.FormEvent) => {
                           onChange={handleInputChange}
                           placeholder="Enter full name"
                           required
-                          className="mt-1.5"
+                          className={`mt-1.5 ${
+                            errors.person1Name ? 'border-red-500 focus:border-red-500' : ''
+                          }`}
                         />
+                        {errors.person1Name && (
+                          <p className="text-red-500 text-sm mt-1">{errors.person1Name}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="person1Dob">Date of Birth *</Label>
@@ -338,9 +607,15 @@ const handleSubmit = async (e: React.FormEvent) => {
                           type="date"
                           value={formData.person1Dob}
                           onChange={handleInputChange}
+                          max={getYesterdayDate()} // Prevent today and future dates
                           required
-                          className="mt-1.5"
+                          className={`mt-1.5 ${
+                            errors.person1Dob ? 'border-red-500 focus:border-red-500' : ''
+                          }`}
                         />
+                        {errors.person1Dob && (
+                          <p className="text-red-500 text-sm mt-1">{errors.person1Dob}</p>
+                        )}
                       </div>
                     </div>
 
@@ -356,8 +631,13 @@ const handleSubmit = async (e: React.FormEvent) => {
                           onChange={handleInputChange}
                           placeholder="Enter full name"
                           required
-                          className="mt-1.5"
+                          className={`mt-1.5 ${
+                            errors.person2Name ? 'border-red-500 focus:border-red-500' : ''
+                          }`}
                         />
+                        {errors.person2Name && (
+                          <p className="text-red-500 text-sm mt-1">{errors.person2Name}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="person2Dob">Date of Birth *</Label>
@@ -367,9 +647,15 @@ const handleSubmit = async (e: React.FormEvent) => {
                           type="date"
                           value={formData.person2Dob}
                           onChange={handleInputChange}
+                          max={getYesterdayDate()} // Prevent today and future dates
                           required
-                          className="mt-1.5"
+                          className={`mt-1.5 ${
+                            errors.person2Dob ? 'border-red-500 focus:border-red-500' : ''
+                          }`}
                         />
+                        {errors.person2Dob && (
+                          <p className="text-red-500 text-sm mt-1">{errors.person2Dob}</p>
+                        )}
                       </div>
                     </div>
 
@@ -385,8 +671,13 @@ const handleSubmit = async (e: React.FormEvent) => {
                           onChange={handleInputChange}
                           placeholder="Enter full name"
                           required
-                          className="mt-1.5"
+                          className={`mt-1.5 ${
+                            errors.person3Name ? 'border-red-500 focus:border-red-500' : ''
+                          }`}
                         />
+                        {errors.person3Name && (
+                          <p className="text-red-500 text-sm mt-1">{errors.person3Name}</p>
+                        )}
                       </div>
                       <div>
                         <Label htmlFor="person3Dob">Date of Birth *</Label>
@@ -396,9 +687,15 @@ const handleSubmit = async (e: React.FormEvent) => {
                           type="date"
                           value={formData.person3Dob}
                           onChange={handleInputChange}
+                          max={getYesterdayDate()} // Prevent today and future dates
                           required
-                          className="mt-1.5"
+                          className={`mt-1.5 ${
+                            errors.person3Dob ? 'border-red-500 focus:border-red-500' : ''
+                          }`}
                         />
+                        {errors.person3Dob && (
+                          <p className="text-red-500 text-sm mt-1">{errors.person3Dob}</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -415,10 +712,16 @@ const handleSubmit = async (e: React.FormEvent) => {
                       type="tel"
                       value={formData.mobile}
                       onChange={handleInputChange}
-                      placeholder="Enter mobile number"
+                      placeholder="Enter 10-digit mobile number"
                       required
-                      className="mt-1.5 transition-all duration-300 focus:shadow-card"
+                      maxLength={10}
+                      className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+                        errors.mobile ? 'border-red-500 focus:border-red-500' : ''
+                      }`}
                     />
+                    {errors.mobile && (
+                      <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="email">Email ID *</Label>
@@ -430,8 +733,13 @@ const handleSubmit = async (e: React.FormEvent) => {
                       onChange={handleInputChange}
                       placeholder="Enter email address"
                       required
-                      className="mt-1.5 transition-all duration-300 focus:shadow-card"
+                      className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+                        errors.email ? 'border-red-500 focus:border-red-500' : ''
+                      }`}
                     />
+                    {errors.email && (
+                      <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                    )}
                   </div>
                 </div>
 

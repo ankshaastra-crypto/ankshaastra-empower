@@ -8,7 +8,7 @@ Before starting, make sure you have:
 
 - An email account (Gmail, Outlook, Yahoo, or your business email)
 - Access to your email account settings
-- Your PhonePe merchant credentials (if you haven't set up payment gateway yet).
+- Your PhonePe merchant credentials (if you haven't set up payment gateway yet)
 
 ---
 

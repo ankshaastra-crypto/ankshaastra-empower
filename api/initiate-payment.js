@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { amount, mobile, orderId } = req.body;
+    const { amount, mobile, orderId, email, name, packageType } = req.body;
 
     // Get your keys from Vercel Environment Variables
     const merchantId = process.env.PHONEPE_MERCHANT_ID;
@@ -29,13 +29,21 @@ export default async function handler(req, res) {
       });
     }
 
+    // Build redirect URL with customer information as query parameters
+    const redirectParams = new URLSearchParams();
+    if (email) redirectParams.append('email', email);
+    if (name) redirectParams.append('name', name);
+    if (packageType) redirectParams.append('package', packageType);
+    
+    const redirectUrl = `https://${req.headers.host}/payment-status${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
+
     // 1. Build the Payment Payload
     const payload = {
       merchantId,
       merchantTransactionId: orderId,
       merchantUserId: "U" + mobile,
       amount: amount * 100, // Amount in Paise
-      redirectUrl: `https://${req.headers.host}/payment-status`,
+      redirectUrl: redirectUrl,
       redirectMode: "REDIRECT",
       paymentInstrument: { type: "PAY_PAGE" },
     };

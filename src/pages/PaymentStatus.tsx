@@ -25,15 +25,29 @@ const PaymentStatus = () => {
   useEffect(() => {
     const checkPaymentStatus = async () => {
       // PhonePe may redirect with different parameter names
+      // Check multiple possible parameter names that PhonePe might use
       const merchantTransactionId =
         searchParams.get("merchantTransactionId") ||
         searchParams.get("txnId") ||
-        searchParams.get("transactionId");
+        searchParams.get("transactionId") ||
+        searchParams.get("transaction_id") ||
+        searchParams.get("merchantTransactionId");
+      
       const email = searchParams.get("email");
       const name = searchParams.get("name");
       const packageType = searchParams.get("package");
 
+      // Log all parameters for debugging
+      console.log("Payment Status Page - All URL Params:", {
+        merchantTransactionId,
+        email,
+        name,
+        packageType,
+        allParams: Object.fromEntries(searchParams.entries())
+      });
+
       if (!merchantTransactionId) {
+        console.error("No transaction ID found in URL parameters");
         setStatus("failed");
         return;
       }
@@ -52,12 +66,22 @@ const PaymentStatus = () => {
           `/api/payment-status?${params.toString()}`
         );
 
+        if (!response.ok) {
+          console.error("API Error:", response.status, response.statusText);
+          setStatus("failed");
+          return;
+        }
+
         const result = await response.json();
+        
+        // Log the result for debugging
+        console.log("Payment Status API Result:", result);
 
         if (result.success && result.status === "SUCCESS") {
           setStatus("success");
           setPaymentData(result);
         } else {
+          console.warn("Payment marked as failed:", result);
           setStatus("failed");
           setPaymentData(result);
         }

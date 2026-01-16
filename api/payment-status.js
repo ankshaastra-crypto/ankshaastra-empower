@@ -20,8 +20,7 @@ export default async function handler(req, res) {
       req.query.orderId || // Use orderId as fallback since we include it in redirect URL
       req.query.merchantTransactionId;
     
-    // Log all query parameters for debugging
-    console.log("All Query Parameters:", JSON.stringify(req.query, null, 2));
+    // Query parameters received (customer data not logged for privacy)
     
     // Get PhonePe keys
     const merchantId = process.env.PHONEPE_MERCHANT_ID;
@@ -49,12 +48,7 @@ export default async function handler(req, res) {
     const sha256 = crypto.createHash('sha256').update(checksumString).digest('hex');
     const checksum = sha256 + "###" + saltIndex;
     
-    console.log("Status API Checksum Debug:", {
-      statusUrl,
-      checksumString,
-      checksumHash: sha256,
-      checksum
-    });
+    // Status API checksum generated
 
     const statusResponse = await fetch(`https://api.phonepe.com/apis/hermes${statusUrl}`, {
       method: 'GET',
@@ -81,9 +75,6 @@ export default async function handler(req, res) {
 
     const statusResult = await statusResponse.json();
     
-    // Log raw response for debugging
-    console.log("PhonePe Status API Raw Response:", JSON.stringify(statusResult, null, 2));
-    
     // Handle both response formats:
     // 1. Old format: response field with base64-encoded data
     // 2. New format: direct JSON response
@@ -93,10 +84,8 @@ export default async function handler(req, res) {
       // Old format: decode base64 response
       try {
         paymentData = JSON.parse(Buffer.from(statusResult.response, 'base64').toString('utf-8'));
-        console.log("Decoded Payment Data (base64 format):", JSON.stringify(paymentData, null, 2));
       } catch (error) {
-        console.error("Error decoding base64 response:", error);
-        console.error("Raw response string:", statusResult.response);
+        console.error("Error decoding base64 response");
         return res.status(500).json({ 
           error: "Failed to decode payment status",
           details: error.message
@@ -105,7 +94,6 @@ export default async function handler(req, res) {
     } else if (statusResult.code || statusResult.data) {
       // New format: direct JSON response
       paymentData = statusResult;
-      console.log("Using direct JSON response format:", JSON.stringify(paymentData, null, 2));
     } else {
       console.error("Invalid PhonePe response structure:", statusResult);
       return res.status(500).json({ 
@@ -135,64 +123,32 @@ export default async function handler(req, res) {
     
     const paymentStatus = isSuccess ? 'SUCCESS' : 'FAILED';
     
-    console.log("Payment Status Determination:", {
-      code: paymentData.code,
-      success: paymentData.success,
-      state: paymentData.data?.state || paymentData.state,
-      responseCode: paymentData.data?.responseCode,
-      isSuccess,
-      paymentStatus
-    });
+    // Payment status determined
     const orderId = merchantTransactionId;
     const transactionId = paymentData.data?.transactionId || paymentData.data?.merchantTransactionId || '';
     // PhonePe returns amount in paise, use it directly (send-email.js will divide by 100)
     const amount = paymentData.data?.amount || 0;
 
     // Extract customer info from query params (passed from redirect URL)
-    const customerEmail = req.query.email || '';
-    const customerName = req.query.name || 'Customer';
-    const customerMobile = req.query.mobile || '';
-    const customerDob = req.query.dob || '';
-    const packageType = req.query.package || 'single';
+    const customerEmail = (req.query.email && req.query.email.trim()) || '';
+    const customerName = (req.query.name && req.query.name.trim()) || 'Customer';
+    const customerMobile = (req.query.mobile && req.query.mobile.trim()) || '';
+    const customerDob = (req.query.dob && req.query.dob.trim()) || '';
+    const packageType = (req.query.package && req.query.package.trim()) || 'single';
     // Extract person details for family package
-    const person1Name = req.query.person1Name || customerName;
-    const person1Dob = req.query.person1Dob || customerDob;
-    const person2Name = req.query.person2Name || '';
-    const person2Dob = req.query.person2Dob || '';
-    const person3Name = req.query.person3Name || '';
-    const person3Dob = req.query.person3Dob || '';
+    const person1Name = (req.query.person1Name && req.query.person1Name.trim()) || customerName;
+    const person1Dob = (req.query.person1Dob && req.query.person1Dob.trim()) || customerDob;
+    const person2Name = (req.query.person2Name && req.query.person2Name.trim()) || '';
+    const person2Dob = (req.query.person2Dob && req.query.person2Dob.trim()) || '';
+    const person3Name = (req.query.person3Name && req.query.person3Name.trim()) || '';
+    const person3Dob = (req.query.person3Dob && req.query.person3Dob.trim()) || '';
 
-    // Log query parameters for debugging
-    console.log("Payment Status - Query Params:", {
-      merchantTransactionId,
-      email: customerEmail,
-      name: customerName,
-      mobile: customerMobile,
-      dob: customerDob,
-      package: packageType,
-      person1Name,
-      person1Dob,
-      person2Name,
-      person2Dob,
-      person3Name,
-      person3Dob,
-      paymentStatus
-    });
+    // Customer details extracted (not logged for privacy)
 
     // Send emails if customer email is provided
     let emailStatus = null;
     if (customerEmail) {
       try {
-        console.log("Attempting to send emails for order:", orderId);
-        console.log("Email details:", {
-          customerEmail,
-          customerName,
-          orderId,
-          amount,
-          packageType,
-          status: paymentStatus
-        });
-        
         const emailResult = await sendPaymentEmail({
           to: customerEmail,
           customerEmail,
@@ -212,18 +168,12 @@ export default async function handler(req, res) {
           transactionId: transactionId || '',
         });
 
-        console.log("Email result:", JSON.stringify(emailResult, null, 2));
-
         // Strict validation: only mark as success if we have explicit success flag AND messageIds
         const hasSuccessFlag = emailResult && emailResult.success === true;
         const hasCustomerMessageId = emailResult && emailResult.customerMessageId;
         const hasAdminMessageId = emailResult && emailResult.adminMessageId;
         
         if (hasSuccessFlag && hasCustomerMessageId && hasAdminMessageId) {
-          console.log("✅ Emails sent successfully:", {
-            customerMessageId: emailResult.customerMessageId,
-            adminMessageId: emailResult.adminMessageId
-          });
           emailStatus = {
             success: true,
             message: "Emails sent successfully",
@@ -238,13 +188,7 @@ export default async function handler(req, res) {
              !hasAdminMessageId ? "Admin email failed - no message ID" : 
              "Unknown error sending emails");
           
-          console.error("❌ Failed to send emails:", errorMsg);
-          console.error("Email validation:", {
-            hasSuccessFlag,
-            hasCustomerMessageId,
-            hasAdminMessageId,
-            emailResult: emailResult
-          });
+          console.error("❌ Failed to send emails");
           console.error("Email error details:", emailResult?.details || {});
           
           emailStatus = {
@@ -262,17 +206,15 @@ export default async function handler(req, res) {
           };
         }
       } catch (emailError) {
-        console.error("❌ Exception in email sending function:", emailError);
-        console.error("Email error stack:", emailError.stack);
+        console.error("❌ Exception in email sending function");
         emailStatus = {
           success: false,
           message: emailError.message || "Error sending email",
-          error: emailError.message,
-          stack: process.env.NODE_ENV === 'development' ? emailError.stack : undefined
+          error: emailError.message
         };
       }
     } else {
-      console.warn("⚠️ Customer email not provided in query params, skipping email notification. Available params:", Object.keys(req.query));
+      console.warn("⚠️ Customer email not provided in query params, skipping email notification");
       emailStatus = {
         success: false,
         message: "Email not provided"
@@ -291,8 +233,7 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error("Payment Status Error:", error);
-    console.error("Error Stack:", error.stack);
+    console.error("Payment Status Error");
     return res.status(500).json({ 
       error: "Internal Server Error", 
       details: error.message,

@@ -15,16 +15,7 @@ const createTransporter = () => {
     },
   };
   
-  // Log configuration (without password) for debugging
-  console.log("SMTP Configuration:", {
-    host: config.host,
-    port: config.port,
-    secure: config.secure,
-    user: config.auth.user,
-    hasPassword: !!config.auth.pass,
-    passwordLength: config.auth.pass ? config.auth.pass.length : 0,
-    rejectUnauthorized: config.tls.rejectUnauthorized
-  });
+  // SMTP configuration loaded (sensitive data not logged)
   
   return nodemailer.createTransport(config);
 };
@@ -50,18 +41,11 @@ export async function sendPaymentEmail({
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@ankshaastra.com';
   const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';
   
-  // Log email addresses being used
-  console.log("📧 Email Configuration:", {
-    customerEmail,
-    adminEmail,
-    fromEmail,
-    orderId,
-    status
-  });
+  // Email configuration logged (customer data removed for privacy)
   
   // Validate required parameters
   if (!customerEmail || !orderId) {
-    console.error('❌ Missing required parameters for email:', { customerEmail, orderId });
+    console.error('❌ Missing required parameters for email');
     return {
       success: false,
       error: 'Missing required parameters: customerEmail and orderId are required.',
@@ -71,7 +55,7 @@ export async function sendPaymentEmail({
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(customerEmail)) {
-    console.error('❌ Invalid customer email format:', customerEmail);
+    console.error('❌ Invalid customer email format');
     return {
       success: false,
       error: `Invalid customer email format: ${customerEmail}`,
@@ -79,7 +63,7 @@ export async function sendPaymentEmail({
   }
   
   if (!emailRegex.test(adminEmail)) {
-    console.error('❌ Invalid admin email format:', adminEmail);
+    console.error('❌ Invalid admin email format');
     return {
       success: false,
       error: `Invalid admin email format: ${adminEmail}`,
@@ -234,13 +218,19 @@ export async function sendPaymentEmail({
   
   // Format DOB for display
   const formatDob = (dob) => {
-    if (!dob) return 'N/A';
+    if (!dob || dob.trim() === '') return 'N/A';
     try {
       const date = new Date(dob);
+      if (isNaN(date.getTime())) return dob; // If invalid date, return as-is
       return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
     } catch {
-      return dob;
+      return dob || 'N/A';
     }
+  };
+
+  // Helper to check if value exists
+  const hasValue = (value) => {
+    return value && value.toString().trim() !== '';
   };
 
   // Build customer details section
@@ -253,11 +243,11 @@ export async function sendPaymentEmail({
         <h3 style="color: #2E1A47; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #2E1A47; padding-bottom: 5px;">Person 1 Details:</h3>
         <div class="detail-row">
           <strong>Name:</strong>
-          <span>${person1Name || customerName || 'N/A'}</span>
+          <span>${hasValue(person1Name) ? person1Name : (hasValue(customerName) ? customerName : 'N/A')}</span>
         </div>
         <div class="detail-row">
           <strong>Date of Birth:</strong>
-          <span>${formatDob(person1Dob || customerDob)}</span>
+          <span>${formatDob(hasValue(person1Dob) ? person1Dob : customerDob)}</span>
         </div>
       </div>
       ${person2Name ? `
@@ -292,11 +282,11 @@ export async function sendPaymentEmail({
     customerDetailsHtml = `
       <div class="detail-row">
         <strong>Customer Name:</strong>
-        <span>${person1Name || customerName || 'N/A'}</span>
+        <span>${hasValue(person1Name) ? person1Name : (hasValue(customerName) ? customerName : 'N/A')}</span>
       </div>
       <div class="detail-row">
         <strong>Date of Birth:</strong>
-        <span>${formatDob(person1Dob || customerDob)}</span>
+        <span>${formatDob(hasValue(person1Dob) ? person1Dob : customerDob)}</span>
       </div>
     `;
   }
@@ -362,7 +352,7 @@ export async function sendPaymentEmail({
               </div>
               <div class="detail-row">
                 <strong>Mobile Number:</strong>
-                <span><a href="tel:${customerMobile || ''}" style="color: #2E1A47;">${customerMobile || 'N/A'}</a></span>
+                <span><a href="tel:${hasValue(customerMobile) ? customerMobile : ''}" style="color: #2E1A47;">${hasValue(customerMobile) ? customerMobile : 'N/A'}</a></span>
               </div>
             </div>
           </div>
@@ -376,12 +366,10 @@ export async function sendPaymentEmail({
     const transporter = createTransporter();
 
     // Verify SMTP connection before sending
-    console.log("Verifying SMTP connection...");
     try {
       await transporter.verify();
-      console.log("SMTP connection verified successfully");
     } catch (verifyError) {
-      console.error("SMTP verification failed:", verifyError);
+      console.error("SMTP verification failed");
       return {
         success: false,
         error: `SMTP connection failed: ${verifyError.message}`,
@@ -394,7 +382,6 @@ export async function sendPaymentEmail({
     }
 
     // Send email to customer
-    console.log(`Sending customer email to: ${customerEmail}`);
     let customerEmailResult = null;
     let customerError = null;
     let customerSuccess = false;
@@ -410,28 +397,21 @@ export async function sendPaymentEmail({
       // Validate that we got a valid response
       if (customerEmailResult && customerEmailResult.messageId) {
         customerSuccess = true;
-        console.log("✅ Customer email sent successfully:", customerEmailResult.messageId);
-        console.log("Customer email response:", JSON.stringify(customerEmailResult, null, 2));
       } else {
         customerError = new Error("Email sent but no messageId returned");
-        console.error("❌ Customer email sent but invalid response:", customerEmailResult);
+        console.error("❌ Customer email sent but invalid response");
       }
     } catch (customerErr) {
       customerError = customerErr;
       customerSuccess = false;
-      console.error("❌ Failed to send customer email:", customerErr);
-      console.error("Customer email error details:", {
+      console.error("❌ Failed to send customer email");
+      console.error("Customer email error:", {
         code: customerErr.code,
-        response: customerErr.response,
-        responseCode: customerErr.responseCode,
-        command: customerErr.command,
-        message: customerErr.message,
-        stack: customerErr.stack
+        responseCode: customerErr.responseCode
       });
     }
 
     // Send email to admin
-    console.log(`Sending admin email to: ${adminEmail}`);
     let adminEmailResult = null;
     let adminError = null;
     let adminSuccess = false;
@@ -447,23 +427,17 @@ export async function sendPaymentEmail({
       // Validate that we got a valid response
       if (adminEmailResult && adminEmailResult.messageId) {
         adminSuccess = true;
-        console.log("✅ Admin email sent successfully:", adminEmailResult.messageId);
-        console.log("Admin email response:", JSON.stringify(adminEmailResult, null, 2));
       } else {
         adminError = new Error("Email sent but no messageId returned");
-        console.error("❌ Admin email sent but invalid response:", adminEmailResult);
+        console.error("❌ Admin email sent but invalid response");
       }
     } catch (adminErr) {
       adminError = adminErr;
       adminSuccess = false;
-      console.error("❌ Failed to send admin email:", adminErr);
-      console.error("Admin email error details:", {
+      console.error("❌ Failed to send admin email");
+      console.error("Admin email error:", {
         code: adminErr.code,
-        response: adminErr.response,
-        responseCode: adminErr.responseCode,
-        command: adminErr.command,
-        message: adminErr.message,
-        stack: adminErr.stack
+        responseCode: adminErr.responseCode
       });
     }
 
@@ -519,20 +493,16 @@ export async function sendPaymentEmail({
     }
 
     // Both emails sent successfully
-    console.log("✅ Both emails sent successfully");
     return {
       success: true,
       customerMessageId: customerEmailResult.messageId,
       adminMessageId: adminEmailResult.messageId,
     };
   } catch (error) {
-    console.error('Error sending emails:', error);
+    console.error('Error sending emails');
     console.error('Error details:', {
       code: error.code,
-      response: error.response,
-      responseCode: error.responseCode,
-      command: error.command,
-      message: error.message
+      responseCode: error.responseCode
     });
     
     // Provide more helpful error messages

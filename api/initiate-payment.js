@@ -101,13 +101,24 @@ export default async function handler(req, res) {
 
     // Build redirect URL with encrypted customer data
     // We include orderId unencrypted because we need it to check payment status
+    // Note: PhonePe may strip or modify query parameters, so we rely on webhook as backup
     const redirectParams = new URLSearchParams();
     redirectParams.append('orderId', orderId); // Include orderId so we can check payment status
     if (encryptedData) {
+      // URLSearchParams automatically encodes the value, but ensure it's properly encoded
       redirectParams.append('data', encryptedData); // Encrypted customer data
     }
     
+    // Ensure the redirect URL is properly formatted
     const redirectUrl = `https://${req.headers.host}/payment-status${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
+    
+    // Log redirect URL structure (without sensitive data)
+    console.log("📋 Redirect URL constructed:", {
+      host: req.headers.host,
+      hasOrderId: redirectParams.has('orderId'),
+      hasEncryptedData: redirectParams.has('data'),
+      dataLength: encryptedData ? encryptedData.length : 0
+    });
 
     // 1. Build the Payment Payload (PhonePe standard fields only)
     // Note: PhonePe doesn't accept metadata/metaInfo in payment payload

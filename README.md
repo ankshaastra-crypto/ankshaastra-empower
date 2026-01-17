@@ -52,6 +52,7 @@ USE_INVOICE_QUEUE=false
 NODE_ENV=development
 
 # Package Pricing (Frontend)
+# IMPORTANT: After changing these values, restart the dev server (Ctrl+C then npm run dev)
 VITE_PACKAGE_NAMECHECK_PRICE=199
 VITE_PACKAGE_NAMECHECK_ORIGINAL_PRICE=199
 VITE_PACKAGE_SINGLE_PRICE=1997
@@ -59,6 +60,11 @@ VITE_PACKAGE_SINGLE_ORIGINAL_PRICE=5100
 VITE_PACKAGE_FAMILY_PRICE=3994
 VITE_PACKAGE_FAMILY_ORIGINAL_PRICE=10200
 ```
+
+**Note:** Vite environment variables are loaded at build/dev server startup. After changing these values:
+
+- **Development:** Restart the dev server (`Ctrl+C` then `npm run dev`)
+- **Production:** Rebuild and redeploy (`npm run build`)
 
 Generate encryption key:
 
@@ -69,10 +75,12 @@ openssl rand -hex 32
 ## Development
 
 ```bash
-npm run dev              # Start development server
+npm run dev              # Start development server (deprecation warnings suppressed)
 npm run build            # Build for production
 npm run generate-invoice-pdf  # Generate sample invoice
 ```
+
+**Note:** The `DEP0169` deprecation warning about `url.parse()` comes from dependencies (nodemailer, ioredis, etc.) and is automatically suppressed. This is safe as it's not from our code.
 
 ## Production Deployment
 
@@ -93,6 +101,7 @@ npm run generate-invoice-pdf  # Generate sample invoice
    - Add all environment variables in Vercel Dashboard
    - Set `REDIS_URL` to Upstash Redis URL
    - Set `USE_INVOICE_QUEUE=false` (recommended)
+   - **Optional:** Set `NODE_OPTIONS=--no-deprecation` to suppress DEP0169 warnings from dependencies
 
 3. **Create `vercel.json`:**
 

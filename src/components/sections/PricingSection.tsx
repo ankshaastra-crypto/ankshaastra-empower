@@ -48,19 +48,19 @@ const PricingSection = () => {
     <section className="section-padding bg-card/50" id="pricing" ref={ref}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className={`text-center max-w-3xl mx-auto mb-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h2 className="heading-lg text-ink-black mb-4">
+        <div className={`text-center max-w-3xl mx-auto mb-8 md:mb-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <h2 className="heading-lg text-ink-black mb-3 md:mb-4">
             Get Your Personalized Report
           </h2>
-          <p className="body-md text-muted-foreground">
+          <p className="body-md text-muted-foreground px-2">
             One-time investment for lifelong clarity and alignment.
           </p>
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-6xl mx-auto">
           {/* Name Check Card - For Unsure Users */}
-          <div className={`bg-card rounded-3xl p-6 shadow-card card-hover relative transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '100ms' }}>
+          <div className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '100ms' }}>
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span className="bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
                 NOT SURE?
@@ -111,7 +111,7 @@ const PricingSection = () => {
           </div>
 
           {/* Single Report Card */}
-          <div className={`bg-card rounded-3xl p-6 shadow-card card-hover relative transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '200ms' }}>
+          <div className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '200ms' }}>
             <div className="mb-4">
               <h3 className="text-xl font-heading font-bold text-ink-black mb-2">
                 Name Correction Blueprint
@@ -159,7 +159,7 @@ const PricingSection = () => {
           </div>
 
           {/* Family Package Card */}
-          <div className={`bg-card rounded-3xl p-6 shadow-card card-hover relative border-2 border-accent gold-glow transition-all duration-700 animate-border-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '300ms' }}>
+          <div className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow transition-all duration-700 animate-border-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '300ms' }}>
             {/* Best Value Badge */}
             <div className={`absolute -top-4 left-1/2 -translate-x-1/2 transition-all duration-500 delay-500 ${isVisible ? 'opacity-100 scale-100 animate-float-subtle' : 'opacity-0 scale-50'}`}>
               <span className="bg-accent text-accent-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-gold">

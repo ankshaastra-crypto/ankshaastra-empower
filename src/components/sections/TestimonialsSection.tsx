@@ -42,8 +42,8 @@ const TestimonialsSection = () => {
     <section className="section-padding bg-background" ref={ref}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className={`text-center max-w-3xl mx-auto mb-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h2 className="heading-lg text-ink-black mb-4">
+        <div className={`text-center max-w-3xl mx-auto mb-8 md:mb-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <h2 className="heading-lg text-ink-black mb-3 md:mb-4 px-2">
             Trusted by 5000+ Individuals Who Transformed Their Lives
           </h2>
         </div>
@@ -57,26 +57,27 @@ const TestimonialsSection = () => {
             }}
             className="w-full"
           >
-            <CarouselContent className="-ml-4">
+            <CarouselContent className="-ml-3 md:-ml-4">
               {testimonials.map((testimonial, index) => (
-                <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
-                  <br />
-                  <div className="bg-card rounded-2xl p-8 shadow-card card-hover group relative h-full transition-all duration-300 hover:shadow-card-hover hover-glow">
-                    {/* Quote Icon */}
-                    <div className="absolute -top-4 left-8">
-                      <div className="w-10 h-10 bg-secondary rounded-full flex items-center justify-center shadow-purple group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300">
-                        <Quote className="w-5 h-5 text-accent" />
+                <CarouselItem key={index} className="pl-3 md:pl-4 md:basis-1/2 lg:basis-1/3">
+                  <div className="mt-4">
+                    <div className="bg-card rounded-xl md:rounded-2xl p-5 md:p-8 shadow-card card-hover group relative h-full transition-all duration-300 hover:shadow-card-hover hover-glow">
+                      {/* Quote Icon */}
+                      <div className="absolute -top-3 left-6 md:left-8">
+                        <div className="w-8 h-8 md:w-10 md:h-10 bg-secondary rounded-full flex items-center justify-center shadow-purple group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300">
+                          <Quote className="w-4 h-4 md:w-5 md:h-5 text-accent" />
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="pt-4">
-                      <p className="text-lg text-ink-black leading-relaxed mb-6 italic">
-                        "{testimonial.quote}"
-                      </p>
                       
-                      <p className="text-accent font-semibold">
-                        — {testimonial.author}
-                      </p>
+                      <div className="pt-3 md:pt-4">
+                        <p className="text-sm md:text-lg text-ink-black leading-relaxed mb-4 md:mb-6 italic">
+                          "{testimonial.quote}"
+                        </p>
+                        
+                        <p className="text-accent font-semibold text-sm md:text-base">
+                          — {testimonial.author}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </CarouselItem>

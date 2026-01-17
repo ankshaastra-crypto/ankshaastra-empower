@@ -31,32 +31,32 @@ const ProblemSection = () => {
     <section className="section-padding bg-background" ref={ref}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className={`text-center max-w-3xl mx-auto mb-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h2 className="heading-lg text-ink-black mb-4">
+        <div className={`text-center max-w-3xl mx-auto mb-8 md:mb-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <h2 className="heading-lg text-ink-black mb-3 md:mb-4">
             Does This Sound Familiar?
           </h2>
-          <p className="body-md text-muted-foreground">
+          <p className="body-md text-muted-foreground px-2">
             These patterns often indicate a misalignment between your name vibration and birth numbers.
           </p>
         </div>
 
         {/* Problem Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-5xl mx-auto">
           {problems.map((problem, index) => (
             <div
               key={index}
-              className={`bg-card rounded-2xl p-8 shadow-card card-hover group transition-all duration-700 hover-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              className={`bg-card rounded-xl md:rounded-2xl p-5 md:p-8 shadow-card card-hover group transition-all duration-700 hover-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               style={{ transitionDelay: `${150 + index * 100}ms` }}
             >
-              <div className="flex items-start gap-5">
-                <div className="flex-shrink-0 w-14 h-14 bg-secondary/10 rounded-xl flex items-center justify-center group-hover:bg-secondary/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                  <problem.icon className="w-7 h-7 text-secondary transition-transform duration-500 group-hover:scale-110" />
+              <div className="flex items-start gap-4 md:gap-5">
+                <div className="flex-shrink-0 w-11 h-11 md:w-14 md:h-14 bg-secondary/10 rounded-lg md:rounded-xl flex items-center justify-center group-hover:bg-secondary/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                  <problem.icon className="w-5 h-5 md:w-7 md:h-7 text-secondary transition-transform duration-500 group-hover:scale-110" />
                 </div>
                 <div>
-                  <h3 className="heading-sm text-ink-black mb-2 group-hover:text-secondary transition-colors duration-300">
+                  <h3 className="text-lg md:text-xl font-heading font-semibold text-ink-black mb-1.5 md:mb-2 group-hover:text-secondary transition-colors duration-300">
                     {problem.title}
                   </h3>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                     {problem.text}
                   </p>
                 </div>

@@ -141,48 +141,58 @@ export async function sendPaymentEmail({
   if (status === 'SUCCESS' && amountInRupees > 0 && !invoicePDFBuffer) {
     try {
       if (useQueue) {
-        // Use queue system for async invoice generation
-        const invoiceData = {
-          orderId,
-          customerName: customerName || 'Customer',
-          customerEmail,
-          customerPhone: finalCustomerMobile,
-          customerAddress: '',
-          amount: amountInRupees,
-          packageType: packageType || 'single',
-          transactionId: transactionId || '',
-          invoiceDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-          dueDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-        };
-        
-        const emailData = {
-          to,
-          customerEmail,
-          customerName,
-          customerMobile: finalCustomerMobile,
-          customerDob: finalCustomerDob,
-          person1Name: finalPerson1Name,
-          person1Dob: finalPerson1Dob,
-          person2Name: finalPerson2Name,
-          person2Dob: finalPerson2Dob,
-          person3Name: finalPerson3Name,
-          person3Dob: finalPerson3Dob,
-          orderId,
-          amount,
-          packageType,
-          status,
-          transactionId,
-        };
-        
-        // Queue invoice generation (will send email after PDF is ready)
-        await queueInvoiceGeneration(invoiceData, emailData);
-        
-        // Return immediately - email will be sent by queue worker
-        invoiceNoteHtml = '<p style="background: #e8f5e9; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #10b981;"><strong>📄 Invoice Processing:</strong> Your invoice is being generated and will be sent shortly.</p>';
-        
-        // Send immediate confirmation email without invoice
-        // (Invoice email will be sent by queue worker)
-      } else {
+        // Try queue system for async invoice generation
+        try {
+          const invoiceData = {
+            orderId,
+            customerName: customerName || 'Customer',
+            customerEmail,
+            customerPhone: finalCustomerMobile,
+            customerAddress: '',
+            amount: amountInRupees,
+            packageType: packageType || 'single',
+            transactionId: transactionId || '',
+            invoiceDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+            dueDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+          };
+          
+          const emailData = {
+            to,
+            customerEmail,
+            customerName,
+            customerMobile: finalCustomerMobile,
+            customerDob: finalCustomerDob,
+            person1Name: finalPerson1Name,
+            person1Dob: finalPerson1Dob,
+            person2Name: finalPerson2Name,
+            person2Dob: finalPerson2Dob,
+            person3Name: finalPerson3Name,
+            person3Dob: finalPerson3Dob,
+            orderId,
+            amount,
+            packageType,
+            status,
+            transactionId,
+          };
+          
+          // Queue invoice generation (will send email after PDF is ready)
+          await queueInvoiceGeneration(invoiceData, emailData);
+          
+          // Return immediately - email will be sent by queue worker
+          invoiceNoteHtml = '<p style="background: #e8f5e9; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #10b981;"><strong>📄 Invoice Processing:</strong> Your invoice is being generated and will be sent shortly.</p>';
+          
+          // Send immediate confirmation email without invoice
+          // (Invoice email will be sent by queue worker)
+          console.log(`✅ Invoice queued successfully for order: ${orderId}`);
+        } catch (queueError) {
+          // Queue failed (Redis unavailable), fall back to synchronous generation
+          console.warn(`⚠️ Queue unavailable, falling back to synchronous invoice generation: ${queueError.message}`);
+          useQueue = false; // Force synchronous mode
+          // Continue to synchronous generation below
+        }
+      }
+      
+      if (!useQueue) {
         // Synchronous generation (fallback)
         console.log(`📄 Generating invoice PDF synchronously for order: ${orderId}`);
         const invoiceResult = await generateInvoicePDF({

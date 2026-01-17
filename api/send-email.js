@@ -80,7 +80,7 @@ async function startInvoiceGenerationInBackground({
   
   try {
     if (useQueue) {
-      // Try queue system first (best for production)
+      // Try queue system first (best for production with Redis)
       try {
         const invoiceData = {
           orderId,
@@ -114,8 +114,9 @@ async function startInvoiceGenerationInBackground({
       }
     }
     
-    // Direct invoice generation (fallback when queue unavailable)
-    console.log(`📄 Generating invoice PDF for order: ${orderId}`);
+    // Direct invoice generation (used when USE_INVOICE_QUEUE=false or queue unavailable)
+    // This is the default for Vercel deployments without Redis
+    console.log(`📄 Generating invoice PDF directly (no queue) for order: ${orderId}`);
     
     const invoiceGenerationPromise = generateInvoicePDF({
       orderId,
@@ -289,7 +290,7 @@ export async function sendPaymentEmail({
   let invoicePDFBuffer = _invoicePDFBuffer;
   let invoiceId = _invoiceId;
   let invoiceNoteHtml = '';
-  let useQueue = process.env.USE_INVOICE_QUEUE === 'true'; // Enable queue via env var
+  // Note: Invoice generation happens AFTER email is sent (non-blocking)
   
   // CRITICAL: Set invoice note FIRST, then email will be sent IMMEDIATELY
   // Invoice generation happens AFTER email is sent (completely non-blocking)

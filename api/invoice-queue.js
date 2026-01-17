@@ -176,17 +176,23 @@ export async function startInvoiceWorker() {
  * @returns {Promise<Job>} BullMQ job
  */
 export async function queueInvoiceGeneration(invoiceData, emailData = null) {
-  const queue = await getInvoiceQueue();
-  
-  const job = await queue.add('generate-invoice', {
-    ...invoiceData,
-    emailData,
-  }, {
-    priority: emailData ? 1 : 0, // Higher priority if email needs to be sent
-  });
+  try {
+    const queue = await getInvoiceQueue();
+    
+    const job = await queue.add('generate-invoice', {
+      ...invoiceData,
+      emailData,
+    }, {
+      priority: emailData ? 1 : 0, // Higher priority if email needs to be sent
+    });
 
-  console.log(`📋 Invoice generation queued for order: ${invoiceData.orderId}, Job ID: ${job.id}`);
-  return job;
+    console.log(`📋 Invoice generation queued for order: ${invoiceData.orderId}, Job ID: ${job.id}`);
+    return job;
+  } catch (error) {
+    // If queue fails (Redis unavailable), throw error so caller can fall back
+    console.error(`❌ Failed to queue invoice generation for order ${invoiceData.orderId}:`, error.message);
+    throw new Error(`Queue unavailable: ${error.message}`);
+  }
 }
 
 /**

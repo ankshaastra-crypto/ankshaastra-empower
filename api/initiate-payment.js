@@ -1,3 +1,6 @@
+// Suppress DEP0169 deprecation warning from dependencies
+import './suppress-deprecation.js';
+
 // Use 'import' instead of 'require'
 import crypto from 'crypto';
 import { encryptCustomerData } from './encryption.js';

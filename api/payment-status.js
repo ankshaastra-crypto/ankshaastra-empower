@@ -263,10 +263,8 @@ export default async function handler(req, res) {
       });
     }
 
-    // Send payment confirmation emails FIRST, then invoice generation happens after
-    // We await the email sending to ensure order: 1) Confirmation emails 2) Invoice email
+    // Send payment confirmation emails
     if (customerEmail && customerEmail.trim() !== '') {
-      // Await email sending to ensure confirmation emails are sent before invoice generation starts
       try {
         const emailResult = await sendPaymentEmail({
           to: customerEmail,
@@ -287,17 +285,11 @@ export default async function handler(req, res) {
           transactionId: transactionId || '',
         });
         
-        // Log success with invoice attachment status
+        // Log success
         if (emailResult && emailResult.success) {
-          const hasInvoice = emailResult.invoiceAttached || false;
-          const invoiceId = emailResult.invoiceId || 'N/A';
           console.log(`✅ Payment confirmation emails sent successfully`);
           console.log(`   📧 Customer message ID: ${emailResult.customerMessageId || 'N/A'}`);
           console.log(`   📧 Admin message ID: ${emailResult.adminMessageId || 'N/A'}`);
-          console.log(`   📄 Invoice attached in confirmation: ${hasInvoice ? 'YES' : 'NO'} ${hasInvoice ? `(ID: ${invoiceId})` : ''}`);
-          if (!hasInvoice && paymentStatus === 'SUCCESS') {
-            console.log(`   📄 Invoice generation will happen in background after confirmation emails`);
-          }
         } else {
           console.error(`❌ Email sending failed for ${customerEmail}:`, emailResult?.error || 'Unknown error');
         }

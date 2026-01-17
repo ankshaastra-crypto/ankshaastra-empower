@@ -184,6 +184,7 @@ export async function sendPaymentEmail({
         // (Invoice email will be sent by queue worker)
       } else {
         // Synchronous generation (fallback)
+        console.log(`📄 Generating invoice PDF synchronously for order: ${orderId}`);
         const invoiceResult = await generateInvoicePDF({
           orderId,
           customerName: customerName || 'Customer',
@@ -196,13 +197,28 @@ export async function sendPaymentEmail({
           invoiceDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
           dueDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
         });
-        invoicePDFBuffer = invoiceResult.pdfBuffer;
-        invoiceId = invoiceResult.invoiceId;
-        invoiceNoteHtml = '<p style="background: #e8f5e9; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #10b981;"><strong>📄 Invoice Attached:</strong> Your invoice has been attached to this email for your records.</p>';
+        
+        // Validate invoice result
+        if (invoiceResult && invoiceResult.pdfBuffer && invoiceResult.invoiceId) {
+          invoicePDFBuffer = invoiceResult.pdfBuffer;
+          invoiceId = invoiceResult.invoiceId;
+          invoiceNoteHtml = '<p style="background: #e8f5e9; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #10b981;"><strong>📄 Invoice Attached:</strong> Your invoice has been attached to this email for your records.</p>';
+          console.log(`✅ Invoice PDF generated successfully: ${invoiceId}, Buffer size: ${invoicePDFBuffer.length} bytes`);
+        } else {
+          throw new Error(`Invalid invoice result: missing pdfBuffer or invoiceId. Result: ${JSON.stringify(invoiceResult ? Object.keys(invoiceResult) : 'null')}`);
+        }
       }
     } catch (invoiceError) {
-      console.error('Failed to generate invoice PDF:', invoiceError);
+      console.error('❌ Failed to generate invoice PDF:', invoiceError);
+      console.error('Invoice error details:', {
+        message: invoiceError.message,
+        stack: invoiceError.stack,
+        orderId,
+        amountInRupees,
+      });
       // Continue with email sending even if invoice generation fails
+      // But log clearly that no attachment will be sent
+      invoiceNoteHtml = '<p style="background: #fee2e2; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ef4444;"><strong>⚠️ Invoice Generation Issue:</strong> Your payment was successful, but we encountered an issue generating your invoice. Please contact support with your Order ID for assistance.</p>';
     }
   }
 
@@ -494,13 +510,20 @@ export async function sendPaymentEmail({
 
       // Attach invoice PDF if available
       if (invoicePDFBuffer && invoiceId) {
-        customerMailOptions.attachments = [
-          {
-            filename: `${invoiceId}.pdf`,
-            content: invoicePDFBuffer,
-            contentType: 'application/pdf',
-          },
-        ];
+        if (Buffer.isBuffer(invoicePDFBuffer)) {
+          customerMailOptions.attachments = [
+            {
+              filename: `${invoiceId}.pdf`,
+              content: invoicePDFBuffer,
+              contentType: 'application/pdf',
+            },
+          ];
+          console.log(`✅ Invoice attachment added: ${invoiceId}.pdf (${invoicePDFBuffer.length} bytes)`);
+        } else {
+          console.error(`❌ Invoice PDF buffer is not a Buffer. Type: ${typeof invoicePDFBuffer}, Is Buffer: ${Buffer.isBuffer(invoicePDFBuffer)}`);
+        }
+      } else {
+        console.warn(`⚠️ Invoice PDF not attached. Has buffer: ${!!invoicePDFBuffer}, Has ID: ${!!invoiceId}`);
       }
 
       customerEmailResult = await transporter.sendMail(customerMailOptions);

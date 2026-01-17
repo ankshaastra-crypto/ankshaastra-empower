@@ -5,6 +5,156 @@ import nodemailer from 'nodemailer';
 import { generateInvoicePDF } from './invoice-helper.js';
 import { queueInvoiceGeneration } from './invoice-queue.js';
 
+/**
+ * Helper function to send invoice email when PDF is ready
+ * This is called AFTER confirmation email is sent
+ */
+async function sendInvoiceEmail(invoicePDFBuffer, invoiceId, customerEmail, customerName, orderId, fromEmail) {
+  try {
+    const transporter = getTransporter();
+    const invoiceEmailHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #2E1A47 0%, #4A2C6A 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1 style="margin: 0; font-size: 24px;">Your Invoice</h1>
+          </div>
+          <div class="content">
+            <p>Dear ${customerName || 'Customer'},</p>
+            <p>Thank you for your purchase! Please find your invoice attached.</p>
+            <p><strong>Order ID:</strong> ${orderId}</p>
+            <p><strong>Invoice ID:</strong> ${invoiceId}</p>
+            <p>If you have any questions, please don't hesitate to contact us.</p>
+            <p>Best regards,<br>Ankshaastra Team</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    await transporter.sendMail({
+      from: fromEmail,
+      to: customerEmail,
+      subject: `Invoice for Order ${orderId} - ${invoiceId}`,
+      html: invoiceEmailHtml,
+      attachments: [{
+        filename: `${invoiceId}.pdf`,
+        content: invoicePDFBuffer,
+        contentType: 'application/pdf',
+      }],
+    });
+    
+    console.log(`✅ Invoice email sent successfully: ${invoiceId} to ${customerEmail}`);
+    return { success: true, invoiceId };
+  } catch (emailError) {
+    console.error(`❌ Failed to send invoice email for ${invoiceId}:`, emailError.message);
+    return { success: false, error: emailError.message };
+  }
+}
+
+/**
+ * Start invoice generation in background AFTER email is sent
+ * This ensures email sending is never blocked
+ */
+async function startInvoiceGenerationInBackground({
+  orderId,
+  customerName,
+  customerEmail,
+  customerPhone,
+  customerAddress,
+  amount,
+  packageType,
+  transactionId,
+  fromEmail,
+}) {
+  const useQueue = process.env.USE_INVOICE_QUEUE === 'true';
+  
+  try {
+    if (useQueue) {
+      // Try queue system first (best for production)
+      try {
+        const invoiceData = {
+          orderId,
+          customerName: customerName || 'Customer',
+          customerEmail,
+          customerPhone,
+          customerAddress: customerAddress || '',
+          amount,
+          packageType: packageType || 'single',
+          transactionId: transactionId || '',
+          invoiceDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+          dueDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        };
+        
+        // Queue will handle invoice generation and email sending
+        await queueInvoiceGeneration(invoiceData, {
+          to: customerEmail,
+          customerEmail,
+          customerName,
+          orderId,
+          amount: amount * 100, // Convert to paise for email
+          packageType,
+          status: 'SUCCESS',
+          transactionId,
+        });
+        console.log(`✅ Invoice queued successfully for order: ${orderId}`);
+        return;
+      } catch (queueError) {
+        console.warn(`⚠️ Queue unavailable, using direct generation: ${queueError.message}`);
+        // Fall through to direct generation
+      }
+    }
+    
+    // Direct invoice generation (fallback when queue unavailable)
+    console.log(`📄 Generating invoice PDF for order: ${orderId}`);
+    
+    const invoiceGenerationPromise = generateInvoicePDF({
+      orderId,
+      customerName: customerName || 'Customer',
+      customerEmail,
+      customerPhone,
+      customerAddress: customerAddress || '',
+      amount,
+      packageType: packageType || 'single',
+      transactionId: transactionId || '',
+      invoiceDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      dueDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+    });
+    
+    // 30 second timeout - if it takes longer, we'll send invoice later
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Invoice generation timeout')), 30000)
+    );
+    
+    const invoiceResult = await Promise.race([invoiceGenerationPromise, timeoutPromise]);
+    
+    if (invoiceResult && invoiceResult.pdfBuffer && invoiceResult.invoiceId) {
+      // Invoice ready! Send it now
+      await sendInvoiceEmail(
+        invoiceResult.pdfBuffer,
+        invoiceResult.invoiceId,
+        customerEmail,
+        customerName,
+        orderId,
+        fromEmail
+      );
+    }
+  } catch (invoiceError) {
+    console.error(`❌ Background invoice generation failed for order ${orderId}:`, invoiceError.message);
+    // Don't worry - customer already got confirmation email
+    // Invoice can be regenerated manually if needed
+  }
+}
+
 // Reuse transporter instance (singleton pattern) for better performance
 let transporterInstance = null;
 
@@ -141,150 +291,13 @@ export async function sendPaymentEmail({
   let invoiceNoteHtml = '';
   let useQueue = process.env.USE_INVOICE_QUEUE === 'true'; // Enable queue via env var
   
-  // SMOOTH FLOW: Send confirmation email immediately, generate invoice in background, then send invoice email
+  // CRITICAL: Set invoice note FIRST, then email will be sent IMMEDIATELY
+  // Invoice generation happens AFTER email is sent (completely non-blocking)
   if (status === 'SUCCESS' && amountInRupees > 0 && !invoicePDFBuffer) {
     // Set note that invoice will be sent separately
     invoiceNoteHtml = '<p style="background: #e8f5e9; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #10b981;"><strong>📄 Invoice Processing:</strong> Your invoice is being generated and will be sent to your email shortly.</p>';
-    
-    // Helper function to send invoice email when PDF is ready
-    const sendInvoiceEmail = async (invoicePDFBuffer, invoiceId) => {
-      try {
-        const transporter = getTransporter();
-        const invoiceEmailHtml = `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: linear-gradient(135deg, #2E1A47 0%, #4A2C6A 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-              .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <h1 style="margin: 0; font-size: 24px;">Your Invoice</h1>
-              </div>
-              <div class="content">
-                <p>Dear ${customerName || 'Customer'},</p>
-                <p>Thank you for your purchase! Please find your invoice attached.</p>
-                <p><strong>Order ID:</strong> ${orderId}</p>
-                <p><strong>Invoice ID:</strong> ${invoiceId}</p>
-                <p>If you have any questions, please don't hesitate to contact us.</p>
-                <p>Best regards,<br>Ankshaastra Team</p>
-              </div>
-            </div>
-          </body>
-          </html>
-        `;
-        
-        await transporter.sendMail({
-          from: fromEmail,
-          to: customerEmail,
-          subject: `Invoice for Order ${orderId} - ${invoiceId}`,
-          html: invoiceEmailHtml,
-          attachments: [{
-            filename: `${invoiceId}.pdf`,
-            content: invoicePDFBuffer,
-            contentType: 'application/pdf',
-          }],
-        });
-        
-        console.log(`✅ Invoice email sent successfully: ${invoiceId} to ${customerEmail}`);
-        return { success: true, invoiceId };
-      } catch (emailError) {
-        console.error(`❌ Failed to send invoice email for ${invoiceId}:`, emailError.message);
-        return { success: false, error: emailError.message };
-      }
-    };
-    
-    // Start invoice generation in background (fire and forget - smooth as butter!)
-    const generateInvoiceAsync = async () => {
-      try {
-        if (useQueue) {
-          // Try queue system first (best for production)
-          try {
-            const invoiceData = {
-              orderId,
-              customerName: customerName || 'Customer',
-              customerEmail,
-              customerPhone: finalCustomerMobile,
-              customerAddress: '',
-              amount: amountInRupees,
-              packageType: packageType || 'single',
-              transactionId: transactionId || '',
-              invoiceDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-              dueDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-            };
-            
-            // Queue will handle invoice generation and email sending
-            await queueInvoiceGeneration(invoiceData, {
-              to,
-              customerEmail,
-              customerName,
-              customerMobile: finalCustomerMobile,
-              customerDob: finalCustomerDob,
-              person1Name: finalPerson1Name,
-              person1Dob: finalPerson1Dob,
-              person2Name: finalPerson2Name,
-              person2Dob: finalPerson2Dob,
-              person3Name: finalPerson3Name,
-              person3Dob: finalPerson3Dob,
-              orderId,
-              amount,
-              packageType,
-              status,
-              transactionId,
-            });
-            console.log(`✅ Invoice queued successfully for order: ${orderId}`);
-            return;
-          } catch (queueError) {
-            console.warn(`⚠️ Queue unavailable, using direct generation: ${queueError.message}`);
-            useQueue = false; // Fall back to direct generation
-          }
-        }
-        
-        if (!useQueue) {
-          // Direct invoice generation (fallback when queue unavailable)
-          console.log(`📄 Generating invoice PDF for order: ${orderId}`);
-          
-          const invoiceGenerationPromise = generateInvoicePDF({
-            orderId,
-            customerName: customerName || 'Customer',
-            customerEmail,
-            customerPhone: finalCustomerMobile,
-            customerAddress: '',
-            amount: amountInRupees,
-            packageType: packageType || 'single',
-            transactionId: transactionId || '',
-            invoiceDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-            dueDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-          });
-          
-          // 30 second timeout - if it takes longer, we'll send invoice later
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Invoice generation timeout')), 30000)
-          );
-          
-          const invoiceResult = await Promise.race([invoiceGenerationPromise, timeoutPromise]);
-          
-          if (invoiceResult && invoiceResult.pdfBuffer && invoiceResult.invoiceId) {
-            // Invoice ready! Send it now
-            await sendInvoiceEmail(invoiceResult.pdfBuffer, invoiceResult.invoiceId);
-          }
-        }
-      } catch (invoiceError) {
-        console.error(`❌ Background invoice generation failed for order ${orderId}:`, invoiceError.message);
-        // Don't worry - customer already got confirmation email
-        // Invoice can be regenerated manually if needed
-      }
-    };
-    
-    // Start invoice generation in background (non-blocking - smooth!)
-    generateInvoiceAsync().catch((err) => {
-      console.error(`❌ Background invoice generation error:`, err.message);
-    });
+    // DO NOT start invoice generation here - it will block email sending!
+    // We'll start it AFTER email is sent using setImmediate
   }
 
   const customerHtml = status === 'SUCCESS' 
@@ -699,6 +712,30 @@ export async function sendPaymentEmail({
 
     // Both emails sent successfully
     const invoiceAttached = !!(invoicePDFBuffer && invoiceId);
+    
+    // NOW start invoice generation AFTER email is sent (completely non-blocking)
+    // Only if invoice wasn't already attached and customer email succeeded
+    if (status === 'SUCCESS' && amountInRupees > 0 && !invoicePDFBuffer && customerSuccess) {
+      // Use setImmediate to ensure this runs AFTER the return statement completes
+      // This ensures email sending is NEVER blocked by invoice generation
+      setImmediate(() => {
+        console.log(`🚀 Starting invoice generation in background for order: ${orderId}`);
+        startInvoiceGenerationInBackground({
+          orderId,
+          customerName: customerName || 'Customer',
+          customerEmail,
+          customerPhone: finalCustomerMobile,
+          customerAddress: '',
+          amount: amountInRupees,
+          packageType: packageType || 'single',
+          transactionId: transactionId || '',
+          fromEmail,
+        }).catch((err) => {
+          console.error(`❌ Background invoice generation error:`, err.message);
+        });
+      });
+    }
+    
     return {
       success: true,
       customerMessageId: customerEmailResult.messageId,

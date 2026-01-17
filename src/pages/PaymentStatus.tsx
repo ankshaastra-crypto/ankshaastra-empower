@@ -132,7 +132,7 @@ const PaymentStatus = () => {
           // Show email notification toast with slide-in animation
           setTimeout(() => {
             toast.success("Email Sent Successfully!", {
-              description: "Your confirmation email with invoice attached is being sent to your inbox.",
+              description: "Your confirmation email is being sent to your inbox.",
               icon: <Mail className="w-5 h-5 text-white" />,
               duration: 6000,
               position: "top-right",
@@ -242,10 +242,10 @@ const PaymentStatus = () => {
                       <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
                         <p className="text-green-800 font-semibold mb-1">
-                          Email with Invoice Being Sent
+                          Confirmation Email Being Sent
                         </p>
                         <p className="text-green-700 text-sm">
-                          Your confirmation email with the invoice attached is being processed and will arrive in your inbox shortly. 
+                          Your confirmation email is being processed and will arrive in your inbox shortly. 
                           Please check your spam folder if you don't see it within a few minutes.
                         </p>
                       </div>
@@ -258,7 +258,7 @@ const PaymentStatus = () => {
                     </p>
                     <ul className="text-muted-foreground text-sm space-y-2 list-disc list-inside">
                       <li>
-                        <strong>Confirmation Email:</strong> You will receive a confirmation email with your invoice attached within a few minutes.
+                        <strong>Confirmation Email:</strong> You will receive a confirmation email within a few minutes.
                       </li>
                       <li>
                         <strong>Your Report:</strong> Your personalized numerology report will be delivered via email within 24-48 hours.

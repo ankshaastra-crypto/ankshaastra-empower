@@ -1,8 +1,12 @@
 import crypto from 'crypto';
 import { sendPaymentEmail } from './send-email.js';
 import { decryptCustomerData } from './encryption.js';
+import { rateLimiter } from './rate-limiter.js';
 
 export default async function handler(req, res) {
+  // Apply rate limiting
+  await rateLimiter(req, res, () => {});
+  if (res.headersSent) return; // Rate limit exceeded
   // Handle both GET (redirect) and POST requests
   if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });

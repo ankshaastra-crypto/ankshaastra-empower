@@ -120,20 +120,80 @@ export async function startInvoiceWorker() {
           dueDate,
         });
 
-      // Send email with invoice attachment
+      // Send invoice email when PDF is ready (separate email with invoice attachment)
       if (emailData) {
-        const emailResult = await sendPaymentEmail({
-          ...emailData,
-          _invoicePDFBuffer: invoiceResult.pdfBuffer,
-          _invoiceId: invoiceResult.invoiceId,
-        });
+        try {
+          const { getTransporter } = await import('./send-email.js');
+          const transporter = getTransporter();
+          const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';
+          
+          // Verify SMTP connection first
+          try {
+            await transporter.verify();
+          } catch (verifyError) {
+            console.error(`❌ SMTP verification failed for invoice email:`, verifyError.message);
+            throw verifyError;
+          }
+          
+          const invoiceEmailHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background: linear-gradient(135deg, #2E1A47 0%, #4A2C6A 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header">
+                  <h1 style="margin: 0; font-size: 24px;">Your Invoice</h1>
+                </div>
+                <div class="content">
+                  <p>Dear ${emailData.customerName || 'Customer'},</p>
+                  <p>Thank you for your purchase! Please find your invoice attached.</p>
+                  <p><strong>Order ID:</strong> ${orderId}</p>
+                  <p><strong>Invoice ID:</strong> ${invoiceResult.invoiceId}</p>
+                  <p>If you have any questions, please don't hesitate to contact us.</p>
+                  <p>Best regards,<br>Ankshaastra Team</p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `;
+          
+          const emailResult = await transporter.sendMail({
+            from: fromEmail,
+            to: emailData.customerEmail,
+            subject: `Invoice for Order ${orderId} - ${invoiceResult.invoiceId}`,
+            html: invoiceEmailHtml,
+            attachments: [{
+              filename: `${invoiceResult.invoiceId}.pdf`,
+              content: invoiceResult.pdfBuffer,
+              contentType: 'application/pdf',
+            }],
+          });
 
-        return {
-          success: true,
-          invoiceId: invoiceResult.invoiceId,
-          emailSent: emailResult.success,
-          messageId: emailResult.customerMessageId,
-        };
+          console.log(`✅ Invoice email sent via queue: ${invoiceResult.invoiceId} to ${emailData.customerEmail}`);
+
+          return {
+            success: true,
+            invoiceId: invoiceResult.invoiceId,
+            emailSent: true,
+            messageId: emailResult.messageId,
+          };
+        } catch (emailError) {
+          console.error(`❌ Failed to send invoice email via queue:`, emailError.message);
+          // Still return success for invoice generation, email can be retried
+          return {
+            success: true,
+            invoiceId: invoiceResult.invoiceId,
+            emailSent: false,
+            emailError: emailError.message,
+          };
+        }
       }
 
         return {

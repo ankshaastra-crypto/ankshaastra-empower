@@ -115,7 +115,7 @@ export async function startInvoiceWorker() {
         emailData, // Additional email data
       } = job.data;
 
-      console.log(`📄 Processing invoice generation for order: ${orderId}`);
+      console.log(`📄 Processing invoice generation for order: ${orderId} (after payment confirmation emails sent)`);
 
       try {
         // Generate invoice PDF using browser pool
@@ -268,6 +268,7 @@ export async function queueInvoiceGeneration(invoiceData, emailData = null) {
     });
 
     console.log(`📋 Invoice generation queued for order: ${invoiceData.orderId}, Job ID: ${job.id}`);
+    console.log(`   📧 Invoice email will be sent after PDF generation completes`);
     return job;
   } catch (error) {
     // If queue fails (Redis unavailable), throw error so caller can fall back

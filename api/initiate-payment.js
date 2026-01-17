@@ -1,8 +1,12 @@
 // Use 'import' instead of 'require'
 import crypto from 'crypto';
 import { encryptCustomerData } from './encryption.js';
+import { rateLimiter } from './rate-limiter.js';
 
 export default async function handler(req, res) {
+  // Apply rate limiting
+  await rateLimiter(req, res, () => {});
+  if (res.headersSent) return; // Rate limit exceeded
   // Only allow POST requests.
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });

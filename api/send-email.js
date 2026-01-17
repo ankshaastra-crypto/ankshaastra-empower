@@ -1,23 +1,35 @@
 import nodemailer from 'nodemailer';
+import { generateInvoicePDF } from './invoice-helper.js';
+import { queueInvoiceGeneration } from './invoice-queue.js';
 
-// Create SMTP transporter
-const createTransporter = () => {
-  const config = {
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
-    },
-    tls: {
-      rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED !== 'false',
-    },
-  };
+// Reuse transporter instance (singleton pattern) for better performance
+let transporterInstance = null;
+
+// Create SMTP transporter (singleton)
+const getTransporter = () => {
+  if (!transporterInstance) {
+    const config = {
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED !== 'false',
+      },
+      pool: true, // Use connection pooling
+      maxConnections: 5, // Maximum number of connections
+      maxMessages: 100, // Maximum messages per connection
+      rateDelta: 1000, // Time window for rate limiting (ms)
+      rateLimit: 5, // Maximum messages per rateDelta
+    };
+    
+    transporterInstance = nodemailer.createTransport(config);
+  }
   
-  // SMTP configuration loaded (sensitive data not logged)
-  
-  return nodemailer.createTransport(config);
+  return transporterInstance;
 };
 
 export async function sendPaymentEmail({ 
@@ -36,7 +48,9 @@ export async function sendPaymentEmail({
   amount, 
   packageType, 
   status, 
-  transactionId 
+  transactionId,
+  _invoicePDFBuffer = null, // Internal: PDF buffer from queue
+  _invoiceId = null, // Internal: Invoice ID from queue
 }) {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@ankshaastra.com';
   const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';
@@ -118,6 +132,80 @@ export async function sendPaymentEmail({
     ? `Payment Successful - Order ${orderId}`
     : `Payment Failed - Order ${orderId}`;
 
+  // Check if invoice PDF buffer and ID are provided directly (from queue)
+  let invoicePDFBuffer = _invoicePDFBuffer;
+  let invoiceId = _invoiceId;
+  let invoiceNoteHtml = '';
+  let useQueue = process.env.USE_INVOICE_QUEUE === 'true'; // Enable queue via env var
+  
+  if (status === 'SUCCESS' && amountInRupees > 0 && !invoicePDFBuffer) {
+    try {
+      if (useQueue) {
+        // Use queue system for async invoice generation
+        const invoiceData = {
+          orderId,
+          customerName: customerName || 'Customer',
+          customerEmail,
+          customerPhone: finalCustomerMobile,
+          customerAddress: '',
+          amount: amountInRupees,
+          packageType: packageType || 'single',
+          transactionId: transactionId || '',
+          invoiceDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+          dueDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        };
+        
+        const emailData = {
+          to,
+          customerEmail,
+          customerName,
+          customerMobile: finalCustomerMobile,
+          customerDob: finalCustomerDob,
+          person1Name: finalPerson1Name,
+          person1Dob: finalPerson1Dob,
+          person2Name: finalPerson2Name,
+          person2Dob: finalPerson2Dob,
+          person3Name: finalPerson3Name,
+          person3Dob: finalPerson3Dob,
+          orderId,
+          amount,
+          packageType,
+          status,
+          transactionId,
+        };
+        
+        // Queue invoice generation (will send email after PDF is ready)
+        await queueInvoiceGeneration(invoiceData, emailData);
+        
+        // Return immediately - email will be sent by queue worker
+        invoiceNoteHtml = '<p style="background: #e8f5e9; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #10b981;"><strong>📄 Invoice Processing:</strong> Your invoice is being generated and will be sent shortly.</p>';
+        
+        // Send immediate confirmation email without invoice
+        // (Invoice email will be sent by queue worker)
+      } else {
+        // Synchronous generation (fallback)
+        const invoiceResult = await generateInvoicePDF({
+          orderId,
+          customerName: customerName || 'Customer',
+          customerEmail,
+          customerPhone: finalCustomerMobile,
+          customerAddress: '',
+          amount: amountInRupees,
+          packageType: packageType || 'single',
+          transactionId: transactionId || '',
+          invoiceDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+          dueDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        });
+        invoicePDFBuffer = invoiceResult.pdfBuffer;
+        invoiceId = invoiceResult.invoiceId;
+        invoiceNoteHtml = '<p style="background: #e8f5e9; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #10b981;"><strong>📄 Invoice Attached:</strong> Your invoice has been attached to this email for your records.</p>';
+      }
+    } catch (invoiceError) {
+      console.error('Failed to generate invoice PDF:', invoiceError);
+      // Continue with email sending even if invoice generation fails
+    }
+  }
+
   const customerHtml = status === 'SUCCESS' 
     ? `
       <!DOCTYPE html>
@@ -143,6 +231,7 @@ export async function sendPaymentEmail({
             <div class="success-badge">✓ Payment Confirmed</div>
             <p>Dear ${customerName || 'Valued Customer'},</p>
             <p>Thank you for your purchase! Your payment has been successfully processed.</p>
+            ${invoiceNoteHtml}
             
             <div class="details">
               <div class="detail-row">
@@ -371,7 +460,7 @@ export async function sendPaymentEmail({
   `;
 
   try {
-    const transporter = createTransporter();
+    const transporter = getTransporter();
 
     // Verify SMTP connection before sending
     try {
@@ -395,12 +484,26 @@ export async function sendPaymentEmail({
     let customerSuccess = false;
     
     try {
-      customerEmailResult = await transporter.sendMail({
+      // Prepare email options
+      const customerMailOptions = {
         from: fromEmail,
         to: customerEmail,
         subject: customerSubject,
         html: customerHtml,
-      });
+      };
+
+      // Attach invoice PDF if available
+      if (invoicePDFBuffer && invoiceId) {
+        customerMailOptions.attachments = [
+          {
+            filename: `${invoiceId}.pdf`,
+            content: invoicePDFBuffer,
+            contentType: 'application/pdf',
+          },
+        ];
+      }
+
+      customerEmailResult = await transporter.sendMail(customerMailOptions);
       
       // Validate that we got a valid response
       if (customerEmailResult && customerEmailResult.messageId) {

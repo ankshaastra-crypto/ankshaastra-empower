@@ -97,8 +97,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // Send payment confirmation emails FIRST (customer and admin)
-    // Invoice generation will happen AFTER confirmation emails are sent
+    // Send payment confirmation emails (customer and admin)
     const emailResult = await sendPaymentEmail({
       to: finalCustomerEmail,
       customerEmail: finalCustomerEmail,
@@ -123,9 +122,6 @@ export default async function handler(req, res) {
       // Don't fail the webhook if email fails, but log it
     } else {
       console.log(`✅ Payment confirmation emails sent - Customer: ${emailResult.customerMessageId || 'N/A'}, Admin: ${emailResult.adminMessageId || 'N/A'}`);
-      if (status === 'SUCCESS' && !emailResult.invoiceAttached) {
-        console.log(`📄 Invoice generation will happen in background after confirmation emails`);
-      }
     }
 
     // Return success response to PhonePe

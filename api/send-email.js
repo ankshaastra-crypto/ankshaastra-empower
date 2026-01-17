@@ -95,8 +95,8 @@ async function sendInvoiceEmail(invoicePDFBuffer, invoiceId, customerEmail, cust
 }
 
 /**
- * Start invoice generation in background AFTER email is sent
- * This ensures email sending is never blocked
+ * Start invoice generation in background AFTER payment confirmation emails are sent
+ * This ensures: 1) Payment confirmation emails sent 2) Invoice generation and email
  */
 async function startInvoiceGenerationInBackground({
   orderId,
@@ -109,8 +109,8 @@ async function startInvoiceGenerationInBackground({
   transactionId,
   fromEmail,
 }) {
-  // LAZY LOAD invoice modules to prevent any blocking during email sending
-  // This ensures emails are sent FIRST, then invoice generation happens
+  // This function is called AFTER payment confirmation emails (customer + admin) are sent
+  // Now we generate invoice PDF and send invoice email to customer
   try {
     // Check if queue is enabled AND Redis is available
     // Default to false if not explicitly set to 'true' (safer for Vercel without Redis)
@@ -119,6 +119,7 @@ async function startInvoiceGenerationInBackground({
     if (useQueue) {
       // Try queue system first (only if Redis is configured)
       try {
+        console.log(`📋 Queueing invoice generation for order: ${orderId} (after confirmation emails sent)`);
         // Lazy import to prevent blocking
         const { queueInvoiceGeneration } = await import('./invoice-queue.js');
         
@@ -135,7 +136,7 @@ async function startInvoiceGenerationInBackground({
           dueDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
         };
         
-        // Queue will handle invoice generation and email sending
+        // Queue will handle invoice generation and invoice email sending
         await queueInvoiceGeneration(invoiceData, {
           to: customerEmail,
           customerEmail,
@@ -146,7 +147,7 @@ async function startInvoiceGenerationInBackground({
           status: 'SUCCESS',
           transactionId,
         });
-        console.log(`✅ Invoice queued successfully for order: ${orderId}`);
+        console.log(`✅ Invoice generation queued for order: ${orderId} (invoice email will be sent after PDF generation)`);
         return;
       } catch (queueError) {
         console.warn(`⚠️ Queue unavailable (Redis not working), falling back to direct generation: ${queueError.message}`);
@@ -807,20 +808,20 @@ export async function sendPaymentEmail({
       invoiceSize: invoicePDFBuffer ? invoicePDFBuffer.length : 0,
     };
     
-    // CRITICAL: Start invoice generation ONLY AFTER both emails are completely sent
-    // This ensures invoice generation happens AFTER email functionality completes
-    // Only if invoice wasn't already attached and BOTH emails succeeded
+    // CRITICAL: Start invoice generation ONLY AFTER both confirmation emails are completely sent
+    // This ensures the correct order: 1) Payment confirmation emails 2) Invoice email
+    // Only if invoice wasn't already attached and confirmation emails succeeded
     if (status === 'SUCCESS' && amountInRupees > 0 && !invoicePDFBuffer && customerSuccess && adminSuccess) {
-      // Use Promise.resolve().then() to ensure this runs AFTER the return statement
+      // Use setImmediate to ensure this runs AFTER the function returns and emails are fully sent
       // This ensures:
       // 1. Function returns immediately (non-blocking)
-      // 2. Invoice generation starts AFTER emails are sent
+      // 2. Invoice generation starts AFTER confirmation emails are completely sent
       // 3. No blocking of email sending
-      Promise.resolve().then(() => {
-        console.log(`🚀 Starting invoice generation AFTER emails completed for order: ${orderId}`);
-        console.log(`   ✅ Customer email sent: ${customerEmailResult.messageId}`);
-        console.log(`   ✅ Admin email sent: ${adminEmailResult.messageId}`);
-        console.log(`   📄 Invoice generation starting in background...`);
+      setImmediate(() => {
+        console.log(`🚀 Starting invoice generation AFTER confirmation emails completed for order: ${orderId}`);
+        console.log(`   ✅ Customer confirmation email sent: ${customerEmailResult.messageId}`);
+        console.log(`   ✅ Admin confirmation email sent: ${adminEmailResult.messageId}`);
+        console.log(`   📄 Invoice generation and email will happen in background...`);
         
         startInvoiceGenerationInBackground({
           orderId,
@@ -835,15 +836,13 @@ export async function sendPaymentEmail({
         }).catch((err) => {
           console.error(`❌ Background invoice generation error:`, err.message);
         });
-      }).catch(() => {
-        // Ignore errors in promise chain - invoice generation is fire-and-forget
       });
     } else if (status === 'SUCCESS' && amountInRupees > 0 && !invoicePDFBuffer && customerSuccess && !adminSuccess) {
       // Customer email succeeded but admin failed - still generate invoice
-      Promise.resolve().then(() => {
-        console.log(`🚀 Starting invoice generation AFTER customer email completed for order: ${orderId}`);
-        console.log(`   ✅ Customer email sent: ${customerEmailResult.messageId}`);
-        console.log(`   ⚠️  Admin email failed (invoice still generated)`);
+      setImmediate(() => {
+        console.log(`🚀 Starting invoice generation AFTER customer confirmation email completed for order: ${orderId}`);
+        console.log(`   ✅ Customer confirmation email sent: ${customerEmailResult.messageId}`);
+        console.log(`   ⚠️  Admin confirmation email failed (invoice still generated)`);
         
         startInvoiceGenerationInBackground({
           orderId,
@@ -858,8 +857,6 @@ export async function sendPaymentEmail({
         }).catch((err) => {
           console.error(`❌ Background invoice generation error:`, err.message);
         });
-      }).catch(() => {
-        // Ignore errors in promise chain
       });
     }
     

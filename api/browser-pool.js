@@ -5,19 +5,61 @@ import { Cluster } from 'puppeteer-cluster';
  */
 async function getChromiumExecutablePath() {
   // Check if we're in a serverless environment
-  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT) {
+  const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT;
+  
+  if (isServerless) {
     try {
+      console.log('🔍 Attempting to load @sparticuz/chromium for serverless environment...');
+      console.log('Environment check:', {
+        VERCEL: !!process.env.VERCEL,
+        AWS_LAMBDA: !!process.env.AWS_LAMBDA_FUNCTION_NAME,
+        LAMBDA_ROOT: !!process.env.LAMBDA_TASK_ROOT,
+      });
+      
       // Use @sparticuz/chromium for serverless environments
       const chromium = await import('@sparticuz/chromium');
-      // Set font path for better PDF rendering
-      chromium.setGraphicsMode(false);
-      return chromium.executablePath();
+      
+      console.log('✅ @sparticuz/chromium module loaded');
+      
+      // Configure chromium for serverless
+      if (chromium.setGraphicsMode) {
+        chromium.setGraphicsMode(false);
+      }
+      
+      // Get executable path - @sparticuz/chromium handles extraction automatically
+      // executablePath() is synchronous and extracts Chromium to /tmp if needed
+      let executablePath;
+      if (typeof chromium.executablePath === 'function') {
+        executablePath = chromium.executablePath();
+      } else if (chromium.default && typeof chromium.default.executablePath === 'function') {
+        executablePath = chromium.default.executablePath();
+      } else {
+        console.error('❌ chromium.executablePath is not a function');
+        return undefined;
+      }
+      
+      if (executablePath) {
+        console.log('✅ @sparticuz/chromium executable path:', executablePath);
+        return executablePath;
+      } else {
+        console.warn('⚠️ @sparticuz/chromium executablePath returned undefined or empty');
+        return undefined;
+      }
     } catch (error) {
-      console.warn('⚠️ @sparticuz/chromium not available, using default Puppeteer browser:', error.message);
-      return undefined; // Fall back to default Puppeteer browser
+      console.error('❌ Failed to load @sparticuz/chromium:', error.message);
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        name: error.name,
+        stack: error.stack?.split('\n').slice(0, 5).join('\n')
+      });
+      // Don't throw - let it fall back to default Puppeteer
+      return undefined;
     }
   }
+  
   // Local development - use default Puppeteer browser
+  console.log('📦 Using default Puppeteer browser (local development)');
   return undefined;
 }
 
@@ -103,8 +145,16 @@ class BrowserPool {
       // Set executable path if available (for serverless)
       if (executablePath) {
         puppeteerOptions.executablePath = executablePath;
-        console.log('📦 Using serverless Chromium:', executablePath);
+        console.log('📦 Configured Puppeteer with serverless Chromium:', executablePath);
+      } else {
+        console.log('📦 Using default Puppeteer browser (executablePath not set)');
       }
+
+      console.log('🚀 Launching browser cluster with options:', {
+        executablePath: executablePath ? 'Set' : 'Default',
+        maxConcurrency: process.env.VERCEL ? 2 : 5,
+        argsCount: args.length,
+      });
 
       this.cluster = await Cluster.launch({
         concurrency: Cluster.CONCURRENCY_PAGE, // One task per page
@@ -123,16 +173,17 @@ class BrowserPool {
   }
 
   /**
-   * Generate PDF using browser pool
+   * Generate PDF using browser pool (with fallback to direct Puppeteer)
    * @param {string} html - HTML content to convert to PDF
    * @returns {Promise<Buffer>} PDF buffer
    */
   async generatePDF(html) {
-    if (!this.isInitialized || !this.cluster) {
-      await this.initialize();
-    }
-
+    // Try browser pool first
     try {
+      if (!this.isInitialized || !this.cluster) {
+        await this.initialize();
+      }
+
       const pdfBuffer = await this.cluster.execute(async ({ page }) => {
         // Set timeout for page operations
         page.setDefaultTimeout(30000);
@@ -163,9 +214,64 @@ class BrowserPool {
       });
 
       return pdfBuffer;
-    } catch (error) {
-      console.error('Error generating PDF with browser pool:', error);
-      throw error;
+    } catch (clusterError) {
+      console.error('❌ Browser pool failed, trying direct Puppeteer fallback:', clusterError.message);
+      
+      // Fallback to direct Puppeteer launch
+      try {
+        const puppeteer = await import('puppeteer');
+        const executablePath = await getChromiumExecutablePath();
+        const args = getChromiumArgs();
+        
+        const launchOptions = {
+          headless: true,
+          args,
+          timeout: 30000,
+        };
+        
+        if (executablePath) {
+          launchOptions.executablePath = executablePath;
+          console.log('📦 Using direct Puppeteer with serverless Chromium');
+        }
+        
+        const browser = await puppeteer.launch(launchOptions);
+        const page = await browser.newPage();
+        
+        try {
+          page.setDefaultTimeout(30000);
+          await page.setContent(html, {
+            waitUntil: 'networkidle0',
+            timeout: 30000,
+          });
+          
+          const pdfBuffer = await Promise.race([
+            page.pdf({
+              format: 'A4',
+              printBackground: true,
+              margin: {
+                top: '10px',
+                right: '10px',
+                bottom: '10px',
+                left: '10px',
+              },
+              preferCSSPageSize: false,
+            }),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('PDF generation timeout')), 30000)
+            ),
+          ]);
+          
+          await browser.close();
+          console.log('✅ PDF generated using direct Puppeteer fallback');
+          return pdfBuffer;
+        } catch (pdfError) {
+          await browser.close();
+          throw pdfError;
+        }
+      } catch (fallbackError) {
+        console.error('❌ Direct Puppeteer fallback also failed:', fallbackError.message);
+        throw new Error(`PDF generation failed: ${clusterError.message}. Fallback also failed: ${fallbackError.message}`);
+      }
     }
   }
 

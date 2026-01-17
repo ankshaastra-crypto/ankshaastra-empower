@@ -281,17 +281,33 @@ class BrowserPool {
       }
       
       console.log('🚀 Launching direct Puppeteer browser...');
-      const browser = await puppeteer.launch(launchOptions);
+      const browser = await Promise.race([
+        puppeteer.launch(launchOptions),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Browser launch timeout after 15 seconds')), 15000)
+        )
+      ]);
       
       try {
-        const page = await browser.newPage();
-        page.setDefaultTimeout(30000);
+        const page = await Promise.race([
+          browser.newPage(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Page creation timeout')), 5000)
+          )
+        ]);
+        
+        page.setDefaultTimeout(20000); // Reduced timeout
         
         console.log('📄 Setting page content...');
-        await page.setContent(html, {
-          waitUntil: 'networkidle0',
-          timeout: 30000,
-        });
+        await Promise.race([
+          page.setContent(html, {
+            waitUntil: 'networkidle0',
+            timeout: 20000,
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Page content timeout after 20 seconds')), 20000)
+          )
+        ]);
         
         console.log('📄 Generating PDF...');
         const pdfBuffer = await Promise.race([
@@ -307,7 +323,7 @@ class BrowserPool {
             preferCSSPageSize: false,
           }),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('PDF generation timeout')), 30000)
+            setTimeout(() => reject(new Error('PDF generation timeout after 20 seconds')), 20000)
           ),
         ]);
         

@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Check, Clock, Lock, Sparkles } from "lucide-react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
+import { getPackagePricing, formatPrice } from "@/lib/packagePricing";
 
 const PricingSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
+  const pricing = getPackagePricing();
 
   const scrollToForm = (packageType?: string) => {
     const formSection = document.getElementById("order-form");
@@ -79,7 +81,7 @@ const PricingSection = () => {
             {/* Price */}
             <div className="mb-4">
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-heading font-bold text-secondary">₹199</span>
+                <span className="text-3xl font-heading font-bold text-secondary">{formatPrice(pricing.namecheck.price)}</span>
                 <span className="text-sm text-muted-foreground">only</span>
               </div>
             </div>
@@ -124,11 +126,11 @@ const PricingSection = () => {
             {/* Price */}
             <div className="mb-4">
               <div className="flex items-baseline gap-2">
-                <span className="text-base text-muted-foreground line-through">₹5,100</span>
-                <span className="text-3xl font-heading font-bold text-accent">₹1,997</span>
+                <span className="text-base text-muted-foreground line-through">{formatPrice(pricing.single.originalPrice)}</span>
+                <span className="text-3xl font-heading font-bold text-accent">{formatPrice(pricing.single.price)}</span>
               </div>
               <span className="inline-block mt-2 bg-accent/10 text-accent text-xs font-semibold px-2 py-1 rounded-full">
-                62% OFF
+                {Math.round(((pricing.single.originalPrice - pricing.single.price) / pricing.single.originalPrice) * 100)}% OFF
               </span>
             </div>
 
@@ -185,11 +187,11 @@ const PricingSection = () => {
             {/* Price */}
             <div className="mb-3">
               <div className="flex items-baseline gap-2">
-                <span className="text-base text-muted-foreground line-through">₹10,200</span>
-                <span className="text-3xl font-heading font-bold text-accent">₹3,994</span>
+                <span className="text-base text-muted-foreground line-through">{formatPrice(pricing.family.originalPrice)}</span>
+                <span className="text-3xl font-heading font-bold text-accent">{formatPrice(pricing.family.price)}</span>
               </div>
               <span className="inline-block mt-2 bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
-                SAVE ₹6,206 + 1 FREE
+                SAVE {formatPrice(pricing.family.originalPrice - pricing.family.price)} + 1 FREE
               </span>
             </div>
 

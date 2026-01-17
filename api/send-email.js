@@ -2,8 +2,9 @@
 import './suppress-deprecation.js';
 
 import nodemailer from 'nodemailer';
-import { generateInvoicePDF } from './invoice-helper.js';
-import { queueInvoiceGeneration } from './invoice-queue.js';
+// Invoice generation imports are lazy-loaded to prevent blocking email sending
+// import { generateInvoicePDF } from './invoice-helper.js';
+// import { queueInvoiceGeneration } from './invoice-queue.js';
 
 /**
  * Helper function to send invoice email when PDF is ready
@@ -76,12 +77,19 @@ async function startInvoiceGenerationInBackground({
   transactionId,
   fromEmail,
 }) {
-  const useQueue = process.env.USE_INVOICE_QUEUE === 'true';
-  
+  // LAZY LOAD invoice modules to prevent any blocking during email sending
+  // This ensures emails are sent FIRST, then invoice generation happens
   try {
+    // Check if queue is enabled AND Redis is available
+    // Default to false if not explicitly set to 'true' (safer for Vercel without Redis)
+    const useQueue = process.env.USE_INVOICE_QUEUE === 'true' && process.env.REDIS_URL && !process.env.REDIS_URL.includes('localhost');
+    
     if (useQueue) {
-      // Try queue system first (best for production with Redis)
+      // Try queue system first (only if Redis is configured)
       try {
+        // Lazy import to prevent blocking
+        const { queueInvoiceGeneration } = await import('./invoice-queue.js');
+        
         const invoiceData = {
           orderId,
           customerName: customerName || 'Customer',
@@ -109,14 +117,20 @@ async function startInvoiceGenerationInBackground({
         console.log(`✅ Invoice queued successfully for order: ${orderId}`);
         return;
       } catch (queueError) {
-        console.warn(`⚠️ Queue unavailable, using direct generation: ${queueError.message}`);
+        console.warn(`⚠️ Queue unavailable (Redis not working), falling back to direct generation: ${queueError.message}`);
         // Fall through to direct generation
       }
+    } else {
+      // Queue disabled or Redis not configured - use direct generation
+      console.log(`📄 Using direct invoice generation (queue disabled or Redis unavailable)`);
     }
     
     // Direct invoice generation (used when USE_INVOICE_QUEUE=false or queue unavailable)
     // This is the default for Vercel deployments without Redis
     console.log(`📄 Generating invoice PDF directly (no queue) for order: ${orderId}`);
+    
+    // Lazy import to prevent blocking
+    const { generateInvoicePDF } = await import('./invoice-helper.js');
     
     const invoiceGenerationPromise = generateInvoicePDF({
       orderId,
@@ -151,6 +165,7 @@ async function startInvoiceGenerationInBackground({
     }
   } catch (invoiceError) {
     console.error(`❌ Background invoice generation failed for order ${orderId}:`, invoiceError.message);
+    console.error(`   Error stack:`, invoiceError.stack?.split('\n').slice(0, 3).join('\n'));
     // Don't worry - customer already got confirmation email
     // Invoice can be regenerated manually if needed
   }
@@ -555,13 +570,16 @@ export async function sendPaymentEmail({
   `;
 
   try {
+    console.log(`📧 Starting email sending process for order: ${orderId}`);
     const transporter = getTransporter();
 
     // Verify SMTP connection before sending
     try {
+      console.log(`🔍 Verifying SMTP connection...`);
       await transporter.verify();
+      console.log(`✅ SMTP connection verified`);
     } catch (verifyError) {
-      console.error("SMTP verification failed");
+      console.error("❌ SMTP verification failed:", verifyError.message);
       return {
         success: false,
         error: `SMTP connection failed: ${verifyError.message}`,
@@ -574,6 +592,7 @@ export async function sendPaymentEmail({
     }
 
     // Send email to customer
+    console.log(`📧 Sending customer email to: ${customerEmail}`);
     let customerEmailResult = null;
     let customerError = null;
     let customerSuccess = false;
@@ -610,6 +629,7 @@ export async function sendPaymentEmail({
       // Validate that we got a valid response
       if (customerEmailResult && customerEmailResult.messageId) {
         customerSuccess = true;
+        console.log(`✅ Customer email sent successfully! Message ID: ${customerEmailResult.messageId}`);
       } else {
         customerError = new Error("Email sent but no messageId returned");
         console.error("❌ Customer email sent but invalid response");
@@ -620,11 +640,13 @@ export async function sendPaymentEmail({
       console.error("❌ Failed to send customer email");
       console.error("Customer email error:", {
         code: customerErr.code,
-        responseCode: customerErr.responseCode
+        responseCode: customerErr.responseCode,
+        message: customerErr.message
       });
     }
 
     // Send email to admin
+    console.log(`📧 Sending admin email to: ${adminEmail}`);
     let adminEmailResult = null;
     let adminError = null;
     let adminSuccess = false;
@@ -640,6 +662,7 @@ export async function sendPaymentEmail({
       // Validate that we got a valid response
       if (adminEmailResult && adminEmailResult.messageId) {
         adminSuccess = true;
+        console.log(`✅ Admin email sent successfully! Message ID: ${adminEmailResult.messageId}`);
       } else {
         adminError = new Error("Email sent but no messageId returned");
         console.error("❌ Admin email sent but invalid response");
@@ -650,9 +673,12 @@ export async function sendPaymentEmail({
       console.error("❌ Failed to send admin email");
       console.error("Admin email error:", {
         code: adminErr.code,
-        responseCode: adminErr.responseCode
+        responseCode: adminErr.responseCode,
+        message: adminErr.message
       });
     }
+
+    console.log(`📊 Email sending summary - Customer: ${customerSuccess ? '✅' : '❌'}, Admin: ${adminSuccess ? '✅' : '❌'}`);
 
     // Check if both emails were sent successfully
     if (!customerSuccess && !adminSuccess) {

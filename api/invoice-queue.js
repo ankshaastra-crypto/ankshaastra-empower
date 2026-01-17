@@ -15,8 +15,13 @@ import Redis from 'ioredis';
 let redisConnection = null;
 
 async function getRedisConnection() {
+  // Don't try to connect if Redis URL is not set or points to localhost
+  const redisUrl = process.env.REDIS_URL;
+  if (!redisUrl || redisUrl.includes('localhost') || redisUrl.includes('127.0.0.1')) {
+    throw new Error('Redis URL not configured or points to localhost (not available on Vercel)');
+  }
+  
   if (!redisConnection) {
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
     redisConnection = new Redis(redisUrl, {
       maxRetriesPerRequest: 3,
       retryStrategy: (times) => {
@@ -30,21 +35,28 @@ async function getRedisConnection() {
         }
         return false;
       },
+      // Fail fast if connection can't be established
+      connectTimeout: 5000,
+      enableReadyCheck: true,
     });
     
     // Handle connection errors gracefully
     redisConnection.on('error', (err) => {
-      // Only log if Redis URL is explicitly set
-      if (process.env.REDIS_URL && !process.env.REDIS_URL.includes('localhost')) {
-        console.error('❌ Invoice queue Redis error:', err.message);
-      }
+      console.error('❌ Invoice queue Redis error:', err.message);
     });
     
     redisConnection.on('connect', () => {
-      if (process.env.REDIS_URL && !process.env.REDIS_URL.includes('localhost')) {
-        console.log('✅ Invoice queue Redis connected');
-      }
+      console.log('✅ Invoice queue Redis connected');
     });
+    
+    // Wait for connection to be ready (ioredis connects automatically)
+    try {
+      await redisConnection.ping();
+    } catch (connectError) {
+      console.error('❌ Failed to connect to Redis:', connectError.message);
+      redisConnection = null;
+      throw connectError;
+    }
   }
   return redisConnection;
 }
@@ -240,6 +252,12 @@ export async function startInvoiceWorker() {
  */
 export async function queueInvoiceGeneration(invoiceData, emailData = null) {
   try {
+    // Check if Redis is actually configured before trying to use queue
+    const redisUrl = process.env.REDIS_URL;
+    if (!redisUrl || redisUrl.includes('localhost') || redisUrl.includes('127.0.0.1')) {
+      throw new Error('Redis not configured (required for queue system)');
+    }
+    
     const queue = await getInvoiceQueue();
     
     const job = await queue.add('generate-invoice', {

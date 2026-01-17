@@ -123,7 +123,10 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error("Webhook Error:", error);
-    return res.status(500).json({ error: "Internal Server Error", details: error.message });
+    console.error("Webhook Error");
+    return res.status(500).json({ 
+      error: "Internal Server Error",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 }

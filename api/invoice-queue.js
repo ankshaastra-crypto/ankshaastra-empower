@@ -20,6 +20,27 @@ async function getRedisConnection() {
         const delay = Math.min(times * 50, 2000);
         return delay;
       },
+      reconnectOnError: (err) => {
+        const targetError = 'READONLY';
+        if (err.message.includes(targetError)) {
+          return true;
+        }
+        return false;
+      },
+    });
+    
+    // Handle connection errors gracefully
+    redisConnection.on('error', (err) => {
+      // Only log if Redis URL is explicitly set
+      if (process.env.REDIS_URL && !process.env.REDIS_URL.includes('localhost')) {
+        console.error('❌ Invoice queue Redis error:', err.message);
+      }
+    });
+    
+    redisConnection.on('connect', () => {
+      if (process.env.REDIS_URL && !process.env.REDIS_URL.includes('localhost')) {
+        console.log('✅ Invoice queue Redis connected');
+      }
     });
   }
   return redisConnection;

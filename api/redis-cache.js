@@ -42,7 +42,10 @@ class RedisCache {
       });
 
       this.client.on('error', (err) => {
-        console.error('❌ Redis error:', err);
+        // Only log if Redis URL is explicitly set (not localhost fallback)
+        if (process.env.REDIS_URL && !process.env.REDIS_URL.includes('localhost')) {
+          console.error('❌ Redis error:', err.message);
+        }
         this.isConnected = false;
       });
 
@@ -51,13 +54,30 @@ class RedisCache {
         this.isConnected = false;
       });
 
-      // Test connection
-      await this.client.ping();
-      return this.client;
+      // Test connection with timeout
+      try {
+        await Promise.race([
+          this.client.ping(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Redis ping timeout')), 2000)
+          )
+        ]);
+        this.isConnected = true;
+        return this.client;
+      } catch (pingError) {
+        // Ping failed, mark as disconnected but don't throw
+        this.isConnected = false;
+        this.client = null;
+        return null;
+      }
     } catch (error) {
-      console.error('❌ Failed to initialize Redis:', error);
-      // Return null if Redis is not available (graceful degradation)
+      // Redis connection failed - graceful degradation
       this.isConnected = false;
+      this.client = null;
+      // Don't log as error if Redis URL is localhost (expected in dev)
+      if (process.env.REDIS_URL && !process.env.REDIS_URL.includes('localhost')) {
+        console.error('❌ Failed to initialize Redis:', error.message);
+      }
       return null;
     }
   }

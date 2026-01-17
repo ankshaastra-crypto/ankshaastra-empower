@@ -119,9 +119,6 @@ export default async function handler(req, res) {
 
     if (!emailResult.success) {
       console.error("Failed to send confirmation emails:", emailResult.error);
-      // Don't fail the webhook if email fails, but log it
-    } else {
-      console.log(`✅ Payment confirmation emails sent - Customer: ${emailResult.customerMessageId || 'N/A'}, Admin: ${emailResult.adminMessageId || 'N/A'}`);
     }
 
     // Return success response to PhonePe

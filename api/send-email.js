@@ -6,8 +6,8 @@ import nodemailer from 'nodemailer';
 // Reuse transporter instance (singleton pattern) for better performance
 let transporterInstance = null;
 
-// Create SMTP transporter (singleton)
-export const getTransporter = () => {
+// Create SMTP transporter (singleton) - internal use only
+const getTransporter = () => {
   if (!transporterInstance) {
     const config = {
       host: process.env.SMTP_HOST,
@@ -54,19 +54,15 @@ export async function sendPaymentEmail({
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@ankshaastra.com';
   const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';
   
-  // Normalize values - ensure we have proper fallbacks
-  // Use person1Dob first, then fallback to customerDob
+  // Normalize values
   const finalCustomerMobile = (customerMobile && customerMobile.toString().trim()) || '';
   const finalCustomerDob = (customerDob && customerDob.toString().trim()) || '';
   const finalPerson1Name = (person1Name && person1Name.toString().trim()) || (customerName && customerName.toString().trim()) || '';
   const finalPerson1Dob = (person1Dob && person1Dob.toString().trim()) || finalCustomerDob;
-  // Normalize person details for family package
   const finalPerson2Name = (person2Name && person2Name.toString().trim()) || '';
   const finalPerson2Dob = (person2Dob && person2Dob.toString().trim()) || '';
   const finalPerson3Name = (person3Name && person3Name.toString().trim()) || '';
   const finalPerson3Dob = (person3Dob && person3Dob.toString().trim()) || '';
-  
-  // Email configuration logged (customer data removed for privacy)
   
   // Validate required parameters
   if (!customerEmail || !orderId) {

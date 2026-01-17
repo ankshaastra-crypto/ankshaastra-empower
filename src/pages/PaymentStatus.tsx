@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { CheckCircle2, XCircle, Loader2, Mail } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { trackPurchase } from "@/lib/metaPixel";
-import { toast } from "sonner";
 
 interface PaymentData {
   success: boolean;
@@ -13,10 +12,10 @@ interface PaymentData {
   orderId: string;
   transactionId?: string;
   amount?: number;
-  emailStatus?: {
-    success: boolean;
-    message: string;
-  };
+  customerEmail?: string;
+  customerName?: string;
+  customerMobile?: string;
+  packageType?: string;
   data?: unknown;
 }
 
@@ -128,26 +127,6 @@ const PaymentStatus = () => {
           if (amount > 0) {
             trackPurchase(amount, "INR", orderId, pkgType);
           }
-
-          // Show email notification toast with slide-in animation
-          setTimeout(() => {
-            toast.success("Email Sent Successfully!", {
-              description: "Your confirmation email is being sent to your inbox.",
-              icon: <Mail className="w-5 h-5 text-white" />,
-              duration: 6000,
-              position: "top-right",
-              style: {
-                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                color: "white",
-                border: "none",
-                borderRadius: "12px",
-                padding: "16px 20px",
-                boxShadow: "0 10px 25px rgba(16, 185, 129, 0.3)",
-                fontWeight: "500",
-              },
-              className: "email-notification-toast",
-            });
-          }, 500); // Small delay to ensure page is rendered
         } else {
           console.warn("Payment marked as failed");
           setStatus("failed");
@@ -166,6 +145,573 @@ const PaymentStatus = () => {
     namecheck: "Name Check",
     single: "Single Report",
     family: "Family Package (3 Reports)",
+  };
+
+  const handleDownloadInvoice = async () => {
+    if (!paymentData) return;
+
+    let invoiceHtml = "";
+    let invoiceData = null;
+
+    try {
+      // Fetch invoice data configuration
+      const invoiceDataResponse = await fetch("/invoice-data.json");
+      if (invoiceDataResponse.ok) {
+        invoiceData = await invoiceDataResponse.json();
+      }
+
+      // Fetch the invoice template
+      const templateResponse = await fetch("/templates/invoice.html");
+      if (templateResponse.ok) {
+        invoiceHtml = await templateResponse.text();
+      } else {
+        invoiceHtml = getEmbeddedInvoiceTemplate();
+      }
+    } catch (error) {
+      console.error("Error loading invoice template:", error);
+      // Fallback: try to fetch invoice data
+      try {
+        const invoiceDataResponse = await fetch("/invoice-data.json");
+        if (invoiceDataResponse.ok) {
+          invoiceData = await invoiceDataResponse.json();
+        }
+      } catch (e) {
+        // Ignore error, use defaults
+      }
+      invoiceHtml = getEmbeddedInvoiceTemplate();
+    }
+
+    // Replace placeholders with actual data
+    invoiceHtml = populateInvoiceTemplate(
+      invoiceHtml,
+      paymentData,
+      invoiceData
+    );
+
+    // Create a new window with the invoice HTML
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Please allow popups to download the invoice");
+      return;
+    }
+
+    printWindow.document.write(invoiceHtml);
+    printWindow.document.close();
+
+    // Wait for content to load, then trigger print dialog
+    printWindow.onload = () => {
+      setTimeout(() => {
+        printWindow.print();
+      }, 250);
+    };
+  };
+
+  const populateInvoiceTemplate = (
+    template: string,
+    data: PaymentData,
+    invoiceData: any = null
+  ): string => {
+    const invoiceDate = new Date().toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+    const dueDate = new Date().toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+
+    const packageName =
+      packageNames[data.packageType || "single"] || "Single Report";
+    const amount = data.amount || 0;
+    const subtotal = amount;
+    const total = amount;
+
+    // Get company data from JSON or use defaults
+    const company = invoiceData?.company || {
+      name: "Ankshaastra",
+      description: "Your Numerology Partner",
+      address: "",
+      phone: "9667305577",
+      email: "info@ankshaastra.com",
+      gstin: "",
+    };
+
+    const bankDetails = invoiceData?.bankDetails || {
+      name: "",
+      accountNumber: "",
+      ifsc: "",
+      accountHolder: "",
+      branch: "",
+    };
+
+    const upiDetails = invoiceData?.upiDetails || {
+      upiId: "",
+    };
+
+    const notes = invoiceData?.notes || [];
+    const terms = invoiceData?.terms || [];
+
+    // Replace placeholders
+    return template
+      .replace(/\{\{COMPANY_NAME\}\}/g, company.name)
+      .replace(/\{\{COMPANY_DESCRIPTION\}\}/g, company.description)
+      .replace(/\{\{COMPANY_ADDRESS\}\}/g, company.address || "")
+      .replace(/\{\{COMPANY_PHONE\}\}/g, company.phone)
+      .replace(/\{\{COMPANY_EMAIL\}\}/g, company.email)
+      .replace(
+        /\{\{COMPANY_GSTIN_SECTION\}\}/g,
+        company.gstin ? `<p>GSTIN: ${company.gstin}</p>` : ""
+      )
+      .replace(/\{\{INVOICE_NUMBER\}\}/g, data.orderId)
+      .replace(/\{\{INVOICE_DATE\}\}/g, invoiceDate)
+      .replace(/\{\{DUE_DATE\}\}/g, dueDate)
+      .replace(/\{\{CUSTOMER_NAME\}\}/g, data.customerName || "Customer")
+      .replace(/\{\{CUSTOMER_EMAIL\}\}/g, data.customerEmail || "N/A")
+      .replace(/\{\{CUSTOMER_PHONE\}\}/g, data.customerMobile || "N/A")
+      .replace(
+        /\{\{TRANSACTION_ID_SECTION\}\}/g,
+        data.transactionId
+          ? `<div class="info-item">
+            <strong>Transaction ID:</strong>
+            <span>${data.transactionId}</span>
+          </div>`
+          : ""
+      )
+      .replace(/\{\{PACKAGE_NAME\}\}/g, packageName)
+      .replace(/\{\{SUBTOTAL\}\}/g, subtotal.toLocaleString("en-IN"))
+      .replace(/\{\{TOTAL\}\}/g, total.toLocaleString("en-IN"))
+      .replace(/\{\{BANK_NAME\}\}/g, bankDetails.name || "")
+      .replace(/\{\{BANK_ACCOUNT\}\}/g, bankDetails.accountNumber || "")
+      .replace(/\{\{BANK_IFSC\}\}/g, bankDetails.ifsc || "")
+      .replace(/\{\{BANK_HOLDER\}\}/g, bankDetails.accountHolder || "")
+      .replace(
+        /\{\{BANK_BRANCH_SECTION\}\}/g,
+        bankDetails.branch
+          ? `<p><strong>Branch:</strong> ${bankDetails.branch}</p>`
+          : ""
+      )
+      .replace(
+        /\{\{UPI_ID_SECTION\}\}/g,
+        upiDetails.upiId
+          ? `<p><strong>UPI ID:</strong> ${upiDetails.upiId}</p>`
+          : ""
+      )
+      .replace(
+        /\{\{NOTES_SECTION\}\}/g,
+        notes.length > 0
+          ? `<div class="notes-section">
+              <h4>Notes</h4>
+              ${notes.map((note: string) => `<p>${note}</p>`).join("")}
+            </div>`
+          : ""
+      )
+      .replace(
+        /\{\{TERMS_SECTION\}\}/g,
+        terms.length > 0
+          ? terms.map((term: string) => `<p>${term}</p>`).join("")
+          : ""
+      );
+  };
+
+  const getEmbeddedInvoiceTemplate = (): string => {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice {{INVOICE_NUMBER}}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: white;
+            padding: 20px;
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            position: relative;
+        }
+        
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            opacity: 0.05;
+            font-size: 80px;
+            font-weight: bold;
+            color: #000;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #8B5CF6;
+            padding-bottom: 20px;
+        }
+        
+        .company-info h1 {
+            color: #8B5CF6;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .company-info p {
+            color: #666;
+            font-size: 12px;
+            line-height: 1.6;
+            margin: 4px 0;
+        }
+        
+        .invoice-details {
+            text-align: right;
+        }
+        
+        .invoice-details h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .invoice-details p {
+            color: #666;
+            font-size: 12px;
+            margin: 4px 0;
+        }
+        
+        .customer-section {
+            margin-bottom: 20px;
+        }
+        
+        .customer-section h3 {
+            color: #8B5CF6;
+            font-size: 16px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 5px;
+        }
+        
+        .customer-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .info-item {
+            margin-bottom: 8px;
+        }
+        
+        .info-item strong {
+            color: #333;
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+        
+        .info-item span {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .items-section {
+            margin: 20px 0;
+        }
+        
+        .items-section h3 {
+            color: #8B5CF6;
+            font-size: 16px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 5px;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .items-table th {
+            background: #8B5CF6;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        .items-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 12px;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .total-section {
+            margin-top: 20px;
+            text-align: right;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+        }
+        
+        .total-label {
+            width: 150px;
+            text-align: right;
+            padding-right: 20px;
+            font-weight: 600;
+            color: #333;
+            font-size: 12px;
+        }
+        
+        .total-value {
+            width: 120px;
+            text-align: right;
+            color: #8B5CF6;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .grand-total {
+            border-top: 2px solid #8B5CF6;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        
+        .grand-total .total-value {
+            font-size: 18px;
+            color: #8B5CF6;
+        }
+        
+        .payment-section {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .bank-details, .upi-section {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 6px;
+        }
+        
+        .bank-details h4, .upi-section h4 {
+            color: #8B5CF6;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .bank-details p, .upi-section p {
+            color: #666;
+            font-size: 11px;
+            margin: 4px 0;
+            line-height: 1.4;
+        }
+        
+        .notes-section {
+            margin-top: 20px;
+            padding: 12px;
+            background: #fff8e1;
+            border-left: 3px solid #ffc107;
+        }
+        
+        .notes-section h4 {
+            color: #8B5CF6;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .notes-section p {
+            color: #666;
+            font-size: 11px;
+            line-height: 1.4;
+            margin: 4px 0;
+        }
+        
+        .terms-section {
+            margin-top: 20px;
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 6px;
+        }
+        
+        .terms-section h4 {
+            color: #8B5CF6;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .terms-section p {
+            color: #666;
+            font-size: 10px;
+            line-height: 1.4;
+            margin: 3px 0;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #999;
+            font-size: 10px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 15px;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .invoice-container {
+                box-shadow: none;
+            }
+            
+            @page {
+                margin: 0.5cm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="watermark">{{COMPANY_NAME}}</div>
+        
+        <div class="content">
+            <div class="header">
+                <div class="company-info">
+                    <h1>{{COMPANY_NAME}}</h1>
+                    <p>{{COMPANY_DESCRIPTION}}</p>
+                    <p>{{COMPANY_ADDRESS}}</p>
+                    <p>Phone: {{COMPANY_PHONE}}</p>
+                    <p>Email: {{COMPANY_EMAIL}}</p>
+                    {{COMPANY_GSTIN_SECTION}}
+                </div>
+                
+                <div class="invoice-details">
+                    <h2>INVOICE</h2>
+                    <p><strong>Invoice No:</strong> {{INVOICE_NUMBER}}</p>
+                    <p><strong>Date:</strong> {{INVOICE_DATE}}</p>
+                    <p><strong>Due Date:</strong> {{DUE_DATE}}</p>
+                </div>
+            </div>
+            
+            <div class="customer-section">
+                <h3>Bill To</h3>
+                <div class="customer-info">
+                    <div>
+                        <div class="info-item">
+                            <strong>Name:</strong>
+                            <span>{{CUSTOMER_NAME}}</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>Email:</strong>
+                            <span>{{CUSTOMER_EMAIL}}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="info-item">
+                            <strong>Phone:</strong>
+                            <span>{{CUSTOMER_PHONE}}</span>
+                        </div>
+                        {{TRANSACTION_ID_SECTION}}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="items-section">
+                <h3>Items</h3>
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th class="text-right">Quantity</th>
+                            <th class="text-right">Unit Price</th>
+                            <th class="text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong>{{PACKAGE_NAME}}</strong>
+                                <br><small style="color: #666;">Numerology Report</small>
+                            </td>
+                            <td class="text-right">1</td>
+                            <td class="text-right">₹{{SUBTOTAL}}</td>
+                            <td class="text-right">₹{{SUBTOTAL}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="total-section">
+                <div class="total-row">
+                    <div class="total-label">Subtotal:</div>
+                    <div class="total-value">₹{{SUBTOTAL}}</div>
+                </div>
+                <div class="total-row grand-total">
+                    <div class="total-label">Total Amount:</div>
+                    <div class="total-value">₹{{TOTAL}}</div>
+                </div>
+            </div>
+            
+            <div class="payment-section">
+                <div class="bank-details">
+                    <h4>Bank Details</h4>
+                    <p><strong>Bank Name:</strong> {{BANK_NAME}}</p>
+                    <p><strong>Account Number:</strong> {{BANK_ACCOUNT}}</p>
+                    <p><strong>IFSC Code:</strong> {{BANK_IFSC}}</p>
+                    <p><strong>Account Holder:</strong> {{BANK_HOLDER}}</p>
+                    {{BANK_BRANCH_SECTION}}
+                </div>
+                
+                <div class="upi-section">
+                    <h4>UPI Payment</h4>
+                    {{UPI_ID_SECTION}}
+                </div>
+            </div>
+            
+            {{NOTES_SECTION}}
+            
+            <div class="terms-section">
+                <h4>Terms & Conditions</h4>
+                {{TERMS_SECTION}}
+            </div>
+            
+            <div class="footer">
+                <p>Thank you for your business!</p>
+                <p>This is a computer-generated invoice and does not require a signature.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
   };
 
   return (
@@ -236,41 +782,37 @@ const PaymentStatus = () => {
                     </div>
                   )}
 
-                  {/* Email notification - always show for successful payments */}
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-green-800 font-semibold mb-1">
-                          Confirmation Email Being Sent
-                        </p>
-                        <p className="text-green-700 text-sm">
-                          Your confirmation email is being processed and will arrive in your inbox shortly. 
-                          Please check your spam folder if you don't see it within a few minutes.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
                   <div className="bg-accent/10 border border-accent/30 rounded-xl p-6 mb-6">
                     <p className="text-ink-black mb-2">
                       <strong>What's Next?</strong>
                     </p>
                     <ul className="text-muted-foreground text-sm space-y-2 list-disc list-inside">
                       <li>
-                        <strong>Confirmation Email:</strong> You will receive a confirmation email within a few minutes.
+                        <strong>Download Invoice:</strong> Click the button
+                        below to download your invoice in PDF format.
                       </li>
                       <li>
-                        <strong>Your Report:</strong> Your personalized numerology report will be delivered via email within 24-48 hours.
+                        <strong>Your Report:</strong> Your personalized
+                        numerology report will be delivered via email within
+                        24-48 hours.
                       </li>
                       <li>
-                        <strong>Check Spam:</strong> Please check your spam/junk folder if you don't see the emails.
+                        <strong>Check Spam:</strong> Please check your spam/junk
+                        folder if you don't see the emails.
                       </li>
                     </ul>
                   </div>
 
                   <div className="flex gap-4 justify-center">
-                    <Button variant="hero" onClick={() => navigate("/")}>
+                    <Button
+                      variant="hero"
+                      onClick={handleDownloadInvoice}
+                      className="flex items-center gap-2"
+                    >
+                      <Download className="w-5 h-5" />
+                      Download Invoice
+                    </Button>
+                    <Button variant="outline" onClick={() => navigate("/")}>
                       Return to Home
                     </Button>
                   </div>

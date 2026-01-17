@@ -1,0 +1,30 @@
+{
+  "company": {
+    "name": "Ankshaastra",
+    "description": "Your Numerology Partner",
+    "address": "Unit No. O-622, Block-E, Eye of Noida, Sector 140A, Noida-201305",
+    "phone": "9667305577",
+    "email": "info@ankshaastra.com",
+    "gstin": "APPLIED FOR"
+  },
+  "bankDetails": {
+    "name": "UCO Bank",
+    "accountNumber": "1234567890123456",
+    "ifsc": "UCBA0001234",
+    "accountHolder": "Ankshaastra Occult Experts LLP",
+    "branch": "Parliament Street Branch"
+  },
+  "upiDetails": {
+    "upiId": "ankshaastra@paytm"
+  },
+  "notes": [
+    "Your personalized numerology report will be delivered within 24-48 hours.",
+    "Report will be sent to your registered email address."
+  ],
+  "terms": [
+    "Items are non-refundable once the order is confirmed.",
+    "All prices are inclusive of taxes unless otherwise stated.",
+    "Payment must be made within the due date mentioned above.",
+    "For any queries, please contact us at info@ankshaastra.com or +91-9667305577."
+  ]
+}

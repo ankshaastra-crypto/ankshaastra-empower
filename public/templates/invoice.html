@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice <%= invoiceNumber %></title>
+    <title>Invoice {{INVOICE_NUMBER}}</title>
     <style>
         * {
             margin: 0;
@@ -13,16 +13,15 @@
         
         body {
             font-family: 'Arial', sans-serif;
-            background: #f5f5f5;
-            padding: 10px;
+            background: white;
+            padding: 20px;
         }
         
         .invoice-container {
-            max-width: 100%;
+            max-width: 800px;
             margin: 0 auto;
             background: white;
-            padding: 20px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            padding: 30px;
             position: relative;
         }
         
@@ -47,22 +46,22 @@
         .header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 15px;
+            margin-bottom: 30px;
             border-bottom: 2px solid #8B5CF6;
-            padding-bottom: 10px;
+            padding-bottom: 20px;
         }
         
         .company-info h1 {
             color: #8B5CF6;
-            font-size: 20px;
-            margin-bottom: 5px;
+            font-size: 24px;
+            margin-bottom: 10px;
         }
         
         .company-info p {
             color: #666;
-            font-size: 11px;
-            line-height: 1.4;
-            margin: 2px 0;
+            font-size: 12px;
+            line-height: 1.6;
+            margin: 4px 0;
         }
         
         .invoice-details {
@@ -71,60 +70,60 @@
         
         .invoice-details h2 {
             color: #333;
-            font-size: 18px;
-            margin-bottom: 5px;
+            font-size: 24px;
+            margin-bottom: 10px;
         }
         
         .invoice-details p {
             color: #666;
-            font-size: 11px;
-            margin: 2px 0;
+            font-size: 12px;
+            margin: 4px 0;
         }
         
         .customer-section {
-            margin-bottom: 12px;
+            margin-bottom: 20px;
         }
         
         .customer-section h3 {
             color: #8B5CF6;
-            font-size: 14px;
-            margin-bottom: 6px;
+            font-size: 16px;
+            margin-bottom: 10px;
             border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 3px;
+            padding-bottom: 5px;
         }
         
         .customer-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 15px;
         }
         
         .info-item {
-            margin-bottom: 4px;
+            margin-bottom: 8px;
         }
         
         .info-item strong {
             color: #333;
             display: block;
-            margin-bottom: 2px;
-            font-size: 11px;
+            margin-bottom: 4px;
+            font-size: 12px;
         }
         
         .info-item span {
             color: #666;
-            font-size: 11px;
+            font-size: 12px;
         }
         
         .items-section {
-            margin: 12px 0;
+            margin: 20px 0;
         }
         
         .items-section h3 {
             color: #8B5CF6;
-            font-size: 14px;
-            margin-bottom: 8px;
+            font-size: 16px;
+            margin-bottom: 10px;
             border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 3px;
+            padding-bottom: 5px;
         }
         
         .items-table {
@@ -136,20 +135,16 @@
         .items-table th {
             background: #8B5CF6;
             color: white;
-            padding: 6px 8px;
+            padding: 10px;
             text-align: left;
             font-weight: 600;
-            font-size: 11px;
+            font-size: 12px;
         }
         
         .items-table td {
-            padding: 6px 8px;
+            padding: 10px;
             border-bottom: 1px solid #f0f0f0;
-            font-size: 11px;
-        }
-        
-        .items-table tr:hover {
-            background: #f9f9f9;
+            font-size: 12px;
         }
         
         .text-right {
@@ -157,23 +152,23 @@
         }
         
         .total-section {
-            margin-top: 12px;
+            margin-top: 20px;
             text-align: right;
         }
         
         .total-row {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
         }
         
         .total-label {
             width: 150px;
             text-align: right;
-            padding-right: 15px;
+            padding-right: 20px;
             font-weight: 600;
             color: #333;
-            font-size: 11px;
+            font-size: 12px;
         }
         
         .total-value {
@@ -181,106 +176,93 @@
             text-align: right;
             color: #8B5CF6;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 14px;
         }
         
         .grand-total {
             border-top: 2px solid #8B5CF6;
-            padding-top: 5px;
-            margin-top: 5px;
+            padding-top: 10px;
+            margin-top: 10px;
         }
         
         .grand-total .total-value {
-            font-size: 16px;
+            font-size: 18px;
             color: #8B5CF6;
         }
         
         .payment-section {
-            margin-top: 12px;
+            margin-top: 20px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 15px;
         }
         
         .bank-details, .upi-section {
             background: #f9f9f9;
-            padding: 10px;
+            padding: 12px;
             border-radius: 6px;
         }
         
         .bank-details h4, .upi-section h4 {
             color: #8B5CF6;
             margin-bottom: 8px;
-            font-size: 12px;
+            font-size: 13px;
         }
         
         .bank-details p, .upi-section p {
             color: #666;
-            font-size: 10px;
-            margin: 3px 0;
+            font-size: 11px;
+            margin: 4px 0;
             line-height: 1.4;
         }
         
-        .qr-code {
-            text-align: center;
-            margin-top: 8px;
-        }
-        
-        .qr-code img {
-            max-width: 120px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 5px;
-            background: white;
-        }
-        
         .notes-section {
-            margin-top: 12px;
-            padding: 10px;
+            margin-top: 20px;
+            padding: 12px;
             background: #fff8e1;
             border-left: 3px solid #ffc107;
         }
         
         .notes-section h4 {
             color: #8B5CF6;
-            margin-bottom: 6px;
-            font-size: 12px;
+            margin-bottom: 8px;
+            font-size: 13px;
         }
         
         .notes-section p {
             color: #666;
-            font-size: 10px;
+            font-size: 11px;
             line-height: 1.4;
-            margin: 3px 0;
+            margin: 4px 0;
         }
         
         .terms-section {
-            margin-top: 12px;
-            padding: 10px;
+            margin-top: 20px;
+            padding: 12px;
             background: #f5f5f5;
             border-radius: 6px;
         }
         
         .terms-section h4 {
             color: #8B5CF6;
-            margin-bottom: 6px;
-            font-size: 12px;
+            margin-bottom: 8px;
+            font-size: 13px;
         }
         
         .terms-section p {
             color: #666;
-            font-size: 9px;
+            font-size: 10px;
             line-height: 1.4;
             margin: 3px 0;
         }
         
         .footer {
-            margin-top: 12px;
+            margin-top: 30px;
             text-align: center;
             color: #999;
-            font-size: 9px;
+            font-size: 10px;
             border-top: 1px solid #f0f0f0;
-            padding-top: 8px;
+            padding-top: 15px;
         }
         
         @media print {
@@ -292,28 +274,33 @@
             .invoice-container {
                 box-shadow: none;
             }
+            
+            @page {
+                margin: 0.5cm;
+            }
         }
     </style>
 </head>
 <body>
     <div class="invoice-container">
-        <div class="watermark"><%= company.name %></div>
+        <div class="watermark">{{COMPANY_NAME}}</div>
         
         <div class="content">
             <div class="header">
                 <div class="company-info">
-                    <h1><%= company.name %></h1>
-                    <p><%= company.address %></p>
-                    <p>Phone: <%= company.phone %></p>
-                    <p>Email: <%= company.email %></p>
-                    <p>GSTIN: <%= company.gstin %></p>
+                    <h1>{{COMPANY_NAME}}</h1>
+                    <p>{{COMPANY_DESCRIPTION}}</p>
+                    <p>{{COMPANY_ADDRESS}}</p>
+                    <p>Phone: {{COMPANY_PHONE}}</p>
+                    <p>Email: {{COMPANY_EMAIL}}</p>
+                    {{COMPANY_GSTIN_SECTION}}
                 </div>
                 
                 <div class="invoice-details">
                     <h2>INVOICE</h2>
-                    <p><strong>Invoice No:</strong> <%= invoiceNumber %></p>
-                    <p><strong>Date:</strong> <%= invoiceDate %></p>
-                    <p><strong>Due Date:</strong> <%= dueDate %></p>
+                    <p><strong>Invoice No:</strong> {{INVOICE_NUMBER}}</p>
+                    <p><strong>Date:</strong> {{INVOICE_DATE}}</p>
+                    <p><strong>Due Date:</strong> {{DUE_DATE}}</p>
                 </div>
             </div>
             
@@ -323,24 +310,19 @@
                     <div>
                         <div class="info-item">
                             <strong>Name:</strong>
-                            <span><%= customer.name %></span>
+                            <span>{{CUSTOMER_NAME}}</span>
                         </div>
                         <div class="info-item">
                             <strong>Email:</strong>
-                            <span><%= customer.email %></span>
+                            <span>{{CUSTOMER_EMAIL}}</span>
                         </div>
                     </div>
                     <div>
                         <div class="info-item">
                             <strong>Phone:</strong>
-                            <span><%= customer.phone %></span>
+                            <span>{{CUSTOMER_PHONE}}</span>
                         </div>
-                        <% if (customer.address) { %>
-                        <div class="info-item">
-                            <strong>Address:</strong>
-                            <span><%= customer.address %></span>
-                        </div>
-                        <% } %>
+                        {{TRANSACTION_ID_SECTION}}
                     </div>
                 </div>
             </div>
@@ -357,19 +339,15 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% items.forEach(function(item) { %>
                         <tr>
                             <td>
-                                <strong><%= item.name %></strong>
-                                <% if (item.description) { %>
-                                <br><small style="color: #666;"><%= item.description %></small>
-                                <% } %>
+                                <strong>{{PACKAGE_NAME}}</strong>
+                                <br><small style="color: #666;">Numerology Report</small>
                             </td>
-                            <td class="text-right"><%= item.quantity %></td>
-                            <td class="text-right">₹<%= item.unitPrice.toLocaleString('en-IN') %></td>
-                            <td class="text-right">₹<%= item.total.toLocaleString('en-IN') %></td>
+                            <td class="text-right">1</td>
+                            <td class="text-right">₹{{SUBTOTAL}}</td>
+                            <td class="text-right">₹{{SUBTOTAL}}</td>
                         </tr>
-                        <% }); %>
                     </tbody>
                 </table>
             </div>
@@ -377,67 +355,35 @@
             <div class="total-section">
                 <div class="total-row">
                     <div class="total-label">Subtotal:</div>
-                    <div class="total-value">₹<%= subtotal.toLocaleString('en-IN') %></div>
+                    <div class="total-value">₹{{SUBTOTAL}}</div>
                 </div>
-                <% if (tax > 0) { %>
-                <div class="total-row">
-                    <div class="total-label">Tax (GST):</div>
-                    <div class="total-value">₹<%= tax.toLocaleString('en-IN') %></div>
-                </div>
-                <% } %>
-                <% if (discount > 0) { %>
-                <div class="total-row">
-                    <div class="total-label">Discount:</div>
-                    <div class="total-value">-₹<%= discount.toLocaleString('en-IN') %></div>
-                </div>
-                <% } %>
                 <div class="total-row grand-total">
                     <div class="total-label">Total Amount:</div>
-                    <div class="total-value">₹<%= total.toLocaleString('en-IN') %></div>
+                    <div class="total-value">₹{{TOTAL}}</div>
                 </div>
             </div>
             
             <div class="payment-section">
                 <div class="bank-details">
                     <h4>Bank Details</h4>
-                    <p><strong>Bank Name:</strong> <%= bankDetails.name %></p>
-                    <p><strong>Account Number:</strong> <%= bankDetails.accountNumber %></p>
-                    <p><strong>IFSC Code:</strong> <%= bankDetails.ifsc %></p>
-                    <p><strong>Account Holder:</strong> <%= bankDetails.accountHolder %></p>
-                    <% if (bankDetails.branch) { %>
-                    <p><strong>Branch:</strong> <%= bankDetails.branch %></p>
-                    <% } %>
+                    <p><strong>Bank Name:</strong> {{BANK_NAME}}</p>
+                    <p><strong>Account Number:</strong> {{BANK_ACCOUNT}}</p>
+                    <p><strong>IFSC Code:</strong> {{BANK_IFSC}}</p>
+                    <p><strong>Account Holder:</strong> {{BANK_HOLDER}}</p>
+                    {{BANK_BRANCH_SECTION}}
                 </div>
                 
                 <div class="upi-section">
                     <h4>UPI Payment</h4>
-                    <% if (upiDetails.qrCode) { %>
-                    <div class="qr-code">
-                        <img src="<%= upiDetails.qrCode %>" alt="UPI QR Code">
-                    </div>
-                    <% } %>
-                    <% if (upiDetails.upiId) { %>
-                    <p style="text-align: center; margin-top: 10px;">
-                        <strong>UPI ID:</strong> <%= upiDetails.upiId %>
-                    </p>
-                    <% } %>
+                    {{UPI_ID_SECTION}}
                 </div>
             </div>
             
-            <% if (notes && notes.length > 0) { %>
-            <div class="notes-section">
-                <h4>Notes</h4>
-                <% notes.forEach(function(note) { %>
-                <p><%= note %></p>
-                <% }); %>
-            </div>
-            <% } %>
+            {{NOTES_SECTION}}
             
             <div class="terms-section">
                 <h4>Terms & Conditions</h4>
-                <% terms.forEach(function(term) { %>
-                <p><%= term %></p>
-                <% }); %>
+                {{TERMS_SECTION}}
             </div>
             
             <div class="footer">

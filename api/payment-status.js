@@ -16,19 +16,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    // PhonePe redirects with query parameters
-    // Note: PhonePe may redirect with different parameter names
-    // PhonePe might append its own params, so check all possible parameter names
-    // Also check for orderId which we include in our redirect URL
+    // PhonePe redirects with query parameters - check multiple possible parameter names
     const merchantTransactionId = 
       req.query.merchantTransactionId || 
       req.query.txnId || 
       req.query.transactionId ||
       req.query.transaction_id ||
-      req.query.orderId || // Use orderId as fallback since we include it in redirect URL
-      req.query.merchantTransactionId;
-    
-    // Query parameters received (customer data not logged for privacy)
+      req.query.orderId;
     
     // Get PhonePe keys
     const merchantId = process.env.PHONEPE_MERCHANT_ID;
@@ -236,34 +230,7 @@ export default async function handler(req, res) {
                       (metadata.person3Dob && metadata.person3Dob.trim()) || 
                       '';
 
-    // Validate customer email is present (required field)
-    if (!customerEmail || customerEmail.trim() === '') {
-      console.error("❌ Customer email is missing - cannot send email notifications");
-      console.error("  - Order ID:", orderId);
-      
-      // Payment succeeded but email data was lost (PhonePe stripped query params)
-      // The webhook should handle email sending, so we'll return success with a note
-      return res.status(200).json({
-        success: true, // Payment was successful
-        status: paymentStatus,
-        orderId,
-        transactionId,
-        amount,
-        emailStatus: {
-          success: false,
-          error: "Customer email not available in redirect",
-          message: "Payment was successful! Email notifications will be sent via webhook. If you don't receive an email within a few minutes, please contact support.",
-          details: {
-            hasEncryptedData: !!encryptedData,
-            hasDecryptedData: Object.keys(decryptedData).length > 0,
-            hasMetadata: Object.keys(metadata).length > 0,
-            note: "PhonePe may have stripped query parameters. Email will be sent via webhook."
-          }
-        }
-      });
-    }
-
-    // Send payment confirmation emails
+    // Send payment confirmation emails (customer and admin)
     if (customerEmail && customerEmail.trim() !== '') {
       try {
         const emailResult = await sendPaymentEmail({
@@ -279,39 +246,31 @@ export default async function handler(req, res) {
           person3Name: person3Name,
           person3Dob: person3Dob,
           orderId,
-          amount: amountInPaise, // send-email.js expects amount in paise
+          amount: amountInPaise,
           packageType: packageType || 'single',
           status: paymentStatus,
           transactionId: transactionId || '',
         });
         
-        // Log success
-        if (emailResult && emailResult.success) {
-          console.log(`✅ Payment confirmation emails sent successfully`);
-          console.log(`   📧 Customer message ID: ${emailResult.customerMessageId || 'N/A'}`);
-          console.log(`   📧 Admin message ID: ${emailResult.adminMessageId || 'N/A'}`);
-        } else {
+        if (!emailResult?.success) {
           console.error(`❌ Email sending failed for ${customerEmail}:`, emailResult?.error || 'Unknown error');
         }
       } catch (emailError) {
-        // Log errors but don't block the response
-        console.error("❌ Email sending error:", emailError);
-        console.error(`   Order ID: ${orderId}`);
-        console.error(`   Customer Email: ${customerEmail}`);
+        console.error("❌ Email sending error:", emailError.message);
       }
-    } else {
-      console.warn("⚠️ Customer email not available - email not sent");
     }
 
-    // Return payment status immediately (email processing happens in background)
+    // Return payment status
     return res.status(200).json({
       success: true,
       status: paymentStatus,
       orderId,
       transactionId,
       amount,
-      // Email is being processed in background - no status returned
-      emailProcessing: true
+      customerEmail,
+      customerName: customerName || 'Customer',
+      customerMobile,
+      packageType: packageType || 'single',
     });
 
   } catch (error) {

@@ -195,9 +195,9 @@ PhonePe webhook endpoint.
 │   ├── rate-limiter.js          # Rate limiting
 │   ├── redis-cache.js           # Redis cache
 │   └── send-email.js            # Email sending
-├── templates/
-│   ├── invoice.ejs              # Template file (kept for reference)
-│   └── invoice-data.json        # Data file (kept for reference)
+├── public/
+│   └── templates/
+│       └── invoice.html         # Invoice HTML template (client-side PDF generation)
 └── src/                         # React frontend
 ```
 

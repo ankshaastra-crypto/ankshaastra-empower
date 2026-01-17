@@ -7,6 +7,7 @@ import { Check, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { trackInitiateCheckout } from "@/lib/metaPixel";
+import { getPackagePrice, getPackageOriginalPrice, formatPrice } from "@/lib/packagePricing";
 
 const OrderFormSection = () => {
   const { toast } = useToast();
@@ -199,9 +200,12 @@ const OrderFormSection = () => {
   const applyPromo = () => {
     if (promoCode.toUpperCase() === "FAMILY") {
       setPromoApplied(true);
+      const singlePrice = getPackagePrice('single');
+      const familyPrice = getPackagePrice('family');
+      const savings = (singlePrice * 3) - familyPrice;
       toast({
         title: "Promo Applied!",
-        description: "Family discount applied! You save ₹1,997",
+        description: `Family discount applied! You save ${formatPrice(savings)}`,
       });
     } else {
       toast({
@@ -481,15 +485,11 @@ const OrderFormSection = () => {
   };
 */
   const getPrice = () => {
-    if (packageType === "namecheck") return 199;
-    if (packageType === "single") return 1997;
-    return 3994;
+    return getPackagePrice(packageType as 'namecheck' | 'single' | 'family');
   };
 
   const getOriginalPrice = () => {
-    if (packageType === "namecheck") return 199;
-    if (packageType === "single") return 5100;
-    return 10200;
+    return getPackageOriginalPrice(packageType as 'namecheck' | 'single' | 'family');
   };
 
   const price = getPrice();
@@ -553,7 +553,7 @@ const OrderFormSection = () => {
                             NOT SURE?
                           </span>
                         </div>
-                        <span className="text-secondary font-bold">₹199</span>
+                        <span className="text-secondary font-bold">{formatPrice(getPackagePrice('namecheck'))}</span>
                       </div>
                     </label>
 
@@ -576,7 +576,7 @@ const OrderFormSection = () => {
                           Single Report
                         </span>
                         <span className="text-accent font-bold ml-2">
-                          ₹1,997
+                          {formatPrice(getPackagePrice('single'))}
                         </span>
                       </div>
                     </label>
@@ -604,7 +604,7 @@ const OrderFormSection = () => {
                             BEST VALUE
                           </span>
                         </div>
-                        <span className="text-accent font-bold">₹3,994</span>
+                        <span className="text-accent font-bold">{formatPrice(getPackagePrice('family'))}</span>
                       </div>
                     </label>
                   </RadioGroup>
@@ -893,12 +893,17 @@ const OrderFormSection = () => {
                         Apply
                       </Button>
                     </div>
-                    {promoApplied && (
-                      <p className="text-green-600 text-sm flex items-center gap-1 animate-fade-in">
-                        <Check className="w-4 h-4" />
-                        Family discount applied! You save ₹6,206
-                      </p>
-                    )}
+                    {promoApplied && (() => {
+                      const singlePrice = getPackagePrice('single');
+                      const familyPrice = getPackagePrice('family');
+                      const savings = (singlePrice * 3) - familyPrice;
+                      return (
+                        <p key="promo-applied" className="text-green-600 text-sm flex items-center gap-1 animate-fade-in">
+                          <Check className="w-4 h-4" />
+                          Family discount applied! You save {formatPrice(savings)}
+                        </p>
+                      );
+                    })()}
                   </div>
                 )}
               </form>

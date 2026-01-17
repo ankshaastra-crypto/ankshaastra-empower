@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { trackPurchase } from "@/lib/metaPixel";
+import { toast } from "sonner";
 
 interface PaymentData {
   success: boolean;
@@ -127,6 +128,26 @@ const PaymentStatus = () => {
           if (amount > 0) {
             trackPurchase(amount, "INR", orderId, pkgType);
           }
+
+          // Show email notification toast with slide-in animation
+          setTimeout(() => {
+            toast.success("Email Sent Successfully!", {
+              description: "Your confirmation email with invoice attached is being sent to your inbox.",
+              icon: <Mail className="w-5 h-5 text-white" />,
+              duration: 6000,
+              position: "top-right",
+              style: {
+                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                color: "white",
+                border: "none",
+                borderRadius: "12px",
+                padding: "16px 20px",
+                boxShadow: "0 10px 25px rgba(16, 185, 129, 0.3)",
+                fontWeight: "500",
+              },
+              className: "email-notification-toast",
+            });
+          }, 500); // Small delay to ensure page is rendered
         } else {
           console.warn("Payment marked as failed");
           setStatus("failed");
@@ -211,66 +232,41 @@ const PaymentStatus = () => {
                             </span>
                           </div>
                         )}
-                        {paymentData.emailStatus && (
-                          <div className="flex justify-between items-center pt-2 border-t border-muted">
-                            <span className="text-muted-foreground">
-                              Email Status:
-                            </span>
-                            <span
-                              className={`font-semibold ${
-                                paymentData.emailStatus.success
-                                  ? "text-green-600"
-                                  : "text-orange-600"
-                              }`}
-                            >
-                              {paymentData.emailStatus.success
-                                ? "✓ Sent Successfully"
-                                : `✗ ${paymentData.emailStatus.message}`}
-                            </span>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}
 
-                  {paymentData?.emailStatus && (
-                    <div
-                      className={`rounded-xl p-4 mb-6 ${
-                        paymentData.emailStatus.success
-                          ? "bg-green-50 border border-green-200"
-                          : "bg-orange-50 border border-orange-200"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        {paymentData.emailStatus.success ? (
-                          <CheckCircle2 className="w-5 h-5 text-green-600" />
-                        ) : (
-                          <XCircle className="w-5 h-5 text-orange-600" />
-                        )}
-                        <p
-                          className={`text-sm font-medium ${
-                            paymentData.emailStatus.success
-                              ? "text-green-800"
-                              : "text-orange-800"
-                          }`}
-                        >
-                          {paymentData.emailStatus.success
-                            ? "Email sent successfully! Check your inbox for confirmation."
-                            : `Email Status: ${paymentData.emailStatus.message}`}
+                  {/* Email notification - always show for successful payments */}
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-green-800 font-semibold mb-1">
+                          Email with Invoice Being Sent
+                        </p>
+                        <p className="text-green-700 text-sm">
+                          Your confirmation email with the invoice attached is being processed and will arrive in your inbox shortly. 
+                          Please check your spam folder if you don't see it within a few minutes.
                         </p>
                       </div>
                     </div>
-                  )}
+                  </div>
 
                   <div className="bg-accent/10 border border-accent/30 rounded-xl p-6 mb-6">
                     <p className="text-ink-black mb-2">
                       <strong>What's Next?</strong>
                     </p>
-                    <p className="text-muted-foreground text-sm">
-                      You will receive your personalized numerology report via
-                      email within 24-48 hours. Please check your inbox (and
-                      spam folder) for the delivery confirmation.
-                    </p>
+                    <ul className="text-muted-foreground text-sm space-y-2 list-disc list-inside">
+                      <li>
+                        <strong>Confirmation Email:</strong> You will receive a confirmation email with your invoice attached within a few minutes.
+                      </li>
+                      <li>
+                        <strong>Your Report:</strong> Your personalized numerology report will be delivered via email within 24-48 hours.
+                      </li>
+                      <li>
+                        <strong>Check Spam:</strong> Please check your spam/junk folder if you don't see the emails.
+                      </li>
+                    </ul>
                   </div>
 
                   <div className="flex gap-4 justify-center">

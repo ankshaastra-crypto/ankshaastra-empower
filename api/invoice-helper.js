@@ -35,6 +35,8 @@ let cachedStaticData = null;
 let cachedTemplateContent = null;
 let cachedTemplatePath = null;
 let cachedDataPath = null;
+// Pre-compiled EJS template function for faster rendering
+let compiledTemplate = null;
 
 /**
  * Get cached static data (company info, bank details, etc.)
@@ -103,6 +105,12 @@ async function getTemplateContent() {
     const rootDir = process.cwd();
     cachedTemplatePath = join(rootDir, 'templates', 'invoice.ejs');
     cachedTemplateContent = readFileSync(cachedTemplatePath, 'utf-8');
+    
+    // Pre-compile template for faster rendering
+    compiledTemplate = ejs.compile(cachedTemplateContent, {
+      filename: cachedTemplatePath,
+      cache: true, // Enable caching of compiled functions
+    });
     
     // Try to cache in Redis if available (non-blocking)
     try {
@@ -202,10 +210,17 @@ export async function generateInvoicePDFWithPool({
     const templateContent = await getTemplateContent();
     const templatePath = cachedTemplatePath || join(process.cwd(), 'templates', 'invoice.ejs');
 
-    // Render HTML
-    const html = ejs.render(templateContent, invoiceData, {
-      filename: templatePath,
-    });
+    // Render HTML using pre-compiled template if available (faster)
+    let html;
+    if (compiledTemplate) {
+      html = compiledTemplate(invoiceData);
+    } else {
+      // Fallback to regular render if compilation failed
+      html = ejs.render(templateContent, invoiceData, {
+        filename: templatePath,
+        cache: true, // Enable caching
+      });
+    }
 
     // Generate PDF using browser pool with aggressive timeouts
     console.log(`🔄 Starting PDF generation for invoice ${invoiceId}...`);

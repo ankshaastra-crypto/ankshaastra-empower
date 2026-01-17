@@ -260,88 +260,60 @@ export default async function handler(req, res) {
       });
     }
 
-    // Send emails if customer email is provided
-    let emailStatus = null;
+    // Send emails asynchronously (don't wait for completion)
+    // This allows the API to return immediately while email/invoice generation happens in background
     if (customerEmail && customerEmail.trim() !== '') {
-      try {
-        const emailResult = await sendPaymentEmail({
-          to: customerEmail,
-          customerEmail,
-          customerName: customerName || 'Customer',
-          customerMobile: customerMobile,
-          customerDob: customerDob,
-          person1Name: person1Name,
-          person1Dob: person1Dob,
-          person2Name: person2Name,
-          person2Dob: person2Dob,
-          person3Name: person3Name,
-          person3Dob: person3Dob,
-          orderId,
-          amount: amountInPaise, // send-email.js expects amount in paise
-          packageType: packageType || 'single',
-          status: paymentStatus,
-          transactionId: transactionId || '',
-        });
-
-        // Strict validation: only mark as success if we have explicit success flag AND messageIds
-        const hasSuccessFlag = emailResult && emailResult.success === true;
-        const hasCustomerMessageId = emailResult && emailResult.customerMessageId;
-        const hasAdminMessageId = emailResult && emailResult.adminMessageId;
-        
-        if (hasSuccessFlag && hasCustomerMessageId && hasAdminMessageId) {
-          emailStatus = {
-            success: true,
-            message: "Emails sent successfully",
-            customerMessageId: emailResult.customerMessageId,
-            adminMessageId: emailResult.adminMessageId
-          };
+      // Fire and forget - don't await, process in background
+      sendPaymentEmail({
+        to: customerEmail,
+        customerEmail,
+        customerName: customerName || 'Customer',
+        customerMobile: customerMobile,
+        customerDob: customerDob,
+        person1Name: person1Name,
+        person1Dob: person1Dob,
+        person2Name: person2Name,
+        person2Dob: person2Dob,
+        person3Name: person3Name,
+        person3Dob: person3Dob,
+        orderId,
+        amount: amountInPaise, // send-email.js expects amount in paise
+        packageType: packageType || 'single',
+        status: paymentStatus,
+        transactionId: transactionId || '',
+      }).then((emailResult) => {
+        // Log success with invoice attachment status
+        if (emailResult && emailResult.success) {
+          const hasInvoice = emailResult.invoiceAttached || false;
+          const invoiceId = emailResult.invoiceId || 'N/A';
+          console.log(`✅ Email sent successfully to ${customerEmail}`);
+          console.log(`   📄 Invoice attached: ${hasInvoice ? 'YES' : 'NO'} ${hasInvoice ? `(ID: ${invoiceId})` : ''}`);
+          console.log(`   📧 Customer message ID: ${emailResult.customerMessageId || 'N/A'}`);
+          console.log(`   📧 Admin message ID: ${emailResult.adminMessageId || 'N/A'}`);
         } else {
-          // If success flag is false, missing, or messageIds are missing, mark as failed
-          const errorMsg = emailResult?.error || 
-            (!hasSuccessFlag ? "Email sending failed - no success confirmation" : 
-             !hasCustomerMessageId ? "Customer email failed - no message ID" :
-             !hasAdminMessageId ? "Admin email failed - no message ID" : 
-             "Unknown error sending emails");
-          
-          console.error("❌ Failed to send emails");
-          
-          emailStatus = {
-            success: false,
-            message: errorMsg,
-            error: errorMsg,
-            details: emailResult?.details || {},
-            customerError: emailResult?.customerError,
-            adminError: emailResult?.adminError,
-            validation: {
-              hasSuccessFlag,
-              hasCustomerMessageId,
-              hasAdminMessageId
-            }
-          };
+          console.error(`❌ Email sending failed for ${customerEmail}:`, emailResult?.error || 'Unknown error');
         }
-      } catch (emailError) {
-        console.error("❌ Exception in email sending function");
-        emailStatus = {
-          success: false,
-          message: emailError.message || "Error sending email",
-          error: emailError.message
-        };
-      }
+      }).catch((emailError) => {
+        // Log errors but don't block the response
+        console.error("❌ Background email sending error:", emailError);
+        console.error(`   Order ID: ${orderId}`);
+        console.error(`   Customer Email: ${customerEmail}`);
+      });
+      
+      console.log(`📧 Email with invoice queued for background processing: ${customerEmail} (Order: ${orderId})`);
     } else {
-      emailStatus = {
-        success: false,
-        message: "Email not provided - customer email is required for notifications"
-      };
+      console.warn("⚠️ Customer email not available - email not sent");
     }
 
-    // Return payment status for frontend
+    // Return payment status immediately (email processing happens in background)
     return res.status(200).json({
       success: true,
       status: paymentStatus,
       orderId,
       transactionId,
       amount,
-      emailStatus
+      // Email is being processed in background - no status returned
+      emailProcessing: true
     });
 
   } catch (error) {

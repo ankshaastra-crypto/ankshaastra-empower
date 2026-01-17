@@ -41,26 +41,36 @@ let cachedDataPath = null;
  * Uses Redis cache if available, falls back to in-memory cache
  */
 async function getStaticData() {
-  const cache = getRedisCache();
-  await cache.initialize();
-  
-  // Try Redis first
-  if (cache.isConnected) {
-    const cached = await cache.get('invoice:static-data');
-    if (cached) {
-      return cached;
+  // Try Redis first (non-blocking)
+  try {
+    const cache = getRedisCache();
+    await cache.initialize();
+    
+    if (cache.isConnected && cache.client) {
+      const cached = await cache.get('invoice:static-data');
+      if (cached) {
+        return cached;
+      }
     }
+  } catch (redisError) {
+    // Redis failed, continue with file-based fallback
+    // Error already logged in redis-cache.js
   }
   
-  // Fallback to in-memory cache
+  // Fallback to in-memory cache (always works)
   if (!cachedStaticData || !cachedDataPath) {
     const rootDir = process.cwd();
     cachedDataPath = join(rootDir, 'templates', 'invoice-data.json');
     cachedStaticData = JSON.parse(readFileSync(cachedDataPath, 'utf-8'));
     
-    // Cache in Redis if available
-    if (cache.isConnected) {
-      await cache.set('invoice:static-data', cachedStaticData, 86400); // 24 hours
+    // Try to cache in Redis if available (non-blocking)
+    try {
+      const cache = getRedisCache();
+      if (cache.isConnected && cache.client) {
+        await cache.set('invoice:static-data', cachedStaticData, 86400); // 24 hours
+      }
+    } catch (redisError) {
+      // Ignore Redis caching errors
     }
   }
   
@@ -72,26 +82,36 @@ async function getStaticData() {
  * Uses Redis cache if available, falls back to in-memory cache
  */
 async function getTemplateContent() {
-  const cache = getRedisCache();
-  await cache.initialize();
-  
-  // Try Redis first
-  if (cache.isConnected) {
-    const cached = await cache.get('invoice:template-content');
-    if (cached) {
-      return cached;
+  // Try Redis first (non-blocking)
+  try {
+    const cache = getRedisCache();
+    await cache.initialize();
+    
+    if (cache.isConnected && cache.client) {
+      const cached = await cache.get('invoice:template-content');
+      if (cached) {
+        return cached;
+      }
     }
+  } catch (redisError) {
+    // Redis failed, continue with file-based fallback
+    // Error already logged in redis-cache.js
   }
   
-  // Fallback to in-memory cache
+  // Fallback to in-memory cache (always works)
   if (!cachedTemplateContent || !cachedTemplatePath) {
     const rootDir = process.cwd();
     cachedTemplatePath = join(rootDir, 'templates', 'invoice.ejs');
     cachedTemplateContent = readFileSync(cachedTemplatePath, 'utf-8');
     
-    // Cache in Redis if available
-    if (cache.isConnected) {
-      await cache.set('invoice:template-content', cachedTemplateContent, 86400); // 24 hours
+    // Try to cache in Redis if available (non-blocking)
+    try {
+      const cache = getRedisCache();
+      if (cache.isConnected && cache.client) {
+        await cache.set('invoice:template-content', cachedTemplateContent, 86400); // 24 hours
+      }
+    } catch (redisError) {
+      // Ignore Redis caching errors
     }
   }
   

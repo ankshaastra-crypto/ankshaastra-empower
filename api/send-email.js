@@ -608,12 +608,15 @@ export async function sendPaymentEmail({
       };
     } else if (!customerSuccess) {
       console.error("❌ Customer email failed, admin succeeded");
+      const invoiceAttached = !!(invoicePDFBuffer && invoiceId);
       return {
         success: false,
         error: `Customer email failed: ${customerError?.message || 'Unknown error'}`,
         customerError: customerError?.message,
         adminMessageId: adminEmailResult?.messageId,
         adminSuccess: true,
+        invoiceAttached: invoiceAttached,
+        invoiceId: invoiceId || null,
         details: {
           code: customerError?.code,
           responseCode: customerError?.responseCode,
@@ -622,12 +625,15 @@ export async function sendPaymentEmail({
       };
     } else if (!adminSuccess) {
       console.error("❌ Admin email failed, customer succeeded");
+      const invoiceAttached = !!(invoicePDFBuffer && invoiceId);
       return {
         success: false,
         error: `Admin email failed: ${adminError?.message || 'Unknown error'}`,
         customerMessageId: customerEmailResult?.messageId,
         customerSuccess: true,
         adminError: adminError?.message,
+        invoiceAttached: invoiceAttached,
+        invoiceId: invoiceId || null,
         details: {
           code: adminError?.code,
           responseCode: adminError?.responseCode,
@@ -637,10 +643,14 @@ export async function sendPaymentEmail({
     }
 
     // Both emails sent successfully
+    const invoiceAttached = !!(invoicePDFBuffer && invoiceId);
     return {
       success: true,
       customerMessageId: customerEmailResult.messageId,
       adminMessageId: adminEmailResult.messageId,
+      invoiceAttached: invoiceAttached,
+      invoiceId: invoiceId || null,
+      invoiceSize: invoicePDFBuffer ? invoicePDFBuffer.length : 0,
     };
   } catch (error) {
     console.error('Error sending emails');

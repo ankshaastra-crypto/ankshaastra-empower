@@ -1,6 +1,78 @@
 import { Cluster } from 'puppeteer-cluster';
 
 /**
+ * Get Chromium executable path for serverless environments (Vercel, AWS Lambda, etc.)
+ */
+async function getChromiumExecutablePath() {
+  // Check if we're in a serverless environment
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT) {
+    try {
+      // Use @sparticuz/chromium for serverless environments
+      const chromium = await import('@sparticuz/chromium');
+      // Set font path for better PDF rendering
+      chromium.setGraphicsMode(false);
+      return chromium.executablePath();
+    } catch (error) {
+      console.warn('⚠️ @sparticuz/chromium not available, using default Puppeteer browser:', error.message);
+      return undefined; // Fall back to default Puppeteer browser
+    }
+  }
+  // Local development - use default Puppeteer browser
+  return undefined;
+}
+
+/**
+ * Get Chromium args for serverless environments
+ */
+function getChromiumArgs() {
+  const baseArgs = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-accelerated-2d-canvas',
+    '--disable-gpu',
+  ];
+
+  // Add serverless-specific args
+  if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    baseArgs.push(
+      '--single-process',
+      '--disable-extensions',
+      '--disable-background-networking',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-breakpad',
+      '--disable-client-side-phishing-detection',
+      '--disable-default-apps',
+      '--disable-domain-reliability',
+      '--disable-features=AudioServiceOutOfProcess',
+      '--disable-hang-monitor',
+      '--disable-ipc-flooding-protection',
+      '--disable-notifications',
+      '--disable-offer-store-unmasked-wallet-cards',
+      '--disable-popup-blocking',
+      '--disable-print-preview',
+      '--disable-prompt-on-repost',
+      '--disable-renderer-backgrounding',
+      '--disable-setuid-sandbox',
+      '--disable-speech-api',
+      '--disable-sync',
+      '--hide-scrollbars',
+      '--ignore-gpu-blacklist',
+      '--metrics-recording-only',
+      '--mute-audio',
+      '--no-first-run',
+      '--no-pings',
+      '--no-zygote',
+      '--use-gl=swiftshader',
+      '--window-size=1920,1080'
+    );
+  }
+
+  return baseArgs;
+}
+
+/**
  * Browser Pool Manager using puppeteer-cluster
  * Manages a pool of browser instances for efficient PDF generation
  */
@@ -19,20 +91,25 @@ class BrowserPool {
     }
 
     try {
+      const executablePath = await getChromiumExecutablePath();
+      const args = getChromiumArgs();
+
+      const puppeteerOptions = {
+        headless: true,
+        args,
+        timeout: 30000,
+      };
+
+      // Set executable path if available (for serverless)
+      if (executablePath) {
+        puppeteerOptions.executablePath = executablePath;
+        console.log('📦 Using serverless Chromium:', executablePath);
+      }
+
       this.cluster = await Cluster.launch({
         concurrency: Cluster.CONCURRENCY_PAGE, // One task per page
-        maxConcurrency: 5, // Maximum 5 concurrent PDF generations
-        puppeteerOptions: {
-          headless: true,
-          args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
-            '--disable-gpu',
-          ],
-          timeout: 30000,
-        },
+        maxConcurrency: process.env.VERCEL ? 2 : 5, // Lower concurrency on Vercel
+        puppeteerOptions,
         timeout: 30000,
       });
 

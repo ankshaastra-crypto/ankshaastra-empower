@@ -501,7 +501,7 @@ const OrderFormSection = () => {
     >
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-5 gap-8 lg:gap-12">
+          <div className="grid lg:grid-cols-5 gap-6 lg:gap-12">
             {/* Form Column */}
             <div
               className={`lg:col-span-3 transition-all duration-700 ${
@@ -510,28 +510,28 @@ const OrderFormSection = () => {
                   : "opacity-0 -translate-x-12"
               }`}
             >
-              <h2 className="heading-lg text-ink-black mb-2">
+              <h2 className="heading-lg text-ink-black mb-1.5 md:mb-2">
                 Enter Your Details
               </h2>
-              <p className="text-muted-foreground mb-8">
+              <p className="text-muted-foreground text-sm md:text-base mb-6 md:mb-8">
                 We will use this information to create your personalized report
               </p>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
                 {/* Package Selection */}
-                <div className="space-y-4">
-                  <Label className="text-lg font-semibold text-ink-black">
+                <div className="space-y-3 md:space-y-4">
+                  <Label className="text-base md:text-lg font-semibold text-ink-black">
                     Select Package
                   </Label>
                   <RadioGroup
                     value={packageType}
                     onValueChange={setPackageType}
-                    className="grid gap-4"
+                    className="grid gap-3 md:gap-4"
                   >
                     {/* Name Check Option */}
                     <label
                       htmlFor="namecheck"
-                      className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
+                      className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-lg md:rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
                         packageType === "namecheck"
                           ? "border-secondary bg-secondary/5"
                           : "border-border hover:border-secondary/50"
@@ -558,7 +558,7 @@ const OrderFormSection = () => {
                     {/* Single Report Option */}
                     <label
                       htmlFor="single"
-                      className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
+                      className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-lg md:rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
                         packageType === "single"
                           ? "border-secondary bg-secondary/5"
                           : "border-border hover:border-secondary/50"
@@ -582,7 +582,7 @@ const OrderFormSection = () => {
                     {/* Family Package Option */}
                     <label
                       htmlFor="family"
-                      className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
+                      className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-lg md:rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
                         packageType === "family"
                           ? "border-accent bg-accent/5"
                           : "border-border hover:border-accent/50"

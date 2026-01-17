@@ -17,12 +17,25 @@ async function getChromiumExecutablePath() {
       });
       
       // Use @sparticuz/chromium for serverless environments
-      const chromium = await import('@sparticuz/chromium');
+      // Try both default and named exports
+      let chromium;
+      try {
+        const chromiumModule = await import('@sparticuz/chromium');
+        chromium = chromiumModule.default || chromiumModule;
+      } catch (importError) {
+        console.error('❌ Failed to import @sparticuz/chromium:', importError.message);
+        return undefined;
+      }
+      
+      if (!chromium) {
+        console.error('❌ @sparticuz/chromium module is null or undefined');
+        return undefined;
+      }
       
       console.log('✅ @sparticuz/chromium module loaded');
       
       // Configure chromium for serverless
-      if (chromium.setGraphicsMode) {
+      if (chromium.setGraphicsMode && typeof chromium.setGraphicsMode === 'function') {
         chromium.setGraphicsMode(false);
       }
       
@@ -30,11 +43,21 @@ async function getChromiumExecutablePath() {
       // executablePath() is synchronous and extracts Chromium to /tmp if needed
       let executablePath;
       if (typeof chromium.executablePath === 'function') {
-        executablePath = chromium.executablePath();
+        try {
+          executablePath = chromium.executablePath();
+        } catch (execPathError) {
+          console.error('❌ Error calling chromium.executablePath():', execPathError.message);
+          return undefined;
+        }
       } else if (chromium.default && typeof chromium.default.executablePath === 'function') {
-        executablePath = chromium.default.executablePath();
+        try {
+          executablePath = chromium.default.executablePath();
+        } catch (execPathError) {
+          console.error('❌ Error calling chromium.default.executablePath():', execPathError.message);
+          return undefined;
+        }
       } else {
-        console.error('❌ chromium.executablePath is not a function');
+        console.error('❌ chromium.executablePath is not a function. Available methods:', Object.keys(chromium));
         return undefined;
       }
       
@@ -168,7 +191,10 @@ class BrowserPool {
       return this.cluster;
     } catch (error) {
       console.error('❌ Failed to initialize browser pool:', error);
-      throw error;
+      // Don't throw - let generatePDF handle fallback
+      this.isInitialized = false;
+      this.cluster = null;
+      return null;
     }
   }
 
@@ -181,7 +207,10 @@ class BrowserPool {
     // Try browser pool first
     try {
       if (!this.isInitialized || !this.cluster) {
-        await this.initialize();
+        const initResult = await this.initialize();
+        if (!initResult || !this.cluster) {
+          throw new Error('Browser pool initialization failed');
+        }
       }
 
       const pdfBuffer = await this.cluster.execute(async ({ page }) => {
@@ -216,62 +245,95 @@ class BrowserPool {
       return pdfBuffer;
     } catch (clusterError) {
       console.error('❌ Browser pool failed, trying direct Puppeteer fallback:', clusterError.message);
+      console.error('Cluster error details:', {
+        message: clusterError.message,
+        stack: clusterError.stack?.split('\n').slice(0, 3).join('\n')
+      });
       
       // Fallback to direct Puppeteer launch
-      try {
-        const puppeteer = await import('puppeteer');
-        const executablePath = await getChromiumExecutablePath();
-        const args = getChromiumArgs();
-        
-        const launchOptions = {
-          headless: true,
-          args,
-          timeout: 30000,
-        };
-        
-        if (executablePath) {
-          launchOptions.executablePath = executablePath;
-          console.log('📦 Using direct Puppeteer with serverless Chromium');
-        }
-        
-        const browser = await puppeteer.launch(launchOptions);
-        const page = await browser.newPage();
-        
-        try {
-          page.setDefaultTimeout(30000);
-          await page.setContent(html, {
-            waitUntil: 'networkidle0',
-            timeout: 30000,
-          });
-          
-          const pdfBuffer = await Promise.race([
-            page.pdf({
-              format: 'A4',
-              printBackground: true,
-              margin: {
-                top: '10px',
-                right: '10px',
-                bottom: '10px',
-                left: '10px',
-              },
-              preferCSSPageSize: false,
-            }),
-            new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('PDF generation timeout')), 30000)
-            ),
-          ]);
-          
-          await browser.close();
-          console.log('✅ PDF generated using direct Puppeteer fallback');
-          return pdfBuffer;
-        } catch (pdfError) {
-          await browser.close();
-          throw pdfError;
-        }
-      } catch (fallbackError) {
-        console.error('❌ Direct Puppeteer fallback also failed:', fallbackError.message);
-        throw new Error(`PDF generation failed: ${clusterError.message}. Fallback also failed: ${fallbackError.message}`);
+      return this.generatePDFDirect(html, clusterError);
+    }
+  }
+
+  /**
+   * Generate PDF using direct Puppeteer (fallback method)
+   * @param {string} html - HTML content to convert to PDF
+   * @param {Error} originalError - Original error from cluster attempt
+   * @returns {Promise<Buffer>} PDF buffer
+   */
+  async generatePDFDirect(html, originalError = null) {
+    try {
+      const puppeteer = await import('puppeteer');
+      const executablePath = await getChromiumExecutablePath();
+      const args = getChromiumArgs();
+      
+      const launchOptions = {
+        headless: true,
+        args,
+        timeout: 60000, // Increased timeout for serverless
+      };
+      
+      if (executablePath) {
+        launchOptions.executablePath = executablePath;
+        console.log('📦 Using direct Puppeteer with serverless Chromium:', executablePath);
+      } else {
+        console.log('📦 Using direct Puppeteer with default browser');
       }
+      
+      console.log('🚀 Launching direct Puppeteer browser...');
+      const browser = await puppeteer.launch(launchOptions);
+      
+      try {
+        const page = await browser.newPage();
+        page.setDefaultTimeout(30000);
+        
+        console.log('📄 Setting page content...');
+        await page.setContent(html, {
+          waitUntil: 'networkidle0',
+          timeout: 30000,
+        });
+        
+        console.log('📄 Generating PDF...');
+        const pdfBuffer = await Promise.race([
+          page.pdf({
+            format: 'A4',
+            printBackground: true,
+            margin: {
+              top: '10px',
+              right: '10px',
+              bottom: '10px',
+              left: '10px',
+            },
+            preferCSSPageSize: false,
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('PDF generation timeout')), 30000)
+          ),
+        ]);
+        
+        await browser.close();
+        console.log('✅ PDF generated using direct Puppeteer fallback');
+        return pdfBuffer;
+      } catch (pdfError) {
+        try {
+          await browser.close();
+        } catch (closeError) {
+          console.error('Error closing browser:', closeError.message);
+        }
+        throw pdfError;
+      }
+    } catch (fallbackError) {
+      console.error('❌ Direct Puppeteer fallback also failed:', fallbackError.message);
+      console.error('Fallback error details:', {
+        message: fallbackError.message,
+        stack: fallbackError.stack?.split('\n').slice(0, 5).join('\n')
+      });
+      
+      const errorMessage = originalError 
+        ? `PDF generation failed: Cluster error - ${originalError.message}. Direct Puppeteer error - ${fallbackError.message}`
+        : `PDF generation failed: ${fallbackError.message}`;
+      
+      throw new Error(errorMessage);
     }
   }
 

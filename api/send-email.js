@@ -1,3 +1,6 @@
+// Suppress DEP0169 deprecation warning from dependencies
+import './suppress-deprecation.js';
+
 import nodemailer from 'nodemailer';
 import { generateInvoicePDF } from './invoice-helper.js';
 import { queueInvoiceGeneration } from './invoice-queue.js';

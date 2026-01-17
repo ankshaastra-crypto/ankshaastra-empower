@@ -51,12 +51,11 @@ const PaymentStatus = () => {
           const stored = localStorage.getItem(`order_${merchantTransactionId}`);
           if (stored) {
             storedOrderData = JSON.parse(stored);
-            console.log("✅ Retrieved order data from localStorage");
             // Clean up localStorage after retrieving
             localStorage.removeItem(`order_${merchantTransactionId}`);
           }
         } catch (e) {
-          console.warn("Could not retrieve order data from localStorage:", e);
+          // Silent fail
         }
       }
 
@@ -65,16 +64,6 @@ const PaymentStatus = () => {
       const finalName = storedOrderData?.name || name || "";
       const finalPackageType =
         storedOrderData?.packageType || packageType || "single";
-
-      // Log all parameters for debugging
-      console.log("Payment Status Page - All URL Params:", {
-        merchantTransactionId,
-        email,
-        name,
-        packageType,
-        hasStoredData: !!storedOrderData,
-        allParams: Object.fromEntries(searchParams.entries()),
-      });
 
       if (!merchantTransactionId) {
         console.error(
@@ -126,9 +115,6 @@ const PaymentStatus = () => {
 
         const result = await response.json();
 
-        // Log the result for debugging
-        console.log("Payment Status API Result:", result);
-
         if (result.success && result.status === "SUCCESS") {
           setStatus("success");
           setPaymentData(result);
@@ -142,7 +128,7 @@ const PaymentStatus = () => {
             trackPurchase(amount, "INR", orderId, pkgType);
           }
         } else {
-          console.warn("Payment marked as failed:", result);
+          console.warn("Payment marked as failed");
           setStatus("failed");
           setPaymentData(result);
         }
@@ -221,7 +207,7 @@ const PaymentStatus = () => {
                               Amount Paid:
                             </span>
                             <span className="font-semibold text-accent">
-                              ₹{(paymentData.amount / 100).toLocaleString()}
+                              ₹{paymentData.amount.toLocaleString()}
                             </span>
                           </div>
                         )}

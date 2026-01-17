@@ -34,11 +34,9 @@ export default async function handler(req, res) {
     }
 
     if (!merchantTransactionId) {
-      console.error("Missing transaction ID. Available query params:", Object.keys(req.query));
+      console.error("Missing transaction ID");
       return res.status(400).json({ 
-        error: "Missing transaction ID",
-        availableParams: Object.keys(req.query),
-        query: req.query
+        error: "Missing transaction ID"
       });
     }
 
@@ -62,12 +60,7 @@ export default async function handler(req, res) {
     });
 
     if (!statusResponse.ok) {
-      const errorText = await statusResponse.text();
-      console.error("PhonePe API Error:", {
-        status: statusResponse.status,
-        statusText: statusResponse.statusText,
-        body: errorText
-      });
+      console.error("PhonePe API Error:", statusResponse.status, statusResponse.statusText);
       return res.status(500).json({ 
         error: "Failed to fetch payment status from PhonePe",
         details: `PhonePe API returned ${statusResponse.status}: ${statusResponse.statusText}`
@@ -96,17 +89,16 @@ export default async function handler(req, res) {
       // New format: direct JSON response
       paymentData = statusResult;
     } else {
-      console.error("Invalid PhonePe response structure:", statusResult);
+      console.error("Invalid PhonePe response structure");
       return res.status(500).json({ 
         error: "Invalid response from PhonePe",
-        details: "Response format not recognized",
-        received: statusResult
+        details: "Response format not recognized"
       });
     }
 
     // Validate paymentData structure
     if (!paymentData || typeof paymentData !== 'object') {
-      console.error("Invalid paymentData structure:", paymentData);
+      console.error("Invalid paymentData structure");
       return res.status(500).json({ 
         error: "Invalid payment data structure",
         details: "Payment data is not a valid object"
@@ -127,8 +119,10 @@ export default async function handler(req, res) {
     // Payment status determined
     const orderId = merchantTransactionId;
     const transactionId = paymentData.data?.transactionId || paymentData.data?.merchantTransactionId || '';
-    // PhonePe returns amount in paise, use it directly (send-email.js will divide by 100)
-    const amount = paymentData.data?.amount || 0;
+    // PhonePe returns amount in paise (e.g., 199700 = ₹1997)
+    // Convert to rupees for API response (user-friendly)
+    const amountInPaise = paymentData.data?.amount || 0;
+    const amount = amountInPaise > 0 ? amountInPaise / 100 : 0; // Convert paise to rupees for API response
 
     // Extract metaInfo from PhonePe response (PhonePe returns it as metaInfo at data.data.metaInfo)
     // Based on your response structure: data.data.metaInfo
@@ -143,20 +137,16 @@ export default async function handler(req, res) {
         } else if (typeof metaInfo === 'object' && metaInfo !== null) {
           metadata = metaInfo;
         }
-        console.log("✅ Found metadata in PhonePe response");
       } catch (error) {
         // If parsing fails, metadata remains empty object
         console.error("Error parsing metaInfo");
       }
-    } else {
-      console.warn("⚠️ No metaInfo found in PhonePe response");
     }
     
     // Also check if PhonePe returns customer data in other fields
     // Some payment gateways return customer info in different locations
     const phonePeCustomerInfo = paymentData.data?.customerInfo || paymentData.customerInfo || {};
     if (phonePeCustomerInfo && Object.keys(phonePeCustomerInfo).length > 0) {
-      console.log("✅ Found customer info in PhonePe response");
       // Merge PhonePe customer info into metadata as fallback
       metadata = { ...metadata, ...phonePeCustomerInfo };
     }
@@ -165,24 +155,16 @@ export default async function handler(req, res) {
     const encryptedData = req.query.data || '';
     let decryptedData = {};
     
-    // Log available query parameters for debugging (without sensitive data)
-    const availableQueryParams = Object.keys(req.query);
-    console.log("📋 Available query parameters:", availableQueryParams.filter(p => p !== 'data'));
-    
     if (encryptedData) {
       try {
         decryptedData = decryptCustomerData(encryptedData);
         // Validate decryption worked - check if we got actual data
         if (!decryptedData || Object.keys(decryptedData).length === 0) {
           console.error("❌ Decryption returned empty data");
-        } else {
-          console.log("✅ Successfully decrypted customer data");
         }
       } catch (error) {
         console.error("❌ Error decrypting customer data:", error.message);
       }
-    } else {
-      console.warn("⚠️ No encrypted data parameter found in query string");
     }
 
     // Helper function to safely extract query params (fallback if decryption fails)
@@ -205,22 +187,6 @@ export default async function handler(req, res) {
     const emailFromMetadata = metadata.email ? metadata.email.trim() : '';
     
     const customerEmail = emailFromDecrypted || emailFromQuery || emailFromMetadata || '';
-    
-    // Debug logging for email extraction (without logging actual email)
-    if (!customerEmail || customerEmail.trim() === '') {
-      console.error("❌ Email extraction failed:");
-      console.error("  - Decrypted email:", emailFromDecrypted ? `present (length: ${emailFromDecrypted.length})` : "missing");
-      console.error("  - Query param email:", emailFromQuery ? `present (length: ${emailFromQuery.length}, raw: ${req.query.email})` : "missing");
-      console.error("  - Metadata email:", emailFromMetadata ? `present (length: ${emailFromMetadata.length})` : "missing");
-      console.error("  - Encrypted data present:", !!encryptedData);
-      console.error("  - All query params:", Object.keys(req.query));
-      console.error("  - Email query param value:", req.query.email ? `type: ${typeof req.query.email}, value length: ${req.query.email.toString().length}` : "not present");
-    } else {
-      console.log("✅ Email extracted successfully from:", 
-        emailFromDecrypted ? "decrypted data" : 
-        emailFromQuery ? "query params" : 
-        "metadata");
-    }
     const customerName = (decryptedData.name && decryptedData.name.trim()) || 
                          getQueryParam('name') || 
                          (metadata.name && metadata.name.trim()) || 
@@ -266,16 +232,7 @@ export default async function handler(req, res) {
     // Validate customer email is present (required field)
     if (!customerEmail || customerEmail.trim() === '') {
       console.error("❌ Customer email is missing - cannot send email notifications");
-      console.error("📋 Debug info:");
       console.error("  - Order ID:", orderId);
-      console.error("  - Transaction ID:", transactionId);
-      console.error("  - Payment Status:", paymentStatus);
-      console.error("  - Has encrypted data param:", !!encryptedData);
-      console.error("  - Decrypted data keys:", Object.keys(decryptedData));
-      console.error("  - Metadata keys:", Object.keys(metadata));
-      console.error("  - All query params:", Object.keys(req.query));
-      console.error("  - Email query param value:", req.query.email);
-      console.error("  - Name query param value:", req.query.name);
       
       // Payment succeeded but email data was lost (PhonePe stripped query params)
       // The webhook should handle email sending, so we'll return success with a note
@@ -293,11 +250,9 @@ export default async function handler(req, res) {
             hasEncryptedData: !!encryptedData,
             hasDecryptedData: Object.keys(decryptedData).length > 0,
             hasMetadata: Object.keys(metadata).length > 0,
-            availableQueryParams: Object.keys(req.query).filter(p => p !== 'data'),
             note: "PhonePe may have stripped query parameters. Email will be sent via webhook."
           }
-        },
-        data: paymentData,
+        }
       });
     }
 
@@ -318,7 +273,7 @@ export default async function handler(req, res) {
           person3Name: person3Name,
           person3Dob: person3Dob,
           orderId,
-          amount: amount,
+          amount: amountInPaise, // send-email.js expects amount in paise
           packageType: packageType || 'single',
           status: paymentStatus,
           transactionId: transactionId || '',
@@ -345,7 +300,6 @@ export default async function handler(req, res) {
              "Unknown error sending emails");
           
           console.error("❌ Failed to send emails");
-          console.error("Email error details:", emailResult?.details || {});
           
           emailStatus = {
             success: false,
@@ -370,7 +324,6 @@ export default async function handler(req, res) {
         };
       }
     } else {
-      console.warn("⚠️ Customer email not provided, skipping email notification");
       emailStatus = {
         success: false,
         message: "Email not provided - customer email is required for notifications"
@@ -384,8 +337,7 @@ export default async function handler(req, res) {
       orderId,
       transactionId,
       amount,
-      emailStatus,
-      data: paymentData,
+      emailStatus
     });
 
   } catch (error) {

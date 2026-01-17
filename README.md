@@ -1,15 +1,12 @@
-# Ankshaastra Payment & Invoice System
+# Ankshaastra Payment System
 
-Production-ready payment processing system with PhonePe integration, automated invoice generation, and email notifications. Optimized for serverless deployment on Vercel.
+Production-ready payment processing system with PhonePe integration and email notifications. Optimized for serverless deployment on Vercel.
 
 ## Features
 
 - PhonePe Payment Integration
-- Automated PDF Invoice Generation
 - Email Notifications (Customer & Admin)
-- Browser Pool for Efficient PDF Generation
 - Redis Caching & Rate Limiting
-- Queue System for Async Processing (Optional)
 - Production-Ready & Serverless-Friendly
 
 ## Quick Start
@@ -48,7 +45,6 @@ ENCRYPTION_KEY=your_32_character_key
 
 ```bash
 REDIS_URL=redis://localhost:6379
-USE_INVOICE_QUEUE=false
 NODE_ENV=development
 
 # Package Pricing (Frontend)
@@ -77,10 +73,20 @@ openssl rand -hex 32
 ```bash
 npm run dev              # Start development server (deprecation warnings suppressed)
 npm run build            # Build for production
-npm run generate-invoice-pdf  # Generate sample invoice
 ```
 
 **Note:** The `DEP0169` deprecation warning about `url.parse()` comes from dependencies (nodemailer, ioredis, etc.) and is automatically suppressed. This is safe as it's not from our code.
+
+## Removed Dependencies
+
+The following dependencies have been removed as they were only used for invoice generation:
+
+- `bullmq` - Queue system (was used for invoice queue)
+- `puppeteer` & `puppeteer-cluster` - PDF generation (was used for invoice PDFs)
+- `@sparticuz/chromium` - Serverless Chromium (was used for invoice PDFs)
+- `ejs` - Template engine (was used for invoice templates)
+- `@tanstack/react-query` - Data fetching (not used in the app)
+- `recharts` - Chart library (not used in the app)
 
 ## Production Deployment
 
@@ -99,8 +105,7 @@ npm run generate-invoice-pdf  # Generate sample invoice
    ```
 
    - Add all environment variables in Vercel Dashboard
-   - Set `REDIS_URL` to Upstash Redis URL
-   - Set `USE_INVOICE_QUEUE=false` (recommended)
+   - Set `REDIS_URL` to Upstash Redis URL (if using Redis)
    - **Optional:** Set `NODE_OPTIONS=--no-deprecation` to suppress DEP0169 warnings from dependencies
 
 3. **Create `vercel.json`:**
@@ -129,16 +134,8 @@ npm start
 
 ## Production Features
 
-### Browser Pool
-
-- Manages Puppeteer instances efficiently
-- Max 5 concurrent PDF generations
-- Auto-initialized
-
 ### Redis Caching
 
-- Caches static invoice data (24h TTL)
-- Caches templates (24h TTL)
 - Falls back to in-memory if Redis unavailable
 
 ### Rate Limiting
@@ -146,36 +143,6 @@ npm start
 - `/api/initiate-payment`: 10 requests/15 min
 - `/api/payment-status`: 30 requests/min
 - `/api/payment-webhook`: 100 requests/min
-
-### Queue System (Optional)
-
-- Enable with `USE_INVOICE_QUEUE=true`
-- Requires external worker on serverless platforms
-- 5 concurrent jobs, 10 jobs/second
-
-## Invoice System
-
-Invoices are automatically generated and attached to payment confirmation emails.
-
-**Features:**
-
-- Unique Invoice ID: `INV-{timestamp}-{random}`
-- Unique Order ID: `ORD{timestamp}-{random}`
-- Real payment data (amounts, customer info, package type)
-- Static company data from `templates/invoice-data.json`
-- Single-page PDF design
-
-**Files:**
-
-- `templates/invoice.ejs` - Invoice template
-- `templates/invoice-data.json` - Static company/bank data
-- `api/invoice-helper.js` - PDF generation logic
-
-**Preview:**
-
-```bash
-npm run generate-invoice-pdf
-```
 
 ## API Endpoints
 
@@ -221,28 +188,18 @@ PhonePe webhook endpoint.
 
 ```
 ├── api/
-│   ├── browser-pool.js          # Browser pool manager
 │   ├── encryption.js            # Data encryption
 │   ├── initiate-payment.js     # Payment initiation
-│   ├── invoice-helper.js        # Invoice PDF generation
-│   ├── invoice-queue.js         # Queue system
 │   ├── payment-status.js        # Payment status check
 │   ├── payment-webhook.js       # PhonePe webhook
 │   ├── rate-limiter.js          # Rate limiting
 │   ├── redis-cache.js           # Redis cache
 │   └── send-email.js            # Email sending
 ├── templates/
-│   ├── invoice.ejs              # Invoice template
-│   └── invoice-data.json        # Static invoice data
+│   ├── invoice.ejs              # Template file (kept for reference)
+│   └── invoice-data.json        # Data file (kept for reference)
 └── src/                         # React frontend
 ```
-
-## Performance
-
-- Invoice Generation: ~2-3 seconds
-- Concurrent Capacity: 5 simultaneous PDFs
-- Cache Hit Rate: ~95% (after warm-up)
-- Traffic Capacity: 100-2000 requests/day
 
 ## Troubleshooting
 
@@ -258,17 +215,9 @@ PhonePe webhook endpoint.
 - For Gmail: Use App Password (not regular password)
 - Check firewall allows SMTP connections
 
-### Invoice Generation Fails
-
-- Check server memory (browsers use ~200MB each)
-- Reduce browser pool concurrency if needed
-- Review function logs for errors
-
 ### Function Timeout (Vercel)
 
 - Upgrade to Pro plan (60s limit)
-- Disable queue (`USE_INVOICE_QUEUE=false`)
-- Use external queue worker for async processing
 
 ## Security
 
@@ -296,6 +245,6 @@ Private - All rights reserved
 
 ---
 
-**Ankshaastra** - Payment & Invoice System
+**Ankshaastra** - Payment System
 
 Last Updated: January 2025

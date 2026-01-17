@@ -1,3 +1,6 @@
+// Suppress DEP0169 deprecation warning from dependencies
+import './suppress-deprecation.js';
+
 import { Queue, Worker } from 'bullmq';
 import { generateInvoicePDFWithPool } from './invoice-helper.js';
 import { sendPaymentEmail } from './send-email.js';

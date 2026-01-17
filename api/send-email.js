@@ -10,9 +10,28 @@ import nodemailer from 'nodemailer';
  * Helper function to send invoice email when PDF is ready
  * This is called AFTER confirmation email is sent
  */
+/**
+ * Send invoice email to customer AFTER invoice generation completes
+ * This is called when invoice PDF is ready
+ */
 async function sendInvoiceEmail(invoicePDFBuffer, invoiceId, customerEmail, customerName, orderId, fromEmail) {
   try {
+    console.log(`📧 Preparing invoice email for ${customerEmail}...`);
+    console.log(`   Invoice ID: ${invoiceId}`);
+    console.log(`   Order ID: ${orderId}`);
+    console.log(`   PDF Buffer Size: ${invoicePDFBuffer.length} bytes`);
+    
     const transporter = getTransporter();
+    
+    // Verify SMTP connection before sending invoice email
+    try {
+      await transporter.verify();
+      console.log(`✅ SMTP connection verified for invoice email`);
+    } catch (verifyError) {
+      console.error(`❌ SMTP verification failed for invoice email:`, verifyError.message);
+      throw new Error(`SMTP connection failed: ${verifyError.message}`);
+    }
+    
     const invoiceEmailHtml = `
       <!DOCTYPE html>
       <html>
@@ -42,7 +61,8 @@ async function sendInvoiceEmail(invoicePDFBuffer, invoiceId, customerEmail, cust
       </html>
     `;
     
-    await transporter.sendMail({
+    console.log(`📤 Sending invoice email to ${customerEmail}...`);
+    const emailResult = await transporter.sendMail({
       from: fromEmail,
       to: customerEmail,
       subject: `Invoice for Order ${orderId} - ${invoiceId}`,
@@ -54,10 +74,22 @@ async function sendInvoiceEmail(invoicePDFBuffer, invoiceId, customerEmail, cust
       }],
     });
     
-    console.log(`✅ Invoice email sent successfully: ${invoiceId} to ${customerEmail}`);
-    return { success: true, invoiceId };
+    if (emailResult && emailResult.messageId) {
+      console.log(`✅ Invoice email sent successfully!`);
+      console.log(`   Message ID: ${emailResult.messageId}`);
+      console.log(`   Invoice ID: ${invoiceId}`);
+      console.log(`   Customer: ${customerEmail}`);
+      return { success: true, invoiceId, messageId: emailResult.messageId };
+    } else {
+      throw new Error('Email sent but no messageId returned');
+    }
   } catch (emailError) {
     console.error(`❌ Failed to send invoice email for ${invoiceId}:`, emailError.message);
+    console.error(`   Customer Email: ${customerEmail}`);
+    console.error(`   Order ID: ${orderId}`);
+    if (emailError.code) {
+      console.error(`   Error Code: ${emailError.code}`);
+    }
     return { success: false, error: emailError.message };
   }
 }
@@ -153,21 +185,46 @@ async function startInvoiceGenerationInBackground({
     const invoiceResult = await Promise.race([invoiceGenerationPromise, timeoutPromise]);
     
     if (invoiceResult && invoiceResult.pdfBuffer && invoiceResult.invoiceId) {
-      // Invoice ready! Send it now
-      await sendInvoiceEmail(
-        invoiceResult.pdfBuffer,
-        invoiceResult.invoiceId,
-        customerEmail,
-        customerName,
-        orderId,
-        fromEmail
-      );
+      // Invoice generation completed successfully!
+      console.log(`✅ Invoice PDF generated successfully for order: ${orderId}`);
+      console.log(`   Invoice ID: ${invoiceResult.invoiceId}`);
+      console.log(`   PDF Size: ${invoiceResult.pdfBuffer.length} bytes`);
+      console.log(`   📧 Now sending invoice email to customer: ${customerEmail}`);
+      
+      // Send invoice email to customer AFTER invoice generation completes
+      try {
+        const emailResult = await sendInvoiceEmail(
+          invoiceResult.pdfBuffer,
+          invoiceResult.invoiceId,
+          customerEmail,
+          customerName,
+          orderId,
+          fromEmail
+        );
+        
+        if (emailResult.success) {
+          console.log(`✅ Invoice email sent successfully to ${customerEmail}`);
+          console.log(`   Invoice ID: ${invoiceResult.invoiceId}`);
+          console.log(`   Order ID: ${orderId}`);
+        } else {
+          console.error(`❌ Failed to send invoice email: ${emailResult.error}`);
+        }
+      } catch (emailError) {
+        console.error(`❌ Error sending invoice email:`, emailError.message);
+        console.error(`   Invoice was generated but email failed`);
+        console.error(`   Invoice ID: ${invoiceResult.invoiceId}`);
+        console.error(`   Customer Email: ${customerEmail}`);
+      }
+    } else {
+      console.error(`❌ Invoice generation completed but result is invalid`);
+      console.error(`   Has PDF Buffer: ${!!invoiceResult?.pdfBuffer}`);
+      console.error(`   Has Invoice ID: ${!!invoiceResult?.invoiceId}`);
     }
   } catch (invoiceError) {
     console.error(`❌ Background invoice generation failed for order ${orderId}:`, invoiceError.message);
     console.error(`   Error stack:`, invoiceError.stack?.split('\n').slice(0, 3).join('\n'));
-    // Don't worry - customer already got confirmation email
-    // Invoice can be regenerated manually if needed
+    console.error(`   Customer already received confirmation email`);
+    console.error(`   Invoice can be regenerated manually if needed`);
   }
 }
 
@@ -740,13 +797,31 @@ export async function sendPaymentEmail({
     // Both emails sent successfully
     const invoiceAttached = !!(invoicePDFBuffer && invoiceId);
     
-    // NOW start invoice generation AFTER email is sent (completely non-blocking)
-    // Only if invoice wasn't already attached and customer email succeeded
-    if (status === 'SUCCESS' && amountInRupees > 0 && !invoicePDFBuffer && customerSuccess) {
-      // Use setImmediate to ensure this runs AFTER the return statement completes
-      // This ensures email sending is NEVER blocked by invoice generation
-      setImmediate(() => {
-        console.log(`🚀 Starting invoice generation in background for order: ${orderId}`);
+    // Prepare return value FIRST
+    const returnValue = {
+      success: true,
+      customerMessageId: customerEmailResult.messageId,
+      adminMessageId: adminEmailResult.messageId,
+      invoiceAttached: invoiceAttached,
+      invoiceId: invoiceId || null,
+      invoiceSize: invoicePDFBuffer ? invoicePDFBuffer.length : 0,
+    };
+    
+    // CRITICAL: Start invoice generation ONLY AFTER both emails are completely sent
+    // This ensures invoice generation happens AFTER email functionality completes
+    // Only if invoice wasn't already attached and BOTH emails succeeded
+    if (status === 'SUCCESS' && amountInRupees > 0 && !invoicePDFBuffer && customerSuccess && adminSuccess) {
+      // Use Promise.resolve().then() to ensure this runs AFTER the return statement
+      // This ensures:
+      // 1. Function returns immediately (non-blocking)
+      // 2. Invoice generation starts AFTER emails are sent
+      // 3. No blocking of email sending
+      Promise.resolve().then(() => {
+        console.log(`🚀 Starting invoice generation AFTER emails completed for order: ${orderId}`);
+        console.log(`   ✅ Customer email sent: ${customerEmailResult.messageId}`);
+        console.log(`   ✅ Admin email sent: ${adminEmailResult.messageId}`);
+        console.log(`   📄 Invoice generation starting in background...`);
+        
         startInvoiceGenerationInBackground({
           orderId,
           customerName: customerName || 'Customer',
@@ -760,17 +835,37 @@ export async function sendPaymentEmail({
         }).catch((err) => {
           console.error(`❌ Background invoice generation error:`, err.message);
         });
+      }).catch(() => {
+        // Ignore errors in promise chain - invoice generation is fire-and-forget
+      });
+    } else if (status === 'SUCCESS' && amountInRupees > 0 && !invoicePDFBuffer && customerSuccess && !adminSuccess) {
+      // Customer email succeeded but admin failed - still generate invoice
+      Promise.resolve().then(() => {
+        console.log(`🚀 Starting invoice generation AFTER customer email completed for order: ${orderId}`);
+        console.log(`   ✅ Customer email sent: ${customerEmailResult.messageId}`);
+        console.log(`   ⚠️  Admin email failed (invoice still generated)`);
+        
+        startInvoiceGenerationInBackground({
+          orderId,
+          customerName: customerName || 'Customer',
+          customerEmail,
+          customerPhone: finalCustomerMobile,
+          customerAddress: '',
+          amount: amountInRupees,
+          packageType: packageType || 'single',
+          transactionId: transactionId || '',
+          fromEmail,
+        }).catch((err) => {
+          console.error(`❌ Background invoice generation error:`, err.message);
+        });
+      }).catch(() => {
+        // Ignore errors in promise chain
       });
     }
     
-    return {
-      success: true,
-      customerMessageId: customerEmailResult.messageId,
-      adminMessageId: adminEmailResult.messageId,
-      invoiceAttached: invoiceAttached,
-      invoiceId: invoiceId || null,
-      invoiceSize: invoicePDFBuffer ? invoicePDFBuffer.length : 0,
-    };
+    // Return immediately - invoice generation will start AFTER this returns
+    // This ensures emails are sent and function completes before invoice generation starts
+    return returnValue;
   } catch (error) {
     console.error('Error sending emails');
     console.error('Error details:', {

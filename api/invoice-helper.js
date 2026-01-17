@@ -207,10 +207,32 @@ export async function generateInvoicePDFWithPool({
       filename: templatePath,
     });
 
-    // Generate PDF using browser pool
+    // Generate PDF using browser pool with aggressive timeouts
+    console.log(`🔄 Starting PDF generation for invoice ${invoiceId}...`);
     const browserPool = getBrowserPool();
-    await browserPool.initialize();
-    const pdfBuffer = await browserPool.generatePDF(html);
+    
+    // Initialize browser pool with timeout (10 seconds)
+    const initPromise = browserPool.initialize();
+    const initTimeout = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Browser pool initialization timeout after 10 seconds')), 10000)
+    );
+    
+    try {
+      await Promise.race([initPromise, initTimeout]);
+      console.log(`✅ Browser pool initialized, generating PDF...`);
+    } catch (initError) {
+      console.error(`❌ Browser pool initialization failed:`, initError.message);
+      throw new Error(`Failed to initialize browser pool: ${initError.message}`);
+    }
+    
+    // Generate PDF with timeout (25 seconds total)
+    const pdfGenerationPromise = browserPool.generatePDF(html);
+    const pdfTimeout = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('PDF generation timeout after 25 seconds')), 25000)
+    );
+    
+    const pdfBuffer = await Promise.race([pdfGenerationPromise, pdfTimeout]);
+    console.log(`✅ PDF generated successfully, size: ${pdfBuffer.length} bytes`);
 
     // Return both PDF buffer and invoice ID
     return {

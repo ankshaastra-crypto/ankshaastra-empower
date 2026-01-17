@@ -1,3 +1,6 @@
+// Suppress DEP0169 deprecation warning from dependencies
+import './suppress-deprecation.js';
+
 import Redis from 'ioredis';
 
 /**

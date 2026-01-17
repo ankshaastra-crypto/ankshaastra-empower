@@ -372,7 +372,9 @@ const OrderFormSection = () => {
     // Clear any previous errors if validation passes
     setErrors({});
 
-    const orderId = "ORD" + Date.now();
+    // Generate unique order ID with timestamp and random suffix
+    const orderId =
+      "ORD" + Date.now() + "-" + Math.random().toString(36).substring(2, 8);
 
     // Store order data in localStorage before redirecting (as backup in case PhonePe strips query params)
     const orderData = {

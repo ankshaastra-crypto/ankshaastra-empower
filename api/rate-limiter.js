@@ -55,7 +55,7 @@ export async function rateLimiter(req, res, next) {
                      'unknown';
 
   try {
-    // Try Redis first
+    // Try Redis first (non-blocking)
     const { getRedisCache } = await import('./redis-cache.js');
     const cache = getRedisCache();
     await cache.initialize();
@@ -87,7 +87,11 @@ export async function rateLimiter(req, res, next) {
       return next();
     }
   } catch (error) {
-    console.error('Redis rate limiting error, falling back to memory:', error);
+    // Only log if Redis URL is explicitly set (not localhost fallback)
+    if (process.env.REDIS_URL && !process.env.REDIS_URL.includes('localhost')) {
+      console.error('Redis rate limiting error, falling back to memory:', error.message);
+    }
+    // Continue with memory-based rate limiting (graceful degradation)
   }
 
   // Fallback to memory store

@@ -1,6 +1,6 @@
 # Ankshaastra Payment & Invoice System
 
-Production-ready payment processing system with PhonePe integration, automated invoice generation, and email notifications. Optimized for serverless deployment on Vercel
+Production-ready payment processing system with PhonePe integration, automated invoice generation, and email notifications. Optimized for serverless deployment on Vercel.
 
 ## Features
 

@@ -1,3 +1,6 @@
+// Suppress DEP0169 deprecation warning from dependencies
+import './suppress-deprecation.js';
+
 import crypto from 'crypto';
 import { sendPaymentEmail } from './send-email.js';
 import { rateLimiter } from './rate-limiter.js';

@@ -53,7 +53,7 @@ const BenefitsSection = () => {
           <h2 className="heading-lg text-accent mb-3 md:mb-4">
             Benefits of Name Alignment
           </h2>
-          <p className="body-md text-white/80 px-2">
+          <p className="body-md text-white/80 px-4">
             Experience transformative shifts in every area of your life
           </p>
         </div>
@@ -63,10 +63,10 @@ const BenefitsSection = () => {
           {benefits.map((benefit, index) => (
             <div
               key={index}
-              className={`glass-card-dark rounded-xl md:rounded-2xl p-4 md:p-6 card-hover group transition-all duration-700 hover:border-accent/30 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              className={`glass-card-dark rounded-xl md:rounded-2xl p-4 md:p-6 card-hover group transition-all duration-700 hover:border-accent/30 text-center md:text-left ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               style={{ transitionDelay: `${150 + index * 80}ms` }}
             >
-              <div className={`w-10 h-10 md:w-12 md:h-12 bg-accent/20 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-5 group-hover:bg-accent/30 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 ${isVisible ? 'animate-float-subtle' : ''}`} style={{ animationDelay: `${index * 100}ms` }}>
+              <div className={`w-10 h-10 md:w-12 md:h-12 bg-accent/20 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-5 mx-auto md:mx-0 group-hover:bg-accent/30 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 ${isVisible ? 'animate-float-subtle' : ''}`} style={{ animationDelay: `${index * 100}ms` }}>
                 <benefit.icon className="w-5 h-5 md:w-6 md:h-6 text-accent transition-transform duration-300 group-hover:scale-110" />
               </div>
               

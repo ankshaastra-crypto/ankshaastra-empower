@@ -8,6 +8,14 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    headers: {
+      "Permissions-Policy": "unload=*",
+    },
+  },
+  preview: {
+    headers: {
+      "Permissions-Policy": "unload=*",
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

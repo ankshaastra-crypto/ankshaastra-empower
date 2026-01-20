@@ -127,7 +127,7 @@ const PaymentStatus = () => {
           setStatus("failed");
           // Navigate to failed URL if not already there and we have params
           if (!location.pathname.includes("/failed") && orderIdParam) {
-            const failedUrl = `/payment-status/failed${newParams.toString() ? '?' + newParams.toString() : ''}`;
+            const failedUrl = `/payment/failed${newParams.toString() ? '?' + newParams.toString() : ''}`;
             navigate(failedUrl, { replace: true });
           }
           return;
@@ -150,7 +150,7 @@ const PaymentStatus = () => {
 
           // Navigate to success URL if not already there
           if (!location.pathname.includes("/success")) {
-            const successUrl = `/payment-status/success${newParams.toString() ? '?' + newParams.toString() : ''}`;
+            const successUrl = `/payment/success${newParams.toString() ? '?' + newParams.toString() : ''}`;
             navigate(successUrl, { replace: true });
           }
         } else {
@@ -160,7 +160,7 @@ const PaymentStatus = () => {
 
           // Navigate to failed URL if not already there
           if (!location.pathname.includes("/failed")) {
-            const failedUrl = `/payment-status/failed${newParams.toString() ? '?' + newParams.toString() : ''}`;
+            const failedUrl = `/payment/failed${newParams.toString() ? '?' + newParams.toString() : ''}`;
             navigate(failedUrl, { replace: true });
           }
         }
@@ -179,7 +179,7 @@ const PaymentStatus = () => {
           if (dataParam) {
             newParams.append("data", dataParam);
           }
-          const failedUrl = `/payment-status/failed${newParams.toString() ? '?' + newParams.toString() : ''}`;
+          const failedUrl = `/payment/failed${newParams.toString() ? '?' + newParams.toString() : ''}`;
           navigate(failedUrl, { replace: true });
         }
       }

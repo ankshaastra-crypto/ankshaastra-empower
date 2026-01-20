@@ -1,217 +1,284 @@
 // Suppress DEP0169 deprecation warning from dependencies
 import './suppress-deprecation.js';
 
-// Use 'import' instead of 'require'
 import crypto from 'crypto';
-import { encryptCustomerData } from './encryption.js';
+import { sendPaymentEmail } from './send-email.js';
+import { decryptCustomerData } from './encryption.js';
 import { rateLimiter } from './rate-limiter.js';
 
 export default async function handler(req, res) {
   // Apply rate limiting
   await rateLimiter(req, res, () => { });
   if (res.headersSent) return; // Rate limit exceeded
-  // Only allow POST requests.
-  if (req.method !== 'POST') {
+  // Handle both GET (redirect) and POST requests
+  if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    const { amount, mobile, orderId, email, name, dob, packageType, person1Name, person1Dob, person2Name, person2Dob, person3Name, person3Dob } = req.body;
+    // PhonePe redirects with query parameters - check multiple possible parameter names
+    const merchantTransactionId =
+      req.query.merchantTransactionId ||
+      req.query.txnId ||
+      req.query.transactionId ||
+      req.query.transaction_id ||
+      req.query.orderId;
 
-    // Validate amount
-    if (!amount || isNaN(amount) || amount <= 0) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid amount",
-        message: "Amount must be a positive number"
-      });
-    }
-
-    // Validate orderId format (alphanumeric, dashes, underscores only)
-    if (!orderId || !/^[a-zA-Z0-9_-]+$/.test(orderId)) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid order ID",
-        message: "Order ID must contain only alphanumeric characters, dashes, and underscores"
-      });
-    }
-
-    // Validate required fields
-    if (!email || !email.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: "Email is required",
-        message: "Customer email address is mandatory for payment processing"
-      });
-    }
-
-    if (!mobile || !mobile.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: "Mobile number is required",
-        message: "Customer mobile number is mandatory for payment processing"
-      });
-    }
-
-    if (!name || !name.trim() || !person1Name || !person1Name.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: "Customer name is required",
-        message: "Customer name is mandatory for payment processing"
-      });
-    }
-
-    if (!dob || !dob.trim() || !person1Dob || !person1Dob.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: "Date of birth is required",
-        message: "Customer date of birth is mandatory for payment processing"
-      });
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid email format",
-        message: "Please provide a valid email address"
-      });
-    }
-
-    // Validate mobile format (10 digits)
-    const mobileRegex = /^\d{10}$/;
-    if (!mobileRegex.test(mobile.trim())) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid mobile number",
-        message: "Mobile number must be exactly 10 digits"
-      });
-    }
-
-    // Get your keys from Vercel Environment Variables
+    // Get PhonePe keys
     const merchantId = process.env.PHONEPE_MERCHANT_ID;
     const saltKey = process.env.PHONEPE_SALT_KEY;
     const saltIndex = process.env.PHONEPE_SALT_INDEX;
 
-    // Validate environment variables
     if (!merchantId || !saltKey || !saltIndex) {
-      console.error("Missing PhonePe credentials:", {
-        hasMerchantId: !!merchantId,
-        hasSaltKey: !!saltKey,
-        hasSaltIndex: !!saltIndex
-      });
-      return res.status(500).json({
-        success: false,
-        error: "Payment configuration error. Please check PhonePe API keys in environment variables.",
-        message: "PHONEPE_MERCHANT_ID, PHONEPE_SALT_KEY, and PHONEPE_SALT_INDEX must be set."
-      });
+      console.error("Missing PhonePe credentials");
+      return res.status(500).json({ error: "Server configuration error" });
     }
 
-    // Prepare customer data object for encryption (all fields are validated above)
-    const customerData = {
-      email: email.trim(),
-      name: name.trim(),
-      mobile: mobile.trim(),
-      dob: dob.trim(),
-      packageType: (packageType && packageType.trim()) || 'single',
-      person1Name: (person1Name && person1Name.trim()) || name.trim(),
-      person1Dob: (person1Dob && person1Dob.trim()) || dob.trim(),
-      person2Name: (person2Name && person2Name.trim()) || '',
-      person2Dob: (person2Dob && person2Dob.trim()) || '',
-      person3Name: (person3Name && person3Name.trim()) || '',
-      person3Dob: (person3Dob && person3Dob.trim()) || '',
-    };
-
-    // Encrypt customer data for secure transmission in URL
-    let encryptedData = '';
-    try {
-      encryptedData = encryptCustomerData(customerData);
-
-      // Validate encryption succeeded
-      if (!encryptedData || encryptedData.trim() === '') {
-        return res.status(500).json({
-          success: false,
-          error: "Encryption failed",
-          message: "Failed to encrypt customer data. Please check ENCRYPTION_KEY environment variable is set in Vercel."
-        });
-      }
-    } catch (encryptionError) {
-      return res.status(500).json({
-        success: false,
-        error: "Encryption error",
-        message: encryptionError.message || "Failed to encrypt customer data. Please check ENCRYPTION_KEY environment variable."
-      });
-    }
-
-    // Build redirect URL with encrypted customer data
-    // We include orderId unencrypted because we need it to check payment status
-    // Note: PhonePe may strip or modify query parameters, so we rely on webhook as backup
-    const redirectParams = new URLSearchParams();
-    redirectParams.append('orderId', orderId); // Include orderId so we can check payment status
-    if (encryptedData) {
-      // URLSearchParams automatically encodes the value, but ensure it's properly encoded
-      redirectParams.append('data', encryptedData); // Encrypted customer data
-    }
-
-    // Ensure the redirect URL is properly formatted
-    // Validate host header to prevent host header injection
-    const host = req.headers.host || req.headers['x-forwarded-host'] || '';
-    if (!host || !/^[a-zA-Z0-9.-]+(:[0-9]+)?$/.test(host)) {
+    if (!merchantTransactionId) {
+      console.error("Missing transaction ID");
       return res.status(400).json({
-        success: false,
-        error: "Invalid host header",
-        message: "Invalid request"
+        error: "Missing transaction ID"
       });
     }
-    const redirectUrl = `https://${host}/payment-status${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
 
-    // 1. Build the Payment Payload (PhonePe standard fields only)
-    // Note: PhonePe doesn't accept metadata/metaInfo in payment payload
-    // Customer data is passed via redirect URL query parameters instead
-    const payload = {
-      merchantId,
-      merchantTransactionId: orderId,
-      merchantUserId: "U" + mobile,
-      amount: amount * 100, // Amount in Paise
-      redirectUrl: redirectUrl,
-      redirectMode: "REDIRECT",
-      paymentInstrument: { type: "PAY_PAGE" },
-    };
-
-    // 2. Create the Checksum (Digital Signature)
-    const base64Payload = Buffer.from(JSON.stringify(payload)).toString('base64');
-    const stringToHash = base64Payload + "/pg/v1/pay" + saltKey;
-    const sha256 = crypto.createHash('sha256').update(stringToHash).digest('hex');
+    // Check payment status with PhonePe
+    const statusUrl = `/pg/v1/status/${merchantId}/${merchantTransactionId}`;
+    // PhonePe checksum format: sha256(statusUrl + saltKey) + "###" + saltIndex
+    const checksumString = statusUrl + saltKey;
+    const sha256 = crypto.createHash('sha256').update(checksumString).digest('hex');
     const checksum = sha256 + "###" + saltIndex;
 
-    // 3. Call PhonePe API
-    const response = await fetch("https://api.phonepe.com/apis/hermes/pg/v1/pay", {
-      method: "POST",
+    // Status API checksum generated
+
+    const statusResponse = await fetch(`https://api.phonepe.com/apis/hermes${statusUrl}`, {
+      method: 'GET',
       headers: {
-        "Content-Type": "application/json",
-        "X-VERIFY": checksum,
+        'Content-Type': 'application/json',
+        'X-VERIFY': checksum,
+        'X-MERCHANT-ID': merchantId,
+        'Accept': 'application/json',
       },
-      body: JSON.stringify({ request: base64Payload }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("PhonePe API Error:", response.status, response.statusText);
+    if (!statusResponse.ok) {
+      console.error("PhonePe API Error:", statusResponse.status, statusResponse.statusText);
       return res.status(500).json({
-        success: false,
-        error: "Payment initiation failed",
-        message: "Unable to initiate payment. Please try again later."
+        error: "Failed to fetch payment status from PhonePe",
+        details: `PhonePe API returned ${statusResponse.status}: ${statusResponse.statusText}`
       });
     }
 
-    const result = await response.json();
+    const statusResult = await statusResponse.json();
 
-    // Send the response back to your React app
-    return res.status(200).json(result);
+    // Handle both response formats:
+    // 1. Old format: response field with base64-encoded data
+    // 2. New format: direct JSON response
+    let paymentData;
+
+    if (statusResult.response) {
+      // Old format: decode base64 response
+      try {
+        paymentData = JSON.parse(Buffer.from(statusResult.response, 'base64').toString('utf-8'));
+      } catch (error) {
+        console.error("Error decoding base64 response");
+        return res.status(500).json({
+          error: "Failed to decode payment status",
+          details: error.message
+        });
+      }
+    } else if (statusResult.code || statusResult.data) {
+      // New format: direct JSON response
+      paymentData = statusResult;
+    } else {
+      console.error("Invalid PhonePe response structure");
+      return res.status(500).json({
+        error: "Invalid response from PhonePe",
+        details: "Response format not recognized"
+      });
+    }
+
+    // Validate paymentData structure
+    if (!paymentData || typeof paymentData !== 'object') {
+      console.error("Invalid paymentData structure");
+      return res.status(500).json({
+        error: "Invalid payment data structure",
+        details: "Payment data is not a valid object"
+      });
+    }
+
+    // Check multiple possible success indicators from PhonePe
+    const isSuccess =
+      paymentData.code === 'PAYMENT_SUCCESS' ||
+      paymentData.code === 'SUCCESS' ||
+      paymentData.success === true ||
+      (paymentData.data && paymentData.data.state === 'COMPLETED') ||
+      (paymentData.data && paymentData.data.responseCode === 'SUCCESS') ||
+      (paymentData.state === 'COMPLETED');
+
+    const paymentStatus = isSuccess ? 'SUCCESS' : 'FAILED';
+
+    // Payment status determined
+    const orderId = merchantTransactionId;
+    const transactionId = paymentData.data?.transactionId || paymentData.data?.merchantTransactionId || '';
+    // PhonePe returns amount in paise (e.g., 199700 = ₹1997)
+    // Convert to rupees for API response (user-friendly)
+    const amountInPaise = paymentData.data?.amount || 0;
+    const amount = amountInPaise > 0 ? amountInPaise / 100 : 0; // Convert paise to rupees for API response
+
+    // Extract metaInfo from PhonePe response (PhonePe returns it as metaInfo at data.data.metaInfo)
+    // Based on your response structure: data.data.metaInfo
+    let metadata = {};
+    const metaInfo = paymentData.data?.data?.metaInfo || paymentData.data?.metaInfo || paymentData.metaInfo;
+
+    if (metaInfo && metaInfo !== null) {
+      try {
+        // If metaInfo is a string, parse it; if it's already an object, use it directly
+        if (typeof metaInfo === 'string') {
+          metadata = JSON.parse(metaInfo);
+        } else if (typeof metaInfo === 'object' && metaInfo !== null) {
+          metadata = metaInfo;
+        }
+      } catch (error) {
+        // If parsing fails, metadata remains empty object
+        console.error("Error parsing metaInfo");
+      }
+    }
+
+    // Also check if PhonePe returns customer data in other fields
+    // Some payment gateways return customer info in different locations
+    const phonePeCustomerInfo = paymentData.data?.customerInfo || paymentData.customerInfo || {};
+    if (phonePeCustomerInfo && Object.keys(phonePeCustomerInfo).length > 0) {
+      // Merge PhonePe customer info into metadata as fallback
+      metadata = { ...metadata, ...phonePeCustomerInfo };
+    }
+
+    // Extract encrypted customer data from query parameters
+    const encryptedData = req.query.data || '';
+    let decryptedData = {};
+
+    if (encryptedData) {
+      try {
+        decryptedData = decryptCustomerData(encryptedData);
+        // Validate decryption worked - check if we got actual data
+        if (!decryptedData || Object.keys(decryptedData).length === 0) {
+          console.error("❌ Decryption returned empty data");
+        }
+      } catch (error) {
+        console.error("❌ Error decrypting customer data:", error.message);
+      }
+    }
+
+    // Helper function to safely extract query params (fallback if decryption fails)
+    const getQueryParam = (param) => {
+      const value = req.query[param];
+      if (!value) return '';
+      try {
+        const decoded = decodeURIComponent(value.toString()).trim();
+        return decoded || '';
+      } catch {
+        const trimmed = value.toString().trim();
+        return trimmed || '';
+      }
+    };
+
+    // Extract customer info - prefer decrypted data, then query params (backward compatibility), then metadata, then empty defaults
+    // Check each source explicitly and log for debugging
+    const emailFromDecrypted = decryptedData.email ? decryptedData.email.trim() : '';
+    const emailFromQuery = getQueryParam('email');
+    const emailFromMetadata = metadata.email ? metadata.email.trim() : '';
+
+    const customerEmail = emailFromDecrypted || emailFromQuery || emailFromMetadata || '';
+    const customerName = (decryptedData.name && decryptedData.name.trim()) ||
+      getQueryParam('name') ||
+      (metadata.name && metadata.name.trim()) ||
+      'Customer';
+    const customerMobile = (decryptedData.mobile && decryptedData.mobile.trim()) ||
+      getQueryParam('mobile') ||
+      (metadata.mobile && metadata.mobile.trim()) ||
+      '';
+    const customerDob = (decryptedData.dob && decryptedData.dob.trim()) ||
+      getQueryParam('dob') ||
+      (metadata.dob && metadata.dob.trim()) ||
+      '';
+    const packageType = (decryptedData.packageType && decryptedData.packageType.trim()) ||
+      getQueryParam('package') ||
+      (metadata.packageType && metadata.packageType.trim()) ||
+      'single';
+    // Extract person details for family package
+    const person1Name = (decryptedData.person1Name && decryptedData.person1Name.trim()) ||
+      getQueryParam('person1Name') ||
+      (metadata.person1Name && metadata.person1Name.trim()) ||
+      customerName;
+    const person1Dob = (decryptedData.person1Dob && decryptedData.person1Dob.trim()) ||
+      getQueryParam('person1Dob') ||
+      (metadata.person1Dob && metadata.person1Dob.trim()) ||
+      customerDob;
+    const person2Name = (decryptedData.person2Name && decryptedData.person2Name.trim()) ||
+      getQueryParam('person2Name') ||
+      (metadata.person2Name && metadata.person2Name.trim()) ||
+      '';
+    const person2Dob = (decryptedData.person2Dob && decryptedData.person2Dob.trim()) ||
+      getQueryParam('person2Dob') ||
+      (metadata.person2Dob && metadata.person2Dob.trim()) ||
+      '';
+    const person3Name = (decryptedData.person3Name && decryptedData.person3Name.trim()) ||
+      getQueryParam('person3Name') ||
+      (metadata.person3Name && metadata.person3Name.trim()) ||
+      '';
+    const person3Dob = (decryptedData.person3Dob && decryptedData.person3Dob.trim()) ||
+      getQueryParam('person3Dob') ||
+      (metadata.person3Dob && metadata.person3Dob.trim()) ||
+      '';
+
+    // Send payment confirmation emails (customer and admin)
+    if (customerEmail && customerEmail.trim() !== '') {
+      try {
+        const emailResult = await sendPaymentEmail({
+          to: customerEmail,
+          customerEmail,
+          customerName: customerName || 'Customer',
+          customerMobile: customerMobile,
+          customerDob: customerDob,
+          person1Name: person1Name,
+          person1Dob: person1Dob,
+          person2Name: person2Name,
+          person2Dob: person2Dob,
+          person3Name: person3Name,
+          person3Dob: person3Dob,
+          orderId,
+          amount: amountInPaise,
+          packageType: packageType || 'single',
+          status: paymentStatus,
+          transactionId: transactionId || '',
+        });
+
+        if (!emailResult?.success) {
+          console.error(`❌ Email sending failed for ${customerEmail}:`, emailResult?.error || 'Unknown error');
+        }
+      } catch (emailError) {
+        console.error("❌ Email sending error:", emailError.message);
+      }
+    }
+
+    // Return payment status
+    return res.status(200).json({
+      success: true,
+      status: paymentStatus,
+      orderId,
+      transactionId,
+      amount,
+      customerEmail,
+      customerName: customerName || 'Customer',
+      customerMobile,
+      packageType: packageType || 'single',
+    });
 
   } catch (error) {
-    console.error("API Error");
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error("Payment Status Error");
+    return res.status(500).json({
+      error: "Internal Server Error",
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 }

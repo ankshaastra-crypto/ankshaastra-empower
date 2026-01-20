@@ -8,7 +8,7 @@ import { rateLimiter } from './rate-limiter.js';
 
 export default async function handler(req, res) {
   // Apply rate limiting
-  await rateLimiter(req, res, () => {});
+  await rateLimiter(req, res, () => { });
   if (res.headersSent) return; // Rate limit exceeded
   // Handle both GET (redirect) and POST requests
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -17,13 +17,13 @@ export default async function handler(req, res) {
 
   try {
     // PhonePe redirects with query parameters - check multiple possible parameter names
-    const merchantTransactionId = 
-      req.query.merchantTransactionId || 
-      req.query.txnId || 
+    const merchantTransactionId =
+      req.query.merchantTransactionId ||
+      req.query.txnId ||
       req.query.transactionId ||
       req.query.transaction_id ||
       req.query.orderId;
-    
+
     // Get PhonePe keys
     const merchantId = process.env.PHONEPE_MERCHANT_ID;
     const saltKey = process.env.PHONEPE_SALT_KEY;
@@ -36,7 +36,7 @@ export default async function handler(req, res) {
 
     if (!merchantTransactionId) {
       console.error("Missing transaction ID");
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Missing transaction ID"
       });
     }
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
     const checksumString = statusUrl + saltKey;
     const sha256 = crypto.createHash('sha256').update(checksumString).digest('hex');
     const checksum = sha256 + "###" + saltIndex;
-    
+
     // Status API checksum generated
 
     const statusResponse = await fetch(`https://api.phonepe.com/apis/hermes${statusUrl}`, {
@@ -62,26 +62,26 @@ export default async function handler(req, res) {
 
     if (!statusResponse.ok) {
       console.error("PhonePe API Error:", statusResponse.status, statusResponse.statusText);
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: "Failed to fetch payment status from PhonePe",
         details: `PhonePe API returned ${statusResponse.status}: ${statusResponse.statusText}`
       });
     }
 
     const statusResult = await statusResponse.json();
-    
+
     // Handle both response formats:
     // 1. Old format: response field with base64-encoded data
     // 2. New format: direct JSON response
     let paymentData;
-    
+
     if (statusResult.response) {
       // Old format: decode base64 response
       try {
         paymentData = JSON.parse(Buffer.from(statusResult.response, 'base64').toString('utf-8'));
       } catch (error) {
         console.error("Error decoding base64 response");
-        return res.status(500).json({ 
+        return res.status(500).json({
           error: "Failed to decode payment status",
           details: error.message
         });
@@ -91,7 +91,7 @@ export default async function handler(req, res) {
       paymentData = statusResult;
     } else {
       console.error("Invalid PhonePe response structure");
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: "Invalid response from PhonePe",
         details: "Response format not recognized"
       });
@@ -100,23 +100,23 @@ export default async function handler(req, res) {
     // Validate paymentData structure
     if (!paymentData || typeof paymentData !== 'object') {
       console.error("Invalid paymentData structure");
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: "Invalid payment data structure",
         details: "Payment data is not a valid object"
       });
     }
 
     // Check multiple possible success indicators from PhonePe
-    const isSuccess = 
+    const isSuccess =
       paymentData.code === 'PAYMENT_SUCCESS' ||
       paymentData.code === 'SUCCESS' ||
       paymentData.success === true ||
       (paymentData.data && paymentData.data.state === 'COMPLETED') ||
       (paymentData.data && paymentData.data.responseCode === 'SUCCESS') ||
       (paymentData.state === 'COMPLETED');
-    
+
     const paymentStatus = isSuccess ? 'SUCCESS' : 'FAILED';
-    
+
     // Payment status determined
     const orderId = merchantTransactionId;
     const transactionId = paymentData.data?.transactionId || paymentData.data?.merchantTransactionId || '';
@@ -129,7 +129,7 @@ export default async function handler(req, res) {
     // Based on your response structure: data.data.metaInfo
     let metadata = {};
     const metaInfo = paymentData.data?.data?.metaInfo || paymentData.data?.metaInfo || paymentData.metaInfo;
-    
+
     if (metaInfo && metaInfo !== null) {
       try {
         // If metaInfo is a string, parse it; if it's already an object, use it directly
@@ -143,7 +143,7 @@ export default async function handler(req, res) {
         console.error("Error parsing metaInfo");
       }
     }
-    
+
     // Also check if PhonePe returns customer data in other fields
     // Some payment gateways return customer info in different locations
     const phonePeCustomerInfo = paymentData.data?.customerInfo || paymentData.customerInfo || {};
@@ -151,11 +151,11 @@ export default async function handler(req, res) {
       // Merge PhonePe customer info into metadata as fallback
       metadata = { ...metadata, ...phonePeCustomerInfo };
     }
-    
+
     // Extract encrypted customer data from query parameters
     const encryptedData = req.query.data || '';
     let decryptedData = {};
-    
+
     if (encryptedData) {
       try {
         decryptedData = decryptCustomerData(encryptedData);
@@ -186,49 +186,49 @@ export default async function handler(req, res) {
     const emailFromDecrypted = decryptedData.email ? decryptedData.email.trim() : '';
     const emailFromQuery = getQueryParam('email');
     const emailFromMetadata = metadata.email ? metadata.email.trim() : '';
-    
+
     const customerEmail = emailFromDecrypted || emailFromQuery || emailFromMetadata || '';
-    const customerName = (decryptedData.name && decryptedData.name.trim()) || 
-                         getQueryParam('name') || 
-                         (metadata.name && metadata.name.trim()) || 
-                         'Customer';
-    const customerMobile = (decryptedData.mobile && decryptedData.mobile.trim()) || 
-                           getQueryParam('mobile') || 
-                           (metadata.mobile && metadata.mobile.trim()) || 
-                           '';
-    const customerDob = (decryptedData.dob && decryptedData.dob.trim()) || 
-                        getQueryParam('dob') || 
-                        (metadata.dob && metadata.dob.trim()) || 
-                        '';
-    const packageType = (decryptedData.packageType && decryptedData.packageType.trim()) || 
-                       getQueryParam('package') || 
-                       (metadata.packageType && metadata.packageType.trim()) || 
-                       'single';
+    const customerName = (decryptedData.name && decryptedData.name.trim()) ||
+      getQueryParam('name') ||
+      (metadata.name && metadata.name.trim()) ||
+      'Customer';
+    const customerMobile = (decryptedData.mobile && decryptedData.mobile.trim()) ||
+      getQueryParam('mobile') ||
+      (metadata.mobile && metadata.mobile.trim()) ||
+      '';
+    const customerDob = (decryptedData.dob && decryptedData.dob.trim()) ||
+      getQueryParam('dob') ||
+      (metadata.dob && metadata.dob.trim()) ||
+      '';
+    const packageType = (decryptedData.packageType && decryptedData.packageType.trim()) ||
+      getQueryParam('package') ||
+      (metadata.packageType && metadata.packageType.trim()) ||
+      'single';
     // Extract person details for family package
-    const person1Name = (decryptedData.person1Name && decryptedData.person1Name.trim()) || 
-                       getQueryParam('person1Name') || 
-                       (metadata.person1Name && metadata.person1Name.trim()) || 
-                       customerName;
-    const person1Dob = (decryptedData.person1Dob && decryptedData.person1Dob.trim()) || 
-                      getQueryParam('person1Dob') || 
-                      (metadata.person1Dob && metadata.person1Dob.trim()) || 
-                      customerDob;
-    const person2Name = (decryptedData.person2Name && decryptedData.person2Name.trim()) || 
-                       getQueryParam('person2Name') || 
-                       (metadata.person2Name && metadata.person2Name.trim()) || 
-                       '';
-    const person2Dob = (decryptedData.person2Dob && decryptedData.person2Dob.trim()) || 
-                      getQueryParam('person2Dob') || 
-                      (metadata.person2Dob && metadata.person2Dob.trim()) || 
-                      '';
-    const person3Name = (decryptedData.person3Name && decryptedData.person3Name.trim()) || 
-                       getQueryParam('person3Name') || 
-                       (metadata.person3Name && metadata.person3Name.trim()) || 
-                       '';
-    const person3Dob = (decryptedData.person3Dob && decryptedData.person3Dob.trim()) || 
-                      getQueryParam('person3Dob') || 
-                      (metadata.person3Dob && metadata.person3Dob.trim()) || 
-                      '';
+    const person1Name = (decryptedData.person1Name && decryptedData.person1Name.trim()) ||
+      getQueryParam('person1Name') ||
+      (metadata.person1Name && metadata.person1Name.trim()) ||
+      customerName;
+    const person1Dob = (decryptedData.person1Dob && decryptedData.person1Dob.trim()) ||
+      getQueryParam('person1Dob') ||
+      (metadata.person1Dob && metadata.person1Dob.trim()) ||
+      customerDob;
+    const person2Name = (decryptedData.person2Name && decryptedData.person2Name.trim()) ||
+      getQueryParam('person2Name') ||
+      (metadata.person2Name && metadata.person2Name.trim()) ||
+      '';
+    const person2Dob = (decryptedData.person2Dob && decryptedData.person2Dob.trim()) ||
+      getQueryParam('person2Dob') ||
+      (metadata.person2Dob && metadata.person2Dob.trim()) ||
+      '';
+    const person3Name = (decryptedData.person3Name && decryptedData.person3Name.trim()) ||
+      getQueryParam('person3Name') ||
+      (metadata.person3Name && metadata.person3Name.trim()) ||
+      '';
+    const person3Dob = (decryptedData.person3Dob && decryptedData.person3Dob.trim()) ||
+      getQueryParam('person3Dob') ||
+      (metadata.person3Dob && metadata.person3Dob.trim()) ||
+      '';
 
     // Send payment confirmation emails (customer and admin)
     if (customerEmail && customerEmail.trim() !== '') {
@@ -251,7 +251,7 @@ export default async function handler(req, res) {
           status: paymentStatus,
           transactionId: transactionId || '',
         });
-        
+
         if (!emailResult?.success) {
           console.error(`❌ Email sending failed for ${customerEmail}:`, emailResult?.error || 'Unknown error');
         }
@@ -266,9 +266,9 @@ export default async function handler(req, res) {
     // Note: PhonePe redirects to /paymentstatus (page route), not /api/payment-status (API route)
     // So this redirect would only happen if someone manually navigates to the API endpoint
     const isApiCall = req.headers.accept && req.headers.accept.includes('application/json');
-    const isFetchRequest = req.headers['x-requested-with'] === 'XMLHttpRequest' || 
-                           (req.headers.referer && req.headers.referer.includes('/paymentstatus'));
-    
+    const isFetchRequest = req.headers['x-requested-with'] === 'XMLHttpRequest' ||
+      (req.headers.referer && req.headers.referer.includes('/paymentstatus'));
+
     if (req.method === 'GET' && !isApiCall && !isFetchRequest) {
       // This is a direct browser redirect from PhonePe - redirect to success/failed URL
       // Build query parameters for the redirect URL - preserve all original query params
@@ -287,13 +287,13 @@ export default async function handler(req, res) {
           }
         }
       });
-      
+
       // Use the same base URL logic as initiate-payment for consistency
-      const baseUrl = process.env.PAYMENT_REDIRECT_BASE_URL || 
-                      (req.headers.host ? `https://${req.headers.host}` : 'https://empower.Ankshaastra.com');
+      const baseUrl = process.env.PAYMENT_REDIRECT_BASE_URL ||
+        (req.headers.host ? `https://${req.headers.host}` : 'https://empower.Ankshaastra.com');
       const statusPath = paymentStatus === 'SUCCESS' ? 'success' : 'failed';
       const redirectUrl = `${baseUrl}/paymentstatus/${statusPath}?${redirectParams.toString()}`;
-      
+
       return res.redirect(302, redirectUrl);
     }
 
@@ -312,8 +312,8 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error("Payment Status Error");
-    return res.status(500).json({ 
-      error: "Internal Server Error", 
+    return res.status(500).json({
+      error: "Internal Server Error",
       details: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });

@@ -8,7 +8,7 @@ import { rateLimiter } from './rate-limiter.js';
 
 export default async function handler(req, res) {
   // Apply rate limiting
-  await rateLimiter(req, res, () => { });
+  await rateLimiter(req, res, () => {});
   if (res.headersSent) return; // Rate limit exceeded
   // Only allow POST requests.
   if (req.method !== 'POST') {
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
         message: "Customer email address is mandatory for payment processing"
       });
     }
-
+    
     if (!mobile || !mobile.trim()) {
       return res.status(400).json({
         success: false,
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
         message: "Customer mobile number is mandatory for payment processing"
       });
     }
-
+    
     if (!name || !name.trim() || !person1Name || !person1Name.trim()) {
       return res.status(400).json({
         success: false,
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
         message: "Customer name is mandatory for payment processing"
       });
     }
-
+    
     if (!dob || !dob.trim() || !person1Dob || !person1Dob.trim()) {
       return res.status(400).json({
         success: false,
@@ -101,7 +101,7 @@ export default async function handler(req, res) {
         hasSaltKey: !!saltKey,
         hasSaltIndex: !!saltIndex
       });
-      return res.status(500).json({
+      return res.status(500).json({ 
         success: false,
         error: "Payment configuration error. Please check PhonePe API keys in environment variables.",
         message: "PHONEPE_MERCHANT_ID, PHONEPE_SALT_KEY, and PHONEPE_SALT_INDEX must be set."
@@ -127,7 +127,7 @@ export default async function handler(req, res) {
     let encryptedData = '';
     try {
       encryptedData = encryptCustomerData(customerData);
-
+      
       // Validate encryption succeeded
       if (!encryptedData || encryptedData.trim() === '') {
         return res.status(500).json({
@@ -153,12 +153,18 @@ export default async function handler(req, res) {
       // URLSearchParams automatically encodes the value, but ensure it's properly encoded
       redirectParams.append('data', encryptedData); // Encrypted customer data
     }
-
-    // Use the new domain for redirect URLs (production)
-    // Fallback to host header for development/localhost
-    const baseUrl = process.env.PAYMENT_REDIRECT_BASE_URL ||
-      (req.headers.host ? `https://${req.headers.host}` : 'https://empower.Ankshaastra.com');
-    const redirectUrl = `${baseUrl}/paymentstatus${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
+    
+    // Ensure the redirect URL is properly formatted
+    // Validate host header to prevent host header injection
+    const host = req.headers.host || req.headers['x-forwarded-host'] || '';
+    if (!host || !/^[a-zA-Z0-9.-]+(:[0-9]+)?$/.test(host)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid host header",
+        message: "Invalid request"
+      });
+    }
+    const redirectUrl = `https://${host}/payment-status${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
 
     // 1. Build the Payment Payload (PhonePe standard fields only)
     // Note: PhonePe doesn't accept metadata/metaInfo in payment payload
@@ -200,7 +206,7 @@ export default async function handler(req, res) {
     }
 
     const result = await response.json();
-
+    
     // Send the response back to your React app
     return res.status(200).json(result);
 

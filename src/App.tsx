@@ -22,9 +22,8 @@ const App = () => (
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/payment-status" element={<PaymentStatus />} />
-        <Route path="/paymentstatus" element={<PaymentStatus />} />
-        <Route path="/paymentstatus/success" element={<PaymentStatus />} />
-        <Route path="/paymentstatus/failed" element={<PaymentStatus />} />
+        <Route path="/payment-status/success" element={<PaymentStatus />} />
+        <Route path="/payment-status/failed" element={<PaymentStatus />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

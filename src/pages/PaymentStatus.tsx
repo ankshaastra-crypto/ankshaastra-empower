@@ -30,16 +30,6 @@ const PaymentStatus = () => {
 
   useEffect(() => {
     const checkPaymentStatus = async () => {
-      // Check if we're already on success/failed route
-      const pathname = location.pathname;
-      if (pathname.includes("/paymentstatus/success")) {
-        // We're on success route, set status immediately but still fetch details
-        setStatus("success");
-      } else if (pathname.includes("/paymentstatus/failed")) {
-        // We're on failed route, set status immediately but still fetch details
-        setStatus("failed");
-      }
-
       // PhonePe may redirect with different parameter names
       // Check multiple possible parameter names that PhonePe might use
       // Also check for orderId which we include in our redirect URL
@@ -81,10 +71,7 @@ const PaymentStatus = () => {
           "No transaction ID found in URL parameters. Available params:",
           Object.fromEntries(searchParams.entries())
         );
-        // If we're on a success/failed route but no orderId, keep the status from URL
-        if (!pathname.includes("/paymentstatus/success") && !pathname.includes("/paymentstatus/failed")) {
-          setStatus("failed");
-        }
+        setStatus("failed");
         return;
       }
 
@@ -116,6 +103,20 @@ const PaymentStatus = () => {
           if (storedOrderData.dob) params.append("dob", storedOrderData.dob);
         }
 
+        // Preserve all query parameters for navigation (build before API call)
+        const currentParams = new URLSearchParams(searchParams.toString());
+        const dataParam = currentParams.get("data");
+        const orderIdParam = currentParams.get("orderId") || merchantTransactionId;
+        
+        // Build new params object with orderId and data
+        const newParams = new URLSearchParams();
+        if (orderIdParam) {
+          newParams.append("orderId", orderIdParam);
+        }
+        if (dataParam) {
+          newParams.append("data", dataParam);
+        }
+
         // Call our API to check payment status
         const response = await fetch(
           `/api/payment-status?${params.toString()}`
@@ -123,16 +124,17 @@ const PaymentStatus = () => {
 
         if (!response.ok) {
           console.error("API Error:", response.status, response.statusText);
-          // If we're on a success/failed route, keep that status
-          if (!pathname.includes("/paymentstatus/success") && !pathname.includes("/paymentstatus/failed")) {
-            setStatus("failed");
+          setStatus("failed");
+          // Navigate to failed URL if not already there and we have params
+          if (!location.pathname.includes("/failed") && orderIdParam) {
+            const failedUrl = `/payment-status/failed${newParams.toString() ? '?' + newParams.toString() : ''}`;
+            navigate(failedUrl, { replace: true });
           }
           return;
         }
 
         const result = await response.json();
 
-        // Update status based on API response (unless already set from URL path)
         if (result.success && result.status === "SUCCESS") {
           setStatus("success");
           setPaymentData(result);
@@ -140,27 +142,51 @@ const PaymentStatus = () => {
           // Track purchase event with Meta Pixel
           const amount = result.amount || 0;
           const orderId = result.orderId || merchantTransactionId;
-          const pkgType = finalPackageType || "single";
+          const pkgType = packageType || "single";
 
           if (amount > 0) {
             trackPurchase(amount, "INR", orderId, pkgType);
+          }
+
+          // Navigate to success URL if not already there
+          if (!location.pathname.includes("/success")) {
+            const successUrl = `/payment-status/success${newParams.toString() ? '?' + newParams.toString() : ''}`;
+            navigate(successUrl, { replace: true });
           }
         } else {
           console.warn("Payment marked as failed");
           setStatus("failed");
           setPaymentData(result);
+
+          // Navigate to failed URL if not already there
+          if (!location.pathname.includes("/failed")) {
+            const failedUrl = `/payment-status/failed${newParams.toString() ? '?' + newParams.toString() : ''}`;
+            navigate(failedUrl, { replace: true });
+          }
         }
       } catch (error) {
         console.error("Error checking payment status:", error);
-        // If we're on a success/failed route, keep that status
-        if (!pathname.includes("/paymentstatus/success") && !pathname.includes("/paymentstatus/failed")) {
-          setStatus("failed");
+        setStatus("failed");
+        // Navigate to failed URL if not already there and we have params
+        const orderIdParam = searchParams.get("orderId") || 
+          searchParams.get("merchantTransactionId") ||
+          searchParams.get("txnId") ||
+          searchParams.get("transactionId");
+        const dataParam = searchParams.get("data");
+        if (!location.pathname.includes("/failed") && orderIdParam) {
+          const newParams = new URLSearchParams();
+          newParams.append("orderId", orderIdParam);
+          if (dataParam) {
+            newParams.append("data", dataParam);
+          }
+          const failedUrl = `/payment-status/failed${newParams.toString() ? '?' + newParams.toString() : ''}`;
+          navigate(failedUrl, { replace: true });
         }
       }
     };
 
     checkPaymentStatus();
-  }, [searchParams, location]);
+  }, [searchParams]);
 
   const packageNames: Record<string, string> = {
     namecheck: "Name Check",

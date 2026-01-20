@@ -260,7 +260,44 @@ export default async function handler(req, res) {
       }
     }
 
-    // Return payment status
+    // For GET requests, check if this is a direct browser redirect from PhonePe
+    // vs an API call from the frontend (fetch requests typically include Accept: application/json)
+    // Only redirect if it's a direct browser redirect (not an API call from frontend)
+    // Note: PhonePe redirects to /paymentstatus (page route), not /api/payment-status (API route)
+    // So this redirect would only happen if someone manually navigates to the API endpoint
+    const isApiCall = req.headers.accept && req.headers.accept.includes('application/json');
+    const isFetchRequest = req.headers['x-requested-with'] === 'XMLHttpRequest' || 
+                           (req.headers.referer && req.headers.referer.includes('/paymentstatus'));
+    
+    if (req.method === 'GET' && !isApiCall && !isFetchRequest) {
+      // This is a direct browser redirect from PhonePe - redirect to success/failed URL
+      // Build query parameters for the redirect URL - preserve all original query params
+      const redirectParams = new URLSearchParams();
+      redirectParams.append('orderId', orderId);
+      if (encryptedData) {
+        redirectParams.append('data', encryptedData);
+      }
+      // Preserve all original query parameters (PhonePe might add additional params)
+      Object.keys(req.query).forEach(key => {
+        if (key !== 'orderId' && key !== 'data') {
+          // Preserve other params but don't duplicate orderId and data
+          const value = req.query[key];
+          if (value && typeof value === 'string') {
+            redirectParams.append(key, value);
+          }
+        }
+      });
+      
+      // Use the same base URL logic as initiate-payment for consistency
+      const baseUrl = process.env.PAYMENT_REDIRECT_BASE_URL || 
+                      (req.headers.host ? `https://${req.headers.host}` : 'https://empower.Ankshaastra.com');
+      const statusPath = paymentStatus === 'SUCCESS' ? 'success' : 'failed';
+      const redirectUrl = `${baseUrl}/paymentstatus/${statusPath}?${redirectParams.toString()}`;
+      
+      return res.redirect(302, redirectUrl);
+    }
+
+    // For POST requests (API calls), return JSON
     return res.status(200).json({
       success: true,
       status: paymentStatus,

@@ -154,17 +154,11 @@ export default async function handler(req, res) {
       redirectParams.append('data', encryptedData); // Encrypted customer data
     }
     
-    // Ensure the redirect URL is properly formatted
-    // Validate host header to prevent host header injection
-    const host = req.headers.host || req.headers['x-forwarded-host'] || '';
-    if (!host || !/^[a-zA-Z0-9.-]+(:[0-9]+)?$/.test(host)) {
-      return res.status(400).json({
-        success: false,
-        error: "Invalid host header",
-        message: "Invalid request"
-      });
-    }
-    const redirectUrl = `https://${host}/payment-status${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
+    // Use the new domain for redirect URLs (production)
+    // Fallback to host header for development/localhost
+    const baseUrl = process.env.PAYMENT_REDIRECT_BASE_URL || 
+                    (req.headers.host ? `https://${req.headers.host}` : 'https://empower.Ankshaastra.com');
+    const redirectUrl = `${baseUrl}/paymentstatus${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
 
     // 1. Build the Payment Payload (PhonePe standard fields only)
     // Note: PhonePe doesn't accept metadata/metaInfo in payment payload

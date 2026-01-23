@@ -51,11 +51,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Ankshaastra Custom Colors
-        midnight: "hsl(var(--midnight))",
-        "deep-purple": "hsl(var(--deep-purple))",
-        "rich-gold": "hsl(var(--rich-gold))",
-        "soft-pearl": "hsl(var(--soft-pearl))",
+        // Republic Day Custom Colors
+        saffron: "hsl(var(--saffron))",
+        "navy-blue": "hsl(var(--navy-blue))",
+        "india-green": "hsl(var(--india-green))",
+        "ashoka-blue": "hsl(var(--ashoka-blue))",
         "ink-black": "hsl(var(--ink-black))",
         "cool-gray": "hsl(var(--cool-gray))",
       },
@@ -68,8 +68,9 @@ export default {
         "3xl": "2rem",
       },
       boxShadow: {
-        gold: "var(--shadow-gold)",
-        purple: "var(--shadow-purple)",
+        saffron: "var(--shadow-saffron)",
+        navy: "var(--shadow-navy)",
+        green: "var(--shadow-green)",
         card: "var(--shadow-card)",
         "card-hover": "var(--shadow-card-hover)",
       },
@@ -94,13 +95,17 @@ export default {
           from: { opacity: "0", transform: "scale(0.95)" },
           to: { opacity: "1", transform: "scale(1)" },
         },
-        "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 20px hsl(43 66% 52% / 0.3)" },
-          "50%": { boxShadow: "0 0 40px hsl(43 66% 52% / 0.5)" },
+        "pulse-saffron": {
+          "0%, 100%": { boxShadow: "0 0 20px hsl(24 100% 50% / 0.3)" },
+          "50%": { boxShadow: "0 0 40px hsl(24 100% 50% / 0.5)" },
         },
         float: {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
+        },
+        spin: {
+          from: { transform: "rotate(0deg)" },
+          to: { transform: "rotate(360deg)" },
         },
       },
       animation: {
@@ -109,8 +114,9 @@ export default {
         "fade-in-up": "fade-in-up 0.8s ease-out forwards",
         "fade-in": "fade-in 0.6s ease-out forwards",
         "scale-in": "scale-in 0.3s ease-out forwards",
-        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "pulse-saffron": "pulse-saffron 2s ease-in-out infinite",
         float: "float 3s ease-in-out infinite",
+        "spin-slow": "spin 20s linear infinite",
       },
     },
   },

@@ -15,12 +15,14 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        // Ankshaastra Custom Variants
-        gold: "bg-accent text-accent-foreground font-semibold hover:scale-105 shadow-gold hover:shadow-[0_0_40px_hsl(43_66%_52%_/_0.4)]",
-        "gold-outline": "border-2 border-accent text-accent font-semibold hover:bg-accent hover:text-accent-foreground hover:scale-105",
-        "gold-dark": "bg-accent text-accent-foreground font-semibold hover:scale-105 shadow-gold hover:shadow-[0_0_40px_hsl(43_66%_52%_/_0.5)]",
-        hero: "bg-accent text-accent-foreground font-bold text-lg hover:scale-105 shadow-[0_0_30px_hsl(43_66%_52%_/_0.4)] hover:shadow-[0_0_50px_hsl(43_66%_52%_/_0.6)]",
-        "hero-small": "bg-accent text-accent-foreground font-semibold hover:scale-105 shadow-gold",
+        // Republic Day Theme Variants
+        saffron: "bg-secondary text-secondary-foreground font-semibold hover:scale-105 shadow-saffron hover:shadow-[0_0_40px_hsl(24_100%_50%_/_0.4)]",
+        "saffron-outline": "border-2 border-secondary text-secondary font-semibold hover:bg-secondary hover:text-secondary-foreground hover:scale-105",
+        green: "bg-accent text-accent-foreground font-semibold hover:scale-105 shadow-green hover:shadow-[0_0_40px_hsl(145_63%_32%_/_0.4)]",
+        navy: "bg-primary text-primary-foreground font-semibold hover:scale-105 shadow-navy",
+        tricolor: "bg-gradient-to-r from-secondary via-primary to-accent text-white font-bold hover:scale-105 shadow-[0_0_30px_hsl(24_100%_50%_/_0.3)]",
+        hero: "bg-gradient-to-r from-secondary to-accent text-white font-bold text-lg hover:scale-105 shadow-[0_0_30px_hsl(24_100%_50%_/_0.4)] hover:shadow-[0_0_50px_hsl(24_100%_50%_/_0.6)]",
+        "hero-small": "bg-gradient-to-r from-secondary to-accent text-white font-semibold hover:scale-105 shadow-saffron",
       },
       size: {
         default: "h-11 px-6 py-2",

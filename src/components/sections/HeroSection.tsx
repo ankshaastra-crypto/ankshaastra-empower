@@ -40,13 +40,21 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Special Offer Banner */}
+          {/* Special Offer Banner - Clickable */}
           <div className="flex justify-center w-full mb-4 md:mb-6 animate-fade-in-up delay-50">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FF9933] via-white to-[#138808] rounded-full px-6 py-3 shadow-xl border-2 border-[#000080]">
+            <button 
+              onClick={() => {
+                const pricingSection = document.getElementById("pricing");
+                if (pricingSection) {
+                  pricingSection.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FF9933] via-white to-[#138808] rounded-full px-6 py-3 shadow-xl border-2 border-[#000080] cursor-pointer hover:scale-105 transition-transform duration-300 hover:shadow-2xl"
+            >
               <Sparkles className="w-5 h-5 text-[#000080]" />
-              <span className="text-lg md:text-xl text-[#000080] font-bold">Get Name Correction Report at just ₹199/-</span>
+              <span className="text-lg md:text-xl text-[#000080] font-bold">Get Name Check at just ₹199/-</span>
               <Sparkles className="w-5 h-5 text-[#000080]" />
-            </div>
+            </button>
           </div>
 
           {/* Main Heading */}

@@ -6,55 +6,58 @@
 
 @layer base {
   :root {
-    /* Ankshaastra Premium Theme */
-    --background: 240 7% 97%; /* Soft Pearl #F5F5F7 */
-    --foreground: 240 5% 24%; /* Cool Gray #3E3E3E */
+    /* Republic Day Theme - Indian Tricolor */
+    --background: 0 0% 98%; /* Off White */
+    --foreground: 226 71% 15%; /* Navy Blue #0A1628 */
     
     --card: 0 0% 100%; /* Pure White */
-    --card-foreground: 240 5% 24%;
+    --card-foreground: 226 71% 15%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 240 5% 24%;
+    --popover-foreground: 226 71% 15%;
     
-    --primary: 253 35% 17%; /* Deep Midnight #0F0E1A */
-    --primary-foreground: 43 66% 52%; /* Rich Gold */
+    --primary: 226 71% 20%; /* Deep Navy #0F1A30 */
+    --primary-foreground: 0 0% 100%;
     
-    --secondary: 269 45% 19%; /* Royal Deep Purple #2E1A47 */
+    --secondary: 24 100% 50%; /* Saffron #FF9933 */
     --secondary-foreground: 0 0% 100%;
     
-    --muted: 240 7% 92%;
-    --muted-foreground: 240 5% 40%;
+    --muted: 210 20% 94%;
+    --muted-foreground: 226 30% 40%;
     
-    --accent: 43 66% 52%; /* Rich Gold #D4AF37 */
-    --accent-foreground: 253 35% 10%;
+    --accent: 145 63% 32%; /* India Green #138808 */
+    --accent-foreground: 0 0% 100%;
     
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     
-    --border: 240 10% 90%;
-    --input: 240 10% 90%;
-    --ring: 43 66% 52%;
+    --border: 210 20% 88%;
+    --input: 210 20% 88%;
+    --ring: 24 100% 50%;
     
     --radius: 1rem;
     
-    /* Custom Ankshaastra Variables */
-    --midnight: 253 35% 8%; /* Deep Midnight */
-    --deep-purple: 269 45% 19%; /* Royal Deep Purple */
-    --rich-gold: 43 66% 52%; /* Rich Gold */
-    --soft-pearl: 240 7% 97%;
-    --ink-black: 0 0% 7%; /* Ink Black #111111 */
-    --cool-gray: 0 0% 24%; /* Cool Gray #3E3E3E */
+    /* Republic Day Custom Variables */
+    --saffron: 24 100% 50%; /* #FF9933 */
+    --navy-blue: 226 71% 20%; /* Navy Blue */
+    --india-green: 145 63% 32%; /* #138808 */
+    --ashoka-blue: 220 80% 35%; /* Ashoka Chakra Blue */
+    --tricolor-white: 0 0% 100%;
+    --ink-black: 0 0% 7%;
+    --cool-gray: 0 0% 24%;
     
     /* Gradients */
-    --gradient-mystic: linear-gradient(135deg, hsl(269 45% 19%) 0%, hsl(253 35% 8%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(43 66% 52%) 0%, hsl(43 80% 45%) 100%);
+    --gradient-tricolor: linear-gradient(180deg, hsl(24 100% 50%) 0%, hsl(0 0% 100%) 50%, hsl(145 63% 32%) 100%);
+    --gradient-saffron: linear-gradient(135deg, hsl(24 100% 50%) 0%, hsl(24 100% 60%) 100%);
+    --gradient-navy: linear-gradient(135deg, hsl(226 71% 20%) 0%, hsl(226 71% 30%) 100%);
     --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
     
     /* Shadows */
-    --shadow-gold: 0 10px 40px -10px hsl(43 66% 52% / 0.3);
-    --shadow-purple: 0 10px 40px -10px hsl(269 45% 19% / 0.4);
-    --shadow-card: 0 4px 24px -4px hsl(269 45% 19% / 0.1);
-    --shadow-card-hover: 0 8px 32px -4px hsl(269 45% 19% / 0.15);
+    --shadow-saffron: 0 10px 40px -10px hsl(24 100% 50% / 0.3);
+    --shadow-navy: 0 10px 40px -10px hsl(226 71% 20% / 0.4);
+    --shadow-green: 0 10px 40px -10px hsl(145 63% 32% / 0.3);
+    --shadow-card: 0 4px 24px -4px hsl(226 71% 20% / 0.1);
+    --shadow-card-hover: 0 8px 32px -4px hsl(226 71% 20% / 0.15);
     
     /* Typography */
     --font-heading: 'Playfair Display', serif;
@@ -62,23 +65,23 @@
   }
 
   .dark {
-    --background: 253 35% 8%;
+    --background: 226 71% 8%;
     --foreground: 0 0% 95%;
-    --card: 269 45% 12%;
+    --card: 226 71% 12%;
     --card-foreground: 0 0% 95%;
-    --popover: 269 45% 12%;
+    --popover: 226 71% 12%;
     --popover-foreground: 0 0% 95%;
-    --primary: 43 66% 52%;
-    --primary-foreground: 253 35% 8%;
-    --secondary: 269 45% 25%;
+    --primary: 24 100% 50%;
+    --primary-foreground: 226 71% 8%;
+    --secondary: 145 63% 35%;
     --secondary-foreground: 0 0% 95%;
-    --muted: 269 30% 20%;
+    --muted: 226 30% 20%;
     --muted-foreground: 0 0% 70%;
-    --accent: 43 66% 52%;
-    --accent-foreground: 253 35% 8%;
-    --border: 269 30% 25%;
-    --input: 269 30% 25%;
-    --ring: 43 66% 52%;
+    --accent: 24 100% 50%;
+    --accent-foreground: 226 71% 8%;
+    --border: 226 30% 25%;
+    --input: 226 30% 25%;
+    --ring: 24 100% 50%;
   }
 }
 
@@ -111,52 +114,89 @@
     @apply bg-white/10 backdrop-blur-xl border border-white/10;
   }
   
-  /* Gold Glow Effect */
-  .gold-glow {
-    box-shadow: 0 0 30px hsl(43 66% 52% / 0.3), 0 0 60px hsl(43 66% 52% / 0.1);
+  /* Tricolor Glow Effect */
+  .saffron-glow {
+    box-shadow: 0 0 30px hsl(24 100% 50% / 0.3), 0 0 60px hsl(24 100% 50% / 0.1);
   }
   
-  .gold-glow-hover:hover {
-    box-shadow: 0 0 40px hsl(43 66% 52% / 0.4), 0 0 80px hsl(43 66% 52% / 0.2);
+  .saffron-glow-hover:hover {
+    box-shadow: 0 0 40px hsl(24 100% 50% / 0.4), 0 0 80px hsl(24 100% 50% / 0.2);
   }
   
-  /* Purple Glow */
-  .purple-glow {
-    box-shadow: 0 0 30px hsl(269 45% 19% / 0.4), 0 0 60px hsl(269 45% 19% / 0.2);
+  .green-glow {
+    box-shadow: 0 0 30px hsl(145 63% 32% / 0.3), 0 0 60px hsl(145 63% 32% / 0.1);
+  }
+  
+  /* Navy Glow */
+  .navy-glow {
+    box-shadow: 0 0 30px hsl(226 71% 20% / 0.4), 0 0 60px hsl(226 71% 20% / 0.2);
   }
   
   /* Gradient Backgrounds */
-  .bg-mystic-gradient {
-    background: linear-gradient(135deg, hsl(269 45% 19%) 0%, hsl(253 35% 8%) 100%);
+  .bg-tricolor-gradient {
+    background: linear-gradient(180deg, hsl(24 100% 50%) 0%, hsl(0 0% 100%) 50%, hsl(145 63% 32%) 100%);
   }
   
-  .bg-mystic-gradient-reverse {
-    background: linear-gradient(315deg, hsl(269 45% 19%) 0%, hsl(253 35% 8%) 100%);
+  .bg-navy-gradient {
+    background: linear-gradient(135deg, hsl(226 71% 15%) 0%, hsl(226 71% 25%) 100%);
   }
   
-  /* Mystic Pattern Overlay */
-  .mystic-pattern {
+  .bg-saffron-gradient {
+    background: linear-gradient(135deg, hsl(24 100% 50%) 0%, hsl(24 100% 60%) 100%);
+  }
+  
+  /* Tricolor Pattern Overlay */
+  .tricolor-pattern {
     background-image: 
-      radial-gradient(circle at 20% 50%, hsl(43 66% 52% / 0.03) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, hsl(269 45% 40% / 0.05) 0%, transparent 40%),
-      radial-gradient(circle at 40% 80%, hsl(43 66% 52% / 0.02) 0%, transparent 45%);
+      radial-gradient(circle at 20% 50%, hsl(24 100% 50% / 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, hsl(145 63% 32% / 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 40% 80%, hsl(226 71% 20% / 0.03) 0%, transparent 45%);
+  }
+  
+  /* Ashoka Chakra Pattern */
+  .ashoka-pattern::before {
+    content: '';
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border: 4px solid hsl(220 80% 35% / 0.2);
+    border-radius: 50%;
+    animation: spin 20s linear infinite;
   }
   
   /* Text Gradients */
-  .text-gradient-gold {
+  .text-gradient-tricolor {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(43 66% 52%) 0%, hsl(43 80% 60%) 50%, hsl(43 66% 52%) 100%);
+    background-image: linear-gradient(135deg, hsl(24 100% 50%) 0%, hsl(145 63% 32%) 100%);
+  }
+  
+  .text-gradient-saffron {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(24 100% 50%) 0%, hsl(24 100% 65%) 100%);
   }
   
   /* Button Variants */
-  .btn-gold {
-    @apply bg-accent text-accent-foreground font-semibold px-8 py-4 rounded-xl transition-all duration-300;
-    @apply hover:scale-105 gold-glow-hover;
+  .btn-saffron {
+    @apply bg-secondary text-secondary-foreground font-semibold px-8 py-4 rounded-xl transition-all duration-300;
+    @apply hover:scale-105 saffron-glow-hover;
   }
   
-  .btn-gold-outline {
-    @apply border-2 border-accent text-accent font-semibold px-8 py-4 rounded-xl transition-all duration-300;
-    @apply hover:bg-accent hover:text-accent-foreground hover:scale-105;
+  .btn-green {
+    @apply bg-accent text-accent-foreground font-semibold px-8 py-4 rounded-xl transition-all duration-300;
+    @apply hover:scale-105;
+    box-shadow: 0 0 20px hsl(145 63% 32% / 0.3);
+  }
+  
+  .btn-navy {
+    @apply bg-primary text-primary-foreground font-semibold px-8 py-4 rounded-xl transition-all duration-300;
+    @apply hover:scale-105;
+  }
+  
+  .btn-tricolor {
+    background: linear-gradient(135deg, hsl(24 100% 50%) 0%, hsl(145 63% 35%) 100%);
+    @apply text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300;
+    @apply hover:scale-105;
+    box-shadow: 0 0 20px hsl(24 100% 50% / 0.3);
   }
   
   /* Card Hover Effects */
@@ -165,24 +205,35 @@
     @apply hover:shadow-card-hover hover:-translate-y-1;
   }
   
-  .card-hover-gold:hover {
-    box-shadow: 0 8px 32px -4px hsl(43 66% 52% / 0.2);
+  .card-hover-saffron:hover {
+    box-shadow: 0 8px 32px -4px hsl(24 100% 50% / 0.2);
+  }
+  
+  .card-hover-green:hover {
+    box-shadow: 0 8px 32px -4px hsl(145 63% 32% / 0.2);
   }
   
   /* Scroll Progress Bar */
   .scroll-progress {
-    @apply fixed top-0 left-0 h-1 bg-accent z-50;
+    @apply fixed top-0 left-0 h-1 z-50;
+    background: linear-gradient(90deg, hsl(24 100% 50%) 0%, hsl(145 63% 32%) 100%);
     transform-origin: left;
   }
   
   /* Floating Elements */
   .floating-whatsapp {
-    @apply fixed bottom-6 right-6 z-50 bg-secondary text-white p-4 rounded-full shadow-purple;
+    @apply fixed bottom-6 right-6 z-50 p-4 rounded-full;
+    background: hsl(145 63% 32%);
+    color: white;
+    box-shadow: 0 4px 20px hsl(145 63% 32% / 0.4);
     @apply transition-all duration-300 hover:scale-110 hover:shadow-2xl;
   }
   
   .back-to-top {
-    @apply fixed bottom-24 right-6 z-50 bg-secondary text-accent p-3 rounded-full shadow-purple;
+    @apply fixed bottom-24 right-6 z-50 p-3 rounded-full;
+    background: hsl(226 71% 20%);
+    color: hsl(24 100% 50%);
+    box-shadow: 0 4px 20px hsl(226 71% 20% / 0.4);
     @apply transition-all duration-300 hover:scale-110;
   }
   
@@ -215,6 +266,13 @@
   
   .body-md {
     @apply text-base md:text-lg leading-relaxed;
+  }
+
+  /* Republic Day Special Badge */
+  .republic-badge {
+    background: linear-gradient(135deg, hsl(24 100% 50%) 0%, hsl(24 100% 55%) 100%);
+    @apply text-white font-semibold px-4 py-2 rounded-full;
+    box-shadow: 0 4px 15px hsl(24 100% 50% / 0.3);
   }
 }
 
@@ -269,12 +327,12 @@
     }
   }
   
-  @keyframes pulse-glow {
+  @keyframes pulse-saffron {
     0%, 100% {
-      box-shadow: 0 0 20px hsl(43 66% 52% / 0.3);
+      box-shadow: 0 0 20px hsl(24 100% 50% / 0.3);
     }
     50% {
-      box-shadow: 0 0 40px hsl(43 66% 52% / 0.5);
+      box-shadow: 0 0 40px hsl(24 100% 50% / 0.5);
     }
   }
   
@@ -303,9 +361,20 @@
     50% { opacity: 0.7; }
   }
   
-  @keyframes border-glow {
-    0%, 100% { border-color: hsl(43 66% 52% / 0.3); }
-    50% { border-color: hsl(43 66% 52% / 0.6); }
+  @keyframes border-glow-tricolor {
+    0%, 100% { border-color: hsl(24 100% 50% / 0.3); }
+    50% { border-color: hsl(145 63% 32% / 0.6); }
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes tricolor-pulse {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
   
   .animate-fade-in-up {
@@ -328,8 +397,8 @@
     animation: slide-in-right 0.7s ease-out forwards;
   }
   
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
+  .animate-pulse-saffron {
+    animation: pulse-saffron 2s ease-in-out infinite;
   }
   
   .animate-float {
@@ -341,7 +410,7 @@
   }
   
   .animate-shimmer {
-    background: linear-gradient(90deg, transparent 0%, hsl(43 66% 52% / 0.1) 50%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, hsl(24 100% 50% / 0.1) 50%, transparent 100%);
     background-size: 200% 100%;
     animation: shimmer 2s infinite;
   }
@@ -354,8 +423,17 @@
     animation: gentle-pulse 3s ease-in-out infinite;
   }
   
-  .animate-border-glow {
-    animation: border-glow 2s ease-in-out infinite;
+  .animate-border-glow-tricolor {
+    animation: border-glow-tricolor 2s ease-in-out infinite;
+  }
+
+  .animate-spin-slow {
+    animation: spin 20s linear infinite;
+  }
+
+  .animate-tricolor-pulse {
+    background-size: 200% 200%;
+    animation: tricolor-pulse 3s ease infinite;
   }
   
   /* Hover animations */
@@ -370,7 +448,7 @@
     @apply transition-shadow duration-300;
   }
   .hover-glow:hover {
-    box-shadow: 0 0 20px hsl(43 66% 52% / 0.3);
+    box-shadow: 0 0 20px hsl(24 100% 50% / 0.3);
   }
   
   /* Animation Delays */

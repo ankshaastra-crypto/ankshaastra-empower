@@ -145,7 +145,7 @@ const PricingSection = () => {
             </ul>
 
             {/* CTA */}
-            <Button variant="gold" size="default" className="w-full group" onClick={() => scrollToForm('single')}>
+            <Button variant="green" size="default" className="w-full group" onClick={() => scrollToForm('single')}>
               <span className="group-hover:scale-105 transition-transform duration-300 inline-block">Get Single Report</span>
             </Button>
 
@@ -161,11 +161,11 @@ const PricingSection = () => {
           </div>
 
           {/* Family Package Card */}
-          <div className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow transition-all duration-700 animate-border-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '300ms' }}>
+          <div className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-secondary saffron-glow transition-all duration-700 animate-border-glow-tricolor ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '300ms' }}>
             {/* Best Value Badge */}
             <div className={`absolute -top-4 left-1/2 -translate-x-1/2 transition-all duration-500 delay-500 ${isVisible ? 'opacity-100 scale-100 animate-float-subtle' : 'opacity-0 scale-50'}`}>
-              <span className="bg-accent text-accent-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-gold">
-                BEST VALUE
+              <span className="bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-saffron">
+                🇮🇳 BEST VALUE
               </span>
             </div>
 

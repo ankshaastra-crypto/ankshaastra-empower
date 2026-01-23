@@ -32,7 +32,7 @@ const ProblemSection = () => {
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className={`text-center max-w-3xl mx-auto mb-8 md:mb-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h2 className="heading-lg text-ink-black mb-3 md:mb-4">
+          <h2 className="heading-lg text-foreground mb-3 md:mb-4">
             Does This Sound Familiar?
           </h2>
           <p className="body-md text-muted-foreground px-2">
@@ -53,7 +53,7 @@ const ProblemSection = () => {
                   <problem.icon className="w-5 h-5 md:w-7 md:h-7 text-secondary transition-transform duration-500 group-hover:scale-110" />
                 </div>
                 <div>
-                  <h3 className="text-lg md:text-xl font-heading font-semibold text-ink-black mb-1.5 md:mb-2 group-hover:text-secondary transition-colors duration-300">
+                  <h3 className="text-lg md:text-xl font-heading font-semibold text-foreground mb-1.5 md:mb-2 group-hover:text-secondary transition-colors duration-300">
                     {problem.title}
                   </h3>
                   <p className="text-sm md:text-base text-muted-foreground leading-relaxed">

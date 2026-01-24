@@ -39,9 +39,11 @@
     
     /* Republic Day Custom Variables */
     --saffron: 24 100% 50%; /* #FF9933 */
-    --navy-blue: 226 71% 20%; /* Navy Blue */
+    --navy-blue: 220 60% 25%; /* Rich Navy with hint of royal blue */
+    --navy-light: 220 55% 35%; /* Lighter navy for gradients */
+    --navy-dark: 225 70% 12%; /* Deep navy for depth */
     --india-green: 145 63% 32%; /* #138808 */
-    --ashoka-blue: 220 80% 35%; /* Ashoka Chakra Blue */
+    --ashoka-blue: 215 80% 45%; /* Brighter Ashoka Chakra Blue */
     --tricolor-white: 0 0% 100%;
     --ink-black: 0 0% 7%;
     --cool-gray: 0 0% 24%;
@@ -49,15 +51,17 @@
     /* Gradients */
     --gradient-tricolor: linear-gradient(180deg, hsl(24 100% 50%) 0%, hsl(0 0% 100%) 50%, hsl(145 63% 32%) 100%);
     --gradient-saffron: linear-gradient(135deg, hsl(24 100% 50%) 0%, hsl(24 100% 60%) 100%);
-    --gradient-navy: linear-gradient(135deg, hsl(226 71% 20%) 0%, hsl(226 71% 30%) 100%);
+    --gradient-navy: linear-gradient(135deg, hsl(225 70% 12%) 0%, hsl(220 55% 30%) 50%, hsl(215 60% 18%) 100%);
+    --gradient-navy-radial: radial-gradient(ellipse at 30% 20%, hsl(215 80% 45% / 0.15) 0%, transparent 50%);
     --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
     
     /* Shadows */
     --shadow-saffron: 0 10px 40px -10px hsl(24 100% 50% / 0.3);
-    --shadow-navy: 0 10px 40px -10px hsl(226 71% 20% / 0.4);
+    --shadow-navy: 0 10px 40px -10px hsl(220 60% 25% / 0.5), 0 4px 20px -5px hsl(215 80% 45% / 0.2);
+    --shadow-navy-glow: 0 0 60px hsl(215 80% 45% / 0.15), 0 0 100px hsl(220 60% 25% / 0.1);
     --shadow-green: 0 10px 40px -10px hsl(145 63% 32% / 0.3);
-    --shadow-card: 0 4px 24px -4px hsl(226 71% 20% / 0.1);
-    --shadow-card-hover: 0 8px 32px -4px hsl(226 71% 20% / 0.15);
+    --shadow-card: 0 4px 24px -4px hsl(220 60% 25% / 0.1);
+    --shadow-card-hover: 0 8px 32px -4px hsl(220 60% 25% / 0.15);
     
     /* Typography */
     --font-heading: 'Playfair Display', serif;
@@ -127,9 +131,19 @@
     box-shadow: 0 0 30px hsl(145 63% 32% / 0.3), 0 0 60px hsl(145 63% 32% / 0.1);
   }
   
-  /* Navy Glow */
+  /* Navy Glow - Enhanced with royal blue tint */
   .navy-glow {
-    box-shadow: 0 0 30px hsl(226 71% 20% / 0.4), 0 0 60px hsl(226 71% 20% / 0.2);
+    box-shadow: 
+      0 0 30px hsl(220 60% 25% / 0.5), 
+      0 0 60px hsl(215 80% 45% / 0.2),
+      inset 0 1px 0 hsl(215 80% 60% / 0.1);
+  }
+  
+  .navy-glow-intense {
+    box-shadow: 
+      0 0 40px hsl(215 80% 45% / 0.3), 
+      0 0 80px hsl(220 60% 25% / 0.4),
+      0 0 120px hsl(215 80% 45% / 0.1);
   }
   
   /* Gradient Backgrounds */
@@ -138,19 +152,57 @@
   }
   
   .bg-navy-gradient {
-    background: linear-gradient(135deg, hsl(226 71% 15%) 0%, hsl(226 71% 25%) 100%);
+    background: 
+      linear-gradient(135deg, hsl(225 70% 10%) 0%, hsl(220 55% 22%) 40%, hsl(215 60% 16%) 100%);
+    position: relative;
+  }
+  
+  .bg-navy-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 80% 50% at 20% 30%, hsl(215 80% 45% / 0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 70%, hsl(24 100% 50% / 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 30% at 50% 50%, hsl(215 80% 55% / 0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  
+  .bg-navy-shimmer {
+    background: 
+      linear-gradient(135deg, hsl(225 70% 10%) 0%, hsl(220 55% 22%) 40%, hsl(215 60% 16%) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .bg-navy-shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      110deg, 
+      transparent 20%, 
+      hsl(215 80% 50% / 0.05) 40%, 
+      hsl(215 80% 60% / 0.08) 50%, 
+      hsl(215 80% 50% / 0.05) 60%, 
+      transparent 80%
+    );
+    background-size: 200% 100%;
+    animation: navy-shimmer 8s ease-in-out infinite;
+    pointer-events: none;
   }
   
   .bg-saffron-gradient {
     background: linear-gradient(135deg, hsl(24 100% 50%) 0%, hsl(24 100% 60%) 100%);
   }
   
-  /* Tricolor Pattern Overlay */
+  /* Tricolor Pattern Overlay - Enhanced */
   .tricolor-pattern {
     background-image: 
-      radial-gradient(circle at 20% 50%, hsl(24 100% 50% / 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 20% 50%, hsl(24 100% 50% / 0.06) 0%, transparent 50%),
       radial-gradient(circle at 80% 20%, hsl(145 63% 32% / 0.05) 0%, transparent 40%),
-      radial-gradient(circle at 40% 80%, hsl(226 71% 20% / 0.03) 0%, transparent 45%);
+      radial-gradient(circle at 40% 80%, hsl(215 80% 45% / 0.04) 0%, transparent 45%),
+      radial-gradient(circle at 60% 30%, hsl(215 80% 55% / 0.03) 0%, transparent 35%);
   }
   
   /* Ashoka Chakra Pattern */
@@ -376,6 +428,25 @@
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
   }
+
+  @keyframes navy-shimmer {
+    0%, 100% { background-position: 200% 0; }
+    50% { background-position: -200% 0; }
+  }
+
+  @keyframes navy-pulse {
+    0%, 100% { 
+      box-shadow: 0 0 30px hsl(215 80% 45% / 0.2), 0 0 60px hsl(220 60% 25% / 0.3);
+    }
+    50% { 
+      box-shadow: 0 0 50px hsl(215 80% 45% / 0.35), 0 0 100px hsl(220 60% 25% / 0.4);
+    }
+  }
+
+  @keyframes navy-glow-breathe {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.8; }
+  }
   
   .animate-fade-in-up {
     animation: fade-in-up 0.8s ease-out forwards;
@@ -434,6 +505,14 @@
   .animate-tricolor-pulse {
     background-size: 200% 200%;
     animation: tricolor-pulse 3s ease infinite;
+  }
+
+  .animate-navy-pulse {
+    animation: navy-pulse 4s ease-in-out infinite;
+  }
+
+  .animate-navy-glow-breathe {
+    animation: navy-glow-breathe 3s ease-in-out infinite;
   }
   
   /* Hover animations */

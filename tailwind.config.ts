@@ -54,6 +54,8 @@ export default {
         // Republic Day Custom Colors
         saffron: "hsl(var(--saffron))",
         "navy-blue": "hsl(var(--navy-blue))",
+        "navy-light": "hsl(var(--navy-light))",
+        "navy-dark": "hsl(var(--navy-dark))",
         "india-green": "hsl(var(--india-green))",
         "ashoka-blue": "hsl(var(--ashoka-blue))",
         "ink-black": "hsl(var(--ink-black))",
@@ -70,6 +72,7 @@ export default {
       boxShadow: {
         saffron: "var(--shadow-saffron)",
         navy: "var(--shadow-navy)",
+        "navy-glow": "var(--shadow-navy-glow)",
         green: "var(--shadow-green)",
         card: "var(--shadow-card)",
         "card-hover": "var(--shadow-card-hover)",

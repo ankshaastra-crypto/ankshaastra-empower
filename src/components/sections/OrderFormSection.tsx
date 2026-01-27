@@ -886,7 +886,7 @@ const OrderFormSection = () => {
                       />
                       <Button
                         type="button"
-                        variant="saffron-outline"
+                        variant="gold-outline"
                         onClick={applyPromo}
                         className="transition-all duration-300 hover:scale-105"
                       >

@@ -32,7 +32,7 @@ const FeaturesSection = () => {
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className={`text-center max-w-3xl mx-auto mb-8 md:mb-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h2 className="heading-lg text-foreground mb-3 md:mb-4">
+          <h2 className="heading-lg text-ink-black mb-3 md:mb-4">
             What Your Report Includes
           </h2>
           <p className="body-md text-muted-foreground px-2">
@@ -45,14 +45,14 @@ const FeaturesSection = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`bg-card rounded-xl md:rounded-2xl p-5 md:p-8 shadow-card card-hover card-hover-saffron group transition-all duration-700 hover-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              className={`bg-card rounded-xl md:rounded-2xl p-5 md:p-8 shadow-card card-hover card-hover-gold group transition-all duration-700 hover-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               style={{ transitionDelay: `${150 + index * 100}ms` }}
             >
-              <div className={`w-11 h-11 md:w-14 md:h-14 bg-secondary/10 rounded-lg md:rounded-xl flex items-center justify-center mb-4 md:mb-6 group-hover:bg-secondary/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 ${isVisible ? 'animate-float-subtle' : ''}`} style={{ animationDelay: `${index * 150}ms` }}>
-                <feature.icon className="w-5 h-5 md:w-7 md:h-7 text-secondary transition-transform duration-300 group-hover:scale-110" />
+              <div className={`w-11 h-11 md:w-14 md:h-14 bg-accent/10 rounded-lg md:rounded-xl flex items-center justify-center mb-4 md:mb-6 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 ${isVisible ? 'animate-float-subtle' : ''}`} style={{ animationDelay: `${index * 150}ms` }}>
+                <feature.icon className="w-5 h-5 md:w-7 md:h-7 text-accent transition-transform duration-300 group-hover:scale-110" />
               </div>
               
-              <h3 className="text-lg md:text-xl font-heading font-semibold text-foreground mb-2 md:mb-4 group-hover:text-secondary transition-colors duration-300">
+              <h3 className="text-lg md:text-xl font-heading font-semibold text-ink-black mb-2 md:mb-4 group-hover:text-secondary transition-colors duration-300">
                 {feature.title}
               </h3>
               

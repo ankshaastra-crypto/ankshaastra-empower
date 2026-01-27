@@ -1,4 +1,4 @@
-import { Phone, Flag } from "lucide-react";
+import { Phone } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import {
@@ -10,30 +10,21 @@ import {
 } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 
+
+
 const Footer = () => {
   return (
-    <footer className="bg-primary py-12 relative overflow-hidden">
-      {/* Decorative tricolor accent */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-secondary via-white to-accent" />
-      
+    <footer className="bg-primary py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
           {/* Logo */}
           <Link to="/" className="flex items-center justify-center gap-2 mb-6">
             <img 
-              src={logo} 
-              alt="Ankshaastra Logo"
-              className="h-12 w-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
-            />
+                src={logo} 
+                alt="Ankshaastra Logo"
+                className="h-12 w-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
+              />
           </Link>
-
-          {/* Republic Day Badge */}
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <div className="inline-flex items-center gap-2 bg-secondary/20 backdrop-blur-sm border border-secondary/50 rounded-full px-4 py-2">
-              <Flag className="w-4 h-4 text-secondary" />
-              <span className="text-sm text-white font-medium">🇮🇳 Jai Hind! Happy Republic Day 🇮🇳</span>
-            </div>
-          </div>
 
           {/* Social Media Icons */}
           <div className="flex items-center justify-center gap-4 mb-8">
@@ -99,7 +90,7 @@ const Footer = () => {
           </div>
 
           {/* Contact */}
-          <div className="flex items-center justify-center gap-2 text-secondary mb-8">
+          <div className="flex items-center justify-center gap-2 text-accent mb-8">
             <Phone className="w-5 h-5" />
             <span className="text-lg font-medium">For Queries: 9667305577</span>
           </div>
@@ -108,25 +99,25 @@ const Footer = () => {
           <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 mb-8">
             <Link 
               to="/privacy-policy"
-              className="text-white/70 hover:text-secondary transition-colors text-sm"
+              className="text-white/70 hover:text-accent transition-colors text-sm"
             >
               Privacy Policy
             </Link>
             <Link 
               to="/refund-policy"
-              className="text-white/70 hover:text-secondary transition-colors text-sm"
+              className="text-white/70 hover:text-accent transition-colors text-sm"
             >
               Refund Policy
             </Link>
             <Link 
               to="/shipping-policy"
-              className="text-white/70 hover:text-secondary transition-colors text-sm"
+              className="text-white/70 hover:text-accent transition-colors text-sm"
             >
               Shipping Policy
             </Link>
             <Link 
               to="/terms-of-service"
-              className="text-white/70 hover:text-secondary transition-colors text-sm"
+              className="text-white/70 hover:text-accent transition-colors text-sm"
             >
               Terms of Service
             </Link>

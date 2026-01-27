@@ -38,19 +38,19 @@ const BenefitsSection = () => {
   ];
 
   return (
-    <section className="section-padding relative overflow-hidden bg-navy-gradient" ref={ref}>
-      {/* Tricolor Pattern Overlay */}
-      <div className="absolute inset-0 tricolor-pattern pointer-events-none" />
+    <section className="section-padding relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #2E1A47 0%, #0F0E1A 100%)' }} ref={ref}>
+      {/* Mystic Pattern Overlay */}
+      <div className="absolute inset-0 mystic-pattern pointer-events-none" />
       {/* Decorative Elements */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className={`absolute top-20 left-10 w-72 h-72 bg-secondary/10 rounded-full blur-3xl transition-all duration-1000 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
-        <div className={`absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
+        <div className={`absolute top-20 left-10 w-72 h-72 bg-accent/5 rounded-full blur-3xl transition-all duration-1000 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
+        <div className={`absolute bottom-20 right-10 w-96 h-96 bg-secondary/20 rounded-full blur-3xl transition-all duration-1000 delay-200 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Section Header */}
         <div className={`text-center max-w-3xl mx-auto mb-8 md:mb-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <h2 className="heading-lg text-secondary mb-3 md:mb-4">
+          <h2 className="heading-lg text-accent mb-3 md:mb-4">
             Benefits of Name Alignment
           </h2>
           <p className="body-md text-white/80 px-4">
@@ -63,14 +63,14 @@ const BenefitsSection = () => {
           {benefits.map((benefit, index) => (
             <div
               key={index}
-              className={`glass-card-dark rounded-xl md:rounded-2xl p-4 md:p-6 card-hover group transition-all duration-700 hover:border-secondary/30 text-center md:text-left ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              className={`glass-card-dark rounded-xl md:rounded-2xl p-4 md:p-6 card-hover group transition-all duration-700 hover:border-accent/30 text-center md:text-left ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               style={{ transitionDelay: `${150 + index * 80}ms` }}
             >
-              <div className={`w-10 h-10 md:w-12 md:h-12 bg-secondary/20 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-5 mx-auto md:mx-0 group-hover:bg-secondary/30 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 ${isVisible ? 'animate-float-subtle' : ''}`} style={{ animationDelay: `${index * 100}ms` }}>
-                <benefit.icon className="w-5 h-5 md:w-6 md:h-6 text-secondary transition-transform duration-300 group-hover:scale-110" />
+              <div className={`w-10 h-10 md:w-12 md:h-12 bg-accent/20 rounded-lg md:rounded-xl flex items-center justify-center mb-3 md:mb-5 mx-auto md:mx-0 group-hover:bg-accent/30 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 ${isVisible ? 'animate-float-subtle' : ''}`} style={{ animationDelay: `${index * 100}ms` }}>
+                <benefit.icon className="w-5 h-5 md:w-6 md:h-6 text-accent transition-transform duration-300 group-hover:scale-110" />
               </div>
               
-              <h3 className="text-lg md:text-xl font-heading font-semibold text-white mb-2 md:mb-3 group-hover:text-secondary transition-colors duration-300">
+              <h3 className="text-lg md:text-xl font-heading font-semibold text-white mb-2 md:mb-3 group-hover:text-accent transition-colors duration-300">
                 {benefit.title}
               </h3>
               

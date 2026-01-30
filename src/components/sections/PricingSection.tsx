@@ -28,10 +28,11 @@ const PricingSection = () => {
   const singleFeatures = [
     "Complete Mulank & Bhagyank Analysis",
     "Current Name Evaluation",
-    "2-3 Corrected Name Options",
-    "Compatibility Scores",
+    "First Name & Full Name Analysis",
     "Compound Number Analysis",
-    "2 Year Usage Roadmap",
+    "2 Corrected Name Options",
+    "Your Personal Loshu Grid",
+    "2 Years Roadmap",
     "PDF Report (50+ Pages)",
   ];
 
@@ -39,10 +40,10 @@ const PricingSection = () => {
     "3 Complete Name Analysis Reports",
     "Perfect for Family Members",
     "All Features Included in Each Report",
-    "Mulank & Bhagyank Analysis × 3",
-    "Current Name Evaluation × 3",
-    "Corrected Name Options × 3",
-    "2 Year Roadmap × 3",
+    "Complete Mulank & Bhagyank Analysis × 3",
+    "First Name & Full Name Analysis × 3",
+    "2 Corrected Name Options × 3",
+    "Personal Loshu Grid × 3",
     "150+ Pages Total (50+ per person)",
   ];
 
@@ -104,7 +105,7 @@ const PricingSection = () => {
             {/* Trust Badges */}
             <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" /> 12-24 hr
+                <Clock className="w-3 h-3" /> 24-48 hr
               </span>
               <span className="flex items-center gap-1">
                 <Lock className="w-3 h-3" /> Secure

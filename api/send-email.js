@@ -8,14 +8,28 @@ let transporterInstance = null;
 
 // Create SMTP transporter (singleton) - internal use only
 const getTransporter = () => {
+  // Validate SMTP configuration before creating transporter
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+    throw new Error('SMTP configuration is missing. Please check your environment variables (SMTP_HOST, SMTP_USER, SMTP_PASSWORD).');
+  }
+
+  // Recreate transporter if config has changed or if it doesn't exist
+  const currentConfig = {
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASSWORD,
+  };
+
+  // Check if we need to recreate the transporter (config changed or doesn't exist)
   if (!transporterInstance) {
     const config = {
-      host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '587'),
+      host: currentConfig.host,
+      port: currentConfig.port,
       secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
+        user: currentConfig.user,
+        pass: currentConfig.pass,
       },
       tls: {
         rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED !== 'false',
@@ -26,6 +40,14 @@ const getTransporter = () => {
       rateDelta: 1000, // Time window for rate limiting (ms)
       rateLimit: 5, // Maximum messages per rateDelta
     };
+    
+    console.log('📧 Creating SMTP transporter with config:', {
+      host: config.host,
+      port: config.port,
+      secure: config.secure,
+      user: config.auth.user,
+      hasPassword: !!config.auth.pass,
+    });
     
     transporterInstance = nodemailer.createTransport(config);
   }
@@ -88,6 +110,18 @@ export async function sendPaymentEmail({
     return {
       success: false,
       error: `Invalid admin email format: ${adminEmail}`,
+    };
+  }
+
+  // Validate FROM_EMAIL format (should be either "email@domain.com" or "Name <email@domain.com>")
+  const fromEmailRegex = /^(.+?)\s*<(.+?)>$|^(.+?)$/;
+  const fromEmailMatch = fromEmail.match(fromEmailRegex);
+  const actualFromEmail = fromEmailMatch ? (fromEmailMatch[2] || fromEmailMatch[3] || fromEmailMatch[1]) : fromEmail;
+  if (!emailRegex.test(actualFromEmail)) {
+    console.error('❌ Invalid FROM_EMAIL format:', fromEmail);
+    return {
+      success: false,
+      error: `Invalid FROM_EMAIL format: ${fromEmail}. Should be either "email@domain.com" or "Name <email@domain.com>"`,
     };
   }
 
@@ -382,7 +416,21 @@ export async function sendPaymentEmail({
 
   try {
     console.log(`📧 Starting email sending process for order: ${orderId}`);
-    const transporter = getTransporter();
+    
+    // Get transporter - this will throw if config is missing
+    let transporter;
+    try {
+      transporter = getTransporter();
+    } catch (transporterError) {
+      console.error("❌ Failed to create SMTP transporter:", transporterError.message);
+      return {
+        success: false,
+        error: transporterError.message,
+        details: {
+          type: 'TRANSPORTER_CREATION_ERROR'
+        }
+      };
+    }
 
     // Verify SMTP connection before sending
     try {
@@ -391,13 +439,21 @@ export async function sendPaymentEmail({
       console.log(`✅ SMTP connection verified`);
     } catch (verifyError) {
       console.error("❌ SMTP verification failed:", verifyError.message);
+      console.error("Verification error details:", {
+        code: verifyError.code,
+        response: verifyError.response,
+        responseCode: verifyError.responseCode,
+        command: verifyError.command,
+        stack: verifyError.stack
+      });
       return {
         success: false,
         error: `SMTP connection failed: ${verifyError.message}`,
         details: {
           code: verifyError.code,
           response: verifyError.response,
-          responseCode: verifyError.responseCode
+          responseCode: verifyError.responseCode,
+          command: verifyError.command
         }
       };
     }

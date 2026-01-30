@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, FileText } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 
 const FloatingElements = () => {
@@ -17,9 +17,26 @@ const FloatingElements = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById("pricing");
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <>
-      {/* WhatsApp Button */}
+      {/* Get My Report Button - Left Side */}
+      <button
+        onClick={scrollToPricing}
+        className="fixed bottom-6 left-6 z-50 bg-accent text-accent-foreground px-4 py-3 rounded-full shadow-gold transition-all duration-300 hover:scale-110 hover:shadow-[0_0_40px_hsl(43_66%_52%_/_0.4)] group flex items-center gap-2"
+        aria-label="Get My Report"
+      >
+        <FileText className="w-5 h-5" />
+        <span className="text-sm font-semibold">Get My Report</span>
+      </button>
+
+      {/* WhatsApp Button - Right Side */}
       <a
         href="https://wa.me/919667305577"
         target="_blank"

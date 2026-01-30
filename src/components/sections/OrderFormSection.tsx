@@ -16,11 +16,17 @@ const OrderFormSection = () => {
   const [promoCode, setPromoCode] = useState("FAMILY");
   const [promoApplied, setPromoApplied] = useState(false);
   const [formData, setFormData] = useState({
-    person1Name: "",
+    person1FirstName: "",
+    person1MiddleName: "",
+    person1SurName: "",
     person1Dob: "",
-    person2Name: "",
+    person2FirstName: "",
+    person2MiddleName: "",
+    person2SurName: "",
     person2Dob: "",
-    person3Name: "",
+    person3FirstName: "",
+    person3MiddleName: "",
+    person3SurName: "",
     person3Dob: "",
     mobile: "",
     email: "",
@@ -87,20 +93,17 @@ const OrderFormSection = () => {
     return true;
   };
 
-  const validateName = (name: string): boolean => {
-    if (!name || name.trim() === "") return false;
+  const validateName = (name: string, isRequired: boolean = true): boolean => {
+    if (!name || name.trim() === "") return !isRequired;
     const trimmedName = name.trim();
 
-    // Name should be between 2 and 100 characters
-    if (trimmedName.length < 2 || trimmedName.length > 100) return false;
+    // Name should be between 1 and 50 characters
+    if (trimmedName.length < 1 || trimmedName.length > 50) return false;
 
     // Name should contain only letters, spaces, hyphens, apostrophes, and dots
     // Allow common Indian name characters
     const nameRegex = /^[a-zA-Z\s\-'.]+$/;
     if (!nameRegex.test(trimmedName)) return false;
-
-    // Name should not be all spaces or special characters
-    if (trimmedName.replace(/[\s\-'.]/g, "").length < 2) return false;
 
     return true;
   };
@@ -121,8 +124,8 @@ const OrderFormSection = () => {
     if (name.includes("Name")) {
       // Allow letters, spaces, hyphens, apostrophes, and dots
       processedValue = value.replace(/[^a-zA-Z\s\-'.]/g, "");
-      if (processedValue.length > 100) {
-        processedValue = processedValue.substring(0, 100); // Limit to 100 characters
+      if (processedValue.length > 50) {
+        processedValue = processedValue.substring(0, 50); // Limit to 50 characters
       }
     }
 
@@ -160,20 +163,12 @@ const OrderFormSection = () => {
       }
     }
 
-    // Real-time validation for names
-    if (name.includes("Name") && processedValue) {
-      if (!validateName(processedValue)) {
-        const fieldLabel =
-          name === "person1Name"
-            ? "Person 1 name"
-            : name === "person2Name"
-            ? "Person 2 name"
-            : name === "person3Name"
-            ? "Person 3 name"
-            : "Name";
+    // Real-time validation for names (only for required first name and surname)
+    if ((name.includes("FirstName") || name.includes("SurName")) && processedValue) {
+      if (!validateName(processedValue, true)) {
         setErrors((prev) => ({
           ...prev,
-          [name]: `${fieldLabel} must be 2-100 characters and contain only letters, spaces, hyphens, apostrophes, and dots`,
+          [name]: `Name must be 1-50 characters and contain only letters`,
         }));
       }
     }
@@ -224,17 +219,11 @@ const OrderFormSection = () => {
     const newErrors: Record<string, string> = {};
 
     // Validate Person 1 (required for all packages)
-    if (!formData.person1Name || !validateName(formData.person1Name)) {
-      if (!formData.person1Name || formData.person1Name.trim() === "") {
-        newErrors.person1Name = "Full name is required";
-      } else if (formData.person1Name.trim().length < 2) {
-        newErrors.person1Name = "Full name must be at least 2 characters";
-      } else if (formData.person1Name.trim().length > 100) {
-        newErrors.person1Name = "Full name must be less than 100 characters";
-      } else {
-        newErrors.person1Name =
-          "Full name can only contain letters, spaces, hyphens, apostrophes, and dots";
-      }
+    if (!formData.person1FirstName || !validateName(formData.person1FirstName, true)) {
+      newErrors.person1FirstName = "First name is required";
+    }
+    if (!formData.person1SurName || !validateName(formData.person1SurName, true)) {
+      newErrors.person1SurName = "Surname is required";
     }
 
     if (!formData.person1Dob || !validateDob(formData.person1Dob)) {
@@ -287,66 +276,26 @@ const OrderFormSection = () => {
 
     // For family package, validate all 3 persons
     if (packageType === "family") {
-      if (!formData.person2Name || !validateName(formData.person2Name)) {
-        if (!formData.person2Name || formData.person2Name.trim() === "") {
-          newErrors.person2Name = "Person 2 name is required";
-        } else if (formData.person2Name.trim().length < 2) {
-          newErrors.person2Name = "Person 2 name must be at least 2 characters";
-        } else if (formData.person2Name.trim().length > 100) {
-          newErrors.person2Name =
-            "Person 2 name must be less than 100 characters";
-        } else {
-          newErrors.person2Name =
-            "Person 2 name can only contain letters, spaces, hyphens, apostrophes, and dots";
-        }
+      if (!formData.person2FirstName || !validateName(formData.person2FirstName, true)) {
+        newErrors.person2FirstName = "Person 2 first name is required";
+      }
+      if (!formData.person2SurName || !validateName(formData.person2SurName, true)) {
+        newErrors.person2SurName = "Person 2 surname is required";
       }
 
       if (!formData.person2Dob || !validateDob(formData.person2Dob)) {
-        if (!formData.person2Dob || formData.person2Dob.trim() === "") {
-          newErrors.person2Dob = "Person 2 date of birth is required";
-        } else {
-          const dobDate = new Date(formData.person2Dob);
-          const today = new Date();
-          today.setHours(23, 59, 59, 999);
-          if (dobDate >= today) {
-            newErrors.person2Dob =
-              "Person 2 date of birth cannot be today or in the future";
-          } else {
-            newErrors.person2Dob =
-              "Please enter a valid date of birth for Person 2";
-          }
-        }
+        newErrors.person2Dob = "Person 2 date of birth is required";
       }
 
-      if (!formData.person3Name || !validateName(formData.person3Name)) {
-        if (!formData.person3Name || formData.person3Name.trim() === "") {
-          newErrors.person3Name = "Person 3 name is required";
-        } else if (formData.person3Name.trim().length < 2) {
-          newErrors.person3Name = "Person 3 name must be at least 2 characters";
-        } else if (formData.person3Name.trim().length > 100) {
-          newErrors.person3Name =
-            "Person 3 name must be less than 100 characters";
-        } else {
-          newErrors.person3Name =
-            "Person 3 name can only contain letters, spaces, hyphens, apostrophes, and dots";
-        }
+      if (!formData.person3FirstName || !validateName(formData.person3FirstName, true)) {
+        newErrors.person3FirstName = "Person 3 first name is required";
+      }
+      if (!formData.person3SurName || !validateName(formData.person3SurName, true)) {
+        newErrors.person3SurName = "Person 3 surname is required";
       }
 
       if (!formData.person3Dob || !validateDob(formData.person3Dob)) {
-        if (!formData.person3Dob || formData.person3Dob.trim() === "") {
-          newErrors.person3Dob = "Person 3 date of birth is required";
-        } else {
-          const dobDate = new Date(formData.person3Dob);
-          const today = new Date();
-          today.setHours(23, 59, 59, 999);
-          if (dobDate >= today) {
-            newErrors.person3Dob =
-              "Person 3 date of birth cannot be today or in the future";
-          } else {
-            newErrors.person3Dob =
-              "Please enter a valid date of birth for Person 3";
-          }
-        }
+        newErrors.person3Dob = "Person 3 date of birth is required";
       }
     }
 
@@ -381,18 +330,22 @@ const OrderFormSection = () => {
       "ORD" + Date.now() + "-" + Math.random().toString(36).substring(2, 8);
 
     // Store order data in localStorage before redirecting (as backup in case PhonePe strips query params)
+    const getFullName = (first: string, middle: string, sur: string) => {
+      return [first, middle, sur].filter(Boolean).join(" ").trim();
+    };
+    
     const orderData = {
       orderId,
       email: formData.email,
       mobile: formData.mobile,
-      name: formData.person1Name || "",
+      name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
       dob: formData.person1Dob || "",
       packageType: packageType,
-      person1Name: formData.person1Name || "",
+      person1Name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
       person1Dob: formData.person1Dob || "",
-      person2Name: formData.person2Name || "",
+      person2Name: getFullName(formData.person2FirstName, formData.person2MiddleName, formData.person2SurName),
       person2Dob: formData.person2Dob || "",
-      person3Name: formData.person3Name || "",
+      person3Name: getFullName(formData.person3FirstName, formData.person3MiddleName, formData.person3SurName),
       person3Dob: formData.person3Dob || "",
     };
     try {
@@ -418,16 +371,16 @@ const OrderFormSection = () => {
           amount: price,
           mobile: formData.mobile,
           email: formData.email,
-          name: formData.person1Name || "",
+          name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
           dob: formData.person1Dob || "",
           packageType: packageType,
           orderId: orderId,
           // Include all person details for family package
-          person1Name: formData.person1Name || "",
+          person1Name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
           person1Dob: formData.person1Dob || "",
-          person2Name: formData.person2Name || "",
+          person2Name: getFullName(formData.person2FirstName, formData.person2MiddleName, formData.person2SurName),
           person2Dob: formData.person2Dob || "",
-          person3Name: formData.person3Name || "",
+          person3Name: getFullName(formData.person3FirstName, formData.person3MiddleName, formData.person3SurName),
           person3Dob: formData.person3Dob || "",
         }),
       });
@@ -613,28 +566,66 @@ const OrderFormSection = () => {
                 {/* Form Fields */}
                 {packageType === "namecheck" || packageType === "single" ? (
                   <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="person1Name">
-                        Full Name (As per Aadhar Card) *
-                      </Label>
-                      <Input
-                        id="person1Name"
-                        name="person1Name"
-                        value={formData.person1Name}
-                        onChange={handleInputChange}
-                        placeholder="Enter your full name"
-                        required
-                        className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-                          errors.person1Name
-                            ? "border-red-500 focus:border-red-500"
-                            : ""
-                        }`}
-                      />
-                      {errors.person1Name && (
-                        <p className="text-red-500 text-sm mt-1">
-                          {errors.person1Name}
-                        </p>
-                      )}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="person1FirstName">
+                          First Name (As per Aadhar) *
+                        </Label>
+                        <Input
+                          id="person1FirstName"
+                          name="person1FirstName"
+                          value={formData.person1FirstName}
+                          onChange={handleInputChange}
+                          placeholder="First name"
+                          required
+                          className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+                            errors.person1FirstName
+                              ? "border-destructive focus:border-destructive"
+                              : ""
+                          }`}
+                        />
+                        {errors.person1FirstName && (
+                          <p className="text-destructive text-sm mt-1">
+                            {errors.person1FirstName}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <Label htmlFor="person1MiddleName">
+                          Middle Name (As per Aadhar)
+                        </Label>
+                        <Input
+                          id="person1MiddleName"
+                          name="person1MiddleName"
+                          value={formData.person1MiddleName}
+                          onChange={handleInputChange}
+                          placeholder="Middle name (optional)"
+                          className="mt-1.5 transition-all duration-300 focus:shadow-card"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="person1SurName">
+                          Sur Name (As per Aadhar) *
+                        </Label>
+                        <Input
+                          id="person1SurName"
+                          name="person1SurName"
+                          value={formData.person1SurName}
+                          onChange={handleInputChange}
+                          placeholder="Surname"
+                          required
+                          className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+                            errors.person1SurName
+                              ? "border-destructive focus:border-destructive"
+                              : ""
+                          }`}
+                        />
+                        {errors.person1SurName && (
+                          <p className="text-destructive text-sm mt-1">
+                            {errors.person1SurName}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <Label htmlFor="person1Dob">
@@ -646,16 +637,16 @@ const OrderFormSection = () => {
                         type="date"
                         value={formData.person1Dob}
                         onChange={handleInputChange}
-                        max={getYesterdayDate()} // Prevent today and future dates
+                        max={getYesterdayDate()}
                         required
                         className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
                           errors.person1Dob
-                            ? "border-red-500 focus:border-red-500"
+                            ? "border-destructive focus:border-destructive"
                             : ""
                         }`}
                       />
                       {errors.person1Dob && (
-                        <p className="text-red-500 text-sm mt-1">
+                        <p className="text-destructive text-sm mt-1">
                           {errors.person1Dob}
                         </p>
                       )}
@@ -668,28 +659,66 @@ const OrderFormSection = () => {
                       <p className="font-semibold text-secondary">
                         Person 1 Details
                       </p>
-                      <div>
-                        <Label htmlFor="person1Name">
-                          Full Name (As per Aadhar Card) *
-                        </Label>
-                        <Input
-                          id="person1Name"
-                          name="person1Name"
-                          value={formData.person1Name}
-                          onChange={handleInputChange}
-                          placeholder="Enter full name"
-                          required
-                          className={`mt-1.5 ${
-                            errors.person1Name
-                              ? "border-red-500 focus:border-red-500"
-                              : ""
-                          }`}
-                        />
-                        {errors.person1Name && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {errors.person1Name}
-                          </p>
-                        )}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="person1FirstName">
+                            First Name (As per Aadhar) *
+                          </Label>
+                          <Input
+                            id="person1FirstName"
+                            name="person1FirstName"
+                            value={formData.person1FirstName}
+                            onChange={handleInputChange}
+                            placeholder="First name"
+                            required
+                            className={`mt-1.5 ${
+                              errors.person1FirstName
+                                ? "border-destructive focus:border-destructive"
+                                : ""
+                            }`}
+                          />
+                          {errors.person1FirstName && (
+                            <p className="text-destructive text-sm mt-1">
+                              {errors.person1FirstName}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <Label htmlFor="person1MiddleName">
+                            Middle Name (As per Aadhar)
+                          </Label>
+                          <Input
+                            id="person1MiddleName"
+                            name="person1MiddleName"
+                            value={formData.person1MiddleName}
+                            onChange={handleInputChange}
+                            placeholder="Middle name (optional)"
+                            className="mt-1.5"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="person1SurName">
+                            Sur Name (As per Aadhar) *
+                          </Label>
+                          <Input
+                            id="person1SurName"
+                            name="person1SurName"
+                            value={formData.person1SurName}
+                            onChange={handleInputChange}
+                            placeholder="Surname"
+                            required
+                            className={`mt-1.5 ${
+                              errors.person1SurName
+                                ? "border-destructive focus:border-destructive"
+                                : ""
+                            }`}
+                          />
+                          {errors.person1SurName && (
+                            <p className="text-destructive text-sm mt-1">
+                              {errors.person1SurName}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <Label htmlFor="person1Dob">Date of Birth *</Label>
@@ -699,16 +728,16 @@ const OrderFormSection = () => {
                           type="date"
                           value={formData.person1Dob}
                           onChange={handleInputChange}
-                          max={getYesterdayDate()} // Prevent today and future dates
+                          max={getYesterdayDate()}
                           required
                           className={`mt-1.5 ${
                             errors.person1Dob
-                              ? "border-red-500 focus:border-red-500"
+                              ? "border-destructive focus:border-destructive"
                               : ""
                           }`}
                         />
                         {errors.person1Dob && (
-                          <p className="text-red-500 text-sm mt-1">
+                          <p className="text-destructive text-sm mt-1">
                             {errors.person1Dob}
                           </p>
                         )}
@@ -720,28 +749,66 @@ const OrderFormSection = () => {
                       <p className="font-semibold text-secondary">
                         Person 2 Details
                       </p>
-                      <div>
-                        <Label htmlFor="person2Name">
-                          Full Name (As per Aadhar Card) *
-                        </Label>
-                        <Input
-                          id="person2Name"
-                          name="person2Name"
-                          value={formData.person2Name}
-                          onChange={handleInputChange}
-                          placeholder="Enter full name"
-                          required
-                          className={`mt-1.5 ${
-                            errors.person2Name
-                              ? "border-red-500 focus:border-red-500"
-                              : ""
-                          }`}
-                        />
-                        {errors.person2Name && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {errors.person2Name}
-                          </p>
-                        )}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="person2FirstName">
+                            First Name (As per Aadhar) *
+                          </Label>
+                          <Input
+                            id="person2FirstName"
+                            name="person2FirstName"
+                            value={formData.person2FirstName}
+                            onChange={handleInputChange}
+                            placeholder="First name"
+                            required
+                            className={`mt-1.5 ${
+                              errors.person2FirstName
+                                ? "border-destructive focus:border-destructive"
+                                : ""
+                            }`}
+                          />
+                          {errors.person2FirstName && (
+                            <p className="text-destructive text-sm mt-1">
+                              {errors.person2FirstName}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <Label htmlFor="person2MiddleName">
+                            Middle Name (As per Aadhar)
+                          </Label>
+                          <Input
+                            id="person2MiddleName"
+                            name="person2MiddleName"
+                            value={formData.person2MiddleName}
+                            onChange={handleInputChange}
+                            placeholder="Middle name (optional)"
+                            className="mt-1.5"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="person2SurName">
+                            Sur Name (As per Aadhar) *
+                          </Label>
+                          <Input
+                            id="person2SurName"
+                            name="person2SurName"
+                            value={formData.person2SurName}
+                            onChange={handleInputChange}
+                            placeholder="Surname"
+                            required
+                            className={`mt-1.5 ${
+                              errors.person2SurName
+                                ? "border-destructive focus:border-destructive"
+                                : ""
+                            }`}
+                          />
+                          {errors.person2SurName && (
+                            <p className="text-destructive text-sm mt-1">
+                              {errors.person2SurName}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <Label htmlFor="person2Dob">Date of Birth *</Label>
@@ -751,16 +818,16 @@ const OrderFormSection = () => {
                           type="date"
                           value={formData.person2Dob}
                           onChange={handleInputChange}
-                          max={getYesterdayDate()} // Prevent today and future dates
+                          max={getYesterdayDate()}
                           required
                           className={`mt-1.5 ${
                             errors.person2Dob
-                              ? "border-red-500 focus:border-red-500"
+                              ? "border-destructive focus:border-destructive"
                               : ""
                           }`}
                         />
                         {errors.person2Dob && (
-                          <p className="text-red-500 text-sm mt-1">
+                          <p className="text-destructive text-sm mt-1">
                             {errors.person2Dob}
                           </p>
                         )}
@@ -772,28 +839,66 @@ const OrderFormSection = () => {
                       <p className="font-semibold text-secondary">
                         Person 3 Details
                       </p>
-                      <div>
-                        <Label htmlFor="person3Name">
-                          Full Name (As per Aadhar Card) *
-                        </Label>
-                        <Input
-                          id="person3Name"
-                          name="person3Name"
-                          value={formData.person3Name}
-                          onChange={handleInputChange}
-                          placeholder="Enter full name"
-                          required
-                          className={`mt-1.5 ${
-                            errors.person3Name
-                              ? "border-red-500 focus:border-red-500"
-                              : ""
-                          }`}
-                        />
-                        {errors.person3Name && (
-                          <p className="text-red-500 text-sm mt-1">
-                            {errors.person3Name}
-                          </p>
-                        )}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label htmlFor="person3FirstName">
+                            First Name (As per Aadhar) *
+                          </Label>
+                          <Input
+                            id="person3FirstName"
+                            name="person3FirstName"
+                            value={formData.person3FirstName}
+                            onChange={handleInputChange}
+                            placeholder="First name"
+                            required
+                            className={`mt-1.5 ${
+                              errors.person3FirstName
+                                ? "border-destructive focus:border-destructive"
+                                : ""
+                            }`}
+                          />
+                          {errors.person3FirstName && (
+                            <p className="text-destructive text-sm mt-1">
+                              {errors.person3FirstName}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <Label htmlFor="person3MiddleName">
+                            Middle Name (As per Aadhar)
+                          </Label>
+                          <Input
+                            id="person3MiddleName"
+                            name="person3MiddleName"
+                            value={formData.person3MiddleName}
+                            onChange={handleInputChange}
+                            placeholder="Middle name (optional)"
+                            className="mt-1.5"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="person3SurName">
+                            Sur Name (As per Aadhar) *
+                          </Label>
+                          <Input
+                            id="person3SurName"
+                            name="person3SurName"
+                            value={formData.person3SurName}
+                            onChange={handleInputChange}
+                            placeholder="Surname"
+                            required
+                            className={`mt-1.5 ${
+                              errors.person3SurName
+                                ? "border-destructive focus:border-destructive"
+                                : ""
+                            }`}
+                          />
+                          {errors.person3SurName && (
+                            <p className="text-destructive text-sm mt-1">
+                              {errors.person3SurName}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <Label htmlFor="person3Dob">Date of Birth *</Label>
@@ -803,16 +908,16 @@ const OrderFormSection = () => {
                           type="date"
                           value={formData.person3Dob}
                           onChange={handleInputChange}
-                          max={getYesterdayDate()} // Prevent today and future dates
+                          max={getYesterdayDate()}
                           required
                           className={`mt-1.5 ${
                             errors.person3Dob
-                              ? "border-red-500 focus:border-red-500"
+                              ? "border-destructive focus:border-destructive"
                               : ""
                           }`}
                         />
                         {errors.person3Dob && (
-                          <p className="text-red-500 text-sm mt-1">
+                          <p className="text-destructive text-sm mt-1">
                             {errors.person3Dob}
                           </p>
                         )}
@@ -839,12 +944,12 @@ const OrderFormSection = () => {
                       maxLength={10}
                       className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
                         errors.mobile
-                          ? "border-red-500 focus:border-red-500"
+                          ? "border-destructive focus:border-destructive"
                           : ""
                       }`}
                     />
                     {errors.mobile && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className="text-destructive text-sm mt-1">
                         {errors.mobile}
                       </p>
                     )}
@@ -861,12 +966,12 @@ const OrderFormSection = () => {
                       required
                       className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
                         errors.email
-                          ? "border-red-500 focus:border-red-500"
+                          ? "border-destructive focus:border-destructive"
                           : ""
                       }`}
                     />
                     {errors.email && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className="text-destructive text-sm mt-1">
                         {errors.email}
                       </p>
                     )}
@@ -898,7 +1003,7 @@ const OrderFormSection = () => {
                       const familyPrice = getPackagePrice('family');
                       const savings = (singlePrice * 3) - familyPrice;
                       return (
-                        <p key="promo-applied" className="text-green-600 text-sm flex items-center gap-1 animate-fade-in">
+                        <p key="promo-applied" className="text-secondary text-sm flex items-center gap-1 animate-fade-in">
                           <Check className="w-4 h-4" />
                           Family discount applied! You save {formatPrice(savings)}
                         </p>
@@ -941,7 +1046,7 @@ const OrderFormSection = () => {
                           ₹{originalPrice.toLocaleString()}
                         </span>
                       </div>
-                      <div className="flex justify-between text-green-600">
+                      <div className="flex justify-between text-secondary">
                         <span>Discount</span>
                         <span>-₹6,206</span>
                       </div>

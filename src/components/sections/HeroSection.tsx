@@ -43,8 +43,7 @@ const HeroSection = () => {
 
           {/* Subheading */}
           <p className="body-lg text-white/80 max-w-3xl mx-auto mb-6 md:mb-10 animate-fade-in-up delay-200 px-2">
-            Align your name's energy with your date of birth. Experience the clarity, 
-            confidence, and breakthrough results that come from perfect numerological harmony.
+            Align your name's energy with your date of birth for breakthrough results.
           </p>
 
           {/* CTA Button */}

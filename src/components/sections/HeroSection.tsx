@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Sparkles } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 
 const HeroSection = () => {
   const scrollToForm = () => {
@@ -27,13 +27,6 @@ const HeroSection = () => {
 
       <div className="container mx-auto px-4 pt-20 pb-10 md:pt-24 md:pb-16 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Sparkle Badge */}
-          <div className="flex justify-center w-full mb-4 md:mb-8 animate-fade-in-up">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5 md:px-4 md:py-2">
-              <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-accent" />
-              <span className="text-xs md:text-sm text-white/90 font-medium">Premium Numerology Analysis</span>
-            </div>
-          </div>
 
           {/* Main Heading */}
           <h1 className="heading-xl text-white mb-4 md:mb-6 animate-fade-in-up delay-100">

@@ -1,21 +1,28 @@
 import { Button } from "@/components/ui/button";
-import { Check, Clock, Lock, Sparkles } from "lucide-react";
+import { Check, Clock, Lock } from "lucide-react";
+import { useState } from "react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { getPackagePricing, formatPrice } from "@/lib/packagePricing";
 
 const PricingSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
   const pricing = getPackagePricing();
+  const [selectedNameCheckPlan, setSelectedNameCheckPlan] = useState<1 | 2 | 3>(1);
 
   const scrollToForm = (packageType?: string) => {
     const formSection = document.getElementById("order-form");
     if (formSection) {
       formSection.scrollIntoView({ behavior: "smooth" });
-      // Dispatch custom event to set package type
       if (packageType) {
         window.dispatchEvent(new CustomEvent('setPackageType', { detail: packageType }));
       }
     }
+  };
+
+  const nameCheckPlans = {
+    1: { price: 199, originalPrice: 199, savings: 0 },
+    2: { price: 358.20, originalPrice: 398, savings: 19.90 },
+    3: { price: 507.45, originalPrice: 597, savings: 29.85 },
   };
 
   const nameCheckFeatures = [
@@ -36,17 +43,6 @@ const PricingSection = () => {
     "PDF Report (50+ Pages)",
   ];
 
-  const familyFeatures = [
-    "3 Complete Name Analysis Reports",
-    "Perfect for Family Members",
-    "All Features Included in Each Report",
-    "Complete Mulank & Bhagyank Analysis × 3",
-    "First Name & Full Name Analysis × 3",
-    "2 Corrected Name Options × 3",
-    "Personal Loshu Grid × 3",
-    "150+ Pages Total (50+ per person)",
-  ];
-
   return (
     <section className="section-padding bg-card/50" id="pricing" ref={ref}>
       <div className="container mx-auto px-4">
@@ -61,8 +57,8 @@ const PricingSection = () => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-6xl mx-auto">
-          {/* Name Check Card - For Unsure Users */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto">
+          {/* Name Check Card */}
           <div className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '100ms' }}>
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span className="bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
@@ -79,12 +75,40 @@ const PricingSection = () => {
               </p>
             </div>
 
+            {/* Plan Selection */}
+            <div className="flex gap-2 mb-4">
+              {([1, 2, 3] as const).map((num) => (
+                <button
+                  key={num}
+                  onClick={() => setSelectedNameCheckPlan(num)}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+                    selectedNameCheckPlan === num
+                      ? 'bg-secondary text-secondary-foreground'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }`}
+                >
+                  {num} {num === 1 ? 'Person' : 'People'}
+                </button>
+              ))}
+            </div>
+
             {/* Price */}
             <div className="mb-4">
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-heading font-bold text-secondary">{formatPrice(pricing.namecheck.price)}</span>
-                <span className="text-sm text-muted-foreground">only</span>
+                <span className="text-3xl font-heading font-bold text-secondary">
+                  {formatPrice(nameCheckPlans[selectedNameCheckPlan].price)}
+                </span>
+                {selectedNameCheckPlan > 1 && (
+                  <span className="text-sm text-muted-foreground line-through">
+                    {formatPrice(nameCheckPlans[selectedNameCheckPlan].originalPrice)}
+                  </span>
+                )}
               </div>
+              {selectedNameCheckPlan > 1 && (
+                <span className="inline-block mt-2 bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
+                  Saves {formatPrice(nameCheckPlans[selectedNameCheckPlan].savings)} per person
+                </span>
+              )}
             </div>
 
             {/* Features */}
@@ -98,8 +122,10 @@ const PricingSection = () => {
             </ul>
 
             {/* CTA */}
-            <Button variant="secondary" size="default" className="w-full group" onClick={() => scrollToForm('namecheck')}>
-              <span className="group-hover:scale-105 transition-transform duration-300 inline-block">Get Name Check</span>
+            <Button variant="secondary" size="default" className="w-full group" onClick={() => scrollToForm(`namecheck-${selectedNameCheckPlan}`)}>
+              <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
+                Get Name Check for {selectedNameCheckPlan} {selectedNameCheckPlan === 1 ? 'Person' : 'People'}
+              </span>
             </Button>
 
             {/* Trust Badges */}
@@ -114,8 +140,14 @@ const PricingSection = () => {
           </div>
 
           {/* Single Report Card */}
-          <div className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '200ms' }}>
-            <div className="mb-4">
+          <div className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow transition-all duration-700 animate-border-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '200ms' }}>
+            <div className={`absolute -top-4 left-1/2 -translate-x-1/2 transition-all duration-500 delay-500 ${isVisible ? 'opacity-100 scale-100 animate-float-subtle' : 'opacity-0 scale-50'}`}>
+              <span className="bg-accent text-accent-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-gold">
+                MOST POPULAR
+              </span>
+            </div>
+
+            <div className="mb-4 pt-2">
               <h3 className="text-xl font-heading font-bold text-ink-black mb-2">
                 Name Correction Blueprint
               </h3>
@@ -146,76 +178,8 @@ const PricingSection = () => {
             </ul>
 
             {/* CTA */}
-            <Button variant="gold" size="default" className="w-full group" onClick={() => scrollToForm('single')}>
+            <Button variant="hero" size="default" className="w-full group" onClick={() => scrollToForm('single')}>
               <span className="group-hover:scale-105 transition-transform duration-300 inline-block">Get Single Report</span>
-            </Button>
-
-            {/* Trust Badges */}
-            <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" /> 24-48 hr
-              </span>
-              <span className="flex items-center gap-1">
-                <Lock className="w-3 h-3" /> Secure
-              </span>
-            </div>
-          </div>
-
-          {/* Family Package Card */}
-          <div className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow transition-all duration-700 animate-border-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '300ms' }}>
-            {/* Best Value Badge */}
-            <div className={`absolute -top-4 left-1/2 -translate-x-1/2 transition-all duration-500 delay-500 ${isVisible ? 'opacity-100 scale-100 animate-float-subtle' : 'opacity-0 scale-50'}`}>
-              <span className="bg-accent text-accent-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-gold">
-                BEST VALUE
-              </span>
-            </div>
-
-            <div className="mb-4 pt-2">
-              <h3 className="text-xl font-heading font-bold text-ink-black mb-2">
-                Family Package
-              </h3>
-              <p className="text-muted-foreground text-sm">
-                Buy 2 Reports, Get 3rd FREE
-              </p>
-            </div>
-
-            {/* Family Offer Badge */}
-            <div className="inline-flex items-center gap-2 bg-accent/10 px-3 py-1.5 rounded-full mb-3">
-              <Sparkles className="w-3 h-3 text-accent" />
-              <span className="text-accent font-semibold text-xs">FAMILY OFFER</span>
-            </div>
-
-            {/* Price */}
-            <div className="mb-3">
-              <div className="flex items-baseline gap-2">
-                <span className="text-base text-muted-foreground line-through">{formatPrice(pricing.family.originalPrice)}</span>
-                <span className="text-3xl font-heading font-bold text-accent">{formatPrice(pricing.family.price)}</span>
-              </div>
-              <span className="inline-block mt-2 bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
-                SAVE {formatPrice(pricing.family.originalPrice - pricing.family.price)} + 1 FREE
-              </span>
-            </div>
-
-            {/* Promo Code */}
-            <div className="bg-accent/10 border border-accent/30 rounded-xl p-2 mb-4">
-              <p className="text-xs text-center">
-                Use Code: <span className="font-bold text-accent">FAMILY</span>
-              </p>
-            </div>
-
-            {/* Features */}
-            <ul className="space-y-2 mb-6">
-              {familyFeatures.map((feature, index) => (
-                <li key={index} className="flex items-start gap-2 group">
-                  <Check className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
-                  <span className="text-muted-foreground text-sm">{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            {/* CTA */}
-            <Button variant="hero" size="default" className="w-full group" onClick={() => scrollToForm('family')}>
-              <span className="group-hover:scale-105 transition-transform duration-300 inline-block">Get Family Package</span>
             </Button>
 
             {/* Trust Badges */}

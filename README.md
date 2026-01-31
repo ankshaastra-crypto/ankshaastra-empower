@@ -47,14 +47,15 @@ ENCRYPTION_KEY=your_32_character_key
 REDIS_URL=redis://localhost:6379
 NODE_ENV=development
 
-# Package Pricing (Frontend)
+# Package Pricing (Frontend - Optional)
+# These are optional. If not set, defaults will be used:
+# - Name Check: ₹199 (hardcoded in OrderFormSection.tsx)
+# - Single Report: ₹1997 (fallback in packagePricing.ts)
 # IMPORTANT: After changing these values, restart the dev server (Ctrl+C then npm run dev)
 VITE_PACKAGE_NAMECHECK_PRICE=199
 VITE_PACKAGE_NAMECHECK_ORIGINAL_PRICE=199
 VITE_PACKAGE_SINGLE_PRICE=1997
 VITE_PACKAGE_SINGLE_ORIGINAL_PRICE=5100
-VITE_PACKAGE_FAMILY_PRICE=3994
-VITE_PACKAGE_FAMILY_ORIGINAL_PRICE=10200
 ```
 
 **Note:** Vite environment variables are loaded at build/dev server startup. After changing these values:
@@ -93,7 +94,6 @@ The following dependencies have been removed as they were only used for invoice 
 ### Vercel (Recommended)
 
 1. **Set Up Upstash Redis:**
-
    - Create account at [console.upstash.com](https://console.upstash.com/)
    - Create database → Copy Redis URL
 

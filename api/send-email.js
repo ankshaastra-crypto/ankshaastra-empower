@@ -144,13 +144,18 @@ export async function sendPaymentEmail({
     };
   }
 
-  const packageNames = {
-    namecheck: 'Name Check',
-    single: 'Single Report',
-    family: 'Family Package (3 Reports)'
-  };
-
-  const packageName = packageNames[packageType] || packageType;
+  // Determine package name based on packageType
+  // namecheck can have sub-packages: namecheck-1, namecheck-2, namecheck-3
+  let packageName = packageType || 'Unknown Package';
+  
+  if (packageType && packageType.startsWith('namecheck-')) {
+    const count = packageType.split('-')[1] || '1';
+    packageName = `Name Check (${count} Person${count !== '1' ? 's' : ''})`;
+  } else if (packageType === 'namecheck') {
+    packageName = 'Name Check';
+  } else if (packageType === 'single') {
+    packageName = 'Single Report';
+  }
   // Amount is expected in paise (smallest currency unit), convert to rupees for display
   // Handle edge case where amount might be 0 or undefined
   const amountInRupees = amount && amount > 0 ? amount / 100 : 0;
@@ -292,45 +297,41 @@ export async function sendPaymentEmail({
   // Build customer details section
   let customerDetailsHtml = '';
   
-  if (packageType === 'family') {
-    // Family package - ALWAYS show all 3 persons (they are required fields)
-    customerDetailsHtml = `
-      <div class="person-section">
-        <h3 style="color: #2E1A47; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #2E1A47; padding-bottom: 5px;">Person 1 Details:</h3>
-        <div class="detail-row">
-          <strong>Name:</strong>
-          <span>${hasValue(finalPerson1Name) ? finalPerson1Name : 'N/A'}</span>
+  // Determine number of persons based on package type
+  let personCount = 1; // Default to 1 person
+  
+  if (packageType && packageType.startsWith('namecheck-')) {
+    // Extract count from namecheck-1, namecheck-2, namecheck-3
+    const countStr = packageType.split('-')[1] || '1';
+    personCount = parseInt(countStr, 10) || 1;
+  }
+  
+  if (personCount > 1) {
+    // Multiple persons - show each person in separate sections
+    const persons = [
+      { name: finalPerson1Name, dob: finalPerson1Dob },
+      { name: finalPerson2Name, dob: finalPerson2Dob },
+      { name: finalPerson3Name, dob: finalPerson3Dob },
+    ];
+    
+    customerDetailsHtml = persons
+      .slice(0, personCount)
+      .map((person, index) => `
+        <div class="person-section">
+          <h3 style="color: #2E1A47; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #2E1A47; padding-bottom: 5px;">Person ${index + 1} Details:</h3>
+          <div class="detail-row">
+            <strong>Name:</strong>
+            <span>${hasValue(person.name) ? person.name : 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <strong>Date of Birth:</strong>
+            <span>${formatDob(person.dob)}</span>
+          </div>
         </div>
-        <div class="detail-row">
-          <strong>Date of Birth:</strong>
-          <span>${formatDob(finalPerson1Dob)}</span>
-        </div>
-      </div>
-      <div class="person-section">
-        <h3 style="color: #2E1A47; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #2E1A47; padding-bottom: 5px;">Person 2 Details:</h3>
-        <div class="detail-row">
-          <strong>Name:</strong>
-          <span>${hasValue(finalPerson2Name) ? finalPerson2Name : 'N/A'}</span>
-        </div>
-        <div class="detail-row">
-          <strong>Date of Birth:</strong>
-          <span>${formatDob(finalPerson2Dob)}</span>
-        </div>
-      </div>
-      <div class="person-section">
-        <h3 style="color: #2E1A47; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #2E1A47; padding-bottom: 5px;">Person 3 Details:</h3>
-        <div class="detail-row">
-          <strong>Name:</strong>
-          <span>${hasValue(finalPerson3Name) ? finalPerson3Name : 'N/A'}</span>
-        </div>
-        <div class="detail-row">
-          <strong>Date of Birth:</strong>
-          <span>${formatDob(finalPerson3Dob)}</span>
-        </div>
-      </div>
-    `;
+      `)
+      .join('');
   } else {
-    // Single/Name Check package - show single person
+    // Single person - show single person details
     customerDetailsHtml = `
       <div class="detail-row">
         <strong>Customer Name:</strong>

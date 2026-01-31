@@ -204,7 +204,7 @@ export default async function handler(req, res) {
       getQueryParam('package') ||
       (metadata.packageType && metadata.packageType.trim()) ||
       'single';
-    // Extract person details for family package
+    // Extract person details (for namecheck packages with multiple persons or single package)
     const person1Name = (decryptedData.person1Name && decryptedData.person1Name.trim()) ||
       getQueryParam('person1Name') ||
       (metadata.person1Name && metadata.person1Name.trim()) ||

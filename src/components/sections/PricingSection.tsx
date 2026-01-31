@@ -7,21 +7,25 @@ import { getPackagePricing, formatPrice } from "@/lib/packagePricing";
 const PricingSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
   const pricing = getPackagePricing();
-  const [selectedNameCheckPlan, setSelectedNameCheckPlan] = useState<1 | 2 | 3>(1);
+  const [selectedNameCheckPlan, setSelectedNameCheckPlan] = useState<1 | 2 | 3>(
+    1,
+  );
 
   const scrollToForm = (packageType?: string) => {
     const formSection = document.getElementById("order-form");
     if (formSection) {
       formSection.scrollIntoView({ behavior: "smooth" });
       if (packageType) {
-        window.dispatchEvent(new CustomEvent('setPackageType', { detail: packageType }));
+        window.dispatchEvent(
+          new CustomEvent("setPackageType", { detail: packageType }),
+        );
       }
     }
   };
 
   const nameCheckPlans = {
     1: { price: 199, originalPrice: 199, savings: 0 },
-    2: { price: 358.20, originalPrice: 398, savings: 19.90 },
+    2: { price: 358.2, originalPrice: 398, savings: 19.9 },
     3: { price: 507.45, originalPrice: 597, savings: 29.85 },
   };
 
@@ -47,7 +51,9 @@ const PricingSection = () => {
     <section className="section-padding bg-card/50" id="pricing" ref={ref}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className={`text-center max-w-3xl mx-auto mb-8 md:mb-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div
+          className={`text-center max-w-3xl mx-auto mb-8 md:mb-16 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+        >
           <h2 className="heading-lg text-ink-black mb-3 md:mb-4">
             Get Your Personalized Report
           </h2>
@@ -59,13 +65,16 @@ const PricingSection = () => {
         {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto">
           {/* Name Check Card */}
-          <div className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '100ms' }}>
+          <div
+            className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            style={{ transitionDelay: "100ms" }}
+          >
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span className="bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
                 NOT SURE?
               </span>
             </div>
-            
+
             <div className="mb-4 pt-2">
               <h3 className="text-xl font-heading font-bold text-ink-black mb-2">
                 Name Check
@@ -83,11 +92,11 @@ const PricingSection = () => {
                   onClick={() => setSelectedNameCheckPlan(num)}
                   className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
                     selectedNameCheckPlan === num
-                      ? 'bg-secondary text-secondary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      ? "bg-secondary text-secondary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
                   }`}
                 >
-                  {num} {num === 1 ? 'Person' : 'People'}
+                  {num} Person{num !== 1 ? "s" : ""}
                 </button>
               ))}
             </div>
@@ -100,13 +109,17 @@ const PricingSection = () => {
                 </span>
                 {selectedNameCheckPlan > 1 && (
                   <span className="text-sm text-muted-foreground line-through">
-                    {formatPrice(nameCheckPlans[selectedNameCheckPlan].originalPrice)}
+                    {formatPrice(
+                      nameCheckPlans[selectedNameCheckPlan].originalPrice,
+                    )}
                   </span>
                 )}
               </div>
               {selectedNameCheckPlan > 1 && (
                 <span className="inline-block mt-2 bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
-                  Saves {formatPrice(nameCheckPlans[selectedNameCheckPlan].savings)} per person
+                  Saves{" "}
+                  {formatPrice(nameCheckPlans[selectedNameCheckPlan].savings)}{" "}
+                  per person
                 </span>
               )}
             </div>
@@ -116,15 +129,23 @@ const PricingSection = () => {
               {nameCheckFeatures.map((feature, index) => (
                 <li key={index} className="flex items-start gap-2 group">
                   <Check className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
-                  <span className="text-muted-foreground text-sm">{feature}</span>
+                  <span className="text-muted-foreground text-sm">
+                    {feature}
+                  </span>
                 </li>
               ))}
             </ul>
 
             {/* CTA */}
-            <Button variant="secondary" size="default" className="w-full group" onClick={() => scrollToForm(`namecheck-${selectedNameCheckPlan}`)}>
+            <Button
+              variant="secondary"
+              size="default"
+              className="w-full group"
+              onClick={() => scrollToForm(`namecheck-${selectedNameCheckPlan}`)}
+            >
               <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
-                Get Name Check for {selectedNameCheckPlan} {selectedNameCheckPlan === 1 ? 'Person' : 'People'}
+                Get Name Check for {selectedNameCheckPlan} Person
+                {selectedNameCheckPlan !== 1 ? "s" : ""}
               </span>
             </Button>
 
@@ -140,8 +161,13 @@ const PricingSection = () => {
           </div>
 
           {/* Single Report Card */}
-          <div className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow transition-all duration-700 animate-border-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '200ms' }}>
-            <div className={`absolute -top-4 left-1/2 -translate-x-1/2 transition-all duration-500 delay-500 ${isVisible ? 'opacity-100 scale-100 animate-float-subtle' : 'opacity-0 scale-50'}`}>
+          <div
+            className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow transition-all duration-700 animate-border-glow ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+            style={{ transitionDelay: "200ms" }}
+          >
+            <div
+              className={`absolute -top-4 left-1/2 -translate-x-1/2 transition-all duration-500 delay-500 ${isVisible ? "opacity-100 scale-100 animate-float-subtle" : "opacity-0 scale-50"}`}
+            >
               <span className="bg-accent text-accent-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-gold">
                 MOST POPULAR
               </span>
@@ -159,11 +185,20 @@ const PricingSection = () => {
             {/* Price */}
             <div className="mb-4">
               <div className="flex items-baseline gap-2">
-                <span className="text-base text-muted-foreground line-through">{formatPrice(pricing.single.originalPrice)}</span>
-                <span className="text-3xl font-heading font-bold text-accent">{formatPrice(pricing.single.price)}</span>
+                <span className="text-base text-muted-foreground line-through">
+                  {formatPrice(pricing.single.originalPrice)}
+                </span>
+                <span className="text-3xl font-heading font-bold text-accent">
+                  {formatPrice(pricing.single.price)}
+                </span>
               </div>
               <span className="inline-block mt-2 bg-accent/10 text-accent text-xs font-semibold px-2 py-1 rounded-full">
-                {Math.round(((pricing.single.originalPrice - pricing.single.price) / pricing.single.originalPrice) * 100)}% OFF
+                {Math.round(
+                  ((pricing.single.originalPrice - pricing.single.price) /
+                    pricing.single.originalPrice) *
+                    100,
+                )}
+                % OFF
               </span>
             </div>
 
@@ -172,14 +207,23 @@ const PricingSection = () => {
               {singleFeatures.map((feature, index) => (
                 <li key={index} className="flex items-start gap-2 group">
                   <Check className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
-                  <span className="text-muted-foreground text-sm">{feature}</span>
+                  <span className="text-muted-foreground text-sm">
+                    {feature}
+                  </span>
                 </li>
               ))}
             </ul>
 
             {/* CTA */}
-            <Button variant="hero" size="default" className="w-full group" onClick={() => scrollToForm('single')}>
-              <span className="group-hover:scale-105 transition-transform duration-300 inline-block">Get Single Report</span>
+            <Button
+              variant="hero"
+              size="default"
+              className="w-full group"
+              onClick={() => scrollToForm("single")}
+            >
+              <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
+                Get Single Report
+              </span>
             </Button>
 
             {/* Trust Badges */}

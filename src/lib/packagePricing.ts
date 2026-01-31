@@ -12,10 +12,6 @@ export interface PackagePricing {
     price: number;
     originalPrice: number;
   };
-  family: {
-    price: number;
-    originalPrice: number;
-  };
 }
 
 /**
@@ -32,7 +28,7 @@ export function getPackagePricing(): PackagePricing {
   // Helper function to safely parse env var with fallback
   const getEnvNumber = (
     envVar: string | undefined,
-    fallback: number
+    fallback: number,
   ): number => {
     if (envVar === undefined || envVar === "") {
       return fallback;
@@ -46,7 +42,6 @@ export function getPackagePricing(): PackagePricing {
     console.log("📦 Package Pricing Environment Variables:", {
       namecheck: import.meta.env.VITE_PACKAGE_NAMECHECK_PRICE,
       single: import.meta.env.VITE_PACKAGE_SINGLE_PRICE,
-      family: import.meta.env.VITE_PACKAGE_FAMILY_PRICE,
     });
   }
 
@@ -55,21 +50,14 @@ export function getPackagePricing(): PackagePricing {
       price: getEnvNumber(import.meta.env.VITE_PACKAGE_NAMECHECK_PRICE, 199),
       originalPrice: getEnvNumber(
         import.meta.env.VITE_PACKAGE_NAMECHECK_ORIGINAL_PRICE,
-        199
+        199,
       ),
     },
     single: {
       price: getEnvNumber(import.meta.env.VITE_PACKAGE_SINGLE_PRICE, 1997),
       originalPrice: getEnvNumber(
         import.meta.env.VITE_PACKAGE_SINGLE_ORIGINAL_PRICE,
-        5100
-      ),
-    },
-    family: {
-      price: getEnvNumber(import.meta.env.VITE_PACKAGE_FAMILY_PRICE, 3994),
-      originalPrice: getEnvNumber(
-        import.meta.env.VITE_PACKAGE_FAMILY_ORIGINAL_PRICE,
-        10200
+        5100,
       ),
     },
   };
@@ -78,9 +66,7 @@ export function getPackagePricing(): PackagePricing {
 /**
  * Get price for a specific package type
  */
-export function getPackagePrice(
-  packageType: "namecheck" | "single" | "family"
-): number {
+export function getPackagePrice(packageType: "namecheck" | "single"): number {
   const pricing = getPackagePricing();
   return pricing[packageType].price;
 }
@@ -89,7 +75,7 @@ export function getPackagePrice(
  * Get original price for a specific package type
  */
 export function getPackageOriginalPrice(
-  packageType: "namecheck" | "single" | "family"
+  packageType: "namecheck" | "single",
 ): number {
   const pricing = getPackagePricing();
   return pricing[packageType].originalPrice;

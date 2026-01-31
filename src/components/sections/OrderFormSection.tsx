@@ -12,14 +12,16 @@ import { getPackagePrice, formatPrice } from "@/lib/packagePricing";
 // Name Check pricing configuration
 const NAME_CHECK_PRICING = {
   1: { price: 199, originalPrice: 199, savings: 0 },
-  2: { price: 358.20, originalPrice: 398, savings: 19.90 },
+  2: { price: 358.2, originalPrice: 398, savings: 19.9 },
   3: { price: 507.45, originalPrice: 597, savings: 29.85 },
 };
 
 const OrderFormSection = () => {
   const { toast } = useToast();
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
-  const [packageType, setPackageType] = useState<"namecheck" | "single">("single");
+  const [packageType, setPackageType] = useState<"namecheck" | "single">(
+    "single",
+  );
   const [nameCheckCount, setNameCheckCount] = useState<1 | 2 | 3>(1);
   const [formData, setFormData] = useState({
     person1FirstName: "",
@@ -62,9 +64,15 @@ const OrderFormSection = () => {
       }
     };
 
-    window.addEventListener("setPackageType", handleSetPackageType as EventListener);
+    window.addEventListener(
+      "setPackageType",
+      handleSetPackageType as EventListener,
+    );
     return () => {
-      window.removeEventListener("setPackageType", handleSetPackageType as EventListener);
+      window.removeEventListener(
+        "setPackageType",
+        handleSetPackageType as EventListener,
+      );
     };
   }, []);
 
@@ -146,12 +154,16 @@ const OrderFormSection = () => {
       if (processedValue.length > 0 && !validateMobile(processedValue)) {
         setErrors((prev) => ({
           ...prev,
-          mobile: "Please enter a valid 10-digit mobile number starting with 6-9",
+          mobile:
+            "Please enter a valid 10-digit mobile number starting with 6-9",
         }));
       }
     }
 
-    if ((name.includes("FirstName") || name.includes("SurName")) && processedValue) {
+    if (
+      (name.includes("FirstName") || name.includes("SurName")) &&
+      processedValue
+    ) {
       if (!validateName(processedValue, true)) {
         setErrors((prev) => ({
           ...prev,
@@ -199,11 +211,14 @@ const OrderFormSection = () => {
       const surNameKey = `person${i}SurName` as keyof typeof formData;
       const dobKey = `person${i}Dob` as keyof typeof formData;
 
-      if (!formData[firstNameKey] || !validateName(formData[firstNameKey], true)) {
+      if (
+        !formData[firstNameKey] ||
+        !validateName(formData[firstNameKey], true)
+      ) {
         newErrors[firstNameKey] = `Person ${i} first name is required`;
       }
       if (!formData[surNameKey] || !validateName(formData[surNameKey], true)) {
-        newErrors[surNameKey] = `Person ${i} surname is required`;
+        newErrors[surNameKey] = `Person ${i} last name is required`;
       }
       if (!formData[dobKey] || !validateDob(formData[dobKey])) {
         if (!formData[dobKey] || formData[dobKey].trim() === "") {
@@ -225,7 +240,8 @@ const OrderFormSection = () => {
         } else if (!/^[6-9]/.test(cleanedMobile)) {
           newErrors.mobile = "Mobile number must start with 6, 7, 8, or 9";
         } else {
-          newErrors.mobile = "Please enter a valid 10-digit Indian mobile number";
+          newErrors.mobile =
+            "Please enter a valid 10-digit Indian mobile number";
         }
       }
     }
@@ -234,7 +250,8 @@ const OrderFormSection = () => {
       if (!formData.email || formData.email.trim() === "") {
         newErrors.email = "Email address is required";
       } else {
-        newErrors.email = "Please enter a valid email address (e.g., name@example.com)";
+        newErrors.email =
+          "Please enter a valid email address (e.g., name@example.com)";
       }
     }
 
@@ -257,20 +274,40 @@ const OrderFormSection = () => {
 
     setErrors({});
     const price = getPrice();
-    const orderId = "ORD" + Date.now() + "-" + Math.random().toString(36).substring(2, 8);
-    
+    const orderId =
+      "ORD" + Date.now() + "-" + Math.random().toString(36).substring(2, 8);
+
     const orderData = {
       orderId,
       email: formData.email,
       mobile: formData.mobile,
-      name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
+      name: getFullName(
+        formData.person1FirstName,
+        formData.person1MiddleName,
+        formData.person1SurName,
+      ),
       dob: formData.person1Dob || "",
-      packageType: packageType === "namecheck" ? `namecheck-${nameCheckCount}` : packageType,
-      person1Name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
+      packageType:
+        packageType === "namecheck"
+          ? `namecheck-${nameCheckCount}`
+          : packageType,
+      person1Name: getFullName(
+        formData.person1FirstName,
+        formData.person1MiddleName,
+        formData.person1SurName,
+      ),
       person1Dob: formData.person1Dob || "",
-      person2Name: getFullName(formData.person2FirstName, formData.person2MiddleName, formData.person2SurName),
+      person2Name: getFullName(
+        formData.person2FirstName,
+        formData.person2MiddleName,
+        formData.person2SurName,
+      ),
       person2Dob: formData.person2Dob || "",
-      person3Name: getFullName(formData.person3FirstName, formData.person3MiddleName, formData.person3SurName),
+      person3Name: getFullName(
+        formData.person3FirstName,
+        formData.person3MiddleName,
+        formData.person3SurName,
+      ),
       person3Dob: formData.person3Dob || "",
     };
 
@@ -295,15 +332,34 @@ const OrderFormSection = () => {
           amount: price,
           mobile: formData.mobile,
           email: formData.email,
-          name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
+          name: getFullName(
+            formData.person1FirstName,
+            formData.person1MiddleName,
+            formData.person1SurName,
+          ),
           dob: formData.person1Dob || "",
-          packageType: packageType === "namecheck" ? `namecheck-${nameCheckCount}` : packageType,
+          packageType:
+            packageType === "namecheck"
+              ? `namecheck-${nameCheckCount}`
+              : packageType,
           orderId: orderId,
-          person1Name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
+          person1Name: getFullName(
+            formData.person1FirstName,
+            formData.person1MiddleName,
+            formData.person1SurName,
+          ),
           person1Dob: formData.person1Dob || "",
-          person2Name: getFullName(formData.person2FirstName, formData.person2MiddleName, formData.person2SurName),
+          person2Name: getFullName(
+            formData.person2FirstName,
+            formData.person2MiddleName,
+            formData.person2SurName,
+          ),
           person2Dob: formData.person2Dob || "",
-          person3Name: getFullName(formData.person3FirstName, formData.person3MiddleName, formData.person3SurName),
+          person3Name: getFullName(
+            formData.person3FirstName,
+            formData.person3MiddleName,
+            formData.person3SurName,
+          ),
           person3Dob: formData.person3Dob || "",
         }),
       });
@@ -311,7 +367,8 @@ const OrderFormSection = () => {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        const errorMessage = result.error || result.message || "Payment failed to start.";
+        const errorMessage =
+          result.error || result.message || "Payment failed to start.";
         toast({
           title: "Payment Error",
           description: errorMessage,
@@ -342,60 +399,90 @@ const OrderFormSection = () => {
 
   const price = getPrice();
 
-  const renderPersonFields = (personNum: number, showHeader: boolean = false) => (
-    <div key={personNum} className={`${showHeader ? "p-4 bg-muted/50 rounded-xl space-y-4 transition-all duration-300 hover:bg-muted/70" : "space-y-4"}`}>
+  const renderPersonFields = (
+    personNum: number,
+    showHeader: boolean = false,
+  ) => (
+    <div
+      key={personNum}
+      className={`${showHeader ? "p-4 bg-muted/50 rounded-xl space-y-4 transition-all duration-300 hover:bg-muted/70" : "space-y-4"}`}
+    >
       {showHeader && (
-        <p className="font-semibold text-secondary">Person {personNum} Details</p>
+        <p className="font-semibold text-secondary">
+          Person {personNum} Details
+        </p>
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <Label htmlFor={`person${personNum}FirstName`}>First Name (As per Aadhar) *</Label>
+          <Label htmlFor={`person${personNum}FirstName`}>
+            First Name (As per Aadhar) *
+          </Label>
           <Input
             id={`person${personNum}FirstName`}
             name={`person${personNum}FirstName`}
-            value={formData[`person${personNum}FirstName` as keyof typeof formData]}
+            value={
+              formData[`person${personNum}FirstName` as keyof typeof formData]
+            }
             onChange={handleInputChange}
             placeholder="First name"
             required
             className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-              errors[`person${personNum}FirstName`] ? "border-destructive focus:border-destructive" : ""
+              errors[`person${personNum}FirstName`]
+                ? "border-destructive focus:border-destructive"
+                : ""
             }`}
           />
           {errors[`person${personNum}FirstName`] && (
-            <p className="text-destructive text-sm mt-1">{errors[`person${personNum}FirstName`]}</p>
+            <p className="text-destructive text-sm mt-1">
+              {errors[`person${personNum}FirstName`]}
+            </p>
           )}
         </div>
         <div>
-          <Label htmlFor={`person${personNum}MiddleName`}>Middle Name (As per Aadhar)</Label>
+          <Label htmlFor={`person${personNum}MiddleName`}>
+            Middle Name (As per Aadhar)
+          </Label>
           <Input
             id={`person${personNum}MiddleName`}
             name={`person${personNum}MiddleName`}
-            value={formData[`person${personNum}MiddleName` as keyof typeof formData]}
+            value={
+              formData[`person${personNum}MiddleName` as keyof typeof formData]
+            }
             onChange={handleInputChange}
             placeholder="Middle name (optional)"
             className="mt-1.5 transition-all duration-300 focus:shadow-card"
           />
         </div>
         <div>
-          <Label htmlFor={`person${personNum}SurName`}>Sur Name (As per Aadhar) *</Label>
+          <Label htmlFor={`person${personNum}SurName`}>
+            Last Name (As per Aadhar) *
+          </Label>
           <Input
             id={`person${personNum}SurName`}
             name={`person${personNum}SurName`}
-            value={formData[`person${personNum}SurName` as keyof typeof formData]}
+            value={
+              formData[`person${personNum}SurName` as keyof typeof formData]
+            }
             onChange={handleInputChange}
-            placeholder="Surname"
+            placeholder="Last name"
             required
             className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-              errors[`person${personNum}SurName`] ? "border-destructive focus:border-destructive" : ""
+              errors[`person${personNum}SurName`]
+                ? "border-destructive focus:border-destructive"
+                : ""
             }`}
           />
           {errors[`person${personNum}SurName`] && (
-            <p className="text-destructive text-sm mt-1">{errors[`person${personNum}SurName`]}</p>
+            <p className="text-destructive text-sm mt-1">
+              {errors[`person${personNum}SurName`]}
+            </p>
           )}
         </div>
       </div>
       <div>
-        <Label htmlFor={`person${personNum}Dob`}>Date of Birth (DD/MM/YYYY) *</Label>
+        <Label htmlFor={`person${personNum}Dob`}>
+          Date of Birth (DD/MM/YYYY) *
+        </Label>
         <Input
           id={`person${personNum}Dob`}
           name={`person${personNum}Dob`}
@@ -405,24 +492,36 @@ const OrderFormSection = () => {
           max={getYesterdayDate()}
           required
           className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-            errors[`person${personNum}Dob`] ? "border-destructive focus:border-destructive" : ""
+            errors[`person${personNum}Dob`]
+              ? "border-destructive focus:border-destructive"
+              : ""
           }`}
         />
         {errors[`person${personNum}Dob`] && (
-          <p className="text-destructive text-sm mt-1">{errors[`person${personNum}Dob`]}</p>
+          <p className="text-destructive text-sm mt-1">
+            {errors[`person${personNum}Dob`]}
+          </p>
         )}
       </div>
     </div>
   );
 
   return (
-    <section className="section-padding bg-background" id="order-form" ref={ref}>
+    <section
+      className="section-padding bg-background"
+      id="order-form"
+      ref={ref}
+    >
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-5 gap-6 lg:gap-12">
             {/* Form Column */}
-            <div className={`lg:col-span-3 transition-all duration-700 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-12"}`}>
-              <h2 className="heading-lg text-ink-black mb-1.5 md:mb-2">Enter Your Details</h2>
+            <div
+              className={`lg:col-span-3 transition-all duration-700 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-12"}`}
+            >
+              <h2 className="heading-lg text-ink-black mb-1.5 md:mb-2">
+                Enter Your Details
+              </h2>
               <p className="text-muted-foreground text-sm md:text-base mb-6 md:mb-8">
                 We will use this information to create your personalized report
               </p>
@@ -430,26 +529,44 @@ const OrderFormSection = () => {
               <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
                 {/* Package Selection */}
                 <div className="space-y-3 md:space-y-4">
-                  <Label className="text-base md:text-lg font-semibold text-ink-black">Select Package</Label>
+                  <Label className="text-base md:text-lg font-semibold text-ink-black">
+                    Select Package
+                  </Label>
                   <RadioGroup
                     value={packageType}
-                    onValueChange={(val) => setPackageType(val as "namecheck" | "single")}
+                    onValueChange={(val) =>
+                      setPackageType(val as "namecheck" | "single")
+                    }
                     className="grid gap-3 md:gap-4"
                   >
                     {/* Name Check Option */}
                     <label
                       htmlFor="namecheck"
                       className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-lg md:rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
-                        packageType === "namecheck" ? "border-secondary bg-secondary/5" : "border-border hover:border-secondary/50"
+                        packageType === "namecheck"
+                          ? "border-secondary bg-secondary/5"
+                          : "border-border hover:border-secondary/50"
                       }`}
                     >
-                      <RadioGroupItem value="namecheck" id="namecheck" className="text-secondary flex-shrink-0" />
+                      <RadioGroupItem
+                        value="namecheck"
+                        id="namecheck"
+                        className="text-secondary flex-shrink-0"
+                      />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-ink-black">Name Check</span>
-                          <span className="bg-secondary text-secondary-foreground text-xs font-bold px-2 py-0.5 rounded-full">NOT SURE?</span>
+                          <span className="font-semibold text-ink-black">
+                            Name Check
+                          </span>
+                          <span className="bg-secondary text-secondary-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                            NOT SURE?
+                          </span>
                         </div>
-                        <span className="text-secondary font-bold">{formatPrice(NAME_CHECK_PRICING[nameCheckCount].price)}</span>
+                        <span className="text-secondary font-bold">
+                          {formatPrice(
+                            NAME_CHECK_PRICING[nameCheckCount].price,
+                          )}
+                        </span>
                       </div>
                     </label>
 
@@ -457,16 +574,28 @@ const OrderFormSection = () => {
                     <label
                       htmlFor="single"
                       className={`flex items-center gap-3 md:gap-4 p-3 md:p-4 rounded-lg md:rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${
-                        packageType === "single" ? "border-accent bg-accent/5" : "border-border hover:border-accent/50"
+                        packageType === "single"
+                          ? "border-accent bg-accent/5"
+                          : "border-border hover:border-accent/50"
                       }`}
                     >
-                      <RadioGroupItem value="single" id="single" className="text-accent flex-shrink-0" />
+                      <RadioGroupItem
+                        value="single"
+                        id="single"
+                        className="text-accent flex-shrink-0"
+                      />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-ink-black">Name Correction Blueprint</span>
-                          <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">MOST POPULAR</span>
+                          <span className="font-semibold text-ink-black">
+                            Name Correction Blueprint
+                          </span>
+                          <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                            MOST POPULAR
+                          </span>
                         </div>
-                        <span className="text-accent font-bold">{formatPrice(getPackagePrice("single"))}</span>
+                        <span className="text-accent font-bold">
+                          {formatPrice(getPackagePrice("single"))}
+                        </span>
                       </div>
                     </label>
                   </RadioGroup>
@@ -475,7 +604,9 @@ const OrderFormSection = () => {
                 {/* Name Check Person Count Selection */}
                 {packageType === "namecheck" && (
                   <div className="space-y-3">
-                    <Label className="text-base font-semibold text-ink-black">Number of People</Label>
+                    <Label className="text-base font-semibold text-ink-black">
+                      Number of Persons
+                    </Label>
                     <div className="flex gap-2">
                       {([1, 2, 3] as const).map((num) => (
                         <button
@@ -488,10 +619,12 @@ const OrderFormSection = () => {
                               : "bg-muted text-muted-foreground hover:bg-muted/80"
                           }`}
                         >
-                          {num} {num === 1 ? "Person" : "People"}
+                          {num} Person{num !== 1 ? "s" : ""}
                           {num > 1 && (
                             <span className="block text-xs mt-1 opacity-80">
-                              Save {formatPrice(NAME_CHECK_PRICING[num].savings)}/person
+                              Save{" "}
+                              {formatPrice(NAME_CHECK_PRICING[num].savings)}
+                              /person
                             </span>
                           )}
                         </button>
@@ -504,8 +637,11 @@ const OrderFormSection = () => {
                 <div className="space-y-6">
                   {packageType === "namecheck" ? (
                     <>
-                      {Array.from({ length: nameCheckCount }, (_, i) => i + 1).map((personNum) =>
-                        renderPersonFields(personNum, nameCheckCount > 1)
+                      {Array.from(
+                        { length: nameCheckCount },
+                        (_, i) => i + 1,
+                      ).map((personNum) =>
+                        renderPersonFields(personNum, nameCheckCount > 1),
                       )}
                     </>
                   ) : (
@@ -515,7 +651,9 @@ const OrderFormSection = () => {
 
                 {/* Contact Details */}
                 <div className="space-y-4 pt-2">
-                  <p className="font-semibold text-ink-black">Contact Details</p>
+                  <p className="font-semibold text-ink-black">
+                    Contact Details
+                  </p>
                   <div>
                     <Label htmlFor="mobile">Mobile Number *</Label>
                     <Input
@@ -528,10 +666,16 @@ const OrderFormSection = () => {
                       required
                       maxLength={10}
                       className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-                        errors.mobile ? "border-destructive focus:border-destructive" : ""
+                        errors.mobile
+                          ? "border-destructive focus:border-destructive"
+                          : ""
                       }`}
                     />
-                    {errors.mobile && <p className="text-destructive text-sm mt-1">{errors.mobile}</p>}
+                    {errors.mobile && (
+                      <p className="text-destructive text-sm mt-1">
+                        {errors.mobile}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="email">Email ID *</Label>
@@ -544,25 +688,35 @@ const OrderFormSection = () => {
                       placeholder="Enter email address"
                       required
                       className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-                        errors.email ? "border-destructive focus:border-destructive" : ""
+                        errors.email
+                          ? "border-destructive focus:border-destructive"
+                          : ""
                       }`}
                     />
-                    {errors.email && <p className="text-destructive text-sm mt-1">{errors.email}</p>}
+                    {errors.email && (
+                      <p className="text-destructive text-sm mt-1">
+                        {errors.email}
+                      </p>
+                    )}
                   </div>
                 </div>
               </form>
             </div>
 
             {/* Order Summary */}
-            <div className={`lg:col-span-2 transition-all duration-700 delay-200 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-12"}`}>
+            <div
+              className={`lg:col-span-2 transition-all duration-700 delay-200 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-12"}`}
+            >
               <div className="bg-card rounded-2xl p-6 shadow-card sticky top-24 border border-border transition-all duration-300 hover:shadow-card-hover">
-                <h3 className="text-xl font-heading font-bold text-ink-black mb-6">Order Summary</h3>
+                <h3 className="text-xl font-heading font-bold text-ink-black mb-6">
+                  Order Summary
+                </h3>
 
                 <div className="space-y-4 pb-6 border-b border-border">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">
                       {packageType === "namecheck"
-                        ? `Name Check (${nameCheckCount} ${nameCheckCount === 1 ? "Person" : "People"})`
+                        ? `Name Check (${nameCheckCount} Person${nameCheckCount !== 1 ? "s" : ""})`
                         : "Name Correction Blueprint"}
                     </span>
                   </div>
@@ -571,11 +725,20 @@ const OrderFormSection = () => {
                     <>
                       <div className="flex justify-between text-muted-foreground">
                         <span>Original Price</span>
-                        <span className="line-through">{formatPrice(NAME_CHECK_PRICING[nameCheckCount].originalPrice)}</span>
+                        <span className="line-through">
+                          {formatPrice(
+                            NAME_CHECK_PRICING[nameCheckCount].originalPrice,
+                          )}
+                        </span>
                       </div>
                       <div className="flex justify-between text-secondary">
                         <span>You Save</span>
-                        <span>{formatPrice(NAME_CHECK_PRICING[nameCheckCount].savings * nameCheckCount)}</span>
+                        <span>
+                          {formatPrice(
+                            NAME_CHECK_PRICING[nameCheckCount].savings *
+                              nameCheckCount,
+                          )}
+                        </span>
                       </div>
                     </>
                   )}
@@ -583,59 +746,82 @@ const OrderFormSection = () => {
 
                 <div className="py-6 border-b border-border">
                   <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold text-ink-black">Total</span>
-                    <span className="text-3xl font-heading font-bold text-accent">{formatPrice(price)}</span>
+                    <span className="text-lg font-semibold text-ink-black">
+                      Total
+                    </span>
+                    <span className="text-3xl font-heading font-bold text-accent">
+                      {formatPrice(price)}
+                    </span>
                   </div>
                 </div>
 
-                <Button variant="hero" size="lg" className="w-full mt-6 group" onClick={handleSubmit}>
+                <Button
+                  variant="hero"
+                  size="lg"
+                  className="w-full mt-6 group"
+                  onClick={handleSubmit}
+                >
                   <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
                     Proceed to Secure Payment
                   </span>
                 </Button>
 
                 <div className="mt-4 text-center">
-                  <p className="text-xs text-muted-foreground">🔒 Your payment is 100% secure and encrypted</p>
+                  <p className="text-xs text-muted-foreground">
+                    🔒 Your payment is 100% secure and encrypted
+                  </p>
                 </div>
 
                 {/* What's Included */}
                 <div className="mt-6 pt-6 border-t border-border">
-                  <p className="font-semibold text-ink-black mb-3">What's Included:</p>
+                  <p className="font-semibold text-ink-black mb-3">
+                    What's Included:
+                  </p>
                   <ul className="space-y-2">
                     {packageType === "namecheck" ? (
                       <>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Quick Name Compatibility Check
+                          <Check className="w-4 h-4 text-secondary" /> Quick
+                          Name Compatibility Check
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Mulank & Bhagyank Overview
+                          <Check className="w-4 h-4 text-secondary" /> Mulank &
+                          Bhagyank Overview
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Clear Yes/No Recommendation
+                          <Check className="w-4 h-4 text-secondary" /> Clear
+                          Yes/No Recommendation
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Expert Analysis Summary
+                          <Check className="w-4 h-4 text-secondary" /> Expert
+                          Analysis Summary
                         </li>
                       </>
                     ) : (
                       <>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Complete Mulank & Bhagyank Analysis
+                          <Check className="w-4 h-4 text-secondary" /> Complete
+                          Mulank & Bhagyank Analysis
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Current Name Evaluation
+                          <Check className="w-4 h-4 text-secondary" /> Current
+                          Name Evaluation
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> 2 Corrected Name Options
+                          <Check className="w-4 h-4 text-secondary" /> 2
+                          Corrected Name Options
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Personal Loshu Grid
+                          <Check className="w-4 h-4 text-secondary" /> Personal
+                          Loshu Grid
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> 2 Years Roadmap
+                          <Check className="w-4 h-4 text-secondary" /> 2 Years
+                          Roadmap
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> PDF Report (50+ Pages)
+                          <Check className="w-4 h-4 text-secondary" /> PDF
+                          Report (50+ Pages)
                         </li>
                       </>
                     )}

@@ -42,7 +42,7 @@ const HeroSection = () => {
           {/* CTA Button */}
           <div className="mb-6 md:mb-12 animate-fade-in-up delay-300">
             <Button variant="hero" size="xl" onClick={scrollToForm} className="animate-pulse-glow text-sm md:text-base px-6 md:px-8">
-              Get Name Check Report @ 199 Now
+              Get Name Check Report @ 167 Now
             </Button>
           </div>
 

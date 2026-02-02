@@ -24,9 +24,9 @@ const PricingSection = () => {
   };
 
   const nameCheckPlans = {
-    1: { price: 199, originalPrice: 199, savings: 0 },
-    2: { price: 358.2, originalPrice: 398, savings: 19.9 },
-    3: { price: 507.45, originalPrice: 597, savings: 29.85 },
+    1: { price: 199, originalPrice: 199, effectivePerPerson: 199 },
+    2: { price: 358.2, originalPrice: 398, effectivePerPerson: 179.1 },
+    3: { price: 507.45, originalPrice: 597, effectivePerPerson: 169.15 },
   };
 
   const nameCheckFeatures = [
@@ -116,9 +116,8 @@ const PricingSection = () => {
                 )}
               </div>
               {selectedNameCheckPlan > 1 && (
-                <span className="inline-block mt-2 bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
-                  Saves{" "}
-                  {formatPrice(nameCheckPlans[selectedNameCheckPlan].savings)}{" "}
+                <span className="inline-block mt-2 bg-accent/10 text-accent text-xs font-semibold px-2 py-1 rounded-full">
+                  {formatPrice(nameCheckPlans[selectedNameCheckPlan].effectivePerPerson)}{" "}
                   per person
                 </span>
               )}

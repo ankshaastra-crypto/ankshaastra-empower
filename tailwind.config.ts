@@ -51,13 +51,21 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Ankshaastra Custom Colors
-        midnight: "hsl(var(--midnight))",
-        "deep-purple": "hsl(var(--deep-purple))",
-        "rich-gold": "hsl(var(--rich-gold))",
-        "soft-pearl": "hsl(var(--soft-pearl))",
-        "ink-black": "hsl(var(--ink-black))",
-        "cool-gray": "hsl(var(--cool-gray))",
+        // MahaShivratri Theme Colors
+        neelkanth: "hsl(var(--neelkanth))",
+        "mystical-violet": "hsl(var(--mystical-violet))",
+        "temple-gold": "hsl(var(--temple-gold))",
+        "moonlit-pearl": "hsl(var(--moonlit-pearl))",
+        "sacred-ash": "hsl(var(--sacred-ash))",
+        "cosmic-teal": "hsl(var(--cosmic-teal))",
+        "deep-night": "hsl(var(--deep-night))",
+        // Legacy aliases for compatibility
+        midnight: "hsl(var(--neelkanth))",
+        "deep-purple": "hsl(var(--mystical-violet))",
+        "rich-gold": "hsl(var(--temple-gold))",
+        "soft-pearl": "hsl(var(--moonlit-pearl))",
+        "ink-black": "hsl(var(--deep-night))",
+        "cool-gray": "hsl(var(--foreground))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -95,8 +103,12 @@ export default {
           to: { opacity: "1", transform: "scale(1)" },
         },
         "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 20px hsl(43 66% 52% / 0.3)" },
-          "50%": { boxShadow: "0 0 40px hsl(43 66% 52% / 0.5)" },
+          "0%, 100%": { boxShadow: "0 0 20px hsl(38 70% 50% / 0.3)" },
+          "50%": { boxShadow: "0 0 40px hsl(38 70% 50% / 0.5)" },
+        },
+        "cosmic-pulse": {
+          "0%, 100%": { boxShadow: "0 0 20px hsl(270 50% 25% / 0.3)" },
+          "50%": { boxShadow: "0 0 40px hsl(270 50% 40% / 0.5)" },
         },
         float: {
           "0%, 100%": { transform: "translateY(0)" },

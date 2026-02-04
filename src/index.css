@@ -6,55 +6,57 @@
 
 @layer base {
   :root {
-    /* Ankshaastra Premium Theme */
-    --background: 240 7% 97%; /* Soft Pearl #F5F5F7 */
-    --foreground: 240 5% 24%; /* Cool Gray #3E3E3E */
+    /* MahaShivratri Theme - Sacred Night of Shiva */
+    --background: 240 15% 96%; /* Moonlit Pearl */
+    --foreground: 240 20% 18%; /* Deep Charcoal */
     
     --card: 0 0% 100%; /* Pure White */
-    --card-foreground: 240 5% 24%;
+    --card-foreground: 240 20% 18%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 240 5% 24%;
+    --popover-foreground: 240 20% 18%;
     
-    --primary: 253 35% 17%; /* Deep Midnight #0F0E1A */
-    --primary-foreground: 43 66% 52%; /* Rich Gold */
+    --primary: 225 60% 12%; /* Neelkanth Deep Blue #0D1B3E */
+    --primary-foreground: 45 30% 90%; /* Sacred Silver */
     
-    --secondary: 269 45% 19%; /* Royal Deep Purple #2E1A47 */
+    --secondary: 270 50% 25%; /* Mystical Violet #3D2066 */
     --secondary-foreground: 0 0% 100%;
     
-    --muted: 240 7% 92%;
-    --muted-foreground: 240 5% 40%;
+    --muted: 240 12% 92%;
+    --muted-foreground: 240 10% 40%;
     
-    --accent: 43 66% 52%; /* Rich Gold #D4AF37 */
-    --accent-foreground: 253 35% 10%;
+    --accent: 38 70% 50%; /* Temple Gold #D9A520 */
+    --accent-foreground: 225 60% 10%;
     
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     
-    --border: 240 10% 90%;
-    --input: 240 10% 90%;
-    --ring: 43 66% 52%;
+    --border: 240 15% 88%;
+    --input: 240 15% 88%;
+    --ring: 38 70% 50%;
     
     --radius: 1rem;
     
-    /* Custom Ankshaastra Variables */
-    --midnight: 253 35% 8%; /* Deep Midnight */
-    --deep-purple: 269 45% 19%; /* Royal Deep Purple */
-    --rich-gold: 43 66% 52%; /* Rich Gold */
-    --soft-pearl: 240 7% 97%;
-    --ink-black: 0 0% 7%; /* Ink Black #111111 */
-    --cool-gray: 0 0% 24%; /* Cool Gray #3E3E3E */
+    /* MahaShivratri Custom Variables */
+    --neelkanth: 225 60% 12%; /* Shiva's Blue Throat */
+    --mystical-violet: 270 50% 25%; /* Sacred Purple */
+    --temple-gold: 38 70% 50%; /* Divine Gold */
+    --moonlit-pearl: 240 15% 96%; /* Moon's Glow */
+    --sacred-ash: 0 0% 95%; /* Vibhuti White */
+    --cosmic-teal: 185 60% 25%; /* Cosmic Energy */
+    --deep-night: 225 70% 8%; /* Sacred Night #0A1628 */
     
     /* Gradients */
-    --gradient-mystic: linear-gradient(135deg, hsl(269 45% 19%) 0%, hsl(253 35% 8%) 100%);
-    --gradient-gold: linear-gradient(135deg, hsl(43 66% 52%) 0%, hsl(43 80% 45%) 100%);
+    --gradient-shiva: linear-gradient(135deg, hsl(225 60% 12%) 0%, hsl(270 50% 20%) 50%, hsl(225 70% 8%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(38 70% 50%) 0%, hsl(45 80% 55%) 100%);
     --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+    --gradient-cosmic: linear-gradient(135deg, hsl(270 50% 25%) 0%, hsl(185 60% 20%) 100%);
     
     /* Shadows */
-    --shadow-gold: 0 10px 40px -10px hsl(43 66% 52% / 0.3);
-    --shadow-purple: 0 10px 40px -10px hsl(269 45% 19% / 0.4);
-    --shadow-card: 0 4px 24px -4px hsl(269 45% 19% / 0.1);
-    --shadow-card-hover: 0 8px 32px -4px hsl(269 45% 19% / 0.15);
+    --shadow-gold: 0 10px 40px -10px hsl(38 70% 50% / 0.3);
+    --shadow-violet: 0 10px 40px -10px hsl(270 50% 25% / 0.4);
+    --shadow-card: 0 4px 24px -4px hsl(225 60% 12% / 0.1);
+    --shadow-card-hover: 0 8px 32px -4px hsl(270 50% 25% / 0.15);
     
     /* Typography */
     --font-heading: 'Playfair Display', serif;
@@ -62,23 +64,23 @@
   }
 
   .dark {
-    --background: 253 35% 8%;
+    --background: 225 70% 6%;
     --foreground: 0 0% 95%;
-    --card: 269 45% 12%;
+    --card: 225 60% 10%;
     --card-foreground: 0 0% 95%;
-    --popover: 269 45% 12%;
+    --popover: 225 60% 10%;
     --popover-foreground: 0 0% 95%;
-    --primary: 43 66% 52%;
-    --primary-foreground: 253 35% 8%;
-    --secondary: 269 45% 25%;
+    --primary: 38 70% 50%;
+    --primary-foreground: 225 60% 8%;
+    --secondary: 270 50% 30%;
     --secondary-foreground: 0 0% 95%;
-    --muted: 269 30% 20%;
+    --muted: 225 40% 15%;
     --muted-foreground: 0 0% 70%;
-    --accent: 43 66% 52%;
-    --accent-foreground: 253 35% 8%;
-    --border: 269 30% 25%;
-    --input: 269 30% 25%;
-    --ring: 43 66% 52%;
+    --accent: 38 70% 50%;
+    --accent-foreground: 225 60% 8%;
+    --border: 225 40% 20%;
+    --input: 225 40% 20%;
+    --ring: 38 70% 50%;
   }
 }
 
@@ -113,39 +115,54 @@
   
   /* Gold Glow Effect */
   .gold-glow {
-    box-shadow: 0 0 30px hsl(43 66% 52% / 0.3), 0 0 60px hsl(43 66% 52% / 0.1);
+    box-shadow: 0 0 30px hsl(38 70% 50% / 0.3), 0 0 60px hsl(38 70% 50% / 0.1);
   }
   
   .gold-glow-hover:hover {
-    box-shadow: 0 0 40px hsl(43 66% 52% / 0.4), 0 0 80px hsl(43 66% 52% / 0.2);
+    box-shadow: 0 0 40px hsl(38 70% 50% / 0.4), 0 0 80px hsl(38 70% 50% / 0.2);
   }
   
-  /* Purple Glow */
+  /* Violet Glow */
   .purple-glow {
-    box-shadow: 0 0 30px hsl(269 45% 19% / 0.4), 0 0 60px hsl(269 45% 19% / 0.2);
+    box-shadow: 0 0 30px hsl(270 50% 25% / 0.4), 0 0 60px hsl(270 50% 25% / 0.2);
+  }
+  
+  /* Neelkanth Blue Glow */
+  .neelkanth-glow {
+    box-shadow: 0 0 30px hsl(225 60% 12% / 0.4), 0 0 60px hsl(225 60% 30% / 0.2);
   }
   
   /* Gradient Backgrounds */
   .bg-mystic-gradient {
-    background: linear-gradient(135deg, hsl(269 45% 19%) 0%, hsl(253 35% 8%) 100%);
+    background: linear-gradient(135deg, hsl(225 60% 12%) 0%, hsl(270 50% 20%) 50%, hsl(225 70% 8%) 100%);
   }
   
   .bg-mystic-gradient-reverse {
-    background: linear-gradient(315deg, hsl(269 45% 19%) 0%, hsl(253 35% 8%) 100%);
+    background: linear-gradient(315deg, hsl(225 60% 12%) 0%, hsl(270 50% 20%) 50%, hsl(225 70% 8%) 100%);
   }
   
-  /* Mystic Pattern Overlay */
+  .bg-shiva-gradient {
+    background: linear-gradient(135deg, hsl(225 60% 12%) 0%, hsl(270 50% 25%) 100%);
+  }
+  
+  /* Mystic Pattern Overlay - Cosmic stars effect */
   .mystic-pattern {
     background-image: 
-      radial-gradient(circle at 20% 50%, hsl(43 66% 52% / 0.03) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, hsl(269 45% 40% / 0.05) 0%, transparent 40%),
-      radial-gradient(circle at 40% 80%, hsl(43 66% 52% / 0.02) 0%, transparent 45%);
+      radial-gradient(circle at 20% 50%, hsl(38 70% 50% / 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, hsl(270 50% 40% / 0.07) 0%, transparent 40%),
+      radial-gradient(circle at 40% 80%, hsl(185 60% 40% / 0.04) 0%, transparent 45%),
+      radial-gradient(circle at 60% 30%, hsl(38 70% 50% / 0.03) 0%, transparent 30%);
   }
   
   /* Text Gradients */
   .text-gradient-gold {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(43 66% 52%) 0%, hsl(43 80% 60%) 50%, hsl(43 66% 52%) 100%);
+    background-image: linear-gradient(135deg, hsl(38 70% 50%) 0%, hsl(45 80% 60%) 50%, hsl(38 70% 50%) 100%);
+  }
+  
+  .text-gradient-shiva {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(225 60% 30%) 0%, hsl(270 50% 40%) 50%, hsl(185 60% 35%) 100%);
   }
   
   /* Button Variants */
@@ -271,10 +288,19 @@
   
   @keyframes pulse-glow {
     0%, 100% {
-      box-shadow: 0 0 20px hsl(43 66% 52% / 0.3);
+      box-shadow: 0 0 20px hsl(38 70% 50% / 0.3);
     }
     50% {
-      box-shadow: 0 0 40px hsl(43 66% 52% / 0.5);
+      box-shadow: 0 0 40px hsl(38 70% 50% / 0.5);
+    }
+  }
+  
+  @keyframes cosmic-pulse {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(270 50% 25% / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 40px hsl(270 50% 40% / 0.5);
     }
   }
   
@@ -304,8 +330,8 @@
   }
   
   @keyframes border-glow {
-    0%, 100% { border-color: hsl(43 66% 52% / 0.3); }
-    50% { border-color: hsl(43 66% 52% / 0.6); }
+    0%, 100% { border-color: hsl(38 70% 50% / 0.3); }
+    50% { border-color: hsl(38 70% 50% / 0.6); }
   }
   
   .animate-fade-in-up {
@@ -341,9 +367,13 @@
   }
   
   .animate-shimmer {
-    background: linear-gradient(90deg, transparent 0%, hsl(43 66% 52% / 0.1) 50%, transparent 100%);
+    background: linear-gradient(90deg, transparent 0%, hsl(38 70% 50% / 0.1) 50%, transparent 100%);
     background-size: 200% 100%;
     animation: shimmer 2s infinite;
+  }
+  
+  .animate-cosmic-pulse {
+    animation: cosmic-pulse 2s ease-in-out infinite;
   }
   
   .animate-icon-bounce {
@@ -370,7 +400,7 @@
     @apply transition-shadow duration-300;
   }
   .hover-glow:hover {
-    box-shadow: 0 0 20px hsl(43 66% 52% / 0.3);
+    box-shadow: 0 0 20px hsl(38 70% 50% / 0.3);
   }
   
   /* Animation Delays */

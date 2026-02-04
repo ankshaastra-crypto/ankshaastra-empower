@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { response, customerEmail, customerName, customerMobile, customerDob, packageType, amount, person1Name, person1Dob, person2Name, person2Dob, person3Name, person3Dob } = req.body;
+    const { response, customerEmail, customerName, customerMobile, customerDob, customerCity, packageType, amount, person1Name, person1Dob, person2Name, person2Dob, person3Name, person3Dob } = req.body;
 
     // Get PhonePe keys for verification
     const saltKey = process.env.PHONEPE_SALT_KEY;
@@ -83,6 +83,7 @@ export default async function handler(req, res) {
     const finalCustomerName = (metadata.name && metadata.name.trim()) || customerName || 'Customer';
     const finalCustomerMobile = (metadata.mobile && metadata.mobile.trim()) || customerMobile || '';
     const finalCustomerDob = (metadata.dob && metadata.dob.trim()) || customerDob || '';
+    const finalCustomerCity = (metadata.city && metadata.city.trim()) || customerCity || '';
     const finalPackageType = (metadata.packageType && metadata.packageType.trim()) || packageType || 'single';
     const finalPerson1Name = (metadata.person1Name && metadata.person1Name.trim()) || person1Name || finalCustomerName;
     const finalPerson1Dob = (metadata.person1Dob && metadata.person1Dob.trim()) || person1Dob || finalCustomerDob;
@@ -104,6 +105,7 @@ export default async function handler(req, res) {
       customerName: finalCustomerName,
       customerMobile: finalCustomerMobile,
       customerDob: finalCustomerDob,
+      customerCity: finalCustomerCity,
       person1Name: finalPerson1Name,
       person1Dob: finalPerson1Dob,
       person2Name: finalPerson2Name,

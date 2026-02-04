@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { amount, mobile, orderId, email, name, dob, packageType, person1Name, person1Dob, person2Name, person2Dob, person3Name, person3Dob } = req.body;
+    const { amount, mobile, orderId, email, name, dob, packageType, city, person1Name, person1Dob, person2Name, person2Dob, person3Name, person3Dob } = req.body;
 
     // Validate amount
     if (!amount || isNaN(amount) || amount <= 0) {
@@ -114,6 +114,7 @@ export default async function handler(req, res) {
       name: name.trim(),
       mobile: mobile.trim(),
       dob: dob.trim(),
+      city: (city && city.trim()) || '',
       packageType: (packageType && packageType.trim()) || 'single',
       person1Name: (person1Name && person1Name.trim()) || name.trim(),
       person1Dob: (person1Dob && person1Dob.trim()) || dob.trim(),

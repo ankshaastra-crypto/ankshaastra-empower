@@ -38,6 +38,7 @@ const OrderFormSection = () => {
     person3Dob: "",
     mobile: "",
     email: "",
+    city: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -112,6 +113,14 @@ const OrderFormSection = () => {
     return true;
   };
 
+  const validateCity = (city: string): boolean => {
+    if (!city || city.trim() === "") return false;
+    const trimmedCity = city.trim();
+    if (trimmedCity.length < 2 || trimmedCity.length > 50) return false;
+    const cityRegex = /^[a-zA-Z\s\-'.]+$/;
+    return cityRegex.test(trimmedCity);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
@@ -123,7 +132,7 @@ const OrderFormSection = () => {
       }
     }
 
-    if (name.includes("Name")) {
+    if (name.includes("Name") || name === "city") {
       processedValue = value.replace(/[^a-zA-Z\s\-'.]/g, "");
       if (processedValue.length > 50) {
         processedValue = processedValue.substring(0, 50);
@@ -177,6 +186,15 @@ const OrderFormSection = () => {
         setErrors((prev) => ({
           ...prev,
           [name]: `Date of birth must be a valid date in the past`,
+        }));
+      }
+    }
+
+    if (name === "city" && processedValue) {
+      if (!validateCity(processedValue)) {
+        setErrors((prev) => ({
+          ...prev,
+          city: "City name must be 2-50 characters and contain only letters",
         }));
       }
     }
@@ -255,6 +273,15 @@ const OrderFormSection = () => {
       }
     }
 
+    if (!formData.city || !validateCity(formData.city)) {
+      if (!formData.city || formData.city.trim() === "") {
+        newErrors.city = "City name is required";
+      } else {
+        newErrors.city =
+          "City name must be 2-50 characters and contain only letters";
+      }
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       const firstError = Object.values(newErrors)[0];
@@ -281,6 +308,7 @@ const OrderFormSection = () => {
       orderId,
       email: formData.email,
       mobile: formData.mobile,
+      city: formData.city,
       name: getFullName(
         formData.person1FirstName,
         formData.person1MiddleName,
@@ -332,6 +360,7 @@ const OrderFormSection = () => {
           amount: price,
           mobile: formData.mobile,
           email: formData.email,
+          city: formData.city,
           name: getFullName(
             formData.person1FirstName,
             formData.person1MiddleName,
@@ -696,6 +725,29 @@ const OrderFormSection = () => {
                     {errors.email && (
                       <p className="text-destructive text-sm mt-1">
                         {errors.email}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="city">City Name *</Label>
+                    <Input
+                      id="city"
+                      name="city"
+                      type="text"
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      placeholder="Enter your city name"
+                      required
+                      maxLength={50}
+                      className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+                        errors.city
+                          ? "border-destructive focus:border-destructive"
+                          : ""
+                      }`}
+                    />
+                    {errors.city && (
+                      <p className="text-destructive text-sm mt-1">
+                        {errors.city}
                       </p>
                     )}
                   </div>

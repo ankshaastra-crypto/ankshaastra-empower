@@ -28,10 +28,10 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <section className="section-padding bg-card/50" ref={ref}>
+    <section className="section-padding bg-background" ref={ref}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className={`text-center max-w-3xl mx-auto mb-8 md:mb-16 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
           <h2 className="heading-lg text-ink-black mb-3 md:mb-4">
             What Your Report Includes
           </h2>
@@ -45,10 +45,9 @@ const FeaturesSection = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`bg-card rounded-xl md:rounded-2xl p-5 md:p-8 shadow-card card-hover card-hover-gold group transition-all duration-700 hover-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-              style={{ transitionDelay: `${150 + index * 100}ms` }}
+              className="bg-card rounded-xl md:rounded-2xl p-5 md:p-8 shadow-card card-hover card-hover-gold group transition-all duration-300 hover-glow"
             >
-              <div className={`w-11 h-11 md:w-14 md:h-14 bg-accent/10 rounded-lg md:rounded-xl flex items-center justify-center mb-4 md:mb-6 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 ${isVisible ? 'animate-float-subtle' : ''}`} style={{ animationDelay: `${index * 150}ms` }}>
+              <div className="w-11 h-11 md:w-14 md:h-14 bg-accent/10 rounded-lg md:rounded-xl flex items-center justify-center mb-4 md:mb-6 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                 <feature.icon className="w-5 h-5 md:w-7 md:h-7 text-accent transition-transform duration-300 group-hover:scale-110" />
               </div>
               

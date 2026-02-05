@@ -9,31 +9,10 @@ interface UseScrollAnimationOptions {
 export const useScrollAnimation = (options: UseScrollAnimationOptions = {}) => {
   const { threshold = 0.1, rootMargin = '50px 0px', triggerOnce = true } = options;
   const ref = useRef<HTMLDivElement>(null);
-  // Start visible to prevent white flash, then animate
+  // Always visible - no delayed loading animations
   const [isVisible, setIsVisible] = useState(true);
 
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          if (triggerOnce) {
-            observer.unobserve(element);
-          }
-        } else if (!triggerOnce) {
-          setIsVisible(false);
-        }
-      },
-      { threshold, rootMargin }
-    );
-
-    observer.observe(element);
-
-    return () => observer.disconnect();
-  }, [threshold, rootMargin, triggerOnce]);
+  // Content is always visible for instant loading - no intersection observer needed
 
   return { ref, isVisible };
 };

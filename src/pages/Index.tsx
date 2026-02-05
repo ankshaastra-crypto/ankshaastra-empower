@@ -17,7 +17,7 @@ import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen" style={{ backgroundColor: 'hsl(262 33% 97%)' }}>
       <ScrollProgress />
       <Header />
       <FloatingElements />

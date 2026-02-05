@@ -1,19 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap&text=');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Critical Layout CSS - loads before JS */
+html, body, #root {
+  background-color: #F6F4FA;
+  min-height: 100vh;
+}
+
 @layer base {
   :root {
     /* MahaShivratri Theme - Sacred Night of Shiva - Light sections */
-    --background: 240 10% 94%; /* Soft Pearl with warm undertone */
+    --background: 262 33% 97%; /* Violet-tinted off-white #F6F4FA */
     --foreground: 225 50% 15%; /* Deep Blue-Black */
     
-    --card: 240 20% 98%; /* Warm Off-White */
+    --card: 260 30% 99%; /* Slightly warmer white for cards */
     --card-foreground: 225 50% 15%;
     
-    --popover: 240 20% 98%;
+    --popover: 260 30% 99%;
     --popover-foreground: 225 50% 15%;
     
     --primary: 225 60% 15%; /* Neelkanth Deep Blue */
@@ -25,7 +31,7 @@
     --muted: 240 10% 90%;
     --muted-foreground: 225 20% 45%;
     
-    --accent: 38 75% 50%; /* Temple Gold */
+    --accent: 38 76% 50%; /* Temple Gold */
     --accent-foreground: 225 60% 12%;
     
     --destructive: 0 84% 60%;
@@ -40,11 +46,15 @@
     /* MahaShivratri Custom Variables */
     --neelkanth: 225 60% 15%;
     --mystical-violet: 270 45% 30%;
-    --temple-gold: 38 75% 50%;
-    --moonlit-pearl: 240 10% 94%;
-    --sacred-ash: 0 0% 95%; /* Vibhuti White */
+    --temple-gold: 38 76% 50%;
+    --moonlit-pearl: 262 33% 97%; /* #F6F4FA */
+    --sacred-ash: 262 30% 96%;
     --cosmic-teal: 185 60% 25%; /* Cosmic Energy */
     --deep-night: 225 60% 12%;
+    
+    /* Section backgrounds - explicit colors */
+    --section-light: 262 33% 97%; /* Same as background */
+    --section-alt: 260 30% 99%; /* Slightly different for alternating */
     
     /* Shadow for purple */
     --shadow-purple: 0 10px 40px -10px hsl(270 45% 30% / 0.4);
@@ -94,16 +104,28 @@
   
   html {
     scroll-behavior: smooth;
+    background-color: hsl(262 33% 97%);
   }
   
   body {
-    @apply bg-background text-foreground font-body antialiased;
+    @apply text-foreground font-body antialiased;
+    background-color: hsl(262 33% 97%);
     font-family: var(--font-body);
+  }
+  
+  #root {
+    background-color: hsl(262 33% 97%);
+    min-height: 100vh;
   }
   
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
   }
+}
+
+/* Section base styles - prevent FOUC */
+section {
+  background-color: hsl(262 33% 97%);
 }
 
 @layer components {

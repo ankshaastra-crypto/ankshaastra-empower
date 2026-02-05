@@ -39,7 +39,7 @@ const TestimonialsSection = () => {
   ];
 
   return (
-    <section className="section-padding bg-card" ref={ref}>
+    <section className="section-padding" style={{ backgroundColor: 'hsl(262 33% 97%)' }} ref={ref}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
@@ -61,7 +61,7 @@ const TestimonialsSection = () => {
               {testimonials.map((testimonial, index) => (
                 <CarouselItem key={index} className="pl-3 md:pl-4 md:basis-1/2 lg:basis-1/3">
                   <div className="mt-4">
-                    <div className="bg-background rounded-xl md:rounded-2xl p-5 md:p-8 shadow-card card-hover group relative h-full transition-all duration-300 hover:shadow-card-hover hover-glow">
+                    <div className="rounded-xl md:rounded-2xl p-5 md:p-8 shadow-card card-hover group relative h-full transition-all duration-300 hover:shadow-card-hover hover-glow" style={{ backgroundColor: 'hsl(260 30% 99%)' }}>
                       {/* Quote Icon */}
                       <div className="absolute -top-3 left-6 md:left-8">
                         <div className="w-8 h-8 md:w-10 md:h-10 bg-secondary rounded-full flex items-center justify-center shadow-purple group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300">

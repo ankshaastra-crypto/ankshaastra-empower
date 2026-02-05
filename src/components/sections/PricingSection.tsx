@@ -48,11 +48,11 @@ const PricingSection = () => {
   ];
 
   return (
-    <section className="section-padding bg-card/50" id="pricing" ref={ref}>
+    <section className="section-padding" id="pricing" style={{ backgroundColor: 'hsl(260 30% 99%)' }} ref={ref}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div
-          className={`text-center max-w-3xl mx-auto mb-8 md:mb-16 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+          className="text-center max-w-3xl mx-auto mb-8 md:mb-16"
         >
           <h2 className="heading-lg text-ink-black mb-3 md:mb-4">
             Get Your Personalized Report
@@ -66,8 +66,8 @@ const PricingSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto">
           {/* Name Check Card */}
           <div
-            className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-            style={{ transitionDelay: "100ms" }}
+            className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative"
+            style={{ backgroundColor: 'hsl(262 33% 97%)' }}
           >
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span className="bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
@@ -161,11 +161,11 @@ const PricingSection = () => {
 
           {/* Single Report Card */}
           <div
-            className={`bg-card rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow transition-all duration-700 animate-border-glow ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
-            style={{ transitionDelay: "200ms" }}
+            className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow animate-border-glow"
+            style={{ backgroundColor: 'hsl(262 33% 97%)' }}
           >
             <div
-              className={`absolute -top-4 left-1/2 -translate-x-1/2 transition-all duration-500 delay-500 ${isVisible ? "opacity-100 scale-100 animate-float-subtle" : "opacity-0 scale-50"}`}
+              className="absolute -top-4 left-1/2 -translate-x-1/2 animate-float-subtle"
             >
               <span className="bg-accent text-accent-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-gold">
                 MOST POPULAR

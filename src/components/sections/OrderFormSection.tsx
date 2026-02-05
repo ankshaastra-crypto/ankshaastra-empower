@@ -537,16 +537,17 @@ const OrderFormSection = () => {
 
   return (
     <section
-      className="section-padding bg-background"
+      className="section-padding"
       id="order-form"
       ref={ref}
+      style={{ backgroundColor: 'hsl(262 33% 97%)' }}
     >
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-5 gap-6 lg:gap-12">
             {/* Form Column */}
             <div
-              className={`lg:col-span-3 transition-all duration-700 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-12"}`}
+              className="lg:col-span-3"
             >
               <h2 className="heading-lg text-ink-black mb-1.5 md:mb-2">
                 Enter Your Details
@@ -757,9 +758,9 @@ const OrderFormSection = () => {
 
             {/* Order Summary */}
             <div
-              className={`lg:col-span-2 transition-all duration-700 delay-200 ${isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-12"}`}
+              className="lg:col-span-2"
             >
-              <div className="bg-card rounded-2xl p-6 shadow-card sticky top-24 border border-border transition-all duration-300 hover:shadow-card-hover">
+              <div className="rounded-2xl p-6 shadow-card sticky top-24 border border-border transition-all duration-300 hover:shadow-card-hover" style={{ backgroundColor: 'hsl(260 30% 99%)' }}>
                 <h3 className="text-xl font-heading font-bold text-ink-black mb-6">
                   Order Summary
                 </h3>

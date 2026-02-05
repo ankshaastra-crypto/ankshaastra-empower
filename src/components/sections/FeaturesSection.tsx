@@ -28,7 +28,7 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <section className="section-padding bg-background" ref={ref}>
+    <section className="section-padding" style={{ backgroundColor: 'hsl(260 30% 99%)' }} ref={ref}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
@@ -46,6 +46,7 @@ const FeaturesSection = () => {
             <div
               key={index}
               className="bg-card rounded-xl md:rounded-2xl p-5 md:p-8 shadow-card card-hover card-hover-gold group transition-all duration-300 hover-glow"
+              style={{ backgroundColor: 'hsl(262 33% 97%)' }}
             >
               <div className="w-11 h-11 md:w-14 md:h-14 bg-accent/10 rounded-lg md:rounded-xl flex items-center justify-center mb-4 md:mb-6 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                 <feature.icon className="w-5 h-5 md:w-7 md:h-7 text-accent transition-transform duration-300 group-hover:scale-110" />

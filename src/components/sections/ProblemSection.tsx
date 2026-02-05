@@ -28,10 +28,10 @@ const ProblemSection = () => {
   ];
 
   return (
-    <section className="section-padding bg-card" ref={ref}>
+    <section className="section-padding" style={{ backgroundColor: 'hsl(260 30% 99%)' }} ref={ref}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className={`text-center max-w-3xl mx-auto mb-8 md:mb-16 transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-100 translate-y-0'}`}>
+        <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
           <h2 className="heading-lg text-ink-black mb-3 md:mb-4">
             Does This Sound Familiar?
           </h2>
@@ -45,7 +45,8 @@ const ProblemSection = () => {
           {problems.map((problem, index) => (
             <div
               key={index}
-              className="bg-background rounded-xl md:rounded-2xl p-5 md:p-8 shadow-card card-hover group transition-all duration-300 hover-glow"
+              className="rounded-xl md:rounded-2xl p-5 md:p-8 shadow-card card-hover group transition-all duration-300 hover-glow"
+              style={{ backgroundColor: 'hsl(262 33% 97%)' }}
             >
               <div className="flex items-start gap-4 md:gap-5">
                 <div className="flex-shrink-0 w-11 h-11 md:w-14 md:h-14 bg-secondary/10 rounded-lg md:rounded-xl flex items-center justify-center group-hover:bg-secondary/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">

@@ -38,24 +38,24 @@ const FAQSection = () => {
   ];
 
   return (
-    <section className="section-padding bg-background" ref={ref}>
+    <section className="section-padding" style={{ backgroundColor: 'hsl(260 30% 99%)' }} ref={ref}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className={`text-center max-w-3xl mx-auto mb-12 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className="text-center max-w-3xl mx-auto mb-12">
           <h2 className="heading-lg text-ink-black">
             Frequently Asked Questions
           </h2>
         </div>
 
         {/* FAQ Accordion */}
-        <div className={`max-w-3xl mx-auto transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+        <div className="max-w-3xl mx-auto">
           <Accordion type="single" collapsible className="space-y-4">
             {faqs.map((faq, index) => (
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className={`bg-card rounded-2xl px-6 shadow-card border-none transition-all duration-500 hover:shadow-card-hover hover-glow ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-                style={{ transitionDelay: `${200 + index * 80}ms` }}
+                className="rounded-2xl px-6 shadow-card border-none transition-all duration-300 hover:shadow-card-hover hover-glow"
+                style={{ backgroundColor: 'hsl(262 33% 97%)' }}
               >
                 <AccordionTrigger className="text-left text-lg font-semibold text-ink-black hover:text-secondary py-6 hover:no-underline transition-colors duration-300">
                   {faq.question}

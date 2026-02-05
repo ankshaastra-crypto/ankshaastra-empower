@@ -5,11 +5,11 @@ const ExpertSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
 
   return (
-    <section className="section-padding bg-background" ref={ref}>
+    <section className="section-padding" style={{ backgroundColor: 'hsl(262 33% 97%)' }} ref={ref}>
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center max-w-6xl mx-auto">
           {/* Photo Column - First on Desktop */}
-          <div className={`order-2 lg:order-1 transition-all duration-700 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'}`}>
+          <div className="order-2 lg:order-1">
             <div className="relative group">
               {/* Photo Container */}
               <div className="relative rounded-3xl overflow-hidden shadow-purple">
@@ -28,14 +28,14 @@ const ExpertSection = () => {
               </div>
               
               {/* Floating Badge */}
-              <div className={`absolute -bottom-4 -right-4 bg-accent text-accent-foreground px-6 py-3 rounded-2xl shadow-gold font-semibold text-sm transition-all duration-700 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+              <div className="absolute -bottom-4 -right-4 bg-accent text-accent-foreground px-6 py-3 rounded-2xl shadow-gold font-semibold text-sm">
                 5000+ Reports Delivered
               </div>
             </div>
           </div>
 
           {/* Text Column - Second on Desktop */}
-          <div className={`order-1 lg:order-2 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'}`}>
+          <div className="order-1 lg:order-2">
             <h2 className="heading-lg text-ink-black mb-4">
               Who is Himansshu Agarwal
             </h2>

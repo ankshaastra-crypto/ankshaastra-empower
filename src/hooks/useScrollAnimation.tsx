@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 
 interface UseScrollAnimationOptions {
   threshold?: number;
@@ -6,13 +6,10 @@ interface UseScrollAnimationOptions {
   triggerOnce?: boolean;
 }
 
-export const useScrollAnimation = (options: UseScrollAnimationOptions = {}) => {
-  const { threshold = 0.1, rootMargin = '50px 0px', triggerOnce = true } = options;
+export const useScrollAnimation = (_options: UseScrollAnimationOptions = {}) => {
   const ref = useRef<HTMLDivElement>(null);
-  // Always visible - no delayed loading animations
-  const [isVisible, setIsVisible] = useState(true);
-
-  // Content is always visible for instant loading - no intersection observer needed
+  // Content is always visible for instant loading
+  const isVisible = true;
 
   return { ref, isVisible };
 };

@@ -28,14 +28,17 @@ const OrderFormSection = () => {
     person1MiddleName: "",
     person1SurName: "",
     person1Dob: "",
+    person1Gender: "",
     person2FirstName: "",
     person2MiddleName: "",
     person2SurName: "",
     person2Dob: "",
+    person2Gender: "",
     person3FirstName: "",
     person3MiddleName: "",
     person3SurName: "",
     person3Dob: "",
+    person3Gender: "",
     mobile: "",
     email: "",
     city: "",
@@ -228,6 +231,7 @@ const OrderFormSection = () => {
       const firstNameKey = `person${i}FirstName` as keyof typeof formData;
       const surNameKey = `person${i}SurName` as keyof typeof formData;
       const dobKey = `person${i}Dob` as keyof typeof formData;
+      const genderKey = `person${i}Gender` as keyof typeof formData;
 
       if (
         !formData[firstNameKey] ||
@@ -244,6 +248,9 @@ const OrderFormSection = () => {
         } else {
           newErrors[dobKey] = `Person ${i} date of birth must be in the past`;
         }
+      }
+      if (!formData[genderKey] || formData[genderKey].trim() === "") {
+        newErrors[genderKey] = `Person ${i} gender is required`;
       }
     }
 
@@ -315,6 +322,7 @@ const OrderFormSection = () => {
         formData.person1SurName,
       ),
       dob: formData.person1Dob || "",
+      gender: formData.person1Gender || "",
       packageType:
         packageType === "namecheck"
           ? `namecheck-${nameCheckCount}`
@@ -325,18 +333,21 @@ const OrderFormSection = () => {
         formData.person1SurName,
       ),
       person1Dob: formData.person1Dob || "",
+      person1Gender: formData.person1Gender || "",
       person2Name: getFullName(
         formData.person2FirstName,
         formData.person2MiddleName,
         formData.person2SurName,
       ),
       person2Dob: formData.person2Dob || "",
+      person2Gender: formData.person2Gender || "",
       person3Name: getFullName(
         formData.person3FirstName,
         formData.person3MiddleName,
         formData.person3SurName,
       ),
       person3Dob: formData.person3Dob || "",
+      person3Gender: formData.person3Gender || "",
     };
 
     try {
@@ -367,6 +378,7 @@ const OrderFormSection = () => {
             formData.person1SurName,
           ),
           dob: formData.person1Dob || "",
+          gender: formData.person1Gender || "",
           packageType:
             packageType === "namecheck"
               ? `namecheck-${nameCheckCount}`
@@ -378,18 +390,21 @@ const OrderFormSection = () => {
             formData.person1SurName,
           ),
           person1Dob: formData.person1Dob || "",
+          person1Gender: formData.person1Gender || "",
           person2Name: getFullName(
             formData.person2FirstName,
             formData.person2MiddleName,
             formData.person2SurName,
           ),
           person2Dob: formData.person2Dob || "",
+          person2Gender: formData.person2Gender || "",
           person3Name: getFullName(
             formData.person3FirstName,
             formData.person3MiddleName,
             formData.person3SurName,
           ),
           person3Dob: formData.person3Dob || "",
+          person3Gender: formData.person3Gender || "",
         }),
       });
 
@@ -508,29 +523,69 @@ const OrderFormSection = () => {
           )}
         </div>
       </div>
-      <div>
-        <Label htmlFor={`person${personNum}Dob`}>
-          Date of Birth (DD/MM/YYYY) *
-        </Label>
-        <Input
-          id={`person${personNum}Dob`}
-          name={`person${personNum}Dob`}
-          type="date"
-          value={formData[`person${personNum}Dob` as keyof typeof formData]}
-          onChange={handleInputChange}
-          max={getYesterdayDate()}
-          required
-          className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-            errors[`person${personNum}Dob`]
-              ? "border-destructive focus:border-destructive"
-              : ""
-          }`}
-        />
-        {errors[`person${personNum}Dob`] && (
-          <p className="text-destructive text-sm mt-1">
-            {errors[`person${personNum}Dob`]}
-          </p>
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor={`person${personNum}Dob`}>
+            Date of Birth (DD/MM/YYYY) *
+          </Label>
+          <Input
+            id={`person${personNum}Dob`}
+            name={`person${personNum}Dob`}
+            type="date"
+            value={formData[`person${personNum}Dob` as keyof typeof formData]}
+            onChange={handleInputChange}
+            max={getYesterdayDate()}
+            required
+            className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+              errors[`person${personNum}Dob`]
+                ? "border-destructive focus:border-destructive"
+                : ""
+            }`}
+          />
+          {errors[`person${personNum}Dob`] && (
+            <p className="text-destructive text-sm mt-1">
+              {errors[`person${personNum}Dob`]}
+            </p>
+          )}
+        </div>
+        <div>
+          <Label htmlFor={`person${personNum}Gender`}>Gender *</Label>
+          <RadioGroup
+            id={`person${personNum}Gender`}
+            value={formData[`person${personNum}Gender` as keyof typeof formData]}
+            onValueChange={(value) => {
+              setFormData((prev) => ({ ...prev, [`person${personNum}Gender`]: value }));
+              if (errors[`person${personNum}Gender`]) {
+                setErrors((prev) => {
+                  const newErrors = { ...prev };
+                  delete newErrors[`person${personNum}Gender`];
+                  return newErrors;
+                });
+              }
+            }}
+            className={`flex gap-4 mt-2.5 ${
+              errors[`person${personNum}Gender`] ? "text-destructive" : ""
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="male" id={`person${personNum}GenderMale`} />
+              <Label htmlFor={`person${personNum}GenderMale`} className="cursor-pointer font-normal">Male</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="female" id={`person${personNum}GenderFemale`} />
+              <Label htmlFor={`person${personNum}GenderFemale`} className="cursor-pointer font-normal">Female</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="other" id={`person${personNum}GenderOther`} />
+              <Label htmlFor={`person${personNum}GenderOther`} className="cursor-pointer font-normal">Other</Label>
+            </div>
+          </RadioGroup>
+          {errors[`person${personNum}Gender`] && (
+            <p className="text-destructive text-sm mt-1">
+              {errors[`person${personNum}Gender`]}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

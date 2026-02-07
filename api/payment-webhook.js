@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { response, customerEmail, customerName, customerMobile, customerDob, customerCity, packageType, amount, person1Name, person1Dob, person2Name, person2Dob, person3Name, person3Dob } = req.body;
+    const { response, customerEmail, customerName, customerMobile, customerDob, customerGender, customerCity, packageType, amount, person1Name, person1Dob, person1Gender, person2Name, person2Dob, person2Gender, person3Name, person3Dob, person3Gender } = req.body;
 
     // Get PhonePe keys for verification
     const saltKey = process.env.PHONEPE_SALT_KEY;
@@ -83,14 +83,18 @@ export default async function handler(req, res) {
     const finalCustomerName = (metadata.name && metadata.name.trim()) || customerName || 'Customer';
     const finalCustomerMobile = (metadata.mobile && metadata.mobile.trim()) || customerMobile || '';
     const finalCustomerDob = (metadata.dob && metadata.dob.trim()) || customerDob || '';
+    const finalCustomerGender = (metadata.gender && metadata.gender.trim()) || customerGender || '';
     const finalCustomerCity = (metadata.city && metadata.city.trim()) || customerCity || '';
     const finalPackageType = (metadata.packageType && metadata.packageType.trim()) || packageType || 'single';
     const finalPerson1Name = (metadata.person1Name && metadata.person1Name.trim()) || person1Name || finalCustomerName;
     const finalPerson1Dob = (metadata.person1Dob && metadata.person1Dob.trim()) || person1Dob || finalCustomerDob;
+    const finalPerson1Gender = (metadata.person1Gender && metadata.person1Gender.trim()) || person1Gender || finalCustomerGender;
     const finalPerson2Name = (metadata.person2Name && metadata.person2Name.trim()) || person2Name || '';
     const finalPerson2Dob = (metadata.person2Dob && metadata.person2Dob.trim()) || person2Dob || '';
+    const finalPerson2Gender = (metadata.person2Gender && metadata.person2Gender.trim()) || person2Gender || '';
     const finalPerson3Name = (metadata.person3Name && metadata.person3Name.trim()) || person3Name || '';
     const finalPerson3Dob = (metadata.person3Dob && metadata.person3Dob.trim()) || person3Dob || '';
+    const finalPerson3Gender = (metadata.person3Gender && metadata.person3Gender.trim()) || person3Gender || '';
 
     // Validate required fields before sending email
     if (!finalCustomerEmail || !orderId) {
@@ -105,13 +109,17 @@ export default async function handler(req, res) {
       customerName: finalCustomerName,
       customerMobile: finalCustomerMobile,
       customerDob: finalCustomerDob,
+      customerGender: finalCustomerGender,
       customerCity: finalCustomerCity,
       person1Name: finalPerson1Name,
       person1Dob: finalPerson1Dob,
+      person1Gender: finalPerson1Gender,
       person2Name: finalPerson2Name,
       person2Dob: finalPerson2Dob,
+      person2Gender: finalPerson2Gender,
       person3Name: finalPerson3Name,
       person3Dob: finalPerson3Dob,
+      person3Gender: finalPerson3Gender,
       orderId,
       amount: paymentAmount,
       packageType: finalPackageType,

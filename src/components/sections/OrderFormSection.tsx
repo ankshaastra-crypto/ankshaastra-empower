@@ -45,11 +45,30 @@ const OrderFormSection = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Calculate yesterday's date for DOB max attribute
+  // Calculate yesterday's date for DOB max attribute (using local timezone to avoid UTC shift)
   const getYesterdayDate = (): string => {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    return yesterday.toISOString().split("T")[0];
+    const year = yesterday.getFullYear();
+    const month = String(yesterday.getMonth() + 1).padStart(2, "0");
+    const day = String(yesterday.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Format a Date object to YYYY-MM-DD using local timezone (avoids UTC shift from toISOString)
+  const formatDateToLocal = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Format a YYYY-MM-DD string to DD/MM/YYYY for display
+  const formatDateForDisplay = (dateStr: string): string => {
+    if (!dateStr) return "";
+    const parts = dateStr.split("-");
+    if (parts.length !== 3) return dateStr;
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
   };
 
   // Listen for package type changes from PricingSection
@@ -526,7 +545,7 @@ const OrderFormSection = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor={`person${personNum}Dob`}>
-            Date of Birth (DD/MM/YYYY) *
+            Date of Birth *
           </Label>
           <Input
             id={`person${personNum}Dob`}

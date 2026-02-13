@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
+import { format, parse } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Check } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Check, CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { trackInitiateCheckout } from "@/lib/metaPixel";
@@ -544,23 +548,59 @@ const OrderFormSection = () => {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor={`person${personNum}Dob`}>
-            Date of Birth *
-          </Label>
-          <Input
-            id={`person${personNum}Dob`}
-            name={`person${personNum}Dob`}
-            type="date"
-            value={formData[`person${personNum}Dob` as keyof typeof formData]}
-            onChange={handleInputChange}
-            max={getYesterdayDate()}
-            required
-            className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-              errors[`person${personNum}Dob`]
-                ? "border-destructive focus:border-destructive"
-                : ""
-            }`}
-          />
+          <Label>Date of Birth *</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id={`person${personNum}Dob`}
+                variant="outline"
+                className={cn(
+                  "w-full mt-1.5 justify-start text-left font-normal transition-all duration-300 focus:shadow-card h-10",
+                  !formData[`person${personNum}Dob` as keyof typeof formData] && "text-muted-foreground",
+                  errors[`person${personNum}Dob`] && "border-destructive focus:border-destructive"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
+                {formData[`person${personNum}Dob` as keyof typeof formData]
+                  ? format(
+                      parse(formData[`person${personNum}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()),
+                      "dd MMM yyyy"
+                    )
+                  : "Pick date of birth"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={
+                  formData[`person${personNum}Dob` as keyof typeof formData]
+                    ? parse(formData[`person${personNum}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date())
+                    : undefined
+                }
+                onSelect={(date) => {
+                  if (date) {
+                    const formatted = formatDateToLocal(date);
+                    setFormData((prev) => ({ ...prev, [`person${personNum}Dob`]: formatted }));
+                    if (errors[`person${personNum}Dob`]) {
+                      setErrors((prev) => {
+                        const newErrors = { ...prev };
+                        delete newErrors[`person${personNum}Dob`];
+                        return newErrors;
+                      });
+                    }
+                  }
+                }}
+                disabled={(date) =>
+                  date > new Date() || date < new Date("1900-01-01")
+                }
+                initialFocus
+                captionLayout="dropdown-buttons"
+                fromYear={1920}
+                toYear={new Date().getFullYear()}
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
           {errors[`person${personNum}Dob`] && (
             <p className="text-destructive text-sm mt-1">
               {errors[`person${personNum}Dob`]}

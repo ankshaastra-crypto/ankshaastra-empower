@@ -654,7 +654,7 @@ const OrderFormSection = () => {
       className="section-padding"
       id="order-form"
       ref={ref}
-      style={{ backgroundColor: 'hsl(262 33% 97%)' }}
+      style={{ backgroundColor: 'hsl(0 0% 98%)' }}
     >
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
@@ -874,7 +874,7 @@ const OrderFormSection = () => {
             <div
               className="lg:col-span-2"
             >
-              <div className="rounded-2xl p-6 shadow-card sticky top-24 border border-border transition-all duration-300 hover:shadow-card-hover" style={{ backgroundColor: 'hsl(260 30% 99%)' }}>
+              <div className="rounded-2xl p-6 shadow-card sticky top-24 border border-border transition-all duration-300 hover:shadow-card-hover bg-card">
                 <h3 className="text-xl font-heading font-bold text-ink-black mb-6">
                   Order Summary
                 </h3>

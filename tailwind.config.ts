@@ -103,12 +103,12 @@ export default {
           to: { opacity: "1", transform: "scale(1)" },
         },
         "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 20px hsl(38 70% 50% / 0.3)" },
-          "50%": { boxShadow: "0 0 40px hsl(38 70% 50% / 0.5)" },
+          "0%, 100%": { boxShadow: "0 0 15px hsl(38 92% 50% / 0.2)" },
+          "50%": { boxShadow: "0 0 30px hsl(38 92% 50% / 0.35)" },
         },
         "cosmic-pulse": {
-          "0%, 100%": { boxShadow: "0 0 20px hsl(270 50% 25% / 0.3)" },
-          "50%": { boxShadow: "0 0 40px hsl(270 50% 40% / 0.5)" },
+          "0%, 100%": { boxShadow: "0 0 15px hsl(217 33% 17% / 0.15)" },
+          "50%": { boxShadow: "0 0 30px hsl(217 33% 17% / 0.25)" },
         },
         float: {
           "0%, 100%": { transform: "translateY(0)" },

@@ -61,12 +61,17 @@ export async function sendPaymentEmail({
   customerName, 
   customerMobile = '',
   customerDob = '',
+  customerGender = '',
+  customerCity = '',
   person1Name = '',
   person1Dob = '',
+  person1Gender = '',
   person2Name = '',
   person2Dob = '',
+  person2Gender = '',
   person3Name = '',
   person3Dob = '',
+  person3Gender = '',
   orderId, 
   amount, 
   packageType, 
@@ -79,12 +84,17 @@ export async function sendPaymentEmail({
   // Normalize values
   const finalCustomerMobile = (customerMobile && customerMobile.toString().trim()) || '';
   const finalCustomerDob = (customerDob && customerDob.toString().trim()) || '';
+  const finalCustomerGender = (customerGender && customerGender.toString().trim()) || '';
+  const finalCustomerCity = (customerCity && customerCity.toString().trim()) || '';
   const finalPerson1Name = (person1Name && person1Name.toString().trim()) || (customerName && customerName.toString().trim()) || '';
   const finalPerson1Dob = (person1Dob && person1Dob.toString().trim()) || finalCustomerDob;
+  const finalPerson1Gender = (person1Gender && person1Gender.toString().trim()) || finalCustomerGender;
   const finalPerson2Name = (person2Name && person2Name.toString().trim()) || '';
   const finalPerson2Dob = (person2Dob && person2Dob.toString().trim()) || '';
+  const finalPerson2Gender = (person2Gender && person2Gender.toString().trim()) || '';
   const finalPerson3Name = (person3Name && person3Name.toString().trim()) || '';
   const finalPerson3Dob = (person3Dob && person3Dob.toString().trim()) || '';
+  const finalPerson3Gender = (person3Gender && person3Gender.toString().trim()) || '';
   
   // Validate required parameters
   if (!customerEmail || !orderId) {
@@ -309,9 +319,9 @@ export async function sendPaymentEmail({
   if (personCount > 1) {
     // Multiple persons - show each person in separate sections
     const persons = [
-      { name: finalPerson1Name, dob: finalPerson1Dob },
-      { name: finalPerson2Name, dob: finalPerson2Dob },
-      { name: finalPerson3Name, dob: finalPerson3Dob },
+      { name: finalPerson1Name, dob: finalPerson1Dob, gender: finalPerson1Gender },
+      { name: finalPerson2Name, dob: finalPerson2Dob, gender: finalPerson2Gender },
+      { name: finalPerson3Name, dob: finalPerson3Dob, gender: finalPerson3Gender },
     ];
     
     customerDetailsHtml = persons
@@ -327,6 +337,10 @@ export async function sendPaymentEmail({
             <strong>Date of Birth:</strong>
             <span>${formatDob(person.dob)}</span>
           </div>
+          <div class="detail-row">
+            <strong>Gender:</strong>
+            <span>${hasValue(person.gender) ? person.gender : 'N/A'}</span>
+          </div>
         </div>
       `)
       .join('');
@@ -340,6 +354,10 @@ export async function sendPaymentEmail({
       <div class="detail-row">
         <strong>Date of Birth:</strong>
         <span>${formatDob(finalPerson1Dob)}</span>
+      </div>
+      <div class="detail-row">
+        <strong>Gender:</strong>
+        <span>${hasValue(finalPerson1Gender) ? finalPerson1Gender : 'N/A'}</span>
       </div>
     `;
   }
@@ -406,6 +424,10 @@ export async function sendPaymentEmail({
               <div class="detail-row">
                 <strong>Mobile Number:</strong>
                 <span><a href="tel:${hasValue(finalCustomerMobile) ? finalCustomerMobile : ''}" style="color: #2E1A47;">${hasValue(finalCustomerMobile) ? finalCustomerMobile : 'N/A'}</a></span>
+              </div>
+              <div class="detail-row">
+                <strong>City:</strong>
+                <span>${hasValue(finalCustomerCity) ? finalCustomerCity : 'N/A'}</span>
               </div>
             </div>
           </div>

@@ -204,6 +204,14 @@ export default async function handler(req, res) {
       getQueryParam('package') ||
       (metadata.packageType && metadata.packageType.trim()) ||
       'single';
+    const customerGender = (decryptedData.gender && decryptedData.gender.trim()) ||
+      getQueryParam('gender') ||
+      (metadata.gender && metadata.gender.trim()) ||
+      '';
+    const customerCity = (decryptedData.city && decryptedData.city.trim()) ||
+      getQueryParam('city') ||
+      (metadata.city && metadata.city.trim()) ||
+      '';
     // Extract person details (for namecheck packages with multiple persons or single package)
     const person1Name = (decryptedData.person1Name && decryptedData.person1Name.trim()) ||
       getQueryParam('person1Name') ||
@@ -213,6 +221,10 @@ export default async function handler(req, res) {
       getQueryParam('person1Dob') ||
       (metadata.person1Dob && metadata.person1Dob.trim()) ||
       customerDob;
+    const person1Gender = (decryptedData.person1Gender && decryptedData.person1Gender.trim()) ||
+      getQueryParam('person1Gender') ||
+      (metadata.person1Gender && metadata.person1Gender.trim()) ||
+      customerGender;
     const person2Name = (decryptedData.person2Name && decryptedData.person2Name.trim()) ||
       getQueryParam('person2Name') ||
       (metadata.person2Name && metadata.person2Name.trim()) ||
@@ -221,6 +233,10 @@ export default async function handler(req, res) {
       getQueryParam('person2Dob') ||
       (metadata.person2Dob && metadata.person2Dob.trim()) ||
       '';
+    const person2Gender = (decryptedData.person2Gender && decryptedData.person2Gender.trim()) ||
+      getQueryParam('person2Gender') ||
+      (metadata.person2Gender && metadata.person2Gender.trim()) ||
+      '';
     const person3Name = (decryptedData.person3Name && decryptedData.person3Name.trim()) ||
       getQueryParam('person3Name') ||
       (metadata.person3Name && metadata.person3Name.trim()) ||
@@ -228,6 +244,10 @@ export default async function handler(req, res) {
     const person3Dob = (decryptedData.person3Dob && decryptedData.person3Dob.trim()) ||
       getQueryParam('person3Dob') ||
       (metadata.person3Dob && metadata.person3Dob.trim()) ||
+      '';
+    const person3Gender = (decryptedData.person3Gender && decryptedData.person3Gender.trim()) ||
+      getQueryParam('person3Gender') ||
+      (metadata.person3Gender && metadata.person3Gender.trim()) ||
       '';
 
     // Send payment confirmation emails (customer and admin)
@@ -239,12 +259,17 @@ export default async function handler(req, res) {
           customerName: customerName || 'Customer',
           customerMobile: customerMobile,
           customerDob: customerDob,
+          customerGender: customerGender,
+          customerCity: customerCity,
           person1Name: person1Name,
           person1Dob: person1Dob,
+          person1Gender: person1Gender,
           person2Name: person2Name,
           person2Dob: person2Dob,
+          person2Gender: person2Gender,
           person3Name: person3Name,
           person3Dob: person3Dob,
+          person3Gender: person3Gender,
           orderId,
           amount: amountInPaise,
           packageType: packageType || 'single',

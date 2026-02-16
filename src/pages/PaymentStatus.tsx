@@ -796,31 +796,31 @@ const PaymentStatus = () => {
 
                   {paymentData && (
                     <div className="bg-muted/50 rounded-xl p-6 mb-6 text-left">
-                      <div className="space-y-3">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">
+                      <div className="space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                          <span className="text-muted-foreground text-sm shrink-0">
                             Order ID:
                           </span>
-                          <span className="font-semibold text-ink-black">
+                          <span className="font-semibold text-ink-black text-sm break-all sm:text-right">
                             {paymentData.orderId}
                           </span>
                         </div>
                         {paymentData.transactionId && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">
+                          <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                            <span className="text-muted-foreground text-sm shrink-0">
                               Transaction ID:
                             </span>
-                            <span className="font-semibold text-ink-black">
+                            <span className="font-semibold text-ink-black text-sm break-all sm:text-right">
                               {paymentData.transactionId}
                             </span>
                           </div>
                         )}
                         {paymentData.amount && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">
+                          <div className="flex justify-between items-center pt-2 border-t border-border">
+                            <span className="text-muted-foreground text-sm">
                               Amount Paid:
                             </span>
-                            <span className="font-semibold text-accent">
+                            <span className="font-bold text-accent text-lg">
                               ₹{paymentData.amount.toLocaleString()}
                             </span>
                           </div>

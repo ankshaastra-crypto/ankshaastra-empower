@@ -30,16 +30,19 @@ const OrderFormSection = () => {
   const [formData, setFormData] = useState({
     person1FirstName: "",
     person1MiddleName: "",
+    person1MiddleNameType: "",
     person1SurName: "",
     person1Dob: "",
     person1Gender: "",
     person2FirstName: "",
     person2MiddleName: "",
+    person2MiddleNameType: "",
     person2SurName: "",
     person2Dob: "",
     person2Gender: "",
     person3FirstName: "",
     person3MiddleName: "",
+    person3MiddleNameType: "",
     person3SurName: "",
     person3Dob: "",
     person3Gender: "",
@@ -256,6 +259,9 @@ const OrderFormSection = () => {
       const dobKey = `person${i}Dob` as keyof typeof formData;
       const genderKey = `person${i}Gender` as keyof typeof formData;
 
+      const middleNameKey = `person${i}MiddleName` as keyof typeof formData;
+      const middleNameTypeKey = `person${i}MiddleNameType` as keyof typeof formData;
+
       if (
         !formData[firstNameKey] ||
         !validateName(formData[firstNameKey], true)
@@ -264,6 +270,10 @@ const OrderFormSection = () => {
       }
       if (!formData[surNameKey] || !validateName(formData[surNameKey], true)) {
         newErrors[surNameKey] = `Person ${i} last name is required`;
+      }
+      // If middle name is filled, middle name type is mandatory
+      if (formData[middleNameKey] && formData[middleNameKey].trim() !== "" && (!formData[middleNameTypeKey] || formData[middleNameTypeKey].trim() === "")) {
+        newErrors[middleNameTypeKey] = `Please specify if middle name is father's/husband's name`;
       }
       if (!formData[dobKey] || !validateDob(formData[dobKey])) {
         if (!formData[dobKey] || formData[dobKey].trim() === "") {
@@ -357,6 +367,7 @@ const OrderFormSection = () => {
       ),
       person1Dob: formData.person1Dob || "",
       person1Gender: formData.person1Gender || "",
+      person1MiddleNameType: formData.person1MiddleNameType || "",
       person2Name: getFullName(
         formData.person2FirstName,
         formData.person2MiddleName,
@@ -364,6 +375,7 @@ const OrderFormSection = () => {
       ),
       person2Dob: formData.person2Dob || "",
       person2Gender: formData.person2Gender || "",
+      person2MiddleNameType: formData.person2MiddleNameType || "",
       person3Name: getFullName(
         formData.person3FirstName,
         formData.person3MiddleName,
@@ -371,6 +383,7 @@ const OrderFormSection = () => {
       ),
       person3Dob: formData.person3Dob || "",
       person3Gender: formData.person3Gender || "",
+      person3MiddleNameType: formData.person3MiddleNameType || "",
     };
 
     try {
@@ -414,6 +427,7 @@ const OrderFormSection = () => {
           ),
           person1Dob: formData.person1Dob || "",
           person1Gender: formData.person1Gender || "",
+          person1MiddleNameType: formData.person1MiddleNameType || "",
           person2Name: getFullName(
             formData.person2FirstName,
             formData.person2MiddleName,
@@ -421,6 +435,7 @@ const OrderFormSection = () => {
           ),
           person2Dob: formData.person2Dob || "",
           person2Gender: formData.person2Gender || "",
+          person2MiddleNameType: formData.person2MiddleNameType || "",
           person3Name: getFullName(
             formData.person3FirstName,
             formData.person3MiddleName,
@@ -428,6 +443,7 @@ const OrderFormSection = () => {
           ),
           person3Dob: formData.person3Dob || "",
           person3Gender: formData.person3Gender || "",
+          person3MiddleNameType: formData.person3MiddleNameType || "",
         }),
       });
 
@@ -515,7 +531,18 @@ const OrderFormSection = () => {
             value={
               formData[`person${personNum}MiddleName` as keyof typeof formData]
             }
-            onChange={handleInputChange}
+            onChange={(e) => {
+              handleInputChange(e);
+              // Clear middle name type if middle name is cleared
+              if (!e.target.value.trim()) {
+                setFormData((prev) => ({ ...prev, [`person${personNum}MiddleNameType`]: "" }));
+                setErrors((prev) => {
+                  const newErrors = { ...prev };
+                  delete newErrors[`person${personNum}MiddleNameType`];
+                  return newErrors;
+                });
+              }
+            }}
             placeholder="Middle name (optional)"
             className="mt-1.5 transition-all duration-300 focus:shadow-card"
           />
@@ -546,6 +573,45 @@ const OrderFormSection = () => {
           )}
         </div>
       </div>
+      {/* Conditional: Is middle name father's/husband's name? */}
+      {formData[`person${personNum}MiddleName` as keyof typeof formData]?.trim() && (
+        <div>
+          <Label htmlFor={`person${personNum}MiddleNameType`}>
+            Is the middle name father's / husband's name? *
+          </Label>
+          <RadioGroup
+            id={`person${personNum}MiddleNameType`}
+            value={formData[`person${personNum}MiddleNameType` as keyof typeof formData]}
+            onValueChange={(value) => {
+              setFormData((prev) => ({ ...prev, [`person${personNum}MiddleNameType`]: value }));
+              if (errors[`person${personNum}MiddleNameType`]) {
+                setErrors((prev) => {
+                  const newErrors = { ...prev };
+                  delete newErrors[`person${personNum}MiddleNameType`];
+                  return newErrors;
+                });
+              }
+            }}
+            className={`flex gap-4 mt-2 ${
+              errors[`person${personNum}MiddleNameType`] ? "text-destructive" : ""
+            }`}
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="yes" id={`person${personNum}MiddleNameTypeYes`} />
+              <Label htmlFor={`person${personNum}MiddleNameTypeYes`} className="cursor-pointer font-normal">Yes</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="no" id={`person${personNum}MiddleNameTypeNo`} />
+              <Label htmlFor={`person${personNum}MiddleNameTypeNo`} className="cursor-pointer font-normal">No</Label>
+            </div>
+          </RadioGroup>
+          {errors[`person${personNum}MiddleNameType`] && (
+            <p className="text-destructive text-sm mt-1">
+              {errors[`person${personNum}MiddleNameType`]}
+            </p>
+          )}
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label>Date of Birth *</Label>

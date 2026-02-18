@@ -30,13 +30,13 @@ const HeroSection = () => {
 
           {/* Main Heading */}
           <h1 className="heading-xl text-white mb-4 md:mb-6 animate-fade-in-up delay-100">
-            Your Name Shapes Your Destiny—
-            <span className="block text-gradient-gold">Is It Working For You or Against You?</span>
+            Something Invisible Is Blocking You.
+            <span className="block text-gradient-gold">And It's Been There Since Birth.</span>
           </h1>
 
           {/* Subheading */}
           <p className="body-lg text-white/80 max-w-3xl mx-auto mb-6 md:mb-10 animate-fade-in-up delay-200 px-2">
-            Align your name's energy with your date of birth for breakthrough results.
+            Discover if your name is working for you — or quietly working against you.
           </p>
 
           {/* CTA Button */}

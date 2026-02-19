@@ -6,7 +6,7 @@ const slides = [
   {
     heading: "Because a Name Is the First Gift",
     headingAccent: "You Give Your Child.",
-    subheading: "Personalised Baby Name Report by Himansshu Agarwal Ji — based on Numerology & Vedic principles.",
+    subheading: "Personalised Baby Name Report based on Numerology & Vedic principles.",
     cta: "Get Perfect Baby Name @ ₹1997",
     badges: [
       "2 meaningful, well-aligned name options",

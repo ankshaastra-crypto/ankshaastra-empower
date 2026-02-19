@@ -4,11 +4,16 @@ import { CheckCircle, ChevronLeft, ChevronRight } from "lucide-react";
 
 const slides = [
   {
-    heading: "Find the Perfect Name",
-    headingAccent: "For Your Baby's Bright Future.",
-    subheading: "A name rooted in numerology can shape your child's destiny from day one.",
-    cta: "Get Baby Name Report @ 199 Now",
-    badges: ["Personalized Suggestions", "Based on Date of Birth", "24-48 Hours Delivery"],
+    heading: "Because a Name Is the First Gift",
+    headingAccent: "You Give Your Child.",
+    subheading: "Personalised Baby Name Report by Himansshu Agarwal Ji — crafted using numerology principles, vedic principles and your baby's birth details.",
+    cta: "Get Perfect Baby Name @ ₹1997",
+    badges: [
+      "3 meaningful, well-aligned name options",
+      "Clear explanation with each suggestion",
+      "Simple, easy-to-understand report",
+      "Trusted by thousands of parents",
+    ],
   },
   {
     heading: "Something Invisible Is Blocking You.",

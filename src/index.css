@@ -6,53 +6,53 @@
 
 /* Critical Layout CSS - loads before JS */
 html, body, #root {
-  background-color: #FFF8F0;
+  background-color: #FDF6EC;
   min-height: 100vh;
 }
 
 @layer base {
   :root {
-    /* Warm Baby Name Theme */
-    --background: 36 60% 97%;
-    --foreground: 20 14% 15%;
+    /* Warm Ivory Luxury Theme */
+    --background: 38 67% 96%;       /* #FDF6EC */
+    --foreground: 0 0% 17%;         /* #2C2C2C deep charcoal */
 
     --card: 0 0% 100%;
-    --card-foreground: 20 14% 15%;
+    --card-foreground: 0 0% 17%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 14% 15%;
+    --popover-foreground: 0 0% 17%;
 
-    /* Deep warm navy (replaces all purple) */
-    --primary: 225 40% 15%;
-    --primary-foreground: 36 60% 97%;
+    /* Deep charcoal primary */
+    --primary: 0 0% 17%;            /* #2C2C2C */
+    --primary-foreground: 38 67% 96%;
 
-    --secondary: 220 35% 20%;
-    --secondary-foreground: 36 60% 97%;
+    --secondary: 0 0% 17%;
+    --secondary-foreground: 38 67% 96%;
 
-    --muted: 36 30% 93%;
-    --muted-foreground: 20 10% 45%;
+    --muted: 38 40% 92%;
+    --muted-foreground: 0 0% 42%;   /* #6B6B6B secondary text */
 
-    /* Gold accent stays */
-    --accent: 38 92% 50%;
-    --accent-foreground: 20 14% 15%;
+    /* Gold accent #C9A84C */
+    --accent: 42 55% 54%;           /* #C9A84C */
+    --accent-foreground: 0 0% 17%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 36 25% 88%;
-    --input: 36 25% 88%;
-    --ring: 38 92% 50%;
+    --border: 38 30% 86%;
+    --input: 38 30% 86%;
+    --ring: 42 55% 54%;
 
     --radius: 0.75rem;
 
     /* Custom Variables */
-    --neelkanth: 225 40% 15%;
-    --mystical-violet: 220 35% 20%;
-    --temple-gold: 38 92% 50%;
-    --moonlit-pearl: 36 60% 97%;
-    --sacred-ash: 36 30% 93%;
+    --neelkanth: 0 0% 17%;
+    --mystical-violet: 0 0% 17%;
+    --temple-gold: 42 55% 54%;      /* #C9A84C */
+    --moonlit-pearl: 38 67% 96%;    /* #FDF6EC */
+    --sacred-ash: 38 40% 92%;
     --cosmic-teal: 190 60% 40%;
-    --deep-night: 20 14% 10%;
+    --deep-night: 0 0% 17%;         /* #2C2C2C */
 
     /* Section backgrounds */
     --section-light: 36 60% 97%;
@@ -104,17 +104,17 @@ html, body, #root {
 
   html {
     scroll-behavior: smooth;
-    background-color: hsl(36 60% 97%);
+    background-color: #FDF6EC;
   }
 
   body {
     @apply text-foreground font-body antialiased;
-    background-color: hsl(36 60% 97%);
+    background-color: #FDF6EC;
     font-family: var(--font-body);
   }
 
   #root {
-    background-color: hsl(36 60% 97%);
+    background-color: #FDF6EC;
     min-height: 100vh;
   }
 
@@ -125,7 +125,7 @@ html, body, #root {
 
 /* Section base styles */
 section {
-  background-color: hsl(36 60% 97%);
+  background-color: hsl(38 67% 96%);
 }
 
 @layer components {

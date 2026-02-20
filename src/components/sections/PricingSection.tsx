@@ -174,7 +174,7 @@ const PricingSection = () => {
 
             <div className="mb-4 pt-2">
               <h3 className="text-xl font-heading font-bold text-ink-black mb-2">
-                Name Correction Blueprint
+                Perfect Baby Name Report
               </h3>
               <p className="text-muted-foreground text-sm">
                 Complete numerological analysis and correction

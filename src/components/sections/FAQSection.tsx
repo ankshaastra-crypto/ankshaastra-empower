@@ -5,67 +5,96 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
+import { Button } from "@/components/ui/button";
 
 const FAQSection = () => {
-  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
+  const { ref } = useScrollAnimation({ threshold: 0.1 });
+
+  const scrollToForm = () => {
+    const section = document.getElementById("order-form");
+    if (section) section.scrollIntoView({ behavior: "smooth" });
+  };
 
   const faqs = [
     {
-      question: "How long does it take to see results?",
+      question: "How and When Will I Receive My Report?",
       answer:
-        "Results are usually gradual, not overnight. Most people start noticing subtle shifts within 30–45 days, such as improved clarity, smoother communication, or reduced obstacles. Stronger, tangible changes are often seen within 3–6 months, depending on consistency, life situation, and how actively the corrected name is used.",
+        "Your personalised Baby Name Numerology Report will be delivered to your email address within 3 business days following your purchase. Be sure to check your inbox's spam and promotions folders in case the report lands there.",
     },
     {
-      question: "Do I need to legally change my name?",
+      question: "Is This an Instant Automated Report?",
       answer:
-        "No. A legal name change is not mandatory. While a legal change can create maximum impact, using the corrected name consistently in daily life—professionally, socially, and digitally—can deliver 70–80% of the benefits. The key factor is repetition and usage. The more you are addressed, introduced, and recognized by the corrected name, the stronger the energetic shift. Many clients use corrected names for work, business, and social identity while keeping legal documents unchanged.",
+        "No, your Baby Name Numerology Report is not an instant, automated report. Each report is crafted specifically for your child based on the information you provide — personally prepared by Himansshu Agarwal Ji.",
     },
     {
-      question: "Is this scientifically proven?",
+      question: "What is the Report Language?",
       answer:
-        "Numerology is not a modern laboratory science; it is a time-tested metaphysical system practiced for thousands of years. It is based on: vibrational mathematics, sound and frequency principles, observational patterns and historical validation. While it may not fit modern scientific testing models, its credibility comes from consistent real-life results, legacy usage, and experiential evidence, similar to astrology, acupuncture, or meditation-based sciences.",
+        "Your Baby Name Numerology Report will be delivered in English, making it easy for all parents to read and understand — with clear explanations of each name suggestion.",
     },
     {
-      question: "What if I don't like the suggested names?",
+      question: "What if I'm not familiar with numerology?",
       answer:
-        "You are never forced to adopt a name you don't resonate with. If a suggested option doesn't feel right: alternate spellings, phonetically similar names, energy-balanced variations can be explored. The final choice should always feel natural, comfortable, and aligned—because acceptance and usage are essential for results.",
+        "Our reports are designed to be user-friendly, even for those completely new to numerology. Each report includes clear explanations of the numerological concepts used. No jargon — just simple, actionable guidance.",
     },
     {
-      question: "Can I use this for my business name?",
+      question: "Is numerology a reliable method for selecting a baby's name?",
       answer:
-        "Yes, absolutely. Name correction is highly effective for businesses, including: company names, brand names, startups, professional practice names. A well-aligned business name supports: growth and stability, better recognition, improved decision-making flow, reduced operational resistance. Many entrepreneurs correct their business name first, even before personal name correction.",
+        "Numerology is a popular, ancient, and respected method for selecting a baby's name. While its reliability may vary depending on individual beliefs, many parents find it helpful in providing insight into their child's personality traits and potential. It's been practised across cultures for thousands of years.",
+    },
+    {
+      question: "Can I get a refund on the report?",
+      answer:
+        "Unfortunately, due to the personalised nature of the reports, we don't offer refunds once the report has been delivered to your email address / WhatsApp. Each report is custom-crafted and cannot be reused for another child.",
+    },
+    {
+      question: "What are the key factors considered in a baby name report?",
+      answer:
+        "Baby name report by Himansshu Agarwal Ji considers factors such as the numerical value of each letter in the name, overall numerical vibration, alignment with the baby's birth date, Life Path Number, Destiny Number, and Compound Number — all based on Numerology and Vedic principles.",
+    },
+    {
+      question: "What numerological techniques are used to analyse baby names?",
+      answer:
+        "Numerological techniques used to analyse baby names include calculating the Life Path Number, Destiny Number, and Compound Number based on the numerical values of letters in the name. These calculations help determine the name's compatibility with the child's energy and birth chart.",
     },
   ];
 
   return (
-    <section className="section-padding" style={{ backgroundColor: 'hsl(260 30% 99%)' }} ref={ref}>
+    <section className="section-padding" style={{ backgroundColor: 'hsl(36 60% 97%)' }} ref={ref}>
       <div className="container mx-auto px-4">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <h2 className="heading-lg text-ink-black">
+        <div className="text-center max-w-3xl mx-auto mb-10 md:mb-14">
+          <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3">FAQs</span>
+          <h2 className="heading-lg mb-3" style={{ color: 'hsl(222 47% 11%)' }}>
             Frequently Asked Questions
           </h2>
+          <p className="body-md text-muted-foreground">
+            Everything you need to know about your Baby Name Numerology Report.
+          </p>
         </div>
 
-        {/* FAQ Accordion */}
-        <div className="max-w-3xl mx-auto">
-          <Accordion type="single" collapsible className="space-y-4">
+        <div className="max-w-3xl mx-auto mb-10">
+          <Accordion type="single" collapsible className="space-y-3">
             {faqs.map((faq, index) => (
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className="rounded-2xl px-6 shadow-card border-none transition-all duration-300 hover:shadow-card-hover hover-glow"
-                style={{ backgroundColor: 'hsl(262 33% 97%)' }}
+                className="rounded-2xl px-5 md:px-6 shadow-card border-none transition-all duration-300 hover:shadow-card-hover"
+                style={{ backgroundColor: 'hsl(0 0% 100%)' }}
               >
-                <AccordionTrigger className="text-left text-lg font-semibold text-ink-black hover:text-secondary py-6 hover:no-underline transition-colors duration-300">
+                <AccordionTrigger className="text-left text-base md:text-lg font-semibold hover:text-accent py-5 hover:no-underline transition-colors duration-300" style={{ color: 'hsl(222 47% 11%)' }}>
                   {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground leading-relaxed pb-6 animate-fade-in">
+                <AccordionContent className="text-muted-foreground leading-relaxed pb-5 text-sm md:text-base animate-fade-in">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
+        </div>
+
+        <div className="text-center">
+          <Button variant="hero" size="xl" onClick={scrollToForm} className="animate-pulse-glow">
+            Claim Your Report Now
+          </Button>
         </div>
       </div>
     </section>

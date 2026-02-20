@@ -1,66 +1,85 @@
-import { Calculator, FileSearch, Lightbulb, Map } from "lucide-react";
+import { Stars, BookOpen, Baby, MessageCircle } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 
 const FeaturesSection = () => {
-  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
+  const { ref } = useScrollAnimation({ threshold: 0.1 });
 
   const features = [
     {
-      icon: Calculator,
-      title: "Mulank & Bhagyank Analysis",
-      text: "A deep-dive analysis of your Mulank (Birth Number) and Bhagyank (Destiny Number)—the two core forces shaping your personality, decision-making, and life direction. Understand the hidden numerical dynamics influencing your success, challenges, and timing.",
+      icon: Baby,
+      title: "3 Meaningful, Well-Aligned Name Options",
+      text: "Receive 3 carefully curated name suggestions — each numerologically compatible with your baby's birth date, Mulank, and Bhagyank for lifelong harmony.",
     },
     {
-      icon: FileSearch,
-      title: "Current Name Evaluation",
-      text: "A comprehensive assessment of how your existing name vibration impacts key areas of life including career growth, relationships, health patterns, and financial stability, supported with practical, real-life correlations.",
+      icon: Stars,
+      title: "Numerology & Vedic Compatibility Check",
+      text: "Each name is evaluated using Life Path Number, Destiny Number, and Compound Number analysis — ensuring deep vibrational alignment.",
     },
     {
-      icon: Lightbulb,
-      title: "Compound Number Analysis & Name Options",
-      text: "Receive 2 carefully curated and numerologically aligned name variations designed to harmonize with your birth energy. Each option includes expected outcomes, strengths, and ideal usage scenarios along with Compound Number Analysis.",
+      icon: BookOpen,
+      title: "Clear Explanation With Each Suggestion",
+      text: "No jargon. Every name comes with a simple, easy-to-understand explanation of why it works for your child's unique energy.",
     },
     {
-      icon: Map,
-      title: "2-Year Roadmap for Name Usage",
-      text: "A structured, step-by-step implementation plan detailing where, how, and when to adopt your corrected name—covering internal alignment, perception shifts, material changes, and complete integration—ensuring a smooth transition and long-term impact.",
+      icon: MessageCircle,
+      title: "Personalised to Your Baby's Birth Details",
+      text: "Your report is hand-crafted by Himansshu Agarwal Ji — not automated, not generic. Every word is written specifically for your child.",
     },
   ];
 
+  const highlights = [
+    "3 meaningful, well-aligned name options",
+    "Clear explanation with each suggestion",
+    "Based on Numerology & Vedic principles",
+    "Trusted by thousands of happy parents",
+    "Delivered within 3 business days",
+    "Written in English, easy to understand",
+  ];
+
   return (
-    <section className="section-padding" style={{ backgroundColor: 'hsl(260 30% 99%)' }} ref={ref}>
+    <section className="section-padding" style={{ backgroundColor: 'hsl(36 60% 97%)' }} ref={ref}>
       <div className="container mx-auto px-4">
-        {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
-          <h2 className="heading-lg text-ink-black mb-3 md:mb-4">
-            What Your Report Includes
+          <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">What You Get</span>
+          <h2 className="heading-lg mb-3 md:mb-4" style={{ color: 'hsl(222 47% 11%)' }}>
+            More Than Just a Beautiful Name
           </h2>
           <p className="body-md text-muted-foreground px-2">
-            A comprehensive 50+ page personalized report covering every aspect of your numerological profile.
+            Unlock Your Baby's Potential — Every child is unique. Numerology helps identify names that resonate with your baby's natural tendencies.
           </p>
         </div>
 
-        {/* Feature Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-6xl mx-auto mb-10 md:mb-16">
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-card rounded-xl md:rounded-2xl p-5 md:p-8 shadow-card card-hover card-hover-gold group transition-all duration-300 hover-glow"
-              style={{ backgroundColor: 'hsl(262 33% 97%)' }}
+              className="bg-white rounded-2xl p-5 md:p-8 shadow-card card-hover card-hover-gold group transition-all duration-300"
             >
-              <div className="w-11 h-11 md:w-14 md:h-14 bg-accent/10 rounded-lg md:rounded-xl flex items-center justify-center mb-4 md:mb-6 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                <feature.icon className="w-5 h-5 md:w-7 md:h-7 text-accent transition-transform duration-300 group-hover:scale-110" />
+              <div className="w-11 h-11 md:w-14 md:h-14 rounded-xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300" style={{ backgroundColor: 'hsl(38 92% 50% / 0.1)' }}>
+                <feature.icon className="w-5 h-5 md:w-7 md:h-7 text-accent" />
               </div>
-              
-              <h3 className="text-lg md:text-xl font-heading font-semibold text-ink-black mb-2 md:mb-4 group-hover:text-secondary transition-colors duration-300">
+              <h3 className="text-lg md:text-xl font-heading font-semibold mb-2 md:mb-3 group-hover:text-accent transition-colors duration-300" style={{ color: 'hsl(222 47% 11%)' }}>
                 {feature.title}
               </h3>
-              
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                 {feature.text}
               </p>
             </div>
           ))}
+        </div>
+
+        {/* Quick Highlights Strip */}
+        <div className="max-w-4xl mx-auto rounded-2xl p-6 md:p-8 border-2 border-accent/20" style={{ backgroundColor: 'hsl(38 92% 50% / 0.05)' }}>
+          <h3 className="text-center text-lg md:text-xl font-heading font-bold mb-5 md:mb-6" style={{ color: 'hsl(222 47% 11%)' }}>Your Report Includes:</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {highlights.map((item, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <CheckCircle className="w-5 h-5 text-accent flex-shrink-0" />
+                <span className="text-sm md:text-base text-muted-foreground">{item}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

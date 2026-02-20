@@ -45,11 +45,11 @@ const TestimonialsSection = () => {
   ];
 
   return (
-    <section className="section-padding" style={{ backgroundColor: 'hsl(36 60% 97%)' }} ref={ref}>
+    <section className="section-padding" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">Testimonials</span>
-          <h2 className="heading-lg mb-3 md:mb-4 px-2" style={{ color: 'hsl(222 47% 11%)' }}>
+          <h2 className="heading-lg mb-3 md:mb-4 px-2" style={{ color: '#2C2C2C' }}>
             Their Words Say It All
           </h2>
           <p className="body-md text-muted-foreground">
@@ -63,7 +63,7 @@ const TestimonialsSection = () => {
               {testimonials.map((testimonial, index) => (
                 <CarouselItem key={index} className="pl-3 md:pl-4 md:basis-1/2 lg:basis-1/3">
                   <div className="mt-4">
-                    <div className="rounded-2xl p-5 md:p-7 shadow-card card-hover group relative h-full transition-all duration-300 hover:shadow-card-hover" style={{ backgroundColor: 'hsl(0 0% 100%)' }}>
+                    <div className="rounded-2xl p-5 md:p-7 shadow-card card-hover group relative h-full transition-all duration-300 hover:shadow-card-hover" style={{ backgroundColor: '#FFFFFF' }}>
                       <div className="absolute -top-3 left-6 md:left-8">
                         <div className="w-9 h-9 bg-accent/90 rounded-full flex items-center justify-center shadow-gold group-hover:scale-110 transition-transform duration-300">
                           <Quote className="w-4 h-4 text-white" />
@@ -74,7 +74,7 @@ const TestimonialsSection = () => {
                           "{testimonial.quote}"
                         </p>
                         <div className="border-t border-border pt-3 flex items-center justify-between">
-                          <p className="font-semibold text-sm md:text-base" style={{ color: 'hsl(222 47% 11%)' }}>
+                          <p className="font-semibold text-sm md:text-base" style={{ color: '#2C2C2C' }}>
                             — {testimonial.author}
                           </p>
                           <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full font-medium">

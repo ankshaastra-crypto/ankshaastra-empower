@@ -39,11 +39,11 @@ const TrustSection = () => {
   ];
 
   return (
-    <section className="section-padding" style={{ backgroundColor: 'hsl(0 0% 100%)' }} ref={ref}>
+    <section className="section-padding" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
       <div className="container mx-auto px-4">
         {/* Stats Bar */}
         <div className="max-w-5xl mx-auto mb-12 md:mb-16">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 rounded-2xl p-6 md:p-8" style={{ background: 'linear-gradient(135deg, #2E1A47 0%, #0F0E1A 100%)' }}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 rounded-2xl p-6 md:p-8" style={{ background: 'linear-gradient(135deg, #2C2C2C 0%, #1a1a1a 100%)' }}>
             {stats.map((stat, i) => (
               <div key={i} className="text-center">
                 <div className="text-2xl md:text-4xl font-heading font-bold text-gradient-gold mb-1">{stat.value}</div>
@@ -55,7 +55,7 @@ const TrustSection = () => {
 
         <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3">Our Promise</span>
-          <h2 className="heading-lg" style={{ color: 'hsl(222 47% 11%)' }}>
+          <h2 className="heading-lg" style={{ color: '#2C2C2C' }}>
             Why Trust Ankshaastra?
           </h2>
         </div>
@@ -65,9 +65,9 @@ const TrustSection = () => {
             <div
               key={index}
               className="rounded-2xl p-5 md:p-6 shadow-card card-hover flex items-start gap-4 group transition-all duration-300"
-              style={{ backgroundColor: 'hsl(36 60% 97%)' }}
+              style={{ backgroundColor: '#FDF6EC' }}
             >
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300" style={{ backgroundColor: 'hsl(38 92% 50% / 0.12)' }}>
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300" style={{ backgroundColor: 'rgba(201,168,76,0.12)' }}>
                 <point.icon className="w-5 h-5 text-accent" />
               </div>
               <p className="text-muted-foreground leading-relaxed text-sm md:text-base group-hover:text-foreground transition-colors duration-300">

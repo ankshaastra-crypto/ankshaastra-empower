@@ -28,11 +28,11 @@ const ProblemSection = () => {
   ];
 
   return (
-    <section className="section-padding" style={{ backgroundColor: 'hsl(36 60% 97%)' }} ref={ref}>
+    <section className="section-padding" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">The Challenge</span>
-          <h2 className="heading-lg mb-3 md:mb-4" style={{ color: 'hsl(222 47% 11%)' }}>
+          <h2 className="heading-lg mb-3 md:mb-4" style={{ color: '#2C2C2C' }}>
             Struggling to Choose the<br />
             <span className="text-gradient-gold">Perfect Baby Name?</span>
           </h2>
@@ -46,14 +46,14 @@ const ProblemSection = () => {
             <div
               key={index}
               className="rounded-2xl p-5 md:p-8 shadow-card card-hover group transition-all duration-300"
-              style={{ backgroundColor: 'hsl(0 0% 100%)' }}
+              style={{ backgroundColor: '#FFFFFF' }}
             >
               <div className="flex items-start gap-4 md:gap-5">
-                <div className="flex-shrink-0 w-11 h-11 md:w-14 md:h-14 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all duration-300" style={{ backgroundColor: 'hsl(38 92% 50% / 0.1)' }}>
+                <div className="flex-shrink-0 w-11 h-11 md:w-14 md:h-14 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all duration-300" style={{ backgroundColor: 'rgba(201,168,76,0.1)' }}>
                   <item.icon className="w-5 h-5 md:w-7 md:h-7 text-accent" />
                 </div>
                 <div>
-                  <h3 className="text-lg md:text-xl font-heading font-semibold mb-1.5 md:mb-2 group-hover:text-accent transition-colors duration-300" style={{ color: 'hsl(222 47% 11%)' }}>
+                  <h3 className="text-lg md:text-xl font-heading font-semibold mb-1.5 md:mb-2 group-hover:text-accent transition-colors duration-300" style={{ color: '#2C2C2C' }}>
                     {item.title}
                   </h3>
                   <p className="text-sm md:text-base text-muted-foreground leading-relaxed">

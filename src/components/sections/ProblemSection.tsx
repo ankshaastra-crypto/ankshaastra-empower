@@ -1,63 +1,63 @@
-import { Target, Clock, TrendingDown, HelpCircle } from "lucide-react";
+import { Baby, Search, HeartCrack, Frown } from "lucide-react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 
 const ProblemSection = () => {
-  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
+  const { ref } = useScrollAnimation({ threshold: 0.1 });
 
-  const problems = [
+  const struggles = [
     {
-      icon: Target,
-      title: "Hard Work, No Results",
-      text: "You're talented and dedicated, yet success feels just out of reach. Opportunities slip away despite your best efforts.",
+      icon: Baby,
+      title: "Overwhelmed by Choices",
+      text: "With thousands of baby names out there, choosing the 'perfect' one can feel paralyzing. Too many opinions, too little clarity.",
     },
     {
-      icon: Clock,
-      title: "Unexplained Delays",
-      text: "Projects stall without reason. Decisions get postponed. It's like an invisible force is blocking your progress.",
+      icon: Search,
+      title: "Worried About Compatibility",
+      text: "You wonder: Does this name match my baby's birthdate? Will it support their destiny? The uncertainty is real.",
     },
     {
-      icon: TrendingDown,
-      title: "Financial Instability",
-      text: "Money comes and goes unpredictably. You work hard but struggle to build lasting wealth and security.",
+      icon: HeartCrack,
+      title: "Family Pressure & Conflicts",
+      text: "Everyone has a suggestion — grandparents, relatives, friends. You want to honour tradition while making the right choice.",
     },
     {
-      icon: HelpCircle,
-      title: "Confusion & Indecision",
-      text: "Mental fog clouds your judgment. You second-guess decisions and lack the confidence to move forward decisively.",
+      icon: Frown,
+      title: "Fear of Getting It Wrong",
+      text: "A name is forever. The weight of this decision keeps you up at night. You need clarity, not more confusion.",
     },
   ];
 
   return (
-    <section className="section-padding" style={{ backgroundColor: 'hsl(260 30% 99%)' }} ref={ref}>
+    <section className="section-padding" style={{ backgroundColor: 'hsl(36 60% 97%)' }} ref={ref}>
       <div className="container mx-auto px-4">
-        {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
-          <h2 className="heading-lg text-ink-black mb-3 md:mb-4">
-            Does This Sound Familiar?
+          <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">The Challenge</span>
+          <h2 className="heading-lg mb-3 md:mb-4" style={{ color: 'hsl(222 47% 11%)' }}>
+            Struggling to Choose the<br />
+            <span className="text-gradient-gold">Perfect Baby Name?</span>
           </h2>
           <p className="body-md text-muted-foreground px-2">
-            These patterns often indicate a misalignment between your name vibration and birth numbers.
+            You're not alone. Most parents feel this way — and a name isn't just a label. It's the first energy you gift your child.
           </p>
         </div>
 
-        {/* Problem Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-5xl mx-auto">
-          {problems.map((problem, index) => (
+          {struggles.map((item, index) => (
             <div
               key={index}
-              className="rounded-xl md:rounded-2xl p-5 md:p-8 shadow-card card-hover group transition-all duration-300 hover-glow"
-              style={{ backgroundColor: 'hsl(262 33% 97%)' }}
+              className="rounded-2xl p-5 md:p-8 shadow-card card-hover group transition-all duration-300"
+              style={{ backgroundColor: 'hsl(0 0% 100%)' }}
             >
               <div className="flex items-start gap-4 md:gap-5">
-                <div className="flex-shrink-0 w-11 h-11 md:w-14 md:h-14 bg-secondary/10 rounded-lg md:rounded-xl flex items-center justify-center group-hover:bg-secondary/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                  <problem.icon className="w-5 h-5 md:w-7 md:h-7 text-secondary transition-transform duration-500 group-hover:scale-110" />
+                <div className="flex-shrink-0 w-11 h-11 md:w-14 md:h-14 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all duration-300" style={{ backgroundColor: 'hsl(38 92% 50% / 0.1)' }}>
+                  <item.icon className="w-5 h-5 md:w-7 md:h-7 text-accent" />
                 </div>
                 <div>
-                  <h3 className="text-lg md:text-xl font-heading font-semibold text-ink-black mb-1.5 md:mb-2 group-hover:text-secondary transition-colors duration-300">
-                    {problem.title}
+                  <h3 className="text-lg md:text-xl font-heading font-semibold mb-1.5 md:mb-2 group-hover:text-accent transition-colors duration-300" style={{ color: 'hsl(222 47% 11%)' }}>
+                    {item.title}
                   </h3>
                   <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                    {problem.text}
+                    {item.text}
                   </p>
                 </div>
               </div>

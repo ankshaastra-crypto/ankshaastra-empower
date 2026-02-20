@@ -1,58 +1,76 @@
-import { ShieldCheck, Clock, BookOpen, PenTool, User } from "lucide-react";
+import { ShieldCheck, Clock, BookOpen, PenTool, User, Star } from "lucide-react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 
 const TrustSection = () => {
-  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
+  const { ref } = useScrollAnimation({ threshold: 0.1 });
 
   const trustPoints = [
     {
-      icon: ShieldCheck,
-      text: "100% Privacy Guaranteed – Your personal details are strictly confidential and never shared",
+      icon: PenTool,
+      text: "No Automated Reports — Every baby name report is 100% hand-crafted with personal attention by Himansshu Ji himself",
     },
     {
       icon: Clock,
-      text: "Fast Delivery – Report delivered to your email within 24–48 hours",
+      text: "Delivered within 3 business days to your email — check spam & promotions folders too",
     },
     {
       icon: BookOpen,
-      text: "Authentic Chaldean Numerology – Analysis based purely on traditional Chaldean principles",
-    },
-    {
-      icon: PenTool,
-      text: "No Software-Generated Reports – Every report is 100% hand-crafted with no automation or AI",
-    },
-    {
-      icon: User,
-      text: "Personally Prepared – Each report is analyzed and created by Himansshu Ji himself",
+      text: "Based on authentic Numerology & Vedic principles — not software-generated, not generic",
     },
     {
       icon: ShieldCheck,
-      text: "No Fear Tactics – Honest, empowering guidance without manipulation or scare tactics",
+      text: "100% Privacy Guaranteed — Your baby's details are strictly confidential and never shared",
+    },
+    {
+      icon: User,
+      text: "Report Language: English — Clear, simple, and easy to understand for all parents",
+    },
+    {
+      icon: Star,
+      text: "No Fear Tactics — Honest, empowering guidance. We celebrate your child's potential, always",
     },
   ];
 
+  const stats = [
+    { value: "1000+", label: "Families Served" },
+    { value: "4.9★", label: "Average Rating" },
+    { value: "99%", label: "Parents Felt Confident" },
+    { value: "100%", label: "Reliable Results" },
+  ];
+
   return (
-    <section className="section-padding" style={{ backgroundColor: 'hsl(262 33% 97%)' }} ref={ref}>
+    <section className="section-padding" style={{ backgroundColor: 'hsl(0 0% 100%)' }} ref={ref}>
       <div className="container mx-auto px-4">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <h2 className="heading-lg text-ink-black">
-            🔐 Why Trust Ankshaastra?
+        {/* Stats Bar */}
+        <div className="max-w-5xl mx-auto mb-12 md:mb-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 rounded-2xl p-6 md:p-8" style={{ background: 'linear-gradient(135deg, #2E1A47 0%, #0F0E1A 100%)' }}>
+            {stats.map((stat, i) => (
+              <div key={i} className="text-center">
+                <div className="text-2xl md:text-4xl font-heading font-bold text-gradient-gold mb-1">{stat.value}</div>
+                <div className="text-xs md:text-sm text-white/65">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
+          <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3">Our Promise</span>
+          <h2 className="heading-lg" style={{ color: 'hsl(222 47% 11%)' }}>
+            Why Trust Ankshaastra?
           </h2>
         </div>
 
-        {/* Trust Points */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-6xl mx-auto">
           {trustPoints.map((point, index) => (
             <div
               key={index}
-              className="rounded-2xl p-6 shadow-card card-hover flex items-start gap-4 group transition-all duration-300 hover-glow"
-              style={{ backgroundColor: 'hsl(260 30% 99%)' }}
+              className="rounded-2xl p-5 md:p-6 shadow-card card-hover flex items-start gap-4 group transition-all duration-300"
+              style={{ backgroundColor: 'hsl(36 60% 97%)' }}
             >
-              <div className="w-12 h-12 bg-secondary/10 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-accent/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-                <point.icon className="w-6 h-6 text-accent transition-transform duration-300 group-hover:scale-110" />
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300" style={{ backgroundColor: 'hsl(38 92% 50% / 0.12)' }}>
+                <point.icon className="w-5 h-5 text-accent" />
               </div>
-              <p className="text-muted-foreground leading-relaxed group-hover:text-foreground transition-colors duration-300">
+              <p className="text-muted-foreground leading-relaxed text-sm md:text-base group-hover:text-foreground transition-colors duration-300">
                 {point.text}
               </p>
             </div>

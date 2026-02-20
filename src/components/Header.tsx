@@ -36,9 +36,10 @@ const Header = () => {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-primary/95 backdrop-blur-lg shadow-purple py-3"
+          ? "backdrop-blur-lg shadow-lg py-3"
           : "bg-transparent py-5"
       }`}
+      style={isScrolled ? { background: 'rgba(30, 53, 87, 0.96)' } : {}}
     >
       <div className="container mx-auto flex items-center justify-between">
         {/* Logo */}

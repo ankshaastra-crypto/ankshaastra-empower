@@ -1,25 +1,18 @@
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 
+const DARK_BG = 'linear-gradient(135deg, #1E3557 0%, #0D1F35 100%)';
+
 const YouTubeSection = () => {
   const { ref } = useScrollAnimation({ threshold: 0.1 });
 
   const videos = [
-    {
-      id: "yF9ufbKJYcs",
-      title: "The Truth About Numerology: Myths, Facts & Hidden Secrets"
-    },
-    {
-      id: "1ilCeIyAVsI",
-      title: "Dhoni vs Kohli का Numerology सच!"
-    },
-    {
-      id: "WB17QfVWPlE",
-      title: "2026 में World War 3 या पैसों की बारिश?"
-    }
+    { id: "yF9ufbKJYcs", title: "The Truth About Numerology: Myths, Facts & Hidden Secrets" },
+    { id: "1ilCeIyAVsI", title: "Dhoni vs Kohli का Numerology सच!" },
+    { id: "WB17QfVWPlE", title: "2026 में World War 3 या पैसों की बारिश?" }
   ];
 
   return (
-    <section className="py-12 md:py-20 lg:py-24 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #2E1A47 0%, #0F0E1A 100%)' }} ref={ref}>
+    <section className="py-12 md:py-20 lg:py-24 relative overflow-hidden" style={{ background: DARK_BG }} ref={ref}>
       <div className="absolute inset-0 mystic-pattern pointer-events-none" />
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-10 right-20 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
@@ -42,10 +35,10 @@ const YouTubeSection = () => {
             {videos.map((video, index) => (
               <div
                 key={index}
-                className="relative bg-white/5 backdrop-blur-xl rounded-xl md:rounded-2xl p-3 md:p-4 border border-accent/25 gold-glow group hover:border-accent/50 transition-all duration-300 hover:-translate-y-2"
+                className="relative bg-white/5 backdrop-blur-xl rounded-xl md:rounded-2xl p-3 md:p-4 border border-accent/20 gold-glow group hover:border-accent/50 transition-all duration-300 hover:-translate-y-2"
               >
-                <div className="absolute top-0 left-0 w-8 md:w-10 h-8 md:h-10 border-t-2 border-l-2 border-accent/50 rounded-tl-xl md:rounded-tl-2xl" />
-                <div className="absolute bottom-0 right-0 w-8 md:w-10 h-8 md:h-10 border-b-2 border-r-2 border-accent/50 rounded-br-xl md:rounded-br-2xl" />
+                <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-accent/50 rounded-tl-xl md:rounded-tl-2xl" />
+                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-accent/50 rounded-br-xl md:rounded-br-2xl" />
                 <div className="aspect-video rounded-lg overflow-hidden bg-black/50 mb-2">
                   <iframe
                     src={`https://www.youtube.com/embed/${video.id}`}

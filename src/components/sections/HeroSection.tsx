@@ -16,7 +16,7 @@ const HeroSection = () => {
 
   return (
     <section
-      className="min-h-screen flex items-center pt-16 md:pt-20 pb-8 relative overflow-hidden"
+      className="min-h-screen flex items-center pt-20 pb-10 relative overflow-hidden"
       style={{ background: 'linear-gradient(160deg, #FDF6EC 0%, #F9EDDA 50%, #FDF6EC 100%)' }}
     >
       {/* Background mother & baby image — visible but soft */}
@@ -60,22 +60,32 @@ const HeroSection = () => {
             <div className="h-px w-16" style={{ background: 'linear-gradient(to left, transparent, #C9A84C)' }} />
           </div>
 
+          {/* Name Check pill */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-5 text-sm font-semibold" style={{ background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.4)', color: '#7A5A10' }}>
+            <span>✦</span>
+            <span>Name Check available @ ₹199</span>
+          </div>
+
           <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold mb-5 leading-tight" style={{ color: '#2C2C2C' }}>
             Because a Name Is the{" "}
             <span style={{ color: '#C9A84C' }}>First Gift You Give Your Child</span>
           </h1>
 
-          <p className="text-base md:text-lg mb-8 max-w-xl mx-auto leading-relaxed" style={{ color: '#6B6B6B' }}>
+          <p className="text-base md:text-lg mb-3 max-w-xl mx-auto leading-relaxed" style={{ color: '#6B6B6B' }}>
             Personalised Baby Name Report based on{" "}
             <span className="font-semibold" style={{ color: '#2C2C2C' }}>Numerology & Vedic principles</span>{" "}
             — crafted personally by Himansshu Agarwal Ji for your child's unique birth energy.
+          </p>
+
+          <p className="text-sm mb-7 max-w-md mx-auto" style={{ color: '#C9A84C', fontStyle: 'italic' }}>
+            Every baby name is personally kept by Himansshu Ji — not automated, not outsourced.
           </p>
 
           <div className="mb-8">
             <Button
               onClick={scrollToForm}
               size="xl"
-              className="font-bold text-base md:text-lg shadow-xl hover:scale-105 transition-transform animate-pulse-glow border-none"
+              className="w-full sm:w-auto font-bold text-base md:text-lg shadow-xl hover:scale-105 transition-transform animate-pulse-glow border-none"
               style={{ background: 'linear-gradient(135deg, #C9A84C 0%, #e0bf6a 100%)', color: '#2C2C2C' }}
             >
               Get Perfect Baby Name @ ₹1997
@@ -84,7 +94,7 @@ const HeroSection = () => {
           </div>
 
           {/* Badges */}
-          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 md:gap-5">
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 md:gap-4">
             {badges.map((badge, i) => (
               <div key={i} className="flex items-center gap-2 text-sm" style={{ color: '#6B6B6B' }}>
                 <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#C9A84C' }} />

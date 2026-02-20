@@ -19,8 +19,8 @@ const ExpertSection = () => {
     >
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center max-w-6xl mx-auto">
-          {/* Photo Column */}
-          <div className="order-2 lg:order-1">
+          {/* Photo Column — first on mobile (order-1), left on desktop (lg:order-1) */}
+          <div className="order-1 lg:order-1">
             <div className="relative group">
               <div className="relative rounded-3xl overflow-hidden shadow-purple">
                 <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
@@ -37,8 +37,8 @@ const ExpertSection = () => {
             </div>
           </div>
 
-          {/* Text Column */}
-          <div className="order-1 lg:order-2">
+          {/* Text Column — second on mobile (order-2), right on desktop (lg:order-2) */}
+          <div className="order-2 lg:order-2">
             <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">Meet the Expert</span>
             <h2 className="heading-lg mb-2 md:mb-3" style={{ color: '#2C2C2C' }}>
               About Himansshu Agarwal Ji
@@ -47,13 +47,21 @@ const ExpertSection = () => {
               Personalised Baby Name Report by Himansshu Agarwal Ji
             </p>
 
-            <p className="body-md text-muted-foreground leading-relaxed mb-6">
+            <p className="body-md text-muted-foreground leading-relaxed mb-4">
               Himansshu Agarwal Ji is a widely recognised <span className="text-accent font-semibold">Baby Name Expert</span> with over <span className="text-accent font-semibold">10 years of dedicated research</span> and practical experience in name vibration patterns, Vedic numerology, and Lal Kitab Remedies.
             </p>
 
-            <p className="body-md text-muted-foreground leading-relaxed mb-8">
+            <p className="body-md text-muted-foreground leading-relaxed mb-4">
               Through his brand <span className="font-semibold" style={{ color: '#2C2C2C' }}>Ankshaastra</span>, he has guided thousands of families in choosing names that truly align with their child's cosmic blueprint — crafted using numerology principles, Vedic principles, and your baby's birth details.
             </p>
+
+            {/* Key differentiator */}
+            <div className="flex items-start gap-3 rounded-2xl px-4 py-3 mb-6 border border-accent/25" style={{ background: 'rgba(201,168,76,0.07)' }}>
+              <span className="text-xl mt-0.5">✍️</span>
+              <p className="text-sm leading-relaxed" style={{ color: '#2C2C2C' }}>
+                <span className="font-semibold text-accent">Every baby name is personally kept by Himansshu Ji himself</span> — not automated, not outsourced. Your child's name is handcrafted with full attention and intention.
+              </p>
+            </div>
 
             {/* Stats Row */}
             <div className="grid grid-cols-3 gap-4">

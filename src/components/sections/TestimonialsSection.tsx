@@ -9,7 +9,7 @@ import {
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 
 const TestimonialsSection = () => {
-  const { ref } = useScrollAnimation({ threshold: 0.1 });
+  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
 
   const testimonials = [
     {
@@ -45,7 +45,7 @@ const TestimonialsSection = () => {
   ];
 
   return (
-    <section className="section-padding" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
+    <section ref={ref} className={`section-padding section-hidden ${isVisible ? 'section-visible' : ''}`} style={{ backgroundColor: '#FDF6EC' }}>
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">Testimonials</span>

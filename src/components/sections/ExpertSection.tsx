@@ -3,7 +3,7 @@ import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { Award, BookOpen, Star } from "lucide-react";
 
 const ExpertSection = () => {
-  const { ref } = useScrollAnimation({ threshold: 0.1 });
+  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
 
   const stats = [
     { icon: Star, value: "1000+", label: "Happy Families" },
@@ -12,7 +12,11 @@ const ExpertSection = () => {
   ];
 
   return (
-    <section className="section-padding" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
+    <section
+      ref={ref}
+      className={`section-padding section-hidden ${isVisible ? 'section-visible' : ''}`}
+      style={{ backgroundColor: '#FDF6EC' }}
+    >
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center max-w-6xl mx-auto">
           {/* Photo Column */}
@@ -44,7 +48,7 @@ const ExpertSection = () => {
             </p>
 
             <p className="body-md text-muted-foreground leading-relaxed mb-6">
-              Himansshu Agarwal Ji is a widely recognised Name Correction Expert and Lal Kitab Remedy Specialist, with over <span className="text-accent font-semibold">10 years of dedicated research</span> and practical experience in name vibration patterns, brand failure case studies, and corrective Lal Kitab remedies.
+              Himansshu Agarwal Ji is a widely recognised <span className="text-accent font-semibold">Baby Name Expert</span> with over <span className="text-accent font-semibold">10 years of dedicated research</span> and practical experience in name vibration patterns, Vedic numerology, and Lal Kitab Remedies.
             </p>
 
             <p className="body-md text-muted-foreground leading-relaxed mb-8">
@@ -54,7 +58,7 @@ const ExpertSection = () => {
             {/* Stats Row */}
             <div className="grid grid-cols-3 gap-4">
               {stats.map((stat, i) => (
-                <div key={i} className="text-center p-3 md:p-4 rounded-xl border border-accent/20" style={{ backgroundColor: 'rgba(201,168,76,0.06)' }}>
+                <div key={i} className="text-center p-3 md:p-4 rounded-xl border border-accent/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-md" style={{ backgroundColor: 'rgba(201,168,76,0.06)' }}>
                   <stat.icon className="w-5 h-5 text-accent mx-auto mb-1" />
                   <div className="text-xl md:text-2xl font-heading font-bold" style={{ color: '#2C2C2C' }}>{stat.value}</div>
                   <div className="text-xs text-muted-foreground">{stat.label}</div>

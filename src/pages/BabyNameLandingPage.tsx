@@ -1,197 +1,365 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Star, CheckCircle, ChevronDown, ChevronUp, Sparkles, Mail, Phone, User, Baby, FileText, ArrowRight } from "lucide-react";
+import {
+  CalendarIcon, Star, CheckCircle, ChevronDown, ChevronUp,
+  Mail, Phone, User, Baby, FileText, ArrowRight, Sparkles,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Design Tokens ────────────────────────────────────────────────────────────
+const T = {
+  ivory: "#FDF6EC",
+  ivoryDark: "#F5E9D0",
+  gold: "#C9A84C",
+  goldLight: "rgba(201,168,76,0.12)",
+  goldBorder: "rgba(201,168,76,0.3)",
+  goldBorderStrong: "rgba(201,168,76,0.55)",
+  dark: "#1E1206",
+  darkPanel: "#2A1A0E",
+  charcoal: "#2C2C2C",
+  secondary: "#6B6B6B",
+  cardBg: "#FFFFFF",
+  heading: "'Cormorant Garamond', Georgia, serif",
+  body: "'Lato', 'Helvetica Neue', Arial, sans-serif",
+};
+
+// ─── Global JSS-style keyframes injected once ─────────────────────────────────
+const GlobalStyles = () => (
+  <style>{`
+    @keyframes bn-fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes bn-fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes bn-float {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-10px); }
+    }
+    @keyframes bn-floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50%       { transform: translateY(-6px) rotate(3deg); }
+    }
+    @keyframes bn-shimmer {
+      0%   { box-shadow: 0 0 18px rgba(201,168,76,0.25); }
+      50%  { box-shadow: 0 0 38px rgba(201,168,76,0.50); }
+      100% { box-shadow: 0 0 18px rgba(201,168,76,0.25); }
+    }
+    @keyframes bn-sparkle {
+      0%, 100% { opacity: 0.15; transform: scale(1); }
+      50%       { opacity: 0.55; transform: scale(1.4); }
+    }
+    .bn-fadeUp  { animation: bn-fadeUp  0.75s ease-out forwards; }
+    .bn-fadeIn  { animation: bn-fadeIn  0.6s  ease-out forwards; }
+    .bn-float   { animation: bn-float   3.5s  ease-in-out infinite; }
+    .bn-shimmer { animation: bn-shimmer 2.5s  ease-in-out infinite; }
+
+    /* Utility: hover lift */
+    .bn-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+    .bn-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(201,168,76,0.18) !important; }
+
+    /* FAQ answer slide */
+    .bn-faq-answer {
+      overflow: hidden;
+      transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.3s ease;
+    }
+
+    /* Responsive helpers */
+    @media (max-width: 640px) {
+      .bn-hero-h1  { font-size: clamp(2rem, 8vw, 3.5rem) !important; }
+      .bn-section-title { font-size: clamp(1.75rem, 6vw, 2.5rem) !important; }
+      .bn-grid-2   { grid-template-columns: 1fr !important; }
+      .bn-grid-3   { grid-template-columns: 1fr !important; }
+      .bn-expert-grid { grid-template-columns: 1fr !important; }
+      .bn-expert-left { padding: 2rem !important; }
+      .bn-py-section { padding-top: 3.5rem !important; padding-bottom: 3.5rem !important; }
+      .bn-form-pad { padding: 1.75rem !important; }
+      .bn-hero-pad { padding: 6rem 1.25rem 3.5rem !important; }
+    }
+    @media (min-width: 641px) and (max-width: 1024px) {
+      .bn-hero-h1  { font-size: clamp(2.5rem, 5vw, 4rem) !important; }
+      .bn-grid-3   { grid-template-columns: 1fr 1fr !important; }
+    }
+  `}</style>
+);
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 interface FormData {
-  babyName: string;
-  dob: Date | undefined;
-  parentName: string;
-  email: string;
-  whatsapp: string;
-  notes: string;
+  babyName: string; dob: Date | undefined;
+  parentName: string; email: string;
+  whatsapp: string; notes: string;
 }
-
 interface FormErrors {
-  babyName?: string;
-  dob?: string;
-  parentName?: string;
-  email?: string;
-  whatsapp?: string;
+  babyName?: string; dob?: string;
+  parentName?: string; email?: string; whatsapp?: string;
+}
+const validateEmail  = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+const validateWA     = (v: string) => /^[6-9]\d{9}$/.test(v.trim());
+const validateName   = (v: string) => v.trim().length >= 2 && /^[a-zA-Z\s.'-]+$/.test(v.trim());
+function validate(d: FormData): FormErrors {
+  const e: FormErrors = {};
+  if (!validateName(d.babyName))  e.babyName   = "Valid name required (letters only, min 2 chars).";
+  if (!d.dob)                     e.dob        = "Date of birth is required.";
+  else if (d.dob > new Date())    e.dob        = "Date of birth cannot be in the future.";
+  if (!validateName(d.parentName)) e.parentName = "Valid parent name required (letters only, min 2 chars).";
+  if (!validateEmail(d.email))    e.email      = "Please enter a valid email address.";
+  if (!validateWA(d.whatsapp))    e.whatsapp   = "10-digit Indian mobile number required.";
+  return e;
 }
 
-// ─── Validation Helpers ───────────────────────────────────────────────────────
-const validateEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-const validateWhatsApp = (v: string) => /^[6-9]\d{9}$/.test(v.trim());
-const validateName = (v: string) => v.trim().length >= 2 && /^[a-zA-Z\s.'-]+$/.test(v.trim());
+// ─── Decorative ───────────────────────────────────────────────────────────────
+const Sparkle = ({ size = 16, style = {} }: { size?: number; style?: React.CSSProperties }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={T.gold} style={style}>
+    <path d="M12 2 L13.5 9 L20 12 L13.5 15 L12 22 L10.5 15 L4 12 L10.5 9 Z" />
+  </svg>
+);
 
-function validate(data: FormData): FormErrors {
-  const errs: FormErrors = {};
-  if (!validateName(data.babyName)) errs.babyName = "Please enter a valid baby name (letters only, min 2 chars).";
-  if (!data.dob) errs.dob = "Date of birth is required.";
-  else if (data.dob > new Date()) errs.dob = "Date of birth cannot be in the future.";
-  if (!validateName(data.parentName)) errs.parentName = "Please enter a valid parent name (letters only, min 2 chars).";
-  if (!validateEmail(data.email)) errs.email = "Please enter a valid email address.";
-  if (!validateWhatsApp(data.whatsapp)) errs.whatsapp = "Please enter a valid 10-digit Indian mobile number.";
-  return errs;
-}
-
-// ─── Decorative Components ───────────────────────────────────────────────────
 const GoldDivider = () => (
-  <div className="flex items-center gap-3 justify-center my-6">
-    <div className="h-px flex-1 max-w-[80px]" style={{ background: "linear-gradient(to right, transparent, #C9A84C)" }} />
-    <Sparkles className="w-4 h-4" style={{ color: "#C9A84C" }} />
-    <div className="h-px flex-1 max-w-[80px]" style={{ background: "linear-gradient(to left, transparent, #C9A84C)" }} />
+  <div style={{ display: "flex", alignItems: "center", gap: "10px", justifyContent: "center", margin: "16px 0" }}>
+    <div style={{ height: 1, flex: 1, maxWidth: 72, background: `linear-gradient(to right, transparent, ${T.gold})` }} />
+    <Sparkle size={14} />
+    <div style={{ height: 1, flex: 1, maxWidth: 72, background: `linear-gradient(to left, transparent, ${T.gold})` }} />
   </div>
 );
 
-const StarRating = ({ count = 5 }: { count?: number }) => (
-  <div className="flex gap-0.5">
-    {Array.from({ length: count }).map((_, i) => (
-      <Star key={i} className="w-4 h-4 fill-current" style={{ color: "#C9A84C" }} />
+const StarRow = ({ n = 5 }: { n?: number }) => (
+  <div style={{ display: "flex", gap: 2 }}>
+    {Array.from({ length: n }).map((_, i) => (
+      <Star key={i} size={14} fill={T.gold} color={T.gold} />
     ))}
   </div>
 );
 
-// ─── Section: Hero ────────────────────────────────────────────────────────────
-const HeroSection = () => {
-  const scrollToForm = () => document.getElementById("claim-form")?.scrollIntoView({ behavior: "smooth" });
+// Scroll-triggered fade-up hook
+function useFadeUp() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { el.classList.add("bn-fadeUp"); obs.disconnect(); } },
+      { threshold: 0.1 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return ref;
+}
 
+// ─── Shared Styles ────────────────────────────────────────────────────────────
+const S = {
+  section: (bg = T.ivory): React.CSSProperties => ({
+    background: bg,
+    padding: "5rem 1rem",
+    fontFamily: T.body,
+  }),
+  sectionInner: (maxW = "1000px"): React.CSSProperties => ({
+    maxWidth: maxW, margin: "0 auto",
+  }),
+  label: (): React.CSSProperties => ({
+    fontFamily: T.body, fontWeight: 700,
+    fontSize: "0.82rem", letterSpacing: "0.03em",
+    color: T.charcoal, display: "flex", alignItems: "center", gap: 6, marginBottom: 6,
+  }),
+  tag: (): React.CSSProperties => ({
+    fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.12em",
+    textTransform: "uppercase" as const, color: T.gold,
+    fontFamily: T.body,
+  }),
+  h2: (): React.CSSProperties => ({
+    fontFamily: T.heading, fontWeight: 700,
+    fontSize: "clamp(2rem, 4vw, 3rem)",
+    color: T.charcoal, lineHeight: 1.2, margin: "4px 0 0",
+  }),
+  card: (): React.CSSProperties => ({
+    background: T.cardBg,
+    border: `1px solid ${T.goldBorder}`,
+    borderRadius: 20,
+    boxShadow: "0 4px 24px rgba(44,24,16,0.07)",
+  }),
+  goldBtn: (full = false): React.CSSProperties => ({
+    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+    background: `linear-gradient(135deg, ${T.gold} 0%, #E8C96A 50%, ${T.gold} 100%)`,
+    color: T.dark, fontFamily: T.body, fontWeight: 700,
+    fontSize: "1rem", padding: "14px 36px", borderRadius: 14,
+    border: "none", cursor: "pointer",
+    boxShadow: "0 6px 28px rgba(201,168,76,0.38)",
+    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+    width: full ? "100%" : "auto",
+  }),
+};
+
+// ─── Nav ─────────────────────────────────────────────────────────────────────
+const Nav = () => {
+  const scroll = () => document.getElementById("claim-form")?.scrollIntoView({ behavior: "smooth" });
   return (
-    <section
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
-      style={{
-        background: "linear-gradient(160deg, #FDF8EF 0%, #F9F0DC 40%, #FDF8EF 100%)",
-      }}
-    >
-      {/* Decorative blobs */}
-      <div className="absolute top-20 left-10 w-72 h-72 rounded-full blur-3xl opacity-20 pointer-events-none" style={{ background: "#C9A84C" }} />
-      <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full blur-3xl opacity-10 pointer-events-none" style={{ background: "#C9A84C" }} />
+    <nav style={{
+      position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "14px 24px",
+      background: "rgba(253,246,236,0.94)",
+      borderBottom: `1px solid ${T.goldBorder}`,
+      backdropFilter: "blur(14px)",
+      fontFamily: T.body,
+    }}>
+      <span style={{ fontFamily: T.heading, fontWeight: 700, fontSize: "1.3rem", color: T.charcoal, letterSpacing: "0.01em" }}>
+        ✦ Ankshaastra
+      </span>
+      <button
+        onClick={scroll}
+        style={{ ...S.goldBtn(), padding: "10px 22px", fontSize: "0.85rem", borderRadius: 10 }}
+        onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.04)")}
+        onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+      >
+        Get Report — ₹2,497
+      </button>
+    </nav>
+  );
+};
 
-      {/* Floating sparkle dots */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(12)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full animate-float-subtle"
-            style={{
-              width: `${4 + (i % 3) * 2}px`,
-              height: `${4 + (i % 3) * 2}px`,
-              background: "#C9A84C",
-              opacity: 0.15 + (i % 4) * 0.05,
-              left: `${(i * 13 + 5) % 90 + 5}%`,
-              top: `${(i * 17 + 10) % 80 + 10}%`,
-              animationDelay: `${i * 0.4}s`,
-            }}
-          />
-        ))}
-      </div>
+// ─── Hero ─────────────────────────────────────────────────────────────────────
+const HeroSection = () => {
+  const scroll = () => document.getElementById("claim-form")?.scrollIntoView({ behavior: "smooth" });
+  const sparklePositions = [
+    { left: "8%",  top: "18%" }, { left: "92%", top: "12%" },
+    { left: "5%",  top: "72%" }, { left: "95%", top: "68%" },
+    { left: "22%", top: "88%" }, { left: "78%", top: "85%" },
+    { left: "50%", top: "6%"  }, { left: "35%", top: "92%" },
+  ];
+  return (
+    <section style={{
+      minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
+      background: `linear-gradient(160deg, ${T.ivory} 0%, ${T.ivoryDark} 50%, ${T.ivory} 100%)`,
+      position: "relative", overflow: "hidden", fontFamily: T.body,
+    }}>
+      {/* Gold glow blobs */}
+      <div style={{ position: "absolute", top: "10%", left: "5%", width: 320, height: 320,
+        borderRadius: "50%", background: T.gold, opacity: 0.08, filter: "blur(80px)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: "10%", right: "5%", width: 400, height: 400,
+        borderRadius: "50%", background: T.gold, opacity: 0.06, filter: "blur(90px)", pointerEvents: "none" }} />
 
-      <div className="container mx-auto px-4 py-24 relative z-10 text-center max-w-4xl">
+      {/* Floating sparkles */}
+      {sparklePositions.map((pos, i) => (
+        <div key={i} style={{
+          position: "absolute", ...pos, pointerEvents: "none",
+          animation: `bn-sparkle ${2 + i * 0.35}s ease-in-out infinite`,
+          animationDelay: `${i * 0.4}s`,
+        }}>
+          <Sparkle size={10 + (i % 3) * 4} style={{ color: T.gold }} />
+        </div>
+      ))}
+
+      <div className="bn-hero-pad" style={{
+        padding: "7rem 1.5rem 4rem", textAlign: "center",
+        maxWidth: 860, margin: "0 auto", position: "relative", zIndex: 2,
+      }}>
         {/* Badge */}
-        <div
-          className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold mb-8 animate-fade-in"
-          style={{ background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.35)", color: "#8B6914" }}
-        >
-          <Sparkles className="w-4 h-4" />
-          Personalised Baby Name Report by Himansshu Agarwal Ji
+        <div className="bn-fadeIn" style={{
+          display: "inline-flex", alignItems: "center", gap: 8,
+          padding: "8px 20px", borderRadius: 100,
+          background: T.goldLight, border: `1px solid ${T.goldBorder}`,
+          color: "#7A5A10", fontFamily: T.body, fontWeight: 700,
+          fontSize: "0.78rem", letterSpacing: "0.1em", textTransform: "uppercase",
+          marginBottom: 28,
+        }}>
+          <Sparkle size={12} /> Personalised Report by Himansshu Agarwal Ji
         </div>
 
-        <h1
-          className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 animate-fade-in-up"
-          style={{
-            fontFamily: "'Playfair Display', serif",
-            color: "#2C1810",
-            animationDelay: "0.1s",
-          }}
-        >
-          Struggling to Choose the
-          <span className="block" style={{ color: "#C9A84C" }}>Perfect Baby Name?</span>
+        <h1 className="bn-hero-h1" style={{
+          fontFamily: T.heading, fontWeight: 700,
+          fontSize: "clamp(2.4rem, 6vw, 5rem)",
+          color: T.charcoal, lineHeight: 1.15,
+          marginBottom: 20,
+        }}>
+          Struggling to Choose the<br />
+          <span style={{ color: T.gold }}>Perfect Baby Name?</span>
         </h1>
 
-        <p
-          className="text-xl md:text-2xl mb-4 animate-fade-in-up"
-          style={{ color: "#6B4C2A", animationDelay: "0.2s", fontFamily: "'Playfair Display', serif", fontStyle: "italic" }}
-        >
+        <p style={{
+          fontFamily: T.heading, fontStyle: "italic", fontWeight: 400,
+          fontSize: "clamp(1.1rem, 2.5vw, 1.5rem)",
+          color: T.secondary, marginBottom: 16,
+        }}>
           "Choose a name that grows with your child."
         </p>
 
-        <p
-          className="text-base md:text-lg mb-10 max-w-2xl mx-auto animate-fade-in-up"
-          style={{ color: "#7A5C3A", animationDelay: "0.3s" }}
-        >
-          A personalised Baby Name Numerology Report crafted using Vedic principles and your baby's birth details — by a name expert trusted by 1000+ families.
+        <p style={{
+          fontFamily: T.body, fontSize: "clamp(0.95rem, 2vw, 1.1rem)",
+          color: T.secondary, maxWidth: 600, margin: "0 auto 36px",
+          lineHeight: 1.7,
+        }}>
+          A personalised Baby Name Numerology Report crafted using Vedic principles
+          and your baby's birth details — by an expert trusted by 1000+ families.
         </p>
 
-        {/* Price + CTA */}
-        <div className="flex flex-col items-center gap-4 animate-fade-in-up" style={{ animationDelay: "0.4s" }}>
-          <div className="flex items-center gap-4">
-            <span className="text-lg line-through opacity-50" style={{ color: "#8B6914" }}>₹4,999</span>
-            <span className="text-4xl font-bold" style={{ color: "#2C1810", fontFamily: "'Playfair Display', serif" }}>₹2,497</span>
-            <span
-              className="text-sm font-semibold px-3 py-1 rounded-full"
-              style={{ background: "#C9A84C", color: "#2C1810" }}
-            >
-              Save ₹2,502
-            </span>
-          </div>
-          <button
-            onClick={scrollToForm}
-            className="group relative px-10 py-4 rounded-2xl text-lg font-bold transition-all duration-300 hover:scale-105 animate-pulse-glow"
-            style={{
-              background: "linear-gradient(135deg, #C9A84C 0%, #E8C96A 50%, #C9A84C 100%)",
-              color: "#2C1810",
-              boxShadow: "0 8px 30px rgba(201,168,76,0.4)",
-            }}
-          >
-            <span className="flex items-center gap-2">
-              Claim Your Report
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </span>
-          </button>
-          <p className="text-sm" style={{ color: "#9B7A4A" }}>🔒 Secure Payment · Delivered in 3 Business Days</p>
+        {/* Price */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginBottom: 24 }}>
+          <span style={{ fontFamily: T.body, fontSize: "1rem", textDecoration: "line-through", color: T.secondary, opacity: 0.7 }}>₹4,999</span>
+          <span style={{ fontFamily: T.heading, fontWeight: 700, fontSize: "clamp(2rem, 4vw, 2.8rem)", color: T.charcoal }}>₹2,497</span>
+          <span style={{
+            fontFamily: T.body, fontWeight: 700, fontSize: "0.78rem",
+            background: T.gold, color: T.dark, padding: "4px 12px", borderRadius: 100,
+          }}>Save ₹2,502</span>
         </div>
+
+        <button
+          onClick={scroll}
+          className="bn-shimmer"
+          style={S.goldBtn()}
+          onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.05)")}
+          onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+        >
+          Claim Your Report <ArrowRight size={18} />
+        </button>
+
+        <p style={{ fontFamily: T.body, fontSize: "0.8rem", color: T.secondary, marginTop: 14 }}>
+          🔒 Secure Payment · Delivered within 3 Business Days
+        </p>
       </div>
     </section>
   );
 };
 
-// ─── Section: Social Proof Bar ────────────────────────────────────────────────
+// ─── Social Proof Bar ─────────────────────────────────────────────────────────
 const SocialProofBar = () => {
   const stats = [
-    { value: "1000+", label: "Families Served" },
-    { value: "4.9★", label: "Average Rating" },
-    { value: "99%+", label: "Parents Felt Confident" },
-    { value: "10+", label: "Years of Experience" },
+    { v: "1000+", l: "Families Served" },
+    { v: "4.9 ★", l: "Average Rating" },
+    { v: "99%+",  l: "Parents Felt Confident" },
+    { v: "10+",   l: "Years of Experience" },
   ];
-
   return (
-    <div
-      className="py-6 border-y"
-      style={{ background: "linear-gradient(135deg, #2C1810 0%, #4A2C1A 100%)", borderColor: "rgba(201,168,76,0.3)" }}
-    >
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          {stats.map((s, i) => (
-            <div key={i}>
-              <div className="text-2xl md:text-3xl font-bold" style={{ color: "#C9A84C", fontFamily: "'Playfair Display', serif" }}>
-                {s.value}
-              </div>
-              <div className="text-sm mt-1" style={{ color: "rgba(255,248,240,0.7)" }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
+    <div style={{
+      background: `linear-gradient(135deg, ${T.dark} 0%, ${T.darkPanel} 100%)`,
+      padding: "28px 24px",
+      borderTop: `1px solid ${T.goldBorder}`,
+      borderBottom: `1px solid ${T.goldBorder}`,
+      fontFamily: T.body,
+    }}>
+      <div style={{
+        maxWidth: 900, margin: "0 auto",
+        display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+        gap: "20px", textAlign: "center",
+      }}>
+        {stats.map((s, i) => (
+          <div key={i}>
+            <div style={{ fontFamily: T.heading, fontWeight: 700, fontSize: "clamp(1.4rem, 3vw, 2rem)", color: T.gold }}>{s.v}</div>
+            <div style={{ fontSize: "0.8rem", color: "rgba(253,246,236,0.65)", marginTop: 4 }}>{s.l}</div>
+          </div>
+        ))}
       </div>
     </div>
   );
 };
 
-// ─── Section: For You If ──────────────────────────────────────────────────────
+// ─── For You If ───────────────────────────────────────────────────────────────
 const ForYouIfSection = () => {
+  const ref = useFadeUp();
   const bullets = [
     "You want a name rooted in numerology and Vedic wisdom",
     "You feel uncertain whether your chosen name suits your baby's birth energy",
@@ -199,89 +367,28 @@ const ForYouIfSection = () => {
     "You are looking for clarity and a trustworthy, expert-backed recommendation",
     "You want a name that grows beautifully with your child into adulthood",
   ];
-
   return (
-    <section className="py-20 md:py-28" style={{ background: "#FDF8EF" }}>
-      <div className="container mx-auto px-4 max-w-4xl">
-        <div className="text-center mb-12">
-          <span className="text-sm font-semibold tracking-widest uppercase" style={{ color: "#C9A84C" }}>Is This For You?</span>
+    <section className="bn-py-section" style={S.section()}>
+      <div ref={ref} style={{ ...S.sectionInner("760px"), opacity: 0 }}>
+        <div style={{ textAlign: "center", marginBottom: 40 }}>
+          <span style={S.tag()}>✦ Is This For You?</span>
           <GoldDivider />
-          <h2 className="text-4xl md:text-5xl font-bold" style={{ fontFamily: "'Playfair Display', serif", color: "#2C1810" }}>
-            This Report Is <span style={{ color: "#C9A84C" }}>For You If:</span>
-          </h2>
+          <h2 style={S.h2()}>This Report Is <span style={{ color: T.gold }}>For You If:</span></h2>
         </div>
-
-        <div className="grid gap-4">
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {bullets.map((b, i) => (
-            <div
-              key={i}
-              className="flex items-start gap-4 p-5 rounded-2xl transition-all duration-300 hover:-translate-y-0.5"
-              style={{
-                background: "rgba(201,168,76,0.06)",
-                border: "1px solid rgba(201,168,76,0.2)",
-                animationDelay: `${i * 0.1}s`,
-              }}
-            >
-              <CheckCircle className="w-6 h-6 flex-shrink-0 mt-0.5" style={{ color: "#C9A84C" }} />
-              <p className="text-base md:text-lg" style={{ color: "#4A3020" }}>{b}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// ─── Section: Problem ─────────────────────────────────────────────────────────
-const ProblemSection = () => {
-  const problems = [
-    {
-      title: "Feeling Unsure About Name Compatibility?",
-      desc: "Worried about your chosen name clashing with your child's birthdate or numerological chart? Many parents feel this uncertainty — and it's completely valid.",
-    },
-    {
-      title: "Overwhelmed by Endless Name Options?",
-      desc: "With thousands of beautiful names available, choosing \"the one\" is paralysing. Decision fatigue sets in and families end up picking names without any deeper alignment.",
-    },
-    {
-      title: "Afraid of Naming Regret?",
-      desc: "A name is lifelong. Parents fear choosing a name they'll second-guess — or one that doesn't truly resonate with who their child is destined to become.",
-    },
-  ];
-
-  return (
-    <section className="py-20 md:py-28" style={{ background: "linear-gradient(160deg, #F9F0DC 0%, #FDF8EF 100%)" }}>
-      <div className="container mx-auto px-4 max-w-5xl">
-        <div className="text-center mb-14">
-          <span className="text-sm font-semibold tracking-widest uppercase" style={{ color: "#C9A84C" }}>The Challenge</span>
-          <GoldDivider />
-          <h2 className="text-4xl md:text-5xl font-bold" style={{ fontFamily: "'Playfair Display', serif", color: "#2C1810" }}>
-            Choosing a Name Is<br />
-            <span style={{ color: "#C9A84C" }}>Harder Than It Looks</span>
-          </h2>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {problems.map((p, i) => (
-            <div
-              key={i}
-              className="p-7 rounded-3xl text-center transition-all duration-300 hover:-translate-y-1"
-              style={{
-                background: "#fff",
-                border: "1px solid rgba(201,168,76,0.2)",
-                boxShadow: "0 4px 24px rgba(44,24,16,0.06)",
-              }}
-            >
-              <div
-                className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
-                style={{ background: "rgba(201,168,76,0.12)" }}
-              >
-                <Baby className="w-7 h-7" style={{ color: "#C9A84C" }} />
+            <div key={i} className="bn-card" style={{
+              ...S.card(), display: "flex", alignItems: "flex-start",
+              gap: 16, padding: "18px 22px",
+            }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: "50%",
+                background: T.goldLight, display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+              }}>
+                <CheckCircle size={16} color={T.gold} />
               </div>
-              <h3 className="text-xl font-bold mb-3" style={{ fontFamily: "'Playfair Display', serif", color: "#2C1810" }}>
-                {p.title}
-              </h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#7A5C3A" }}>{p.desc}</p>
+              <p style={{ fontFamily: T.body, color: T.charcoal, fontSize: "0.98rem", lineHeight: 1.65, margin: 0 }}>{b}</p>
             </div>
           ))}
         </div>
@@ -290,8 +397,45 @@ const ProblemSection = () => {
   );
 };
 
-// ─── Section: What's Included ─────────────────────────────────────────────────
+// ─── Problem Section ──────────────────────────────────────────────────────────
+const ProblemSection = () => {
+  const ref = useFadeUp();
+  const problems = [
+    { title: "Feeling Unsure About Name Compatibility?", desc: "Worried about your chosen name clashing with your child's birthdate or numerological chart? Many parents feel this uncertainty — and it's completely valid." },
+    { title: "Overwhelmed by Endless Name Options?", desc: "With thousands of beautiful names available, choosing the one is paralysing. Decision fatigue leads families to pick names without deeper alignment." },
+    { title: "Afraid of Naming Regret?", desc: "A name is lifelong. Parents fear choosing a name they'll second-guess — or one that doesn't truly resonate with who their child is destined to become." },
+  ];
+  return (
+    <section className="bn-py-section" style={S.section(`linear-gradient(160deg, ${T.ivoryDark} 0%, ${T.ivory} 100%)`)}>
+      <div ref={ref} style={{ ...S.sectionInner(), opacity: 0 }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <span style={S.tag()}>✦ The Challenge</span>
+          <GoldDivider />
+          <h2 style={S.h2()}>Choosing a Name Is<br /><span style={{ color: T.gold }}>Harder Than It Looks</span></h2>
+        </div>
+        <div className="bn-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+          {problems.map((p, i) => (
+            <div key={i} className="bn-card" style={{ ...S.card(), padding: "32px 24px", textAlign: "center" }}>
+              <div style={{
+                width: 54, height: 54, borderRadius: "50%", background: T.goldLight,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                margin: "0 auto 20px",
+              }}>
+                <Baby size={26} color={T.gold} />
+              </div>
+              <h3 style={{ fontFamily: T.heading, fontWeight: 700, fontSize: "1.2rem", color: T.charcoal, marginBottom: 12 }}>{p.title}</h3>
+              <p style={{ fontFamily: T.body, color: T.secondary, fontSize: "0.9rem", lineHeight: 1.7, margin: 0 }}>{p.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ─── What's Included ──────────────────────────────────────────────────────────
 const WhatsIncludedSection = () => {
+  const ref = useFadeUp();
   const items = [
     "2 meaningful, well-aligned name options",
     "Clear explanation with each suggestion",
@@ -301,37 +445,33 @@ const WhatsIncludedSection = () => {
     "Personalised to your baby's exact birth details",
     "Not automated — hand-crafted by the expert himself",
   ];
-
   return (
-    <section className="py-20 md:py-28" style={{ background: "#FDF8EF" }}>
-      <div className="container mx-auto px-4 max-w-5xl">
-        <div className="text-center mb-14">
-          <span className="text-sm font-semibold tracking-widest uppercase" style={{ color: "#C9A84C" }}>What You Receive</span>
+    <section className="bn-py-section" style={S.section()}>
+      <div ref={ref} style={{ ...S.sectionInner(), opacity: 0 }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <span style={S.tag()}>✦ What You Receive</span>
           <GoldDivider />
-          <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: "'Playfair Display', serif", color: "#2C1810" }}>
-            More Than Just a<br />
-            <span style={{ color: "#C9A84C" }}>Beautiful Name</span>
-          </h2>
-          <p className="text-lg" style={{ color: "#7A5C3A" }}>Unlock your baby's potential through the ancient science of numerology</p>
+          <h2 style={S.h2()}>More Than Just a <span style={{ color: T.gold }}>Beautiful Name</span></h2>
+          <p style={{ fontFamily: T.body, color: T.secondary, fontSize: "1rem", marginTop: 12 }}>
+            Unlock your baby's potential through the ancient science of numerology
+          </p>
         </div>
-
-        <div
-          className="rounded-3xl p-8 md:p-12"
-          style={{
-            background: "linear-gradient(135deg, #2C1810 0%, #4A2C1A 100%)",
-            boxShadow: "0 20px 60px rgba(44,24,16,0.2)",
-          }}
-        >
-          <div className="grid sm:grid-cols-2 gap-5">
+        <div style={{
+          background: `linear-gradient(135deg, ${T.dark} 0%, ${T.darkPanel} 100%)`,
+          borderRadius: 24, padding: "clamp(1.75rem, 4vw, 3rem)",
+          boxShadow: "0 20px 60px rgba(44,24,16,0.22)",
+        }}>
+          <div className="bn-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px 28px" }}>
             {items.map((item, i) => (
-              <div key={i} className="flex items-center gap-4">
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ background: "rgba(201,168,76,0.2)" }}
-                >
-                  <CheckCircle className="w-5 h-5" style={{ color: "#C9A84C" }} />
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{
+                  width: 30, height: 30, borderRadius: "50%",
+                  background: "rgba(201,168,76,0.18)",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}>
+                  <CheckCircle size={15} color={T.gold} />
                 </div>
-                <span className="text-base" style={{ color: "rgba(253,248,239,0.9)" }}>{item}</span>
+                <span style={{ fontFamily: T.body, color: "rgba(253,246,236,0.9)", fontSize: "0.95rem" }}>{item}</span>
               </div>
             ))}
           </div>
@@ -341,119 +481,101 @@ const WhatsIncludedSection = () => {
   );
 };
 
-// ─── Section: Expert ──────────────────────────────────────────────────────────
-const ExpertSection = () => (
-  <section className="py-20 md:py-28" style={{ background: "linear-gradient(160deg, #F9F0DC 0%, #FDF8EF 100%)" }}>
-    <div className="container mx-auto px-4 max-w-5xl">
-      <div className="text-center mb-14">
-        <span className="text-sm font-semibold tracking-widest uppercase" style={{ color: "#C9A84C" }}>The Expert</span>
-        <GoldDivider />
-        <h2 className="text-4xl md:text-5xl font-bold" style={{ fontFamily: "'Playfair Display', serif", color: "#2C1810" }}>
-          About <span style={{ color: "#C9A84C" }}>Himansshu Agarwal Ji</span>
-        </h2>
-      </div>
-
-      <div
-        className="rounded-3xl overflow-hidden grid md:grid-cols-5"
-        style={{ background: "#fff", border: "1px solid rgba(201,168,76,0.25)", boxShadow: "0 8px 40px rgba(44,24,16,0.08)" }}
-      >
-        {/* Left accent panel */}
-        <div
-          className="md:col-span-2 flex flex-col items-center justify-center p-10 gap-6"
-          style={{ background: "linear-gradient(160deg, #2C1810 0%, #4A2C1A 100%)" }}
-        >
-          <div
-            className="w-28 h-28 rounded-full flex items-center justify-center text-4xl font-bold animate-float"
-            style={{ background: "rgba(201,168,76,0.15)", border: "3px solid rgba(201,168,76,0.4)", color: "#C9A84C", fontFamily: "'Playfair Display', serif" }}
-          >
-            H
+// ─── Expert Section ───────────────────────────────────────────────────────────
+const ExpertSection = () => {
+  const ref = useFadeUp();
+  return (
+    <section className="bn-py-section" style={S.section(`linear-gradient(160deg, ${T.ivoryDark} 0%, ${T.ivory} 100%)`)}>
+      <div ref={ref} style={{ ...S.sectionInner(), opacity: 0 }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <span style={S.tag()}>✦ The Expert</span>
+          <GoldDivider />
+          <h2 style={S.h2()}>About <span style={{ color: T.gold }}>Himansshu Agarwal Ji</span></h2>
+        </div>
+        <div className="bn-expert-grid" style={{
+          display: "grid", gridTemplateColumns: "2fr 3fr",
+          background: T.cardBg, border: `1px solid ${T.goldBorder}`,
+          borderRadius: 24, overflow: "hidden",
+          boxShadow: "0 8px 40px rgba(44,24,16,0.09)",
+        }}>
+          {/* Left dark panel */}
+          <div className="bn-expert-left" style={{
+            background: `linear-gradient(160deg, ${T.dark} 0%, ${T.darkPanel} 100%)`,
+            display: "flex", flexDirection: "column", alignItems: "center",
+            justifyContent: "center", padding: "3rem 2rem", gap: 24, textAlign: "center",
+          }}>
+            <div className="bn-float" style={{
+              width: 100, height: 100, borderRadius: "50%",
+              background: "rgba(201,168,76,0.14)", border: `3px solid ${T.goldBorder}`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontFamily: T.heading, fontWeight: 700, fontSize: "2.2rem", color: T.gold,
+            }}>H</div>
+            <div>
+              <div style={{ fontFamily: T.heading, fontWeight: 700, fontSize: "1.3rem", color: T.gold }}>Himansshu Agarwal Ji</div>
+              <div style={{ fontFamily: T.body, fontSize: "0.78rem", color: "rgba(253,246,236,0.55)", marginTop: 6 }}>Baby Name & Name Correction Expert</div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, width: "100%" }}>
+              {[["10+", "Years"], ["1000+", "Families"], ["99%", "Confidence"]].map(([v, l], i) => (
+                <div key={i}>
+                  <div style={{ fontFamily: T.heading, fontWeight: 700, fontSize: "1.2rem", color: T.gold }}>{v}</div>
+                  <div style={{ fontFamily: T.body, fontSize: "0.7rem", color: "rgba(253,246,236,0.45)" }}>{l}</div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold" style={{ color: "#C9A84C", fontFamily: "'Playfair Display', serif" }}>Himansshu Agarwal Ji</div>
-            <div className="text-sm mt-1" style={{ color: "rgba(253,248,239,0.6)" }}>Baby Name & Name Correction Expert</div>
-          </div>
-          <div className="grid grid-cols-3 gap-4 w-full text-center">
-            {[{ v: "10+", l: "Years" }, { v: "1000+", l: "Families" }, { v: "99%", l: "Confidence" }].map((s, i) => (
-              <div key={i}>
-                <div className="text-xl font-bold" style={{ color: "#C9A84C", fontFamily: "'Playfair Display', serif" }}>{s.v}</div>
-                <div className="text-xs" style={{ color: "rgba(253,248,239,0.5)" }}>{s.l}</div>
-              </div>
-            ))}
+          {/* Right content */}
+          <div style={{ padding: "clamp(1.75rem, 4vw, 2.75rem)", display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
+            <p style={{ fontFamily: T.body, color: T.charcoal, fontSize: "1rem", lineHeight: 1.75, margin: 0 }}>
+              Himansshu Agarwal Ji is a widely recognised <strong>Baby Name &amp; Name Correction Expert</strong> and <strong>Lal Kitab Remedy Specialist</strong>, with over 10 years of dedicated research and practical experience in name vibration patterns, brand failure case studies, and corrective Lal Kitab remedies.
+            </p>
+            <p style={{ fontFamily: T.body, color: T.secondary, fontSize: "0.95rem", lineHeight: 1.7, margin: 0 }}>
+              Every report is crafted personally by him — not by an algorithm or assistant — ensuring each recommendation carries the depth, precision, and care your child deserves.
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 8 }}>
+              {["Name Vibration Analysis", "Vedic Numerology", "Lal Kitab Remedies", "Life Path Alignment"].map((tag, i) => (
+                <span key={i} style={{
+                  fontFamily: T.body, fontWeight: 700, fontSize: "0.72rem",
+                  background: T.goldLight, color: "#7A5A10",
+                  border: `1px solid ${T.goldBorder}`, borderRadius: 100,
+                  padding: "5px 14px",
+                }}>{tag}</span>
+              ))}
+            </div>
           </div>
         </div>
-
-        {/* Right content */}
-        <div className="md:col-span-3 p-8 md:p-10 flex flex-col justify-center gap-5">
-          <p className="text-base md:text-lg leading-relaxed" style={{ color: "#4A3020" }}>
-            Himansshu Agarwal Ji is a widely recognised <strong>Baby Name &amp; Name Correction Expert</strong> and <strong>Lal Kitab Remedy Specialist</strong>, with over 10 years of dedicated research and practical experience in name vibration patterns, brand failure case studies, and corrective Lal Kitab remedies.
-          </p>
-          <p className="text-base leading-relaxed" style={{ color: "#7A5C3A" }}>
-            Every report is crafted personally by him — not by an algorithm or an assistant — ensuring each name recommendation carries the depth, precision, and care your child deserves.
-          </p>
-          <div className="flex flex-wrap gap-3 mt-2">
-            {["Name Vibration Analysis", "Vedic Numerology", "Lal Kitab Remedies", "Life Path Alignment"].map((tag, i) => (
-              <span
-                key={i}
-                className="text-xs font-semibold px-3 py-1.5 rounded-full"
-                style={{ background: "rgba(201,168,76,0.1)", color: "#8B6914", border: "1px solid rgba(201,168,76,0.25)" }}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
-// ─── Section: Delivery Info ───────────────────────────────────────────────────
+// ─── Delivery / How It Works ──────────────────────────────────────────────────
 const DeliverySection = () => {
+  const ref = useFadeUp();
   const cards = [
-    {
-      icon: Mail,
-      title: "How and When Will I Receive My Report?",
-      body: "Your personalised Baby Name Numerology Report will be delivered to your email address within 3 business days following your purchase. Be sure to check your inbox's spam and promotions folders in case the report lands there.",
-    },
-    {
-      icon: FileText,
-      title: "Is This an Instant Automated Report?",
-      body: "No. Your Baby Name Numerology Report is not an instant, automated report. Each report is crafted specifically for your child based on the information you provide — by Himansshu Agarwal Ji himself.",
-    },
-    {
-      icon: Sparkles,
-      title: "What Language Is the Report Delivered In?",
-      body: "Your Baby Name Numerology Report will be delivered in English, crafted using numerology principles, Vedic principles, and your baby's birth details — simple and easy to understand.",
-    },
+    { icon: Mail,     title: "How and When Will I Receive My Report?", body: "Your personalised Baby Name Numerology Report will be delivered to your email address within 3 business days. Check spam and promotions folders just in case." },
+    { icon: FileText, title: "Is This an Instant Automated Report?",   body: "No. Each report is crafted specifically for your child by Himansshu Agarwal Ji himself — never by an algorithm or assistant." },
+    { icon: Sparkles, title: "What Language Is the Report In?",        body: "Delivered in English, crafted using numerology and Vedic principles — written clearly without any jargon." },
   ];
-
   return (
-    <section className="py-20 md:py-28" style={{ background: "#FDF8EF" }}>
-      <div className="container mx-auto px-4 max-w-5xl">
-        <div className="text-center mb-14">
-          <span className="text-sm font-semibold tracking-widest uppercase" style={{ color: "#C9A84C" }}>How It Works</span>
+    <section className="bn-py-section" style={S.section()}>
+      <div ref={ref} style={{ ...S.sectionInner(), opacity: 0 }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <span style={S.tag()}>✦ How It Works</span>
           <GoldDivider />
-          <h2 className="text-4xl md:text-5xl font-bold" style={{ fontFamily: "'Playfair Display', serif", color: "#2C1810" }}>
-            Everything You Need to <span style={{ color: "#C9A84C" }}>Know</span>
-          </h2>
+          <h2 style={S.h2()}>Everything You Need to <span style={{ color: T.gold }}>Know</span></h2>
         </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="bn-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
           {cards.map(({ icon: Icon, title, body }, i) => (
-            <div
-              key={i}
-              className="p-7 rounded-3xl flex flex-col gap-4 transition-all duration-300 hover:-translate-y-1"
-              style={{
-                background: "#fff",
-                border: "1px solid rgba(201,168,76,0.2)",
-                boxShadow: "0 4px 20px rgba(44,24,16,0.06)",
-              }}
-            >
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(201,168,76,0.12)" }}>
-                <Icon className="w-6 h-6" style={{ color: "#C9A84C" }} />
+            <div key={i} className="bn-card" style={{ ...S.card(), padding: "28px 22px" }}>
+              <div style={{
+                width: 46, height: 46, borderRadius: 12,
+                background: T.goldLight, display: "flex", alignItems: "center", justifyContent: "center",
+                marginBottom: 18,
+              }}>
+                <Icon size={22} color={T.gold} />
               </div>
-              <h3 className="text-lg font-bold leading-snug" style={{ fontFamily: "'Playfair Display', serif", color: "#2C1810" }}>{title}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#7A5C3A" }}>{body}</p>
+              <h3 style={{ fontFamily: T.heading, fontWeight: 700, fontSize: "1.1rem", color: T.charcoal, marginBottom: 10 }}>{title}</h3>
+              <p style={{ fontFamily: T.body, color: T.secondary, fontSize: "0.88rem", lineHeight: 1.7, margin: 0 }}>{body}</p>
             </div>
           ))}
         </div>
@@ -462,61 +584,42 @@ const DeliverySection = () => {
   );
 };
 
-// ─── Section: Testimonials ────────────────────────────────────────────────────
+// ─── Testimonials ─────────────────────────────────────────────────────────────
 const TestimonialsSection = () => {
+  const ref = useFadeUp();
   const testimonials = [
-    {
-      quote: "We were so confused between four names. Himansshu Ji's report gave us a clear winner — and the explanation made complete sense. Our daughter's name is now something we're deeply proud of.",
-      author: "Priya M.",
-      location: "Delhi",
-    },
-    {
-      quote: "I was sceptical about numerology at first, but the report was so detailed and thoughtful. The name suggested perfectly matched what we felt in our hearts. It was like confirmation from the universe.",
-      author: "Rohan & Sneha K.",
-      location: "Bangalore",
-    },
-    {
-      quote: "Received within 2 days, beautifully written, and the name our son carries now feels like it truly belongs to him. Worth every rupee. Highly recommend!",
-      author: "Anjali S.",
-      location: "Mumbai",
-    },
+    { quote: "We were so confused between four names. Himansshu Ji's report gave us a clear winner — and the explanation made complete sense. Our daughter's name is now something we're deeply proud of.", author: "Priya M.", location: "Delhi" },
+    { quote: "I was sceptical at first, but the report was so detailed and thoughtful. The name suggested perfectly matched what we felt in our hearts. It was like confirmation from the universe.", author: "Rohan & Sneha K.", location: "Bangalore" },
+    { quote: "Received within 2 days, beautifully written. The name our son carries now feels like it truly belongs to him. Worth every rupee. Highly recommend!", author: "Anjali S.", location: "Mumbai" },
   ];
-
   return (
-    <section className="py-20 md:py-28" style={{ background: "linear-gradient(160deg, #F9F0DC 0%, #FDF8EF 100%)" }}>
-      <div className="container mx-auto px-4 max-w-5xl">
-        <div className="text-center mb-14">
-          <span className="text-sm font-semibold tracking-widest uppercase" style={{ color: "#C9A84C" }}>Testimonials</span>
+    <section className="bn-py-section" style={S.section(`linear-gradient(160deg, ${T.ivoryDark} 0%, ${T.ivory} 100%)`)}>
+      <div ref={ref} style={{ ...S.sectionInner(), opacity: 0 }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <span style={S.tag()}>✦ Testimonials</span>
           <GoldDivider />
-          <h2 className="text-4xl md:text-5xl font-bold mb-2" style={{ fontFamily: "'Playfair Display', serif", color: "#2C1810" }}>
-            Thousands of Happy Parents
-          </h2>
-          <p className="text-lg italic" style={{ color: "#7A5C3A", fontFamily: "'Playfair Display', serif" }}>Their words say it all.</p>
+          <h2 style={S.h2()}>Thousands of Happy Parents</h2>
+          <p style={{ fontFamily: T.heading, fontStyle: "italic", color: T.secondary, fontSize: "1.1rem", marginTop: 8 }}>Their words say it all.</p>
         </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="bn-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
           {testimonials.map((t, i) => (
-            <div
-              key={i}
-              className="p-7 rounded-3xl flex flex-col gap-4 transition-all duration-300 hover:-translate-y-1"
-              style={{
-                background: "#fff",
-                border: "1px solid rgba(201,168,76,0.25)",
-                boxShadow: "0 4px 24px rgba(44,24,16,0.07)",
-              }}
-            >
-              <StarRating />
-              <p className="text-sm leading-relaxed flex-1 italic" style={{ color: "#4A3020" }}>"{t.quote}"</p>
-              <div className="flex items-center gap-3 pt-2 border-t" style={{ borderColor: "rgba(201,168,76,0.2)" }}>
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-                  style={{ background: "rgba(201,168,76,0.15)", color: "#8B6914" }}
-                >
-                  {t.author[0]}
-                </div>
+            <div key={i} className="bn-card" style={{ ...S.card(), padding: "28px 22px", display: "flex", flexDirection: "column", gap: 16 }}>
+              <StarRow />
+              <p style={{ fontFamily: T.heading, fontStyle: "italic", fontWeight: 400, color: T.charcoal, fontSize: "1rem", lineHeight: 1.7, flex: 1, margin: 0 }}>
+                "{t.quote}"
+              </p>
+              <div style={{
+                display: "flex", alignItems: "center", gap: 12,
+                paddingTop: 14, borderTop: `1px solid ${T.goldBorder}`,
+              }}>
+                <div style={{
+                  width: 38, height: 38, borderRadius: "50%",
+                  background: T.goldLight, display: "flex", alignItems: "center", justifyContent: "center",
+                  fontFamily: T.heading, fontWeight: 700, fontSize: "1rem", color: T.gold, flexShrink: 0,
+                }}>{t.author[0]}</div>
                 <div>
-                  <div className="text-sm font-semibold" style={{ color: "#2C1810" }}>{t.author}</div>
-                  <div className="text-xs" style={{ color: "#9B7A4A" }}>{t.location}</div>
+                  <div style={{ fontFamily: T.body, fontWeight: 700, fontSize: "0.85rem", color: T.charcoal }}>{t.author}</div>
+                  <div style={{ fontFamily: T.body, fontSize: "0.75rem", color: T.secondary }}>{t.location}</div>
                 </div>
               </div>
             </div>
@@ -527,76 +630,54 @@ const TestimonialsSection = () => {
   );
 };
 
-// ─── Section: FAQ ─────────────────────────────────────────────────────────────
+// ─── FAQ ─────────────────────────────────────────────────────────────────────
 const FAQSection = () => {
+  const ref = useFadeUp();
   const [open, setOpen] = useState<number | null>(null);
-
   const faqs = [
-    {
-      q: "What if I'm not familiar with numerology?",
-      a: "Our reports are designed to be user-friendly, even for those new to numerology. Each report includes clear explanations of the numerological concepts used, so you don't need any prior knowledge.",
-    },
-    {
-      q: "Is numerology a reliable method for selecting a baby's name?",
-      a: "Numerology is a popular, ancient, and respected method for selecting a baby's name. While its reliability may vary depending on individual beliefs, many parents find it helpful in providing insight into their child's personality traits and potential.",
-    },
-    {
-      q: "Can I get a refund on the report?",
-      a: "Unfortunately, due to the personalised nature of the reports, we don't offer refunds once the report has been delivered to your email address or WhatsApp.",
-    },
-    {
-      q: "Are there specific numerological techniques used to analyse baby names?",
-      a: "Yes. Techniques include calculating the Life Path Number, Destiny Number, and Compound Number based on the numerical values of letters in the name. These calculations help determine the name's compatibility with the child's energy.",
-    },
-    {
-      q: "How does numerology influence baby names?",
-      a: "Numerology assigns numerical values to each letter in a name, influencing its energy and significance. When choosing a baby name, parents often consider these numerical vibrations to align with their child's potential.",
-    },
-    {
-      q: "What are the key factors considered in a baby name report based on numerology?",
-      a: "The report considers factors such as the numerical value of each letter in the name, overall numerical vibration, and alignment with the baby's birth date and destiny number.",
-    },
-    {
-      q: "What is the significance of numerology in choosing a baby's name?",
-      a: "Numerology provides insights into a child's potential, personality traits, and life path through their name's numerical vibrations. Understanding these influences can help parents select a name that resonates positively with their baby's essence.",
-    },
+    { q: "What if I'm not familiar with numerology?", a: "Our reports are designed to be user-friendly, even for those new to numerology. Each report includes clear explanations of the numerological concepts used." },
+    { q: "Is numerology a reliable method for selecting a baby's name?", a: "Numerology is a popular, ancient, and respected method. Many parents find it helpful in providing insight into their child's personality traits and potential." },
+    { q: "Can I get a refund on the report?", a: "Due to the personalised nature of the reports, we don't offer refunds once the report has been delivered to your email or WhatsApp." },
+    { q: "Are there specific numerological techniques used to analyse baby names?", a: "Yes. Techniques include calculating the Life Path Number, Destiny Number, and Compound Number based on the numerical values of letters in the name." },
+    { q: "How does numerology influence baby names?", a: "Numerology assigns numerical values to each letter in a name, influencing its energy and significance. Parents use these vibrations to align with their child's potential." },
+    { q: "What are the key factors considered in a baby name report?", a: "The report considers the numerical value of each letter, overall numerical vibration, and alignment with the baby's birth date and destiny number." },
+    { q: "What is the significance of numerology in choosing a baby's name?", a: "Numerology provides insights into a child's potential, personality traits, and life path through their name's numerical vibrations." },
   ];
-
   return (
-    <section className="py-20 md:py-28" style={{ background: "#FDF8EF" }}>
-      <div className="container mx-auto px-4 max-w-3xl">
-        <div className="text-center mb-14">
-          <span className="text-sm font-semibold tracking-widest uppercase" style={{ color: "#C9A84C" }}>FAQ</span>
+    <section className="bn-py-section" style={S.section()}>
+      <div ref={ref} style={{ ...S.sectionInner("720px"), opacity: 0 }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <span style={S.tag()}>✦ FAQ</span>
           <GoldDivider />
-          <h2 className="text-4xl md:text-5xl font-bold" style={{ fontFamily: "'Playfair Display', serif", color: "#2C1810" }}>
-            Frequently Asked <span style={{ color: "#C9A84C" }}>Questions</span>
-          </h2>
+          <h2 style={S.h2()}>Frequently Asked <span style={{ color: T.gold }}>Questions</span></h2>
         </div>
-
-        <div className="space-y-4">
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {faqs.map((faq, i) => (
-            <div
-              key={i}
-              className="rounded-2xl overflow-hidden transition-all duration-300"
-              style={{
-                background: "#fff",
-                border: open === i ? "1px solid rgba(201,168,76,0.5)" : "1px solid rgba(201,168,76,0.2)",
-                boxShadow: open === i ? "0 4px 20px rgba(201,168,76,0.1)" : "0 2px 8px rgba(44,24,16,0.04)",
-              }}
-            >
+            <div key={i} style={{
+              ...S.card(),
+              border: `1px solid ${open === i ? T.goldBorderStrong : T.goldBorder}`,
+              boxShadow: open === i ? "0 4px 20px rgba(201,168,76,0.12)" : "0 2px 8px rgba(44,24,16,0.04)",
+              overflow: "hidden", borderRadius: 16,
+            }}>
               <button
-                className="w-full flex items-center justify-between p-5 text-left font-semibold transition-colors"
-                style={{ color: "#2C1810", fontFamily: "'Playfair Display', serif", fontSize: "1rem" }}
                 onClick={() => setOpen(open === i ? null : i)}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "18px 22px", background: "none", border: "none", cursor: "pointer",
+                  fontFamily: T.heading, fontWeight: 600, fontSize: "1.05rem",
+                  color: T.charcoal, textAlign: "left" as const, gap: 12,
+                }}
               >
                 {faq.q}
-                {open === i
-                  ? <ChevronUp className="w-5 h-5 flex-shrink-0" style={{ color: "#C9A84C" }} />
-                  : <ChevronDown className="w-5 h-5 flex-shrink-0" style={{ color: "#C9A84C" }} />
-                }
+                <span style={{ flexShrink: 0, color: T.gold, transition: "transform 0.3s", transform: open === i ? "rotate(180deg)" : "rotate(0deg)" }}>
+                  <ChevronDown size={18} />
+                </span>
               </button>
               {open === i && (
-                <div className="px-5 pb-5 text-sm leading-relaxed" style={{ color: "#7A5C3A" }}>
+                <div style={{
+                  padding: "0 22px 18px",
+                  fontFamily: T.body, color: T.secondary, fontSize: "0.92rem", lineHeight: 1.75,
+                }}>
                   {faq.a}
                 </div>
               )}
@@ -608,33 +689,15 @@ const FAQSection = () => {
   );
 };
 
-// ─── Section: Claim Form ──────────────────────────────────────────────────────
+// ─── Claim Form ───────────────────────────────────────────────────────────────
 const ClaimFormSection = () => {
+  const ref = useFadeUp();
   const [formData, setFormData] = useState<FormData>({
-    babyName: "",
-    dob: undefined,
-    parentName: "",
-    email: "",
-    whatsapp: "",
-    notes: "",
+    babyName: "", dob: undefined, parentName: "", email: "", whatsapp: "", notes: "",
   });
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [touched, setTouched] = useState<Partial<Record<keyof FormErrors, boolean>>>({});
-  const [_submitted, setSubmitted] = useState(false);
-  const [calOpen, setCalOpen] = useState(false);
-
-  const errorsRef = useRef(errors);
-  errorsRef.current = errors;
-
-  const validateField = (name: keyof FormErrors, value: FormData) => {
-    const all = validate(value);
-    setErrors(prev => ({ ...prev, [name]: all[name] }));
-  };
-
-  const handleBlur = (name: keyof FormErrors) => {
-    setTouched(prev => ({ ...prev, [name]: true }));
-    validateField(name, formData);
-  };
+  const [errors, setErrors]     = useState<FormErrors>({});
+  const [touched, setTouched]   = useState<Partial<Record<keyof FormErrors, boolean>>>({});
+  const [calOpen, setCalOpen]   = useState(false);
 
   const handleChange = (name: keyof FormData, value: string | Date | undefined) => {
     const next = { ...formData, [name]: value };
@@ -644,196 +707,150 @@ const ClaimFormSection = () => {
       setErrors(prev => ({ ...prev, [name]: all[name as keyof FormErrors] }));
     }
   };
-
+  const handleBlur = (name: keyof FormErrors) => {
+    setTouched(prev => ({ ...prev, [name]: true }));
+    const all = validate(formData);
+    setErrors(prev => ({ ...prev, [name]: all[name] }));
+  };
   const allErrors = validate(formData);
-  const isValid = Object.keys(allErrors).length === 0;
+  const isValid   = Object.keys(allErrors).length === 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setTouched({ babyName: true, dob: true, parentName: true, email: true, whatsapp: true });
     const errs = validate(formData);
     setErrors(errs);
-    setSubmitted(true);
     if (Object.keys(errs).length > 0) return;
-    // Placeholder submission — payment gateway to be wired separately
     alert("Form submitted! Payment gateway integration coming soon.");
   };
 
-  const inputStyle = (name: keyof FormErrors) => ({
-    border: `1px solid ${touched[name] && errors[name] ? "#DC2626" : "rgba(201,168,76,0.35)"}`,
-    background: "#fff",
-    color: "#2C1810",
-    borderRadius: "12px",
-  });
+  const fieldBorder = (name: keyof FormErrors) =>
+    `1px solid ${touched[name] && errors[name] ? "#DC2626" : T.goldBorder}`;
 
-  const labelStyle = { color: "#4A3020", fontWeight: 600, fontSize: "0.875rem" };
+  const inputSx: React.CSSProperties = {
+    background: "#fff", color: T.charcoal,
+    fontFamily: T.body, fontSize: "0.95rem", borderRadius: 12,
+  };
 
   return (
-    <section id="claim-form" className="py-20 md:py-28" style={{ background: "linear-gradient(160deg, #F9F0DC 0%, #FDF8EF 100%)" }}>
-      <div className="container mx-auto px-4 max-w-2xl">
-        <div className="text-center mb-12">
-          <span className="text-sm font-semibold tracking-widest uppercase" style={{ color: "#C9A84C" }}>Get Your Report</span>
+    <section id="claim-form" className="bn-py-section" style={S.section(`linear-gradient(160deg, ${T.ivoryDark} 0%, ${T.ivory} 100%)`)}>
+      <div ref={ref} style={{ ...S.sectionInner("640px"), opacity: 0 }}>
+        <div style={{ textAlign: "center", marginBottom: 40 }}>
+          <span style={S.tag()}>✦ Get Your Report</span>
           <GoldDivider />
-          <h2 className="text-4xl md:text-5xl font-bold mb-3" style={{ fontFamily: "'Playfair Display', serif", color: "#2C1810" }}>
-            Claim Your <span style={{ color: "#C9A84C" }}>Report Now</span>
-          </h2>
-          <p className="text-base" style={{ color: "#7A5C3A" }}>Fill in your details and we'll craft your personalised report within 3 business days.</p>
+          <h2 style={S.h2()}>Claim Your <span style={{ color: T.gold }}>Report Now</span></h2>
+          <p style={{ fontFamily: T.body, color: T.secondary, fontSize: "0.95rem", marginTop: 10 }}>
+            Fill in your details and we'll craft your personalised report within 3 business days.
+          </p>
         </div>
+        <div className="bn-form-pad" style={{
+          ...S.card(), padding: "3rem",
+          boxShadow: "0 12px 50px rgba(44,24,16,0.1)",
+        }}>
+          <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 22 }}>
 
-        <div
-          className="rounded-3xl p-8 md:p-12"
-          style={{
-            background: "#fff",
-            border: "1px solid rgba(201,168,76,0.25)",
-            boxShadow: "0 12px 50px rgba(44,24,16,0.1)",
-          }}
-        >
-          <form onSubmit={handleSubmit} noValidate className="space-y-6">
             {/* Baby Name */}
-            <div className="space-y-1.5">
-              <label style={labelStyle} htmlFor="babyName">
-                <span className="flex items-center gap-2"><Baby className="w-4 h-4" style={{ color: "#C9A84C" }} /> Baby's Full Name *</span>
-              </label>
-              <Input
-                id="babyName"
-                value={formData.babyName}
-                onChange={e => handleChange("babyName", e.target.value)}
-                onBlur={() => handleBlur("babyName")}
-                placeholder="Enter baby's full name"
-                style={inputStyle("babyName")}
-                className="h-12 focus-visible:ring-amber-400/40"
-              />
-              {touched.babyName && errors.babyName && <p className="text-xs text-red-500">{errors.babyName}</p>}
+            <div>
+              <label style={S.label()}><Baby size={15} color={T.gold} /> Baby's Full Name *</label>
+              <Input value={formData.babyName} onChange={e => handleChange("babyName", e.target.value)}
+                onBlur={() => handleBlur("babyName")} placeholder="Enter baby's full name"
+                style={{ ...inputSx, border: fieldBorder("babyName"), height: 48 }}
+                className="focus-visible:ring-0" />
+              {touched.babyName && errors.babyName && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.babyName}</p>}
             </div>
 
             {/* Date of Birth */}
-            <div className="space-y-1.5">
-              <label style={labelStyle} htmlFor="dob">
-                <span className="flex items-center gap-2"><CalendarIcon className="w-4 h-4" style={{ color: "#C9A84C" }} /> Baby's Date of Birth *</span>
-              </label>
+            <div>
+              <label style={S.label()}><CalendarIcon size={15} color={T.gold} /> Baby's Date of Birth *</label>
               <Popover open={calOpen} onOpenChange={setCalOpen}>
                 <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    id="dob"
-                    className="w-full h-12 flex items-center justify-start gap-3 px-4 rounded-xl text-sm font-normal transition-all"
-                    style={inputStyle("dob")}
-                    onBlur={() => handleBlur("dob")}
-                  >
-                    <CalendarIcon className="w-4 h-4" style={{ color: "#C9A84C" }} />
-                    <span style={{ color: formData.dob ? "#2C1810" : "#9B7A4A" }}>
+                  <button type="button" onBlur={() => handleBlur("dob")}
+                    style={{
+                      ...inputSx, width: "100%", height: 48, border: fieldBorder("dob"),
+                      display: "flex", alignItems: "center", gap: 10, padding: "0 14px",
+                      cursor: "pointer",
+                    }}>
+                    <CalendarIcon size={15} color={T.gold} />
+                    <span style={{ color: formData.dob ? T.charcoal : T.secondary }}>
                       {formData.dob ? format(formData.dob, "dd MMM yyyy") : "Select date of birth"}
                     </span>
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={formData.dob}
+                  <Calendar mode="single" selected={formData.dob}
                     onSelect={d => { handleChange("dob", d); setCalOpen(false); }}
-                    disabled={d => d > new Date()}
-                    initialFocus
-                    captionLayout="dropdown-buttons"
-                    fromYear={1920}
+                    disabled={d => d > new Date()} initialFocus
+                    captionLayout="dropdown-buttons" fromYear={1920}
                     toYear={new Date().getFullYear()}
-                    className="p-3 pointer-events-auto"
-                  />
+                    className="p-3 pointer-events-auto" />
                 </PopoverContent>
               </Popover>
-              {touched.dob && errors.dob && <p className="text-xs text-red-500">{errors.dob}</p>}
+              {touched.dob && errors.dob && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.dob}</p>}
             </div>
 
             {/* Parent Name */}
-            <div className="space-y-1.5">
-              <label style={labelStyle} htmlFor="parentName">
-                <span className="flex items-center gap-2"><User className="w-4 h-4" style={{ color: "#C9A84C" }} /> Parent's Name *</span>
-              </label>
-              <Input
-                id="parentName"
-                value={formData.parentName}
-                onChange={e => handleChange("parentName", e.target.value)}
-                onBlur={() => handleBlur("parentName")}
-                placeholder="Enter your full name"
-                style={inputStyle("parentName")}
-                className="h-12 focus-visible:ring-amber-400/40"
-              />
-              {touched.parentName && errors.parentName && <p className="text-xs text-red-500">{errors.parentName}</p>}
+            <div>
+              <label style={S.label()}><User size={15} color={T.gold} /> Parent's Name *</label>
+              <Input value={formData.parentName} onChange={e => handleChange("parentName", e.target.value)}
+                onBlur={() => handleBlur("parentName")} placeholder="Enter your full name"
+                style={{ ...inputSx, border: fieldBorder("parentName"), height: 48 }}
+                className="focus-visible:ring-0" />
+              {touched.parentName && errors.parentName && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.parentName}</p>}
             </div>
 
             {/* Email */}
-            <div className="space-y-1.5">
-              <label style={labelStyle} htmlFor="email">
-                <span className="flex items-center gap-2"><Mail className="w-4 h-4" style={{ color: "#C9A84C" }} /> Email Address *</span>
-              </label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={e => handleChange("email", e.target.value)}
-                onBlur={() => handleBlur("email")}
-                placeholder="you@example.com"
-                style={inputStyle("email")}
-                className="h-12 focus-visible:ring-amber-400/40"
-              />
-              {touched.email && errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+            <div>
+              <label style={S.label()}><Mail size={15} color={T.gold} /> Email Address *</label>
+              <Input type="email" value={formData.email} onChange={e => handleChange("email", e.target.value)}
+                onBlur={() => handleBlur("email")} placeholder="you@example.com"
+                style={{ ...inputSx, border: fieldBorder("email"), height: 48 }}
+                className="focus-visible:ring-0" />
+              {touched.email && errors.email && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.email}</p>}
             </div>
 
             {/* WhatsApp */}
-            <div className="space-y-1.5">
-              <label style={labelStyle} htmlFor="whatsapp">
-                <span className="flex items-center gap-2"><Phone className="w-4 h-4" style={{ color: "#C9A84C" }} /> WhatsApp Number *</span>
-              </label>
-              <div className="flex gap-2">
-                <div
-                  className="h-12 flex items-center px-3 rounded-xl text-sm font-semibold flex-shrink-0"
-                  style={{ border: "1px solid rgba(201,168,76,0.35)", background: "rgba(201,168,76,0.08)", color: "#8B6914" }}
-                >
-                  +91
-                </div>
-                <Input
-                  id="whatsapp"
-                  type="tel"
-                  inputMode="numeric"
-                  maxLength={10}
+            <div>
+              <label style={S.label()}><Phone size={15} color={T.gold} /> WhatsApp Number *</label>
+              <div style={{ display: "flex", gap: 8 }}>
+                <div style={{
+                  height: 48, padding: "0 14px", borderRadius: 12,
+                  border: `1px solid ${T.goldBorder}`, background: T.goldLight,
+                  display: "flex", alignItems: "center",
+                  fontFamily: T.body, fontWeight: 700, fontSize: "0.9rem", color: "#7A5A10",
+                  flexShrink: 0,
+                }}>+91</div>
+                <Input type="tel" inputMode="numeric" maxLength={10}
                   value={formData.whatsapp}
                   onChange={e => handleChange("whatsapp", e.target.value.replace(/\D/g, ""))}
-                  onBlur={() => handleBlur("whatsapp")}
-                  placeholder="10-digit mobile number"
-                  style={inputStyle("whatsapp")}
-                  className="h-12 flex-1 focus-visible:ring-amber-400/40"
-                />
+                  onBlur={() => handleBlur("whatsapp")} placeholder="10-digit mobile number"
+                  style={{ ...inputSx, border: fieldBorder("whatsapp"), height: 48, flex: 1 }}
+                  className="focus-visible:ring-0" />
               </div>
-              {touched.whatsapp && errors.whatsapp && <p className="text-xs text-red-500">{errors.whatsapp}</p>}
+              {touched.whatsapp && errors.whatsapp && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.whatsapp}</p>}
             </div>
 
             {/* Notes */}
-            <div className="space-y-1.5">
-              <label style={labelStyle} htmlFor="notes">
-                <span className="flex items-center gap-2"><FileText className="w-4 h-4" style={{ color: "#C9A84C" }} /> Any preferences or notes? (Optional)</span>
-              </label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={e => handleChange("notes", e.target.value)}
+            <div>
+              <label style={S.label()}><FileText size={15} color={T.gold} /> Notes / Preferences (Optional)</label>
+              <Textarea value={formData.notes} onChange={e => handleChange("notes", e.target.value)}
                 placeholder="E.g. preferred starting letter, meaning preference, sibling name for harmony check…"
-                rows={3}
-                style={{ border: "1px solid rgba(201,168,76,0.35)", background: "#fff", color: "#2C1810", borderRadius: "12px" }}
-                className="focus-visible:ring-amber-400/40 resize-none"
-              />
+                rows={3} className="focus-visible:ring-0 resize-none"
+                style={{ ...inputSx, border: `1px solid ${T.goldBorder}`, borderRadius: 12 }} />
             </div>
 
-            {/* Pricing summary */}
-            <div
-              className="rounded-2xl p-5 flex items-center justify-between"
-              style={{ background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.25)" }}
-            >
+            {/* Price summary */}
+            <div style={{
+              background: T.goldLight, border: `1px solid ${T.goldBorder}`,
+              borderRadius: 14, padding: "16px 20px",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+            }}>
               <div>
-                <div className="text-sm font-semibold" style={{ color: "#4A3020" }}>Personalised Baby Name Report</div>
-                <div className="text-xs mt-0.5" style={{ color: "#9B7A4A" }}>Delivered within 3 business days</div>
+                <div style={{ fontFamily: T.body, fontWeight: 700, fontSize: "0.9rem", color: T.charcoal }}>Personalised Baby Name Report</div>
+                <div style={{ fontFamily: T.body, fontSize: "0.78rem", color: T.secondary, marginTop: 2 }}>Delivered within 3 business days</div>
               </div>
-              <div className="text-right">
-                <div className="text-xs line-through" style={{ color: "#9B7A4A" }}>₹4,999</div>
-                <div className="text-2xl font-bold" style={{ color: "#2C1810", fontFamily: "'Playfair Display', serif" }}>₹2,497</div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontFamily: T.body, fontSize: "0.8rem", textDecoration: "line-through", color: T.secondary }}>₹4,999</div>
+                <div style={{ fontFamily: T.heading, fontWeight: 700, fontSize: "1.8rem", color: T.charcoal }}>₹2,497</div>
               </div>
             </div>
 
@@ -841,19 +858,20 @@ const ClaimFormSection = () => {
             <button
               type="submit"
               disabled={!isValid}
-              className="w-full h-14 rounded-2xl text-lg font-bold transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.99]"
               style={{
-                background: isValid ? "linear-gradient(135deg, #C9A84C 0%, #E8C96A 50%, #C9A84C 100%)" : "rgba(201,168,76,0.3)",
-                color: "#2C1810",
-                boxShadow: isValid ? "0 8px 30px rgba(201,168,76,0.35)" : "none",
+                ...S.goldBtn(true),
+                opacity: isValid ? 1 : 0.45,
+                cursor: isValid ? "pointer" : "not-allowed",
+                height: 54, fontSize: "1.05rem",
               }}
+              onMouseEnter={e => isValid && (e.currentTarget.style.transform = "scale(1.02)")}
+              onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
             >
-              <span className="flex items-center justify-center gap-2">
-                Proceed to Secure Payment
-                <ArrowRight className="w-5 h-5" />
-              </span>
+              Proceed to Secure Payment <ArrowRight size={18} />
             </button>
-            <p className="text-center text-xs" style={{ color: "#9B7A4A" }}>🔒 100% Secure · Your data is never shared</p>
+            <p style={{ fontFamily: T.body, textAlign: "center", fontSize: "0.78rem", color: T.secondary }}>
+              🔒 100% Secure · Your data is never shared
+            </p>
           </form>
         </div>
       </div>
@@ -861,95 +879,73 @@ const ClaimFormSection = () => {
   );
 };
 
-// ─── Section: Final CTA ───────────────────────────────────────────────────────
-const FinalCTASection = () => {
-  const scrollToForm = () => document.getElementById("claim-form")?.scrollIntoView({ behavior: "smooth" });
-
+// ─── Final CTA ────────────────────────────────────────────────────────────────
+const FinalCTA = () => {
+  const scroll = () => document.getElementById("claim-form")?.scrollIntoView({ behavior: "smooth" });
+  const ref = useFadeUp();
   return (
-    <section
-      className="py-24 text-center relative overflow-hidden"
-      style={{ background: "linear-gradient(135deg, #2C1810 0%, #4A2C1A 60%, #2C1810 100%)" }}
-    >
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-10 left-1/4 w-64 h-64 rounded-full blur-3xl opacity-10" style={{ background: "#C9A84C" }} />
-        <div className="absolute bottom-10 right-1/4 w-96 h-96 rounded-full blur-3xl opacity-8" style={{ background: "#C9A84C" }} />
-      </div>
-
-      <div className="container mx-auto px-4 max-w-3xl relative z-10">
-        <div className="flex justify-center mb-6">
-          <Sparkles className="w-10 h-10 animate-float" style={{ color: "#C9A84C" }} />
+    <section style={{
+      background: `linear-gradient(135deg, ${T.dark} 0%, ${T.darkPanel} 60%, ${T.dark} 100%)`,
+      padding: "6rem 1.5rem", textAlign: "center", position: "relative", overflow: "hidden",
+    }}>
+      {/* Glow */}
+      <div style={{ position: "absolute", top: 0, left: "30%", width: 400, height: 400,
+        borderRadius: "50%", background: T.gold, opacity: 0.06, filter: "blur(90px)", pointerEvents: "none" }} />
+      {/* Floating sparkle decorations */}
+      {[["12%","20%"],["88%","15%"],["50%","8%"],["20%","80%"],["80%","75%"]].map(([l, t], i) => (
+        <div key={i} style={{
+          position: "absolute", left: l, top: t, pointerEvents: "none",
+          animation: `bn-sparkle ${2.5 + i * 0.4}s ease-in-out infinite`,
+          animationDelay: `${i * 0.5}s`,
+        }}>
+          <Sparkle size={8 + (i % 3) * 6} />
         </div>
-        <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: "'Playfair Display', serif", color: "#FDF8EF" }}>
+      ))}
+
+      <div ref={ref} style={{ maxWidth: 700, margin: "0 auto", position: "relative", zIndex: 2, opacity: 0 }}>
+        <div className="bn-float" style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
+          <Sparkle size={40} />
+        </div>
+        <h2 style={{
+          fontFamily: T.heading, fontWeight: 700,
+          fontSize: "clamp(2rem, 4.5vw, 3.2rem)",
+          color: "#FDF6EC", lineHeight: 1.2, marginBottom: 16,
+        }}>
           Embark on a New Beginning<br />
-          <span style={{ color: "#C9A84C" }}>with Numerology!</span>
+          <span style={{ color: T.gold }}>with Numerology!</span>
         </h2>
-        <p className="text-lg mb-3 max-w-xl mx-auto" style={{ color: "rgba(253,248,239,0.75)" }}>
+        <p style={{ fontFamily: T.body, color: "rgba(253,246,236,0.68)", fontSize: "1rem", marginBottom: 8, lineHeight: 1.7 }}>
           Join the growing community of parents who have taken a conscious step toward better name alignment.
         </p>
         <GoldDivider />
-        <div className="flex flex-col items-center gap-5 mt-4">
-          <div className="flex items-center gap-4">
-            <span className="text-lg line-through opacity-50" style={{ color: "rgba(201,168,76,0.6)" }}>₹4,999</span>
-            <span className="text-5xl font-bold" style={{ color: "#C9A84C", fontFamily: "'Playfair Display', serif" }}>₹2,497</span>
-          </div>
-          <button
-            onClick={scrollToForm}
-            className="group px-12 py-5 rounded-2xl text-xl font-bold transition-all duration-300 hover:scale-105"
-            style={{
-              background: "linear-gradient(135deg, #C9A84C 0%, #E8C96A 50%, #C9A84C 100%)",
-              color: "#2C1810",
-              boxShadow: "0 8px 40px rgba(201,168,76,0.5)",
-            }}
-          >
-            <span className="flex items-center gap-2">
-              Empower My Child Now
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </span>
-          </button>
-          <p className="text-sm" style={{ color: "rgba(253,248,239,0.5)" }}>🔒 100% Secure Payment · Delivered within 3 Business Days</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, margin: "24px 0" }}>
+          <span style={{ fontFamily: T.body, fontSize: "1rem", textDecoration: "line-through", color: "rgba(201,168,76,0.5)" }}>₹4,999</span>
+          <span style={{ fontFamily: T.heading, fontWeight: 700, fontSize: "clamp(2.2rem, 5vw, 3.2rem)", color: T.gold }}>₹2,497</span>
         </div>
+        <button
+          onClick={scroll}
+          style={S.goldBtn()}
+          onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.05)")}
+          onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+        >
+          Empower My Child Now <ArrowRight size={18} />
+        </button>
+        <p style={{ fontFamily: T.body, fontSize: "0.8rem", color: "rgba(253,246,236,0.4)", marginTop: 14 }}>
+          🔒 100% Secure Payment · Delivered within 3 Business Days
+        </p>
       </div>
     </section>
   );
 };
 
-// ─── Simple nav for this standalone page ─────────────────────────────────────
-const SimpleNav = () => {
-  const scrollToForm = () => document.getElementById("claim-form")?.scrollIntoView({ behavior: "smooth" });
-
-  return (
-    <nav
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4"
-      style={{
-        background: "rgba(253,248,239,0.92)",
-        borderBottom: "1px solid rgba(201,168,76,0.2)",
-        backdropFilter: "blur(12px)",
-      }}
-    >
-      <div className="text-xl font-bold" style={{ fontFamily: "'Playfair Display', serif", color: "#2C1810" }}>
-        Ankshaastra
-      </div>
-      <button
-        onClick={scrollToForm}
-        className="px-5 py-2 rounded-xl text-sm font-semibold transition-all hover:scale-105"
-        style={{ background: "#C9A84C", color: "#2C1810", boxShadow: "0 4px 12px rgba(201,168,76,0.3)" }}
-      >
-        Get Report — ₹2,497
-      </button>
-    </nav>
-  );
-};
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Page ─────────────────────────────────────────────────────────────────────
 const BabyNameLandingPage = () => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   return (
-    <div className="min-h-screen" style={{ fontFamily: "Inter, sans-serif" }}>
-      <SimpleNav />
-      <div className="pt-[72px]">
+    <div style={{ fontFamily: T.body, background: T.ivory, minHeight: "100vh" }}>
+      <GlobalStyles />
+      <Nav />
+      <div style={{ paddingTop: 64 }}>
         <HeroSection />
         <SocialProofBar />
         <ForYouIfSection />
@@ -960,7 +956,7 @@ const BabyNameLandingPage = () => {
         <TestimonialsSection />
         <FAQSection />
         <ClaimFormSection />
-        <FinalCTASection />
+        <FinalCTA />
       </div>
     </div>
   );

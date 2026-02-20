@@ -19,20 +19,20 @@ const HeroSection = () => {
       className="min-h-screen flex items-center pt-16 md:pt-20 pb-8 relative overflow-hidden"
       style={{ background: 'linear-gradient(160deg, #FDF6EC 0%, #F9EDDA 50%, #FDF6EC 100%)' }}
     >
-      {/* Background mother & baby image — very light opacity */}
+      {/* Background mother & baby image — visible but soft */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url(${heroBg})`,
-          opacity: 0.08,
+          opacity: 0.22,
         }}
       />
 
-      {/* Soft gradient overlay to keep text readable */}
+      {/* Softer gradient overlay — lets image show through more */}
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(160deg, rgba(253,246,236,0.92) 0%, rgba(249,237,218,0.80) 50%, rgba(253,246,236,0.92) 100%)',
+          background: 'linear-gradient(160deg, rgba(253,246,236,0.75) 0%, rgba(249,237,218,0.55) 50%, rgba(253,246,236,0.75) 100%)',
         }}
       />
 

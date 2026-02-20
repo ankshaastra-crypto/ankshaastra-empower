@@ -2,7 +2,7 @@ import { Baby, Search, HeartCrack, Frown } from "lucide-react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 
 const ProblemSection = () => {
-  const { ref } = useScrollAnimation({ threshold: 0.1 });
+  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
 
   const struggles = [
     {
@@ -28,20 +28,24 @@ const ProblemSection = () => {
   ];
 
   return (
-    <section className="section-padding" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
+    <section
+      ref={ref}
+      className={`section-padding section-hidden ${isVisible ? 'section-visible' : ''}`}
+      style={{ backgroundColor: '#FDF6EC' }}
+    >
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">The Challenge</span>
           <h2 className="heading-lg mb-3 md:mb-4" style={{ color: '#2C2C2C' }}>
             Struggling to Choose the<br />
-            <span className="text-gradient-gold">Perfect Baby Name?</span>
+            <span style={{ color: '#C9A84C' }}>Perfect Baby Name?</span>
           </h2>
           <p className="body-md text-muted-foreground px-2">
             You're not alone. Most parents feel this way — and a name isn't just a label. It's the first energy you gift your child.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-5xl mx-auto">
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-5xl mx-auto stagger-children ${isVisible ? 'section-visible' : ''}`}>
           {struggles.map((item, index) => (
             <div
               key={index}

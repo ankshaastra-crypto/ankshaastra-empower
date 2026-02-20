@@ -37,24 +37,16 @@ const HeroSection = () => {
 
           {/* Text Side - centered, no image */}
           <div className="text-center animate-fade-in-up">
-            {/* Label */}
-            <span
-              className="inline-block text-xs font-bold tracking-widest uppercase mb-4 px-4 py-1.5 rounded-full"
-              style={{ background: 'rgba(201,168,76,0.12)', color: '#C9A84C' }}
-            >
-              🍼 Perfect Baby Name
-            </span>
-
             {/* Gold divider */}
-            <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="flex items-center justify-center gap-3 mb-6">
               <div className="h-px w-16" style={{ background: 'linear-gradient(to right, transparent, #C9A84C)' }} />
               <span style={{ color: '#C9A84C' }}>✦</span>
               <div className="h-px w-16" style={{ background: 'linear-gradient(to left, transparent, #C9A84C)' }} />
             </div>
 
             <h1 className="heading-xl mb-4 leading-tight" style={{ color: '#2C2C2C' }}>
-              Give Your Baby a Name That{" "}
-              <span style={{ color: '#C9A84C' }}>Truly Belongs to Them</span>
+              Because a Name Is the{" "}
+              <span style={{ color: '#C9A84C' }}>First Gift You Give Your Child</span>
             </h1>
 
             <p className="text-base md:text-lg mb-8 max-w-xl mx-auto leading-relaxed" style={{ color: '#6B6B6B' }}>

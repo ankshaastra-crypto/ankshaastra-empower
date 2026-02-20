@@ -720,7 +720,7 @@ const OrderFormSection = () => {
       className="section-padding"
       id="order-form"
       ref={ref}
-      style={{ backgroundColor: 'hsl(0 0% 98%)' }}
+      style={{ backgroundColor: '#FDF6EC' }}
     >
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
@@ -797,7 +797,7 @@ const OrderFormSection = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-ink-black">
-                            Name Correction Blueprint
+                            Perfect Baby Name Report
                           </span>
                           <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">
                             MOST POPULAR
@@ -950,7 +950,7 @@ const OrderFormSection = () => {
                     <span className="text-muted-foreground">
                       {packageType === "namecheck"
                         ? `Name Check (${nameCheckCount} Person${nameCheckCount !== 1 ? "s" : ""})`
-                        : "Name Correction Blueprint"}
+                        : "Perfect Baby Name Report"}
                     </span>
                   </div>
 

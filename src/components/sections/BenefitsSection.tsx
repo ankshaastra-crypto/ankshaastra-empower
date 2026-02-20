@@ -2,7 +2,7 @@ import { Heart, Shield, Smile, Users, Star, Leaf } from "lucide-react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { Button } from "@/components/ui/button";
 
-const DARK_BG = 'linear-gradient(135deg, #1E3557 0%, #0D1F35 100%)';
+const DARK_BG = 'linear-gradient(135deg, #2C2C2C 0%, #1a1a1a 100%)';
 
 const BenefitsSection = () => {
   const { ref } = useScrollAnimation({ threshold: 0.1 });

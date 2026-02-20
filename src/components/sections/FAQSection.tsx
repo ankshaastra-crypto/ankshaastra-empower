@@ -59,11 +59,11 @@ const FAQSection = () => {
   ];
 
   return (
-    <section className="section-padding" style={{ backgroundColor: 'hsl(36 60% 97%)' }} ref={ref}>
+    <section className="section-padding" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-10 md:mb-14">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3">FAQs</span>
-          <h2 className="heading-lg mb-3" style={{ color: 'hsl(222 47% 11%)' }}>
+          <h2 className="heading-lg mb-3" style={{ color: '#2C2C2C' }}>
             Frequently Asked Questions
           </h2>
           <p className="body-md text-muted-foreground">
@@ -80,7 +80,7 @@ const FAQSection = () => {
                 className="rounded-2xl px-5 md:px-6 shadow-card border-none transition-all duration-300 hover:shadow-card-hover"
                 style={{ backgroundColor: 'hsl(0 0% 100%)' }}
               >
-                <AccordionTrigger className="text-left text-base md:text-lg font-semibold hover:text-accent py-5 hover:no-underline transition-colors duration-300" style={{ color: 'hsl(222 47% 11%)' }}>
+                <AccordionTrigger className="text-left text-base md:text-lg font-semibold hover:text-accent py-5 hover:no-underline transition-colors duration-300" style={{ color: '#2C2C2C' }}>
                   {faq.question}
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground leading-relaxed pb-5 text-sm md:text-base animate-fade-in">

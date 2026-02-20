@@ -12,7 +12,7 @@ const ExpertSection = () => {
   ];
 
   return (
-    <section className="section-padding" style={{ backgroundColor: 'hsl(36 60% 97%)' }} ref={ref}>
+    <section className="section-padding" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center max-w-6xl mx-auto">
           {/* Photo Column */}
@@ -36,7 +36,7 @@ const ExpertSection = () => {
           {/* Text Column */}
           <div className="order-1 lg:order-2">
             <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">Meet the Expert</span>
-            <h2 className="heading-lg mb-2 md:mb-3" style={{ color: 'hsl(222 47% 11%)' }}>
+            <h2 className="heading-lg mb-2 md:mb-3" style={{ color: '#2C2C2C' }}>
               About Himansshu Agarwal Ji
             </h2>
             <p className="text-accent font-semibold text-base md:text-lg mb-4 md:mb-6">
@@ -48,15 +48,15 @@ const ExpertSection = () => {
             </p>
 
             <p className="body-md text-muted-foreground leading-relaxed mb-8">
-              Through his brand <span className="font-semibold" style={{ color: 'hsl(222 47% 11%)' }}>Ankshaastra</span>, he has guided thousands of families in choosing names that truly align with their child's cosmic blueprint — crafted using numerology principles, Vedic principles, and your baby's birth details.
+              Through his brand <span className="font-semibold" style={{ color: '#2C2C2C' }}>Ankshaastra</span>, he has guided thousands of families in choosing names that truly align with their child's cosmic blueprint — crafted using numerology principles, Vedic principles, and your baby's birth details.
             </p>
 
             {/* Stats Row */}
             <div className="grid grid-cols-3 gap-4">
               {stats.map((stat, i) => (
-                <div key={i} className="text-center p-3 md:p-4 rounded-xl border border-accent/20" style={{ backgroundColor: 'hsl(38 92% 50% / 0.05)' }}>
+                <div key={i} className="text-center p-3 md:p-4 rounded-xl border border-accent/20" style={{ backgroundColor: 'rgba(201,168,76,0.06)' }}>
                   <stat.icon className="w-5 h-5 text-accent mx-auto mb-1" />
-                  <div className="text-xl md:text-2xl font-heading font-bold" style={{ color: 'hsl(222 47% 11%)' }}>{stat.value}</div>
+                  <div className="text-xl md:text-2xl font-heading font-bold" style={{ color: '#2C2C2C' }}>{stat.value}</div>
                   <div className="text-xs text-muted-foreground">{stat.label}</div>
                 </div>
               ))}

@@ -1,6 +1,6 @@
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 
-const DARK_BG = 'linear-gradient(135deg, #1E3557 0%, #0D1F35 100%)';
+const DARK_BG = 'linear-gradient(135deg, #2C2C2C 0%, #1a1a1a 100%)';
 
 const RootCauseSection = () => {
   const { ref } = useScrollAnimation({ threshold: 0.2 });

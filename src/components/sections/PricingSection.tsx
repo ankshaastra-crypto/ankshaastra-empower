@@ -48,7 +48,7 @@ const PricingSection = () => {
   ];
 
   return (
-    <section className="section-padding" id="pricing" style={{ backgroundColor: 'hsl(260 30% 99%)' }} ref={ref}>
+    <section className="section-padding" id="pricing" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div
@@ -67,7 +67,7 @@ const PricingSection = () => {
           {/* Name Check Card */}
           <div
             className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative"
-            style={{ backgroundColor: 'hsl(262 33% 97%)' }}
+            style={{ backgroundColor: '#FFFFFF' }}
           >
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span className="bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
@@ -162,7 +162,7 @@ const PricingSection = () => {
           {/* Single Report Card */}
           <div
             className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow animate-border-glow"
-            style={{ backgroundColor: 'hsl(262 33% 97%)' }}
+            style={{ backgroundColor: '#FFFFFF' }}
           >
             <div
               className="absolute -top-4 left-1/2 -translate-x-1/2 animate-float-subtle"

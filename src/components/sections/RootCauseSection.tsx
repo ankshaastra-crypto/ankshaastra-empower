@@ -22,13 +22,15 @@ const RootCauseSection = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10 md:mb-16">
-            <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3">The Science Behind It</span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-white mb-5">
-              Because a Name Is the{" "}
-              <span className="text-gradient-gold">First Gift You Give Your Child</span>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-white mb-4">
+              More Than Just a{" "}
+              <span className="text-gradient-gold">Beautiful Name</span>
             </h2>
+            <p className="text-lg md:text-xl italic text-white/80 mb-4" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+              Choose a name that grows with your child.
+            </p>
             <p className="text-base md:text-lg text-white/75 max-w-3xl mx-auto leading-relaxed px-2">
-              The perfect baby name can bring everything back in tune. Numerology assigns numerical values to each letter, influencing its energy and significance. A name aligned with your baby's birth energy becomes a lifelong asset — supporting harmony, confidence, and a positive foundation for the future.
+              Every child is unique. Numerology helps identify names that resonate with your baby's natural tendencies, supporting harmony, confidence, and a positive foundation for the future.
             </p>
           </div>
 

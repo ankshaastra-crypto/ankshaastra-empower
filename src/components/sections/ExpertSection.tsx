@@ -6,7 +6,7 @@ const ExpertSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
 
   const stats = [
-    { icon: Star, value: "1000+", label: "Happy Families" },
+    { icon: Star, value: "5000+", label: "Happy Families" },
     { icon: BookOpen, value: "10+", label: "Years Research" },
     { icon: Award, value: "4.9★", label: "User Rating" },
   ];
@@ -19,8 +19,8 @@ const ExpertSection = () => {
     >
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center max-w-6xl mx-auto">
-          {/* Photo Column — first on mobile (order-1), left on desktop (lg:order-1) */}
-          <div className="order-1 lg:order-1">
+          {/* Photo Column — first on mobile, left on desktop */}
+          <div className="order-first lg:order-1">
             <div className="relative group">
               <div className="relative rounded-3xl overflow-hidden shadow-purple">
                 <div className="absolute inset-0 bg-gradient-to-br from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
@@ -37,8 +37,8 @@ const ExpertSection = () => {
             </div>
           </div>
 
-          {/* Text Column — second on mobile (order-2), right on desktop (lg:order-2) */}
-          <div className="order-2 lg:order-2">
+          {/* Text Column — second on mobile, right on desktop */}
+          <div className="order-last lg:order-2">
             <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">Meet the Expert</span>
             <h2 className="heading-lg mb-2 md:mb-3" style={{ color: '#2C2C2C' }}>
               About Himansshu Agarwal Ji

@@ -60,11 +60,7 @@ const HeroSection = () => {
             <div className="h-px w-16" style={{ background: 'linear-gradient(to left, transparent, #C9A84C)' }} />
           </div>
 
-          {/* Name Check pill */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-5 text-sm font-semibold" style={{ background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.4)', color: '#7A5A10' }}>
-            <span>✦</span>
-            <span>Name Check available @ ₹199</span>
-          </div>
+
 
           <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold mb-5 leading-tight" style={{ color: '#2C2C2C' }}>
             Because a Name Is the{" "}
@@ -77,10 +73,6 @@ const HeroSection = () => {
             — crafted personally by Himansshu Agarwal Ji for your child's unique birth energy.
           </p>
 
-          <p className="text-sm mb-7 max-w-md mx-auto" style={{ color: '#C9A84C', fontStyle: 'italic' }}>
-            Every baby name is personally kept by Himansshu Ji — not automated, not outsourced.
-          </p>
-
           <div className="mb-8">
             <Button
               onClick={scrollToForm}
@@ -88,9 +80,9 @@ const HeroSection = () => {
               className="w-full sm:w-auto font-bold text-base md:text-lg shadow-xl hover:scale-105 transition-transform animate-pulse-glow border-none"
               style={{ background: 'linear-gradient(135deg, #C9A84C 0%, #e0bf6a 100%)', color: '#2C2C2C' }}
             >
-              Get Perfect Baby Name @ ₹1997
+              Get Name Check @ ₹199
             </Button>
-            <p className="text-xs mt-3" style={{ color: '#6B6B6B' }}>Delivered within 3 business days · 100% Personalised</p>
+            <p className="text-xs mt-3" style={{ color: '#6B6B6B' }}>Delivered within 24–48 Hours · 100% Personalised</p>
           </div>
 
           {/* Badges */}

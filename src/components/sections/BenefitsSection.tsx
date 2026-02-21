@@ -40,8 +40,8 @@ const BenefitsSection = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         {/* For You If */}
-        <div className="max-w-4xl mx-auto mb-16 md:mb-24">
-          <div className="text-center mb-8 md:mb-12">
+        <div className="max-w-4xl mx-auto mb-10 md:mb-20">
+          <div className="text-center mb-6 md:mb-10">
             <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3">Is This For You?</span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-white mb-4">
               This Report Is <span className="text-gradient-gold">For You If:</span>
@@ -60,7 +60,7 @@ const BenefitsSection = () => {
         </div>
 
         {/* Benefits Grid */}
-        <div className="text-center max-w-3xl mx-auto mb-8 md:mb-12">
+        <div className="text-center max-w-3xl mx-auto mb-6 md:mb-10">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3">Benefits</span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-white mb-4">
             Why Choose a <span className="text-gradient-gold">Numerology-Based Name?</span>

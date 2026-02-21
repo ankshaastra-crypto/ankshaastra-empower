@@ -34,7 +34,7 @@ const ProblemSection = () => {
       style={{ backgroundColor: '#FDF6EC' }}
     >
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-6 md:mb-12">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">The Challenge</span>
           <h2 className="heading-lg mb-3 md:mb-4" style={{ color: '#2C2C2C' }}>
             Struggling to Choose the<br />

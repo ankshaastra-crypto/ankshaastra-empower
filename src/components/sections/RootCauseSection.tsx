@@ -24,7 +24,7 @@ const RootCauseSection = () => {
   return (
     <section
       ref={ref}
-      className={`py-16 md:py-24 lg:py-32 relative overflow-hidden section-hidden ${isVisible ? 'section-visible' : ''}`}
+      className={`py-10 md:py-20 lg:py-28 relative overflow-hidden section-hidden ${isVisible ? 'section-visible' : ''}`}
       style={{ background: 'linear-gradient(135deg, #2C2C2C 0%, #1a1a1a 100%)' }}
     >
       {/* Decorative blobs */}
@@ -45,7 +45,7 @@ const RootCauseSection = () => {
         <div className="max-w-5xl mx-auto">
           {/* Heading block */}
           <div className="text-center mb-12 md:mb-16">
-            <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase mb-4" style={{ color: '#C9A84C' }}>The Philosophy</span>
+            <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase mb-3" style={{ color: '#C9A84C' }}>The Philosophy</span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-white mb-4 leading-tight">
               More Than Just a{" "}
               <span style={{ color: '#C9A84C' }}>Beautiful Name</span>

@@ -42,7 +42,7 @@ const TrustSection = () => {
     <section className="section-padding" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
       <div className="container mx-auto px-4">
         {/* Stats Bar */}
-        <div className="max-w-5xl mx-auto mb-12 md:mb-16">
+        <div className="max-w-5xl mx-auto mb-8 md:mb-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 rounded-2xl p-6 md:p-8" style={{ background: 'linear-gradient(135deg, #2C2C2C 0%, #1a1a1a 100%)' }}>
             {stats.map((stat, i) => (
               <div key={i} className="text-center">
@@ -53,7 +53,7 @@ const TrustSection = () => {
           </div>
         </div>
 
-        <div className="text-center max-w-3xl mx-auto mb-10 md:mb-12">
+        <div className="text-center max-w-3xl mx-auto mb-6 md:mb-10">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3">Our Promise</span>
           <h2 className="heading-lg" style={{ color: '#2C2C2C' }}>
             Why Trust Ankshaastra?

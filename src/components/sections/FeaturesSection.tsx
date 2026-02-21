@@ -40,7 +40,7 @@ const FeaturesSection = () => {
   return (
     <section className="section-padding" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-6 md:mb-12">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">What You Get</span>
           <h2 className="heading-lg mb-3 md:mb-4" style={{ color: '#2C2C2C' }}>
             More Than Just a Beautiful Name
@@ -50,7 +50,7 @@ const FeaturesSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-6xl mx-auto mb-10 md:mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-6xl mx-auto mb-8 md:mb-12">
           {features.map((feature, index) => (
             <div
               key={index}

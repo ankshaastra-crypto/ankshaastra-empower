@@ -1,6 +1,6 @@
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import heroBg from "@/assets/hero-mother-baby.jpg";
+import heroBg from "@/assets/hero-mother-baby-2.jpg";
 
 const HeroSection = () => {
   const scrollToForm = () => {
@@ -16,7 +16,7 @@ const HeroSection = () => {
 
   return (
     <section
-      className="min-h-screen flex items-center pt-20 pb-10 relative overflow-hidden"
+      className="min-h-screen flex items-center pt-16 pb-6 md:pt-20 md:pb-10 relative overflow-hidden"
       style={{ background: 'linear-gradient(160deg, #FDF6EC 0%, #F9EDDA 50%, #FDF6EC 100%)' }}
     >
       {/* Background mother & baby image — visible but soft */}

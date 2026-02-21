@@ -51,9 +51,7 @@ const PricingSection = () => {
     <section className="section-padding" id="pricing" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div
-          className="text-center max-w-3xl mx-auto mb-8 md:mb-16"
-        >
+          <div className="text-center max-w-3xl mx-auto mb-6 md:mb-12">
           <h2 className="heading-lg text-ink-black mb-3 md:mb-4">
             Get Your Personalized Report
           </h2>

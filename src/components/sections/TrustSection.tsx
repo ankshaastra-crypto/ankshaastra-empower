@@ -11,7 +11,7 @@ const TrustSection = () => {
     },
     {
       icon: Clock,
-      text: "Delivered within 3 business days to your email — check spam & promotions folders too",
+      text: "Delivered within 24–48 Hours to your email — check spam & promotions folders too",
     },
     {
       icon: BookOpen,
@@ -32,7 +32,7 @@ const TrustSection = () => {
   ];
 
   const stats = [
-    { value: "1000+", label: "Families Served" },
+    { value: "5000+", label: "Families Served" },
     { value: "4.9★", label: "Average Rating" },
     { value: "99%", label: "Parents Felt Confident" },
     { value: "100%", label: "Reliable Results" },

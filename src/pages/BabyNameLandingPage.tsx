@@ -294,7 +294,7 @@ const HeroSection = () => {
           lineHeight: 1.7,
         }}>
           A personalised Baby Name Numerology Report crafted using Vedic principles
-          and your baby's birth details — by an expert trusted by 1000+ families.
+          and your baby's birth details — by an expert trusted by 5000+ families.
         </p>
 
         {/* Price */}
@@ -318,7 +318,7 @@ const HeroSection = () => {
         </button>
 
         <p style={{ fontFamily: T.body, fontSize: "0.8rem", color: T.secondary, marginTop: 14 }}>
-          🔒 Secure Payment · Delivered within 3 Business Days
+          🔒 Secure Payment · Delivered within 24–48 Hours
         </p>
       </div>
     </section>
@@ -328,7 +328,7 @@ const HeroSection = () => {
 // ─── Social Proof Bar ─────────────────────────────────────────────────────────
 const SocialProofBar = () => {
   const stats = [
-    { v: "1000+", l: "Families Served" },
+    { v: "5000+", l: "Families Served" },
     { v: "4.9 ★", l: "Average Rating" },
     { v: "99%+",  l: "Parents Felt Confident" },
     { v: "10+",   l: "Years of Experience" },
@@ -515,7 +515,7 @@ const ExpertSection = () => {
               <div style={{ fontFamily: T.body, fontSize: "0.78rem", color: "rgba(253,246,236,0.55)", marginTop: 6 }}>Baby Name & Name Correction Expert</div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, width: "100%" }}>
-              {[["10+", "Years"], ["1000+", "Families"], ["99%", "Confidence"]].map(([v, l], i) => (
+              {[["10+", "Years"], ["5000+", "Families"], ["99%", "Confidence"]].map(([v, l], i) => (
                 <div key={i}>
                   <div style={{ fontFamily: T.heading, fontWeight: 700, fontSize: "1.2rem", color: T.gold }}>{v}</div>
                   <div style={{ fontFamily: T.body, fontSize: "0.7rem", color: "rgba(253,246,236,0.45)" }}>{l}</div>
@@ -552,7 +552,7 @@ const ExpertSection = () => {
 const DeliverySection = () => {
   const ref = useFadeUp();
   const cards = [
-    { icon: Mail,     title: "How and When Will I Receive My Report?", body: "Your personalised Baby Name Numerology Report will be delivered to your email address within 3 business days. Check spam and promotions folders just in case." },
+    { icon: Mail,     title: "How and When Will I Receive My Report?", body: "Your personalised Baby Name Numerology Report will be delivered to your email address within 24–48 Hours. Check spam and promotions folders just in case." },
     { icon: FileText, title: "Is This an Instant Automated Report?",   body: "No. Each report is crafted specifically for your child by Himansshu Agarwal Ji himself — never by an algorithm or assistant." },
     { icon: Sparkles, title: "What Language Is the Report In?",        body: "Delivered in English, crafted using numerology and Vedic principles — written clearly without any jargon." },
   ];
@@ -740,7 +740,7 @@ const ClaimFormSection = () => {
           <GoldDivider />
           <h2 style={S.h2()}>Claim Your <span style={{ color: T.gold }}>Report Now</span></h2>
           <p style={{ fontFamily: T.body, color: T.secondary, fontSize: "0.95rem", marginTop: 10 }}>
-            Fill in your details and we'll craft your personalised report within 3 business days.
+            Fill in your details and we'll craft your personalised report within 24–48 Hours.
           </p>
         </div>
         <div className="bn-form-pad" style={{
@@ -846,7 +846,7 @@ const ClaimFormSection = () => {
             }}>
               <div>
                 <div style={{ fontFamily: T.body, fontWeight: 700, fontSize: "0.9rem", color: T.charcoal }}>Personalised Baby Name Report</div>
-                <div style={{ fontFamily: T.body, fontSize: "0.78rem", color: T.secondary, marginTop: 2 }}>Delivered within 3 business days</div>
+                <div style={{ fontFamily: T.body, fontSize: "0.78rem", color: T.secondary, marginTop: 2 }}>Delivered within 24–48 Hours</div>
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontFamily: T.body, fontSize: "0.8rem", textDecoration: "line-through", color: T.secondary }}>₹4,999</div>
@@ -931,7 +931,7 @@ const FinalCTA = () => {
           Empower My Child Now <ArrowRight size={18} />
         </button>
         <p style={{ fontFamily: T.body, fontSize: "0.8rem", color: "rgba(253,246,236,0.4)", marginTop: 14 }}>
-          🔒 100% Secure Payment · Delivered within 3 Business Days
+          🔒 100% Secure Payment · Delivered within 24–48 Hours
         </p>
       </div>
     </section>

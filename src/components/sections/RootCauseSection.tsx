@@ -5,17 +5,17 @@ const RootCauseSection = () => {
 
   const pillars = [
     {
-      emoji: "🔢",
+      icon: "✦",
       title: "Numerology",
       desc: "Every letter carries a vibrational number that shapes personality & destiny from birth.",
     },
     {
-      emoji: "🕉️",
+      icon: "॥",
       title: "Vedic Principles",
       desc: "Ancient Indian wisdom aligns the name with the child's cosmic blueprint and life path.",
     },
     {
-      emoji: "📅",
+      icon: "⟡",
       title: "Birth Date",
       desc: "Your baby's Mulank & Bhagyank guide which sounds are truly compatible with their energy.",
     },
@@ -76,13 +76,13 @@ const RootCauseSection = () => {
                 {/* Outer glow on hover */}
                 <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ boxShadow: '0 0 60px rgba(201,168,76,0.15), inset 0 1px 0 rgba(201,168,76,0.2)' }} />
 
-                {/* Emoji icon */}
+                {/* Stylish icon */}
                 <div className="relative mb-5 inline-flex">
                   <div
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
-                    style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)' }}
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+                    style={{ background: 'linear-gradient(135deg, rgba(201,168,76,0.15) 0%, rgba(201,168,76,0.05) 100%)', border: '1px solid rgba(201,168,76,0.3)', boxShadow: '0 4px 20px rgba(201,168,76,0.1)' }}
                   >
-                    {pillar.emoji}
+                    <span className="font-heading font-bold" style={{ color: '#C9A84C', fontSize: '1.75rem' }}>{pillar.icon}</span>
                   </div>
                 </div>
 

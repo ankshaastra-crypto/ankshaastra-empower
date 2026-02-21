@@ -25,7 +25,7 @@ const BenefitsSection = () => {
     { icon: Heart, title: "Harmony from Day One", text: "A name aligned with your baby's birth energy creates natural ease, confidence, and positive vibrations throughout life." },
     { icon: Shield, title: "Reduce Name Anxiety", text: "Stop second-guessing. Our report provides a clear path, reducing decision fatigue by narrowing options based on numerological compatibility." },
     { icon: Smile, title: "A Name That Resonates", text: "Every child is unique. Numerology helps identify names that resonate with your baby's natural tendencies and inner essence." },
-    { icon: Users, title: "Trusted by 1000+ Families", text: "Join the growing community of conscious parents who have taken a deliberate step toward better name alignment with numerology." },
+    { icon: Users, title: "Trusted by 5000+ Families", text: "Join the growing community of conscious parents who have taken a deliberate step toward better name alignment with numerology." },
     { icon: Star, title: "Lifelong Positive Foundation", text: "Supporting harmony, confidence, and a positive foundation for the future — because the right name becomes a lifelong gift." },
     { icon: Leaf, title: "Empower Your Child's Potential", text: "Our report makes it a breeze to find a name that matches their potential and boosts their development from the very start." },
   ];

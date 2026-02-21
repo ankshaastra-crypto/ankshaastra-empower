@@ -33,7 +33,7 @@ const FeaturesSection = () => {
     "Clear explanation with each suggestion",
     "Based on Numerology & Vedic principles",
     "Trusted by thousands of happy parents",
-    "Delivered within 3 business days",
+    "Delivered within 24–48 Hours",
     "Written in English, easy to understand",
   ];
 

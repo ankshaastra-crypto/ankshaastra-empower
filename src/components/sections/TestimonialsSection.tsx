@@ -53,7 +53,7 @@ const TestimonialsSection = () => {
             Their Words Say It All
           </h2>
           <p className="body-md text-muted-foreground">
-            Trusted by parents seeking clarity — over 1000+ families have embarked on a new beginning with numerology.
+            Trusted by parents seeking clarity — over 5000+ families have embarked on a new beginning with numerology.
           </p>
         </div>
 

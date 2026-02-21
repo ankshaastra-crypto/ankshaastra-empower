@@ -61,7 +61,7 @@ const FAQSection = () => {
   return (
     <section className="section-padding" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-10 md:mb-14">
+        <div className="text-center max-w-3xl mx-auto mb-6 md:mb-10">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3">FAQs</span>
           <h2 className="heading-lg mb-3" style={{ color: '#2C2C2C' }}>
             Frequently Asked Questions

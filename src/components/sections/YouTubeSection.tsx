@@ -12,7 +12,7 @@ const YouTubeSection = () => {
   return (
     <section
       ref={ref}
-      className={`py-12 md:py-20 lg:py-24 relative overflow-hidden section-hidden ${isVisible ? 'section-visible' : ''}`}
+      className={`py-8 md:py-16 lg:py-20 relative overflow-hidden section-hidden ${isVisible ? 'section-visible' : ''}`}
       style={{ background: 'linear-gradient(135deg, #2C2C2C 0%, #1a1a1a 100%)' }}
     >
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -22,7 +22,7 @@ const YouTubeSection = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8 md:mb-12">
+          <div className="text-center mb-6 md:mb-10">
             <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase mb-3" style={{ color: '#C9A84C' }}>Learn More</span>
             <h2 className="text-2xl md:text-4xl font-heading font-bold text-white mb-3 md:mb-4">
               Insightful <span style={{ color: '#C9A84C' }}>Podcasts</span>

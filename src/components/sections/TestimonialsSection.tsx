@@ -47,7 +47,7 @@ const TestimonialsSection = () => {
   return (
     <section ref={ref} className={`section-padding section-hidden ${isVisible ? 'section-visible' : ''}`} style={{ backgroundColor: '#FDF6EC' }}>
       <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-8 md:mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-6 md:mb-12">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">Testimonials</span>
           <h2 className="heading-lg mb-3 md:mb-4 px-2" style={{ color: '#2C2C2C' }}>
             Their Words Say It All

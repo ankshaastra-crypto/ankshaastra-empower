@@ -68,9 +68,9 @@ const HeroSection = () => {
           </h1>
 
           <p className="text-base md:text-lg mb-3 max-w-xl mx-auto leading-relaxed" style={{ color: '#6B6B6B' }}>
-            Personalised Baby Name Report based on{" "}
-            <span className="font-semibold" style={{ color: '#2C2C2C' }}>Numerology & Vedic principles</span>{" "}
-            — crafted personally by Himansshu Agarwal Ji for your child's unique birth energy.
+            Personalised Baby Name Report by{" "}
+            <span className="font-semibold" style={{ color: '#2C2C2C' }}>Himansshu Agarwal Ji</span>{" "}
+            — based on Numerology & Vedic principles, aligned to your child's birth energy.
           </p>
 
           <div className="mb-8">

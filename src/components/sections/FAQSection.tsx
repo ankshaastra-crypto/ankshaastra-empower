@@ -19,7 +19,7 @@ const FAQSection = () => {
     {
       question: "How and When Will I Receive My Report?",
       answer:
-        "Your personalised Baby Name Numerology Report will be delivered to your email address within 3 business days following your purchase. Be sure to check your inbox's spam and promotions folders in case the report lands there.",
+        "Your personalised Baby Name Numerology Report will be delivered to your email address within 24–48 Hours following your purchase. Be sure to check your inbox's spam and promotions folders in case the report lands there.",
     },
     {
       question: "Is This an Instant Automated Report?",

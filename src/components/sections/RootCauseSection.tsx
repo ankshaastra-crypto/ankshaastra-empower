@@ -76,18 +76,18 @@ const RootCauseSection = () => {
                 {/* Outer glow on hover */}
                 <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ boxShadow: '0 0 60px rgba(201,168,76,0.15), inset 0 1px 0 rgba(201,168,76,0.2)' }} />
 
-                {/* Stylish icon */}
-                <div className="relative mb-5 inline-flex">
+                {/* Stylish icon — centered */}
+                <div className="relative mb-5 flex justify-center">
                   <div
-                    className="w-16 h-16 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
-                    style={{ background: 'linear-gradient(135deg, rgba(201,168,76,0.15) 0%, rgba(201,168,76,0.05) 100%)', border: '1px solid rgba(201,168,76,0.3)', boxShadow: '0 4px 20px rgba(201,168,76,0.1)' }}
+                    className="w-18 h-18 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-115 group-hover:rotate-6 animate-icon-bounce"
+                    style={{ width: '4.5rem', height: '4.5rem', background: 'linear-gradient(135deg, rgba(201,168,76,0.25) 0%, rgba(201,168,76,0.08) 100%)', border: '1.5px solid rgba(201,168,76,0.4)', boxShadow: '0 6px 24px rgba(201,168,76,0.18), inset 0 1px 0 rgba(255,255,255,0.08)' }}
                   >
-                    <span className="font-heading font-bold" style={{ color: '#C9A84C', fontSize: '1.75rem' }}>{pillar.icon}</span>
+                    <span className="font-heading font-bold" style={{ color: '#C9A84C', fontSize: '2rem', textShadow: '0 0 12px rgba(201,168,76,0.4)' }}>{pillar.icon}</span>
                   </div>
                 </div>
 
-                <h3 className="text-xl md:text-2xl font-heading font-bold mb-3 transition-colors duration-300" style={{ color: '#C9A84C' }}>{pillar.title}</h3>
-                <p className="text-white/65 text-sm md:text-base leading-relaxed group-hover:text-white/85 transition-colors duration-300">{pillar.desc}</p>
+                <h3 className="text-xl md:text-2xl font-heading font-bold mb-3 text-center transition-colors duration-300" style={{ color: '#C9A84C' }}>{pillar.title}</h3>
+                <p className="text-white/65 text-sm md:text-base leading-relaxed text-center group-hover:text-white/85 transition-colors duration-300">{pillar.desc}</p>
 
                 {/* Bottom accent line — expands on hover */}
                 <div className="mt-6 h-px w-0 group-hover:w-full transition-all duration-500 rounded-full" style={{ background: 'linear-gradient(to right, #C9A84C, transparent)' }} />

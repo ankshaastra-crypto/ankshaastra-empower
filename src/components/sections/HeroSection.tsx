@@ -1,5 +1,6 @@
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import SocialProofCounter from "@/components/SocialProofCounter";
 import heroBg from "@/assets/hero-mother-baby-2.jpg";
 
 const HeroSection = () => {
@@ -86,7 +87,7 @@ const HeroSection = () => {
           </div>
 
           {/* Badges */}
-          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 md:gap-4">
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 md:gap-4 mb-6">
             {badges.map((badge, i) => (
               <div key={i} className="flex items-center gap-2 text-sm" style={{ color: '#6B6B6B' }}>
                 <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#C9A84C' }} />
@@ -94,6 +95,9 @@ const HeroSection = () => {
               </div>
             ))}
           </div>
+
+          {/* Social Proof Counter */}
+          <SocialProofCounter />
         </div>
       </div>
     </section>

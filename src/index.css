@@ -6,7 +6,7 @@
 
 /* Critical Layout CSS - loads before JS */
 html, body, #root {
-  background-color: #FDF6EC;
+  background-color: hsl(var(--background));
   min-height: 100vh;
 }
 
@@ -104,17 +104,17 @@ html, body, #root {
 
   html {
     scroll-behavior: smooth;
-    background-color: #FDF6EC;
+    background-color: hsl(var(--background));
   }
 
   body {
     @apply text-foreground font-body antialiased;
-    background-color: #FDF6EC;
+    background-color: hsl(var(--background));
     font-family: var(--font-body);
   }
 
   #root {
-    background-color: #FDF6EC;
+    background-color: hsl(var(--background));
     min-height: 100vh;
   }
 
@@ -125,7 +125,7 @@ html, body, #root {
 
 /* Section base styles */
 section {
-  background-color: hsl(38 67% 96%);
+  background-color: hsl(var(--background));
 }
 
 @layer components {

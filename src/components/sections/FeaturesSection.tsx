@@ -30,7 +30,7 @@ const FeaturesSection = () => {
 
   const highlights = [
     "2 meaningful, well-aligned name options",
-    "Clear explanation with each suggestion",
+    "Personal Loshu Grid Analysis",
     "Based on Numerology & Vedic principles",
     "Trusted by thousands of happy parents",
     "Delivered within 24–48 Hours",

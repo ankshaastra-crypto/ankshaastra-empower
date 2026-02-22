@@ -8,8 +8,8 @@ const FeaturesSection = () => {
   const features = [
     {
       icon: Baby,
-      title: "3 Meaningful, Well-Aligned Name Options",
-      text: "Receive 3 carefully curated name suggestions — each numerologically compatible with your baby's birth date, Mulank, and Bhagyank for lifelong harmony.",
+      title: "2 Meaningful, Well-Aligned Name Options",
+      text: "Receive 2 carefully curated name suggestions — each numerologically compatible with your baby's birth date, Mulank, and Bhagyank for lifelong harmony.",
     },
     {
       icon: Stars,
@@ -29,7 +29,7 @@ const FeaturesSection = () => {
   ];
 
   const highlights = [
-    "3 meaningful, well-aligned name options",
+    "2 meaningful, well-aligned name options",
     "Clear explanation with each suggestion",
     "Based on Numerology & Vedic principles",
     "Trusted by thousands of happy parents",

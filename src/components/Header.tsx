@@ -75,15 +75,15 @@ const Header = () => {
               onClick={scrollToPricing}
               className="w-full"
             >
-              Get My Personalized Report
+              Get Name Check Report
             </Button>
             <Button
-              variant="hero-small"
+              variant="gold-outline"
               size="default"
               onClick={scrollToForm}
               className="w-full"
             >
-              Get Report
+              Get Baby Name Report
             </Button>
           </div>
         )}

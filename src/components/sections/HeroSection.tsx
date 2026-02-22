@@ -82,7 +82,7 @@ const HeroSection = () => {
             >
               Get Name Check @ ₹199
             </Button>
-            <p className="text-xs mt-3" style={{ color: '#6B6B6B' }}>Delivered within 24–48 Hours · 100% Personalised</p>
+            <p className="text-xs mt-3" style={{ color: '#6B6B6B' }}>Only 10 Baby Name Reports accepted daily · Delivered in 24–48 Hours</p>
           </div>
 
           {/* Badges */}

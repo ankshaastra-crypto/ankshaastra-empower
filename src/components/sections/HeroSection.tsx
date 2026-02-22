@@ -24,7 +24,7 @@ const HeroSection = () => {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: `url(${heroBg})`,
-          opacity: 0.22,
+          opacity: 0.35,
         }}
       />
 

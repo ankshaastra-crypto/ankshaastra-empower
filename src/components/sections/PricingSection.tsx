@@ -3,6 +3,7 @@ import { Check, Clock, Lock } from "lucide-react";
 import { useState } from "react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { getPackagePricing, formatPrice } from "@/lib/packagePricing";
+import CountdownTimer from "@/components/CountdownTimer";
 
 const PricingSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
@@ -55,9 +56,10 @@ const PricingSection = () => {
           <h2 className="heading-lg text-ink-black mb-3 md:mb-4">
             Get Your Personalized Report
           </h2>
-          <p className="body-md text-muted-foreground px-2">
+          <p className="body-md text-muted-foreground px-2 mb-4">
             One-time investment for lifelong clarity and alignment.
           </p>
+          <CountdownTimer />
         </div>
 
         {/* Pricing Cards */}

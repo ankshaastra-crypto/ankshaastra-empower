@@ -1,6 +1,7 @@
 import Header from "@/components/Header";
 import ScrollProgress from "@/components/ScrollProgress";
 import FloatingElements from "@/components/FloatingElements";
+import StickyBottomCTA from "@/components/StickyBottomCTA";
 import HeroSection from "@/components/sections/HeroSection";
 import ProblemSection from "@/components/sections/ProblemSection";
 import RootCauseSection from "@/components/sections/RootCauseSection";
@@ -17,10 +18,11 @@ import Footer from "@/components/Footer";
 
 const Index = () => {
   return (
-    <main className="min-h-screen" style={{ backgroundColor: 'hsl(36 60% 97%)' }}>
+    <main className="min-h-screen bg-background">
       <ScrollProgress />
       <Header />
       <FloatingElements />
+      <StickyBottomCTA />
       
       <HeroSection />
       <ProblemSection />

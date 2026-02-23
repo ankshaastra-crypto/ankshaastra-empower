@@ -4,7 +4,7 @@ import { Users, Star, Shield } from "lucide-react";
 const SocialProofCounter = () => {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
-  const target = 2400;
+  const target = 5000;
 
   useEffect(() => {
     const observer = new IntersectionObserver(

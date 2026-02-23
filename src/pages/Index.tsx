@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import ScrollProgress from "@/components/ScrollProgress";
 import FloatingElements from "@/components/FloatingElements";
-import StickyBottomCTA from "@/components/StickyBottomCTA";
+import SocialProofCounter from "@/components/SocialProofCounter";
 import HeroSection from "@/components/sections/HeroSection";
 import ProblemSection from "@/components/sections/ProblemSection";
 import RootCauseSection from "@/components/sections/RootCauseSection";
@@ -22,7 +22,7 @@ const Index = () => {
       <ScrollProgress />
       <Header />
       <FloatingElements />
-      <StickyBottomCTA />
+      <SocialProofCounter />
       
       <HeroSection />
       <ProblemSection />

@@ -1,6 +1,6 @@
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import SocialProofCounter from "@/components/SocialProofCounter";
+import { Users, Star, Shield } from "lucide-react";
 import heroBg from "@/assets/hero-mother-baby-2.jpg";
 
 const HeroSection = () => {
@@ -96,8 +96,20 @@ const HeroSection = () => {
             ))}
           </div>
 
-          {/* Social Proof Counter */}
-          <SocialProofCounter />
+          {/* Static trust stats */}
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
+            {[
+              { icon: Users, value: "5000+", label: "Reports Delivered" },
+              { icon: Star, value: "4.9/5", label: "Parent Rating" },
+              { icon: Shield, value: "100%", label: "Satisfaction" },
+            ].map((stat, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <stat.icon className="w-4 h-4 text-accent" />
+                <span className="font-heading font-bold text-foreground text-sm sm:text-base">{stat.value}</span>
+                <span className="text-muted-foreground text-xs sm:text-sm">{stat.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

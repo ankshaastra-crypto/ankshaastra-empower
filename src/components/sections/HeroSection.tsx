@@ -1,9 +1,20 @@
+import { useState, useEffect } from "react";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Users, Star, Shield } from "lucide-react";
 import heroBg from "@/assets/hero-mother-baby-2.jpg";
 
 const HeroSection = () => {
+  const [parallaxY, setParallaxY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setParallaxY(window.scrollY * 0.3);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const scrollToForm = () => {
     const formSection = document.getElementById("order-form");
     if (formSection) formSection.scrollIntoView({ behavior: "smooth" });
@@ -20,12 +31,13 @@ const HeroSection = () => {
       className="min-h-screen flex items-center pt-16 pb-6 md:pt-20 md:pb-10 relative overflow-hidden"
       style={{ background: 'linear-gradient(160deg, #FDF6EC 0%, #F9EDDA 50%, #FDF6EC 100%)' }}
     >
-      {/* Background mother & baby image — visible but soft */}
+      {/* Background mother & baby image — parallax */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat will-change-transform"
         style={{
           backgroundImage: `url(${heroBg})`,
           opacity: 0.35,
+          transform: `translateY(${parallaxY}px)`,
         }}
       />
 

@@ -12,6 +12,7 @@ import BenefitsSection from "@/components/sections/BenefitsSection";
 import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import PricingSection from "@/components/sections/PricingSection";
 import OrderFormSection from "@/components/sections/OrderFormSection";
+import SampleReportSection from "@/components/sections/SampleReportSection";
 import TrustSection from "@/components/sections/TrustSection";
 import FAQSection from "@/components/sections/FAQSection";
 import Footer from "@/components/Footer";
@@ -31,6 +32,7 @@ const Index = () => {
       <YouTubeSection />
       <FeaturesSection />
       <BenefitsSection />
+      <SampleReportSection />
       <TestimonialsSection />
       <PricingSection />
       <OrderFormSection />

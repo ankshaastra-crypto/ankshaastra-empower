@@ -368,10 +368,38 @@ section {
   .stagger-children.section-visible > *:nth-child(4) { opacity: 1; transform: none; transition-delay: 0.4s; }
 
   /* Hover animations */
-  .hover-lift { @apply transition-transform duration-300; }
-  .hover-lift:hover { transform: translateY(-4px); }
+  .hover-lift { @apply transition-all duration-300 ease-out; }
+  .hover-lift:hover { transform: translateY(-6px); box-shadow: 0 12px 24px -8px hsl(0 0% 0% / 0.12); }
   .hover-glow { @apply transition-shadow duration-300; }
   .hover-glow:hover { box-shadow: 0 0 20px hsl(38 92% 50% / 0.2); }
+
+  /* Smooth card entrance on scroll */
+  .reveal-card {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  }
+  .section-visible .reveal-card {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  .section-visible .reveal-card:nth-child(1) { transition-delay: 0.05s; }
+  .section-visible .reveal-card:nth-child(2) { transition-delay: 0.12s; }
+  .section-visible .reveal-card:nth-child(3) { transition-delay: 0.19s; }
+  .section-visible .reveal-card:nth-child(4) { transition-delay: 0.26s; }
+  .section-visible .reveal-card:nth-child(5) { transition-delay: 0.33s; }
+  .section-visible .reveal-card:nth-child(6) { transition-delay: 0.40s; }
+
+  /* Subtle scale on interactive elements */
+  .interactive-scale {
+    @apply transition-transform duration-200 ease-out;
+  }
+  .interactive-scale:hover {
+    transform: scale(1.03);
+  }
+  .interactive-scale:active {
+    transform: scale(0.98);
+  }
 
   /* Animation Delays */
   .delay-100 { animation-delay: 100ms; }

@@ -28,8 +28,7 @@ const HeroSection = () => {
 
   return (
     <section
-      className="min-h-screen flex items-center pt-16 pb-6 md:pt-20 md:pb-10 relative overflow-hidden"
-      style={{ background: 'linear-gradient(160deg, #FDF6EC 0%, #F9EDDA 50%, #FDF6EC 100%)' }}
+      className="min-h-screen flex items-center pt-16 pb-6 md:pt-20 md:pb-10 relative overflow-hidden bg-background"
     >
       {/* Background mother & baby image — parallax */}
       <div
@@ -75,14 +74,14 @@ const HeroSection = () => {
 
 
 
-          <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold mb-5 leading-tight" style={{ color: '#2C2C2C' }}>
+          <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold mb-5 leading-tight text-foreground">
             Because a Name Is the{" "}
             <span style={{ color: '#C9A84C' }}>First Gift You Give Your Child</span>
           </h1>
 
-          <p className="text-base md:text-lg mb-3 max-w-xl mx-auto leading-relaxed" style={{ color: '#6B6B6B' }}>
+          <p className="text-base md:text-lg mb-3 max-w-xl mx-auto leading-relaxed text-muted-foreground">
             Personalised Baby Name Report by{" "}
-            <span className="font-semibold" style={{ color: '#2C2C2C' }}>Himansshu Agarwal Ji</span>{" "}
+            <span className="font-semibold text-foreground">Himansshu Agarwal Ji</span>{" "}
             — based on Numerology & Vedic principles, aligned to your child's birth energy.
           </p>
 
@@ -95,13 +94,13 @@ const HeroSection = () => {
             >
               Get Name Check @ ₹199
             </Button>
-            <p className="text-xs mt-3" style={{ color: '#6B6B6B' }}>Limited Reports this week — Book Early · Delivered within 24–48 Hours</p>
+            <p className="text-xs mt-3 text-muted-foreground">Limited Reports this week — Book Early · Delivered within 24–48 Hours</p>
           </div>
 
           {/* Badges */}
           <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 md:gap-4 mb-6">
             {badges.map((badge, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm" style={{ color: '#6B6B6B' }}>
+              <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#C9A84C' }} />
                 <span>{badge}</span>
               </div>

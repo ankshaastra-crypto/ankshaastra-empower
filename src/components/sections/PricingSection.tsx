@@ -49,7 +49,7 @@ const PricingSection = () => {
   ];
 
   return (
-    <section className="section-padding" id="pricing" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
+    <section className="section-padding bg-background" id="pricing" ref={ref}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
           <div className="text-center max-w-3xl mx-auto mb-6 md:mb-12">
@@ -66,8 +66,7 @@ const PricingSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto">
           {/* Name Check Card */}
           <div
-            className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative"
-            style={{ backgroundColor: '#FFFFFF' }}
+             className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative bg-card"
           >
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span className="bg-secondary text-secondary-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
@@ -161,8 +160,7 @@ const PricingSection = () => {
 
           {/* Single Report Card */}
           <div
-            className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow animate-border-glow"
-            style={{ backgroundColor: '#FFFFFF' }}
+            className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow animate-border-glow bg-card"
           >
             <div
               className="absolute -top-4 left-1/2 -translate-x-1/2 animate-float-subtle"

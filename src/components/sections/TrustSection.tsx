@@ -39,7 +39,7 @@ const TrustSection = () => {
   ];
 
   return (
-    <section className="section-padding" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
+    <section className="section-padding bg-background" ref={ref}>
       <div className="container mx-auto px-4">
         {/* Stats Bar */}
         <div className="max-w-5xl mx-auto mb-8 md:mb-12">
@@ -55,7 +55,7 @@ const TrustSection = () => {
 
         <div className="text-center max-w-3xl mx-auto mb-6 md:mb-10">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3">Our Promise</span>
-          <h2 className="heading-lg" style={{ color: '#2C2C2C' }}>
+          <h2 className="heading-lg text-foreground">
             Why Trust Ankshaastra?
           </h2>
         </div>
@@ -64,8 +64,7 @@ const TrustSection = () => {
           {trustPoints.map((point, index) => (
             <div
               key={index}
-              className="rounded-2xl p-5 md:p-6 shadow-card card-hover flex items-start gap-4 group transition-all duration-300"
-              style={{ backgroundColor: '#FDF6EC' }}
+               className="rounded-2xl p-5 md:p-6 shadow-card card-hover flex items-start gap-4 group transition-all duration-300 bg-card"
             >
               <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300" style={{ backgroundColor: 'rgba(201,168,76,0.12)' }}>
                 <point.icon className="w-5 h-5 text-accent" />

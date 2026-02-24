@@ -38,11 +38,11 @@ const FeaturesSection = () => {
   ];
 
   return (
-    <section className="section-padding" style={{ backgroundColor: '#FDF6EC' }} ref={ref}>
+    <section className="section-padding bg-background" ref={ref}>
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-6 md:mb-12">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">What You Get</span>
-          <h2 className="heading-lg mb-3 md:mb-4" style={{ color: '#2C2C2C' }}>
+          <h2 className="heading-lg mb-3 md:mb-4 text-foreground">
             More Than Just a Beautiful Name
           </h2>
           <p className="body-md text-muted-foreground px-2">
@@ -54,12 +54,12 @@ const FeaturesSection = () => {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-white rounded-2xl p-5 md:p-8 shadow-card card-hover card-hover-gold group transition-all duration-300"
+              className="bg-card rounded-2xl p-5 md:p-8 shadow-card card-hover card-hover-gold group transition-all duration-300"
             >
               <div className="w-11 h-11 md:w-14 md:h-14 rounded-xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300" style={{ backgroundColor: 'rgba(201,168,76,0.1)' }}>
                 <feature.icon className="w-5 h-5 md:w-7 md:h-7 text-accent" />
               </div>
-              <h3 className="text-lg md:text-xl font-heading font-semibold mb-2 md:mb-3 group-hover:text-accent transition-colors duration-300" style={{ color: '#2C2C2C' }}>
+              <h3 className="text-lg md:text-xl font-heading font-semibold mb-2 md:mb-3 group-hover:text-accent transition-colors duration-300 text-foreground">
                 {feature.title}
               </h3>
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
@@ -71,7 +71,7 @@ const FeaturesSection = () => {
 
         {/* Quick Highlights Strip */}
         <div className="max-w-4xl mx-auto rounded-2xl p-6 md:p-8 border-2 border-accent/20" style={{ backgroundColor: 'rgba(201,168,76,0.05)' }}>
-          <h3 className="text-center text-lg md:text-xl font-heading font-bold mb-5 md:mb-6" style={{ color: '#2C2C2C' }}>Your Report Includes:</h3>
+          <h3 className="text-center text-lg md:text-xl font-heading font-bold mb-5 md:mb-6 text-foreground">Your Report Includes:</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {highlights.map((item, i) => (
               <div key={i} className="flex items-center gap-3">

@@ -31,14 +31,14 @@ const ProblemSection = () => {
     <section
       ref={ref}
       className={`section-padding section-hidden ${isVisible ? 'section-visible' : ''}`}
-      style={{ backgroundColor: '#FDF6EC' }}
+      style={{ backgroundColor: 'hsl(var(--background))' }}
     >
       <div className="container mx-auto px-4">
         <div className="text-center max-w-3xl mx-auto mb-6 md:mb-12">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">The Challenge</span>
-          <h2 className="heading-lg mb-3 md:mb-4" style={{ color: '#2C2C2C' }}>
+          <h2 className="heading-lg mb-3 md:mb-4 text-foreground">
             Struggling to Choose the<br />
-            <span style={{ color: '#C9A84C' }}>Perfect Baby Name?</span>
+            <span className="text-accent">Perfect Baby Name?</span>
           </h2>
           <p className="body-md text-muted-foreground px-2">
             You're not alone. Most parents feel this way — and a name isn't just a label. It's the first energy you gift your child.
@@ -49,15 +49,14 @@ const ProblemSection = () => {
           {struggles.map((item, index) => (
             <div
               key={index}
-              className="rounded-2xl p-5 md:p-8 shadow-card card-hover group transition-all duration-300"
-              style={{ backgroundColor: '#FFFFFF' }}
+              className="rounded-2xl p-5 md:p-8 shadow-card card-hover group transition-all duration-300 bg-card"
             >
               <div className="flex items-start gap-4 md:gap-5">
                 <div className="flex-shrink-0 w-11 h-11 md:w-14 md:h-14 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all duration-300" style={{ backgroundColor: 'rgba(201,168,76,0.1)' }}>
                   <item.icon className="w-5 h-5 md:w-7 md:h-7 text-accent" />
                 </div>
                 <div>
-                  <h3 className="text-lg md:text-xl font-heading font-semibold mb-1.5 md:mb-2 group-hover:text-accent transition-colors duration-300" style={{ color: '#2C2C2C' }}>
+                  <h3 className="text-lg md:text-xl font-heading font-semibold mb-1.5 md:mb-2 group-hover:text-accent transition-colors duration-300 text-foreground">
                     {item.title}
                   </h3>
                   <p className="text-sm md:text-base text-muted-foreground leading-relaxed">

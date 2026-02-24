@@ -720,7 +720,7 @@ const OrderFormSection = () => {
       className="section-padding"
       id="order-form"
       ref={ref}
-      style={{ backgroundColor: '#FDF6EC' }}
+      style={{ backgroundColor: 'hsl(var(--background))' }}
     >
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
@@ -865,14 +865,14 @@ const OrderFormSection = () => {
                     Contact Details
                   </p>
                   <div>
-                    <Label htmlFor="mobile">Mobile Number *</Label>
+                    <Label htmlFor="mobile">WhatsApp Number *</Label>
                     <Input
                       id="mobile"
                       name="mobile"
                       type="tel"
                       value={formData.mobile}
                       onChange={handleInputChange}
-                      placeholder="Enter 10-digit mobile number"
+                      placeholder="Enter 10-digit WhatsApp number"
                       required
                       maxLength={10}
                       className={`mt-1.5 transition-all duration-300 focus:shadow-card ${

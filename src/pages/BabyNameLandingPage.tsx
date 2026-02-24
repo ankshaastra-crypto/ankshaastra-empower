@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { format } from "date-fns";
 import {
-  CalendarIcon, Star, CheckCircle, ChevronDown, ChevronUp,
+  CalendarIcon, Star, CheckCircle, ChevronDown,
   Mail, Phone, User, Baby, FileText, ArrowRight, Sparkles,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -90,25 +90,49 @@ const GlobalStyles = () => (
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface FormData {
-  babyName: string; dob: Date | undefined;
-  parentName: string; email: string;
-  whatsapp: string; notes: string;
+  yourName: string;
+  fatherFirstName: string;
+  fatherLastName: string;
+  dob: Date | undefined;
+  timeOfBirth: string;
+  placeOfBirth: string;
+  pinCode: string;
+  gender: string;
+  email: string;
+  whatsapp: string;
+  notes: string;
 }
 interface FormErrors {
-  babyName?: string; dob?: string;
-  parentName?: string; email?: string; whatsapp?: string;
+  yourName?: string;
+  fatherFirstName?: string;
+  fatherLastName?: string;
+  dob?: string;
+  timeOfBirth?: string;
+  placeOfBirth?: string;
+  pinCode?: string;
+  gender?: string;
+  email?: string;
+  whatsapp?: string;
 }
 const validateEmail  = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const validateWA     = (v: string) => /^[6-9]\d{9}$/.test(v.trim());
 const validateName   = (v: string) => v.trim().length >= 2 && /^[a-zA-Z\s.'-]+$/.test(v.trim());
+const validatePinCode = (v: string) => /^\d{6}$/.test(v.trim());
+const validateTime = (v: string) => /^(0?[1-9]|1[0-2]):[0-5]\d:[0-5]\d\s?(AM|PM|am|pm)$/i.test(v.trim());
 function validate(d: FormData): FormErrors {
   const e: FormErrors = {};
-  if (!validateName(d.babyName))  e.babyName   = "Valid name required (letters only, min 2 chars).";
-  if (!d.dob)                     e.dob        = "Date of birth is required.";
-  else if (d.dob > new Date())    e.dob        = "Date of birth cannot be in the future.";
-  if (!validateName(d.parentName)) e.parentName = "Valid parent name required (letters only, min 2 chars).";
-  if (!validateEmail(d.email))    e.email      = "Please enter a valid email address.";
-  if (!validateWA(d.whatsapp))    e.whatsapp   = "10-digit Indian mobile number required.";
+  if (!validateName(d.yourName))       e.yourName       = "Valid name required (letters only, min 2 chars).";
+  if (!validateName(d.fatherFirstName)) e.fatherFirstName = "Father's first name is required.";
+  if (!validateName(d.fatherLastName))  e.fatherLastName  = "Father's last name is required.";
+  if (!d.dob)                           e.dob             = "Child's date of birth is required.";
+  else if (d.dob > new Date())          e.dob             = "Date of birth cannot be in the future.";
+  if (!d.timeOfBirth.trim())            e.timeOfBirth     = "Time of birth is required.";
+  else if (!validateTime(d.timeOfBirth)) e.timeOfBirth    = "Format: HH:MM:SS AM/PM (e.g., 09:30:00 AM).";
+  if (!validateName(d.placeOfBirth))    e.placeOfBirth    = "Place of birth is required.";
+  if (!validatePinCode(d.pinCode))      e.pinCode         = "Valid 6-digit pin code required.";
+  if (!d.gender.trim())                 e.gender          = "Gender is required.";
+  if (!validateEmail(d.email))          e.email           = "Please enter a valid email address.";
+  if (!validateWA(d.whatsapp))          e.whatsapp        = "10-digit Indian mobile number required.";
   return e;
 }
 
@@ -693,7 +717,9 @@ const FAQSection = () => {
 const ClaimFormSection = () => {
   const ref = useFadeUp();
   const [formData, setFormData] = useState<FormData>({
-    babyName: "", dob: undefined, parentName: "", email: "", whatsapp: "", notes: "",
+    yourName: "", fatherFirstName: "", fatherLastName: "",
+    dob: undefined, timeOfBirth: "", placeOfBirth: "",
+    pinCode: "", gender: "", email: "", whatsapp: "", notes: "",
   });
   const [errors, setErrors]     = useState<FormErrors>({});
   const [touched, setTouched]   = useState<Partial<Record<keyof FormErrors, boolean>>>({});
@@ -717,7 +743,7 @@ const ClaimFormSection = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setTouched({ babyName: true, dob: true, parentName: true, email: true, whatsapp: true });
+    setTouched({ yourName: true, fatherFirstName: true, fatherLastName: true, dob: true, timeOfBirth: true, placeOfBirth: true, pinCode: true, gender: true, email: true, whatsapp: true });
     const errs = validate(formData);
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
@@ -749,19 +775,39 @@ const ClaimFormSection = () => {
         }}>
           <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 22 }}>
 
-            {/* Baby Name */}
+            {/* 1. Your Name */}
             <div>
-              <label style={S.label()}><Baby size={15} color={T.gold} /> Baby's Full Name *</label>
-              <Input value={formData.babyName} onChange={e => handleChange("babyName", e.target.value)}
-                onBlur={() => handleBlur("babyName")} placeholder="Enter baby's full name"
-                style={{ ...inputSx, border: fieldBorder("babyName"), height: 48 }}
+              <label style={S.label()}><User size={15} color={T.gold} /> Your Name *</label>
+              <Input value={formData.yourName} onChange={e => handleChange("yourName", e.target.value)}
+                onBlur={() => handleBlur("yourName")} placeholder="Enter your full name"
+                style={{ ...inputSx, border: fieldBorder("yourName"), height: 48 }}
                 className="focus-visible:ring-0" />
-              {touched.babyName && errors.babyName && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.babyName}</p>}
+              {touched.yourName && errors.yourName && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.yourName}</p>}
             </div>
 
-            {/* Date of Birth */}
+            {/* 2. Father's First Name */}
             <div>
-              <label style={S.label()}><CalendarIcon size={15} color={T.gold} /> Baby's Date of Birth *</label>
+              <label style={S.label()}><User size={15} color={T.gold} /> Father's First Name *</label>
+              <Input value={formData.fatherFirstName} onChange={e => handleChange("fatherFirstName", e.target.value)}
+                onBlur={() => handleBlur("fatherFirstName")} placeholder="Enter father's first name"
+                style={{ ...inputSx, border: fieldBorder("fatherFirstName"), height: 48 }}
+                className="focus-visible:ring-0" />
+              {touched.fatherFirstName && errors.fatherFirstName && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.fatherFirstName}</p>}
+            </div>
+
+            {/* 3. Father's Last Name */}
+            <div>
+              <label style={S.label()}><User size={15} color={T.gold} /> Father's Last Name *</label>
+              <Input value={formData.fatherLastName} onChange={e => handleChange("fatherLastName", e.target.value)}
+                onBlur={() => handleBlur("fatherLastName")} placeholder="Enter father's last name"
+                style={{ ...inputSx, border: fieldBorder("fatherLastName"), height: 48 }}
+                className="focus-visible:ring-0" />
+              {touched.fatherLastName && errors.fatherLastName && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.fatherLastName}</p>}
+            </div>
+
+            {/* 4. Child's Date of Birth */}
+            <div>
+              <label style={S.label()}><CalendarIcon size={15} color={T.gold} /> Child's Date of Birth (DD/MM/YYYY) *</label>
               <Popover open={calOpen} onOpenChange={setCalOpen}>
                 <PopoverTrigger asChild>
                   <button type="button" onBlur={() => handleBlur("dob")}
@@ -772,7 +818,7 @@ const ClaimFormSection = () => {
                     }}>
                     <CalendarIcon size={15} color={T.gold} />
                     <span style={{ color: formData.dob ? T.charcoal : T.secondary }}>
-                      {formData.dob ? format(formData.dob, "dd MMM yyyy") : "Select date of birth"}
+                      {formData.dob ? format(formData.dob, "dd/MM/yyyy") : "Select child's date of birth"}
                     </span>
                   </button>
                 </PopoverTrigger>
@@ -788,17 +834,62 @@ const ClaimFormSection = () => {
               {touched.dob && errors.dob && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.dob}</p>}
             </div>
 
-            {/* Parent Name */}
+            {/* 5. Time of Birth */}
             <div>
-              <label style={S.label()}><User size={15} color={T.gold} /> Parent's Name *</label>
-              <Input value={formData.parentName} onChange={e => handleChange("parentName", e.target.value)}
-                onBlur={() => handleBlur("parentName")} placeholder="Enter your full name"
-                style={{ ...inputSx, border: fieldBorder("parentName"), height: 48 }}
+              <label style={S.label()}><Sparkles size={15} color={T.gold} /> Time of Birth (HH:MM:SS AM/PM) *</label>
+              <Input value={formData.timeOfBirth} onChange={e => handleChange("timeOfBirth", e.target.value)}
+                onBlur={() => handleBlur("timeOfBirth")} placeholder="e.g., 09:30:00 AM"
+                style={{ ...inputSx, border: fieldBorder("timeOfBirth"), height: 48 }}
                 className="focus-visible:ring-0" />
-              {touched.parentName && errors.parentName && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.parentName}</p>}
+              {touched.timeOfBirth && errors.timeOfBirth && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.timeOfBirth}</p>}
             </div>
 
-            {/* Email */}
+            {/* 6. Place of Birth */}
+            <div>
+              <label style={S.label()}><Baby size={15} color={T.gold} /> Place of Birth *</label>
+              <Input value={formData.placeOfBirth} onChange={e => handleChange("placeOfBirth", e.target.value)}
+                onBlur={() => handleBlur("placeOfBirth")} placeholder="Enter place of birth"
+                style={{ ...inputSx, border: fieldBorder("placeOfBirth"), height: 48 }}
+                className="focus-visible:ring-0" />
+              {touched.placeOfBirth && errors.placeOfBirth && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.placeOfBirth}</p>}
+            </div>
+
+            {/* 7. Pin Code */}
+            <div>
+              <label style={S.label()}><FileText size={15} color={T.gold} /> Pin Code *</label>
+              <Input type="tel" inputMode="numeric" maxLength={6}
+                value={formData.pinCode}
+                onChange={e => handleChange("pinCode", e.target.value.replace(/\D/g, ""))}
+                onBlur={() => handleBlur("pinCode")} placeholder="Enter 6-digit pin code"
+                style={{ ...inputSx, border: fieldBorder("pinCode"), height: 48 }}
+                className="focus-visible:ring-0" />
+              {touched.pinCode && errors.pinCode && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.pinCode}</p>}
+            </div>
+
+            {/* 8. Gender */}
+            <div>
+              <label style={S.label()}><User size={15} color={T.gold} /> Gender *</label>
+              <div style={{ display: "flex", gap: 12, marginTop: 6 }}>
+                {["Male", "Female", "Other"].map(g => (
+                  <button key={g} type="button"
+                    onClick={() => { handleChange("gender", g.toLowerCase()); setTouched(prev => ({ ...prev, gender: true })); }}
+                    style={{
+                      ...inputSx, padding: "10px 20px", cursor: "pointer",
+                      border: `1px solid ${formData.gender === g.toLowerCase() ? T.gold : T.goldBorder}`,
+                      background: formData.gender === g.toLowerCase() ? T.goldLight : "#fff",
+                      fontWeight: formData.gender === g.toLowerCase() ? 700 : 400,
+                      color: formData.gender === g.toLowerCase() ? "#7A5A10" : T.charcoal,
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+              {touched.gender && errors.gender && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.gender}</p>}
+            </div>
+
+            {/* 9. Email Address */}
             <div>
               <label style={S.label()}><Mail size={15} color={T.gold} /> Email Address *</label>
               <Input type="email" value={formData.email} onChange={e => handleChange("email", e.target.value)}
@@ -808,7 +899,7 @@ const ClaimFormSection = () => {
               {touched.email && errors.email && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.email}</p>}
             </div>
 
-            {/* WhatsApp */}
+            {/* 10. WhatsApp Number */}
             <div>
               <label style={S.label()}><Phone size={15} color={T.gold} /> WhatsApp Number *</label>
               <div style={{ display: "flex", gap: 8 }}>
@@ -822,7 +913,7 @@ const ClaimFormSection = () => {
                 <Input type="tel" inputMode="numeric" maxLength={10}
                   value={formData.whatsapp}
                   onChange={e => handleChange("whatsapp", e.target.value.replace(/\D/g, ""))}
-                  onBlur={() => handleBlur("whatsapp")} placeholder="10-digit mobile number"
+                  onBlur={() => handleBlur("whatsapp")} placeholder="10-digit WhatsApp number"
                   style={{ ...inputSx, border: fieldBorder("whatsapp"), height: 48, flex: 1 }}
                   className="focus-visible:ring-0" />
               </div>

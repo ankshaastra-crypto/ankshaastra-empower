@@ -12,20 +12,21 @@ const SampleReportSection = () => {
 
   const reportItems = [
     { label: "Baby Name", value: "Aarav Sharma", blurred: false },
-    { label: "Numerology Number", value: "5 — Adventure & Freedom", blurred: false },
-    { label: "Name Vibration Score", value: "92 / 100 — Excellent", blurred: true },
-    { label: "Personality Traits", value: "Leadership, Creativity, Compassion...", blurred: true },
-    { label: "Lucky Colors & Days", value: "Royal Blue, Thursday, Number 3...", blurred: true },
-    { label: "Career Alignment", value: "Entrepreneurship, Creative Arts...", blurred: true },
-    { label: "Name Compatibility", value: "Parent synergy: 94% match...", blurred: true },
-    { label: "Detailed Recommendation", value: "Based on birth chart analysis, this name...", blurred: true },
+    { label: "Baby First Alphabet Analysis", value: "Detailed alphabet vibration & energy analysis...", blurred: true },
+    { label: "Personal Loshu Grid", value: "Complete grid mapping & interpretation...", blurred: true },
+    { label: "First Name Number Analysis", value: "Name number: 5 — Adventure & Freedom...", blurred: true },
+    { label: "Full Name Number Analysis", value: "Vibration Score: 92/100 — Excellent alignment...", blurred: true },
+    { label: "Compound Number Analysis", value: "Personality: Leadership, Creativity, Compassion...", blurred: true },
+    { label: "Implementation Guide", value: "Step-by-step name adoption guide...", blurred: true },
+    { label: "Name Recommendation Rating", value: "Overall Rating: ★★★★★ (5/5)...", blurred: true },
+    { label: "& Much More", value: "Lucky colors, career alignment, 2-year roadmap...", blurred: true },
   ];
 
   return (
     <section
       ref={ref}
       className={`section-padding section-hidden ${isVisible ? "section-visible" : ""}`}
-      style={{ backgroundColor: "#FFFFFF" }}
+      style={{ backgroundColor: "hsl(var(--background))" }}
     >
       <div className="container mx-auto px-4">
         {/* Header */}
@@ -33,7 +34,7 @@ const SampleReportSection = () => {
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3">
             Sample Preview
           </span>
-          <h2 className="heading-lg mb-4" style={{ color: "#2C2C2C" }}>
+          <h2 className="heading-lg mb-4 text-foreground">
             Here's What Your Report{" "}
             <span style={{ color: "#C9A84C" }}>Looks Like</span>
           </h2>
@@ -86,12 +87,11 @@ const SampleReportSection = () => {
                       {item.label}
                     </p>
                     <p
-                      className={`text-sm font-medium transition-all duration-300 ${
+                      className={`text-sm font-medium transition-all duration-300 text-foreground ${
                         item.blurred
                           ? "blur-[6px] select-none pointer-events-none"
                           : ""
                       }`}
-                      style={{ color: "#2C2C2C" }}
                     >
                       {item.value}
                     </p>

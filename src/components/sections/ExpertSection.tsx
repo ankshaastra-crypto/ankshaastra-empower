@@ -15,7 +15,7 @@ const ExpertSection = () => {
     <section
       ref={ref}
       className={`section-padding section-hidden ${isVisible ? 'section-visible' : ''}`}
-      style={{ backgroundColor: '#FDF6EC' }}
+      style={{ backgroundColor: 'hsl(var(--background))' }}
     >
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center max-w-6xl mx-auto">
@@ -40,7 +40,7 @@ const ExpertSection = () => {
           {/* Text Column — second on mobile, right on desktop */}
           <div className="order-last lg:order-2">
             <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3 md:mb-4">Meet the Expert</span>
-            <h2 className="heading-lg mb-2 md:mb-3" style={{ color: '#2C2C2C' }}>
+            <h2 className="heading-lg mb-2 md:mb-3 text-foreground">
               About Himansshu Agarwal Ji
             </h2>
             <p className="text-accent font-semibold text-base md:text-lg mb-4 md:mb-6">
@@ -52,15 +52,15 @@ const ExpertSection = () => {
             </p>
 
             <p className="body-md text-muted-foreground leading-relaxed mb-4">
-              Through his brand <span className="font-semibold" style={{ color: '#2C2C2C' }}>Ankshaastra</span>, he has guided thousands of families in choosing names that truly align with their child's cosmic blueprint — crafted using numerology principles, Vedic principles, and your baby's birth details.
+              Through his brand <span className="font-semibold text-foreground">Ankshaastra</span>, he has guided thousands of families in choosing names that truly align with their child's cosmic blueprint — crafted using numerology principles, Vedic principles, and your baby's birth details.
             </p>
 
             {/* Key differentiator */}
             <div className="flex items-start gap-3 rounded-2xl px-4 py-3 mb-6 border border-accent/25" style={{ background: 'rgba(201,168,76,0.07)' }}>
               <span className="text-xl mt-0.5">✍️</span>
-              <p className="text-sm leading-relaxed" style={{ color: '#2C2C2C' }}>
-                <span className="font-semibold text-accent">Every baby name is personally kept by Himansshu Ji himself</span> — not automated, not outsourced. Your child's name is handcrafted with full attention and intention.
-              </p>
+               <p className="text-sm leading-relaxed text-foreground">
+                 <span className="font-semibold text-accent">Every baby name is personally kept by Himansshu Ji himself</span> — not automated, not outsourced. Your child's name is handcrafted with full attention and intention.
+               </p>
             </div>
 
             {/* Stats Row */}
@@ -68,7 +68,7 @@ const ExpertSection = () => {
               {stats.map((stat, i) => (
                 <div key={i} className="text-center p-3 md:p-4 rounded-xl border border-accent/20 transition-all duration-300 hover:-translate-y-1 hover:shadow-md" style={{ backgroundColor: 'rgba(201,168,76,0.06)' }}>
                   <stat.icon className="w-5 h-5 text-accent mx-auto mb-1" />
-                  <div className="text-xl md:text-2xl font-heading font-bold" style={{ color: '#2C2C2C' }}>{stat.value}</div>
+                  <div className="text-xl md:text-2xl font-heading font-bold text-foreground">{stat.value}</div>
                   <div className="text-xs text-muted-foreground">{stat.label}</div>
                 </div>
               ))}

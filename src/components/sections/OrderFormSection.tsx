@@ -27,6 +27,8 @@ const OrderFormSection = () => {
     "single",
   );
   const [nameCheckCount, setNameCheckCount] = useState<1 | 2 | 3>(1);
+
+  // Name Check form data
   const [formData, setFormData] = useState({
     person1FirstName: "",
     person1MiddleName: "",
@@ -50,6 +52,21 @@ const OrderFormSection = () => {
     email: "",
     city: "",
   });
+
+  // Baby Name Report form data
+  const [babyFormData, setBabyFormData] = useState({
+    yourName: "",
+    fatherFirstName: "",
+    fatherLastName: "",
+    childDob: "",
+    timeOfBirth: "",
+    placeOfBirth: "",
+    pinCode: "",
+    gender: "",
+    email: "",
+    whatsapp: "",
+  });
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Calculate yesterday's date for DOB max attribute (using local timezone to avoid UTC shift)
@@ -62,7 +79,6 @@ const OrderFormSection = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // Format a Date object to YYYY-MM-DD using local timezone (avoids UTC shift from toISOString)
   const formatDateToLocal = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -70,7 +86,6 @@ const OrderFormSection = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // Format a YYYY-MM-DD string to DD/MM/YYYY for display
   const formatDateForDisplay = (dateStr: string): string => {
     if (!dateStr) return "";
     const parts = dateStr.split("-");
@@ -78,7 +93,6 @@ const OrderFormSection = () => {
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
   };
 
-  // Listen for package type changes from PricingSection
   useEffect(() => {
     const handleSetPackageType = (e: CustomEvent) => {
       const detail = e.detail as string;
@@ -150,25 +164,50 @@ const OrderFormSection = () => {
     return cityRegex.test(trimmedCity);
   };
 
+  const validateTime = (time: string): boolean => {
+    if (!time || time.trim() === "") return false;
+    // Accept HH:MM:SS AM/PM or HH:MM AM/PM
+    const timeRegex = /^(0?[1-9]|1[0-2]):([0-5]\d)(:[0-5]\d)?\s?(AM|PM|am|pm)$/;
+    return timeRegex.test(time.trim());
+  };
+
+  const validatePinCode = (pin: string): boolean => {
+    if (!pin || pin.trim() === "") return false;
+    const pinRegex = /^[1-9][0-9]{5}$/;
+    return pinRegex.test(pin.trim());
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
     let processedValue = value;
-    if (name === "mobile") {
+    if (name === "mobile" || name === "whatsapp") {
       processedValue = value.replace(/\D/g, "");
       if (processedValue.length > 10) {
         processedValue = processedValue.substring(0, 10);
       }
     }
 
-    if (name.includes("Name") || name === "city") {
+    if (name === "pinCode") {
+      processedValue = value.replace(/\D/g, "");
+      if (processedValue.length > 6) {
+        processedValue = processedValue.substring(0, 6);
+      }
+    }
+
+    if (name.includes("Name") || name === "city" || name === "placeOfBirth") {
       processedValue = value.replace(/[^a-zA-Z\s\-'.]/g, "");
       if (processedValue.length > 50) {
         processedValue = processedValue.substring(0, 50);
       }
     }
 
-    setFormData((prev) => ({ ...prev, [name]: processedValue }));
+    // Update the right form state
+    if (packageType === "single" && name in babyFormData) {
+      setBabyFormData((prev) => ({ ...prev, [name]: processedValue }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: processedValue }));
+    }
 
     if (errors[name]) {
       setErrors((prev) => {
@@ -179,7 +218,7 @@ const OrderFormSection = () => {
     }
 
     // Real-time validation
-    if (name === "email" && processedValue) {
+    if ((name === "email") && processedValue) {
       if (!validateEmail(processedValue)) {
         setErrors((prev) => ({
           ...prev,
@@ -188,18 +227,35 @@ const OrderFormSection = () => {
       }
     }
 
-    if (name === "mobile" && processedValue) {
+    if ((name === "mobile" || name === "whatsapp") && processedValue) {
       if (processedValue.length > 0 && !validateMobile(processedValue)) {
         setErrors((prev) => ({
           ...prev,
-          mobile:
-            "Please enter a valid 10-digit mobile number starting with 6-9",
+          [name]: "Please enter a valid 10-digit mobile number starting with 6-9",
+        }));
+      }
+    }
+
+    if (name === "pinCode" && processedValue) {
+      if (!validatePinCode(processedValue)) {
+        setErrors((prev) => ({
+          ...prev,
+          pinCode: "Please enter a valid 6-digit Indian pin code",
+        }));
+      }
+    }
+
+    if (name === "timeOfBirth" && processedValue) {
+      if (!validateTime(processedValue)) {
+        setErrors((prev) => ({
+          ...prev,
+          timeOfBirth: "Please enter time in HH:MM:SS AM/PM format",
         }));
       }
     }
 
     if (
-      (name.includes("FirstName") || name.includes("SurName")) &&
+      (name.includes("FirstName") || name.includes("SurName") || name.includes("LastName")) &&
       processedValue
     ) {
       if (!validateName(processedValue, true)) {
@@ -219,11 +275,11 @@ const OrderFormSection = () => {
       }
     }
 
-    if (name === "city" && processedValue) {
+    if ((name === "city" || name === "placeOfBirth") && processedValue) {
       if (!validateCity(processedValue)) {
         setErrors((prev) => ({
           ...prev,
-          city: "City name must be 2-50 characters and contain only letters",
+          [name]: "Must be 2-50 characters and contain only letters",
         }));
       }
     }
@@ -250,75 +306,75 @@ const OrderFormSection = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
-    const requiredPersons = getRequiredPersonCount();
 
-    // Validate persons based on package
-    for (let i = 1; i <= requiredPersons; i++) {
-      const firstNameKey = `person${i}FirstName` as keyof typeof formData;
-      const surNameKey = `person${i}SurName` as keyof typeof formData;
-      const dobKey = `person${i}Dob` as keyof typeof formData;
-      const genderKey = `person${i}Gender` as keyof typeof formData;
+    if (packageType === "single") {
+      // Validate Baby Name Report fields
+      if (!babyFormData.yourName || !validateName(babyFormData.yourName, true)) {
+        newErrors.yourName = "Your name is required";
+      }
+      if (!babyFormData.fatherFirstName || !validateName(babyFormData.fatherFirstName, true)) {
+        newErrors.fatherFirstName = "Father's first name is required";
+      }
+      if (!babyFormData.fatherLastName || !validateName(babyFormData.fatherLastName, true)) {
+        newErrors.fatherLastName = "Father's last name is required";
+      }
+      if (!babyFormData.childDob || !validateDob(babyFormData.childDob)) {
+        newErrors.childDob = !babyFormData.childDob ? "Child's date of birth is required" : "Date of birth must be a valid date in the past";
+      }
+      if (!babyFormData.timeOfBirth || !validateTime(babyFormData.timeOfBirth)) {
+        newErrors.timeOfBirth = !babyFormData.timeOfBirth ? "Time of birth is required" : "Please enter time in HH:MM:SS AM/PM format (e.g., 10:30:00 AM)";
+      }
+      if (!babyFormData.placeOfBirth || !validateCity(babyFormData.placeOfBirth)) {
+        newErrors.placeOfBirth = !babyFormData.placeOfBirth ? "Place of birth is required" : "Must be 2-50 characters with only letters";
+      }
+      if (!babyFormData.pinCode || !validatePinCode(babyFormData.pinCode)) {
+        newErrors.pinCode = !babyFormData.pinCode ? "Pin code is required" : "Please enter a valid 6-digit Indian pin code";
+      }
+      if (!babyFormData.gender || babyFormData.gender.trim() === "") {
+        newErrors.gender = "Gender is required";
+      }
+      if (!babyFormData.email || !validateEmail(babyFormData.email)) {
+        newErrors.email = !babyFormData.email ? "Email address is required" : "Please enter a valid email address";
+      }
+      if (!babyFormData.whatsapp || !validateMobile(babyFormData.whatsapp)) {
+        newErrors.whatsapp = !babyFormData.whatsapp ? "WhatsApp number is required" : "Please enter a valid 10-digit number starting with 6-9";
+      }
+    } else {
+      // Validate Name Check fields
+      const requiredPersons = getRequiredPersonCount();
+      for (let i = 1; i <= requiredPersons; i++) {
+        const firstNameKey = `person${i}FirstName` as keyof typeof formData;
+        const surNameKey = `person${i}SurName` as keyof typeof formData;
+        const dobKey = `person${i}Dob` as keyof typeof formData;
+        const genderKey = `person${i}Gender` as keyof typeof formData;
+        const middleNameKey = `person${i}MiddleName` as keyof typeof formData;
+        const middleNameTypeKey = `person${i}MiddleNameType` as keyof typeof formData;
 
-      const middleNameKey = `person${i}MiddleName` as keyof typeof formData;
-      const middleNameTypeKey = `person${i}MiddleNameType` as keyof typeof formData;
-
-      if (
-        !formData[firstNameKey] ||
-        !validateName(formData[firstNameKey], true)
-      ) {
-        newErrors[firstNameKey] = `Person ${i} first name is required`;
-      }
-      if (!formData[surNameKey] || !validateName(formData[surNameKey], true)) {
-        newErrors[surNameKey] = `Person ${i} last name is required`;
-      }
-      // If middle name is filled, middle name type is mandatory
-      if (formData[middleNameKey] && formData[middleNameKey].trim() !== "" && (!formData[middleNameTypeKey] || formData[middleNameTypeKey].trim() === "")) {
-        newErrors[middleNameTypeKey] = `Please specify if middle name is father's/husband's name`;
-      }
-      if (!formData[dobKey] || !validateDob(formData[dobKey])) {
-        if (!formData[dobKey] || formData[dobKey].trim() === "") {
-          newErrors[dobKey] = `Person ${i} date of birth is required`;
-        } else {
-          newErrors[dobKey] = `Person ${i} date of birth must be in the past`;
+        if (!formData[firstNameKey] || !validateName(formData[firstNameKey], true)) {
+          newErrors[firstNameKey] = `Person ${i} first name is required`;
+        }
+        if (!formData[surNameKey] || !validateName(formData[surNameKey], true)) {
+          newErrors[surNameKey] = `Person ${i} last name is required`;
+        }
+        if (formData[middleNameKey] && formData[middleNameKey].trim() !== "" && (!formData[middleNameTypeKey] || formData[middleNameTypeKey].trim() === "")) {
+          newErrors[middleNameTypeKey] = `Please specify if middle name is father's/husband's name`;
+        }
+        if (!formData[dobKey] || !validateDob(formData[dobKey])) {
+          newErrors[dobKey] = !formData[dobKey] ? `Person ${i} date of birth is required` : `Person ${i} date of birth must be in the past`;
+        }
+        if (!formData[genderKey] || formData[genderKey].trim() === "") {
+          newErrors[genderKey] = `Person ${i} gender is required`;
         }
       }
-      if (!formData[genderKey] || formData[genderKey].trim() === "") {
-        newErrors[genderKey] = `Person ${i} gender is required`;
-      }
-    }
 
-    // Validate Contact Details
-    if (!formData.mobile || !validateMobile(formData.mobile)) {
-      if (!formData.mobile || formData.mobile.trim() === "") {
-        newErrors.mobile = "Mobile number is required";
-      } else {
-        const cleanedMobile = formData.mobile.replace(/\D/g, "");
-        if (cleanedMobile.length !== 10) {
-          newErrors.mobile = "Mobile number must be exactly 10 digits";
-        } else if (!/^[6-9]/.test(cleanedMobile)) {
-          newErrors.mobile = "Mobile number must start with 6, 7, 8, or 9";
-        } else {
-          newErrors.mobile =
-            "Please enter a valid 10-digit Indian mobile number";
-        }
+      if (!formData.mobile || !validateMobile(formData.mobile)) {
+        newErrors.mobile = !formData.mobile ? "WhatsApp number is required" : "Please enter a valid 10-digit number starting with 6-9";
       }
-    }
-
-    if (!formData.email || !validateEmail(formData.email)) {
-      if (!formData.email || formData.email.trim() === "") {
-        newErrors.email = "Email address is required";
-      } else {
-        newErrors.email =
-          "Please enter a valid email address (e.g., name@example.com)";
+      if (!formData.email || !validateEmail(formData.email)) {
+        newErrors.email = !formData.email ? "Email address is required" : "Please enter a valid email address";
       }
-    }
-
-    if (!formData.city || !validateCity(formData.city)) {
-      if (!formData.city || formData.city.trim() === "") {
-        newErrors.city = "City name is required";
-      } else {
-        newErrors.city =
-          "City name must be 2-50 characters and contain only letters";
+      if (!formData.city || !validateCity(formData.city)) {
+        newErrors.city = !formData.city ? "City name is required" : "City must be 2-50 characters with only letters";
       }
     }
 
@@ -344,50 +400,50 @@ const OrderFormSection = () => {
     const orderId =
       "ORD" + Date.now() + "-" + Math.random().toString(36).substring(2, 8);
 
-    const orderData = {
-      orderId,
-      email: formData.email,
-      mobile: formData.mobile,
-      city: formData.city,
-      name: getFullName(
-        formData.person1FirstName,
-        formData.person1MiddleName,
-        formData.person1SurName,
-      ),
-      dob: formData.person1Dob || "",
-      gender: formData.person1Gender || "",
-      packageType:
-        packageType === "namecheck"
-          ? `namecheck-${nameCheckCount}`
-          : packageType,
-      person1Name: getFullName(
-        formData.person1FirstName,
-        formData.person1MiddleName,
-        formData.person1SurName,
-      ),
-      person1Dob: formData.person1Dob || "",
-      person1Gender: formData.person1Gender || "",
-      person1MiddleNameType: formData.person1MiddleNameType || "",
-      person2Name: getFullName(
-        formData.person2FirstName,
-        formData.person2MiddleName,
-        formData.person2SurName,
-      ),
-      person2Dob: formData.person2Dob || "",
-      person2Gender: formData.person2Gender || "",
-      person2MiddleNameType: formData.person2MiddleNameType || "",
-      person3Name: getFullName(
-        formData.person3FirstName,
-        formData.person3MiddleName,
-        formData.person3SurName,
-      ),
-      person3Dob: formData.person3Dob || "",
-      person3Gender: formData.person3Gender || "",
-      person3MiddleNameType: formData.person3MiddleNameType || "",
-    };
+    let orderPayload: Record<string, any>;
+
+    if (packageType === "single") {
+      orderPayload = {
+        orderId,
+        email: babyFormData.email,
+        mobile: babyFormData.whatsapp,
+        name: babyFormData.yourName,
+        fatherFirstName: babyFormData.fatherFirstName,
+        fatherLastName: babyFormData.fatherLastName,
+        childDob: babyFormData.childDob,
+        timeOfBirth: babyFormData.timeOfBirth,
+        placeOfBirth: babyFormData.placeOfBirth,
+        pinCode: babyFormData.pinCode,
+        gender: babyFormData.gender,
+        packageType: "single",
+      };
+    } else {
+      orderPayload = {
+        orderId,
+        email: formData.email,
+        mobile: formData.mobile,
+        city: formData.city,
+        name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
+        dob: formData.person1Dob || "",
+        gender: formData.person1Gender || "",
+        packageType: `namecheck-${nameCheckCount}`,
+        person1Name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
+        person1Dob: formData.person1Dob || "",
+        person1Gender: formData.person1Gender || "",
+        person1MiddleNameType: formData.person1MiddleNameType || "",
+        person2Name: getFullName(formData.person2FirstName, formData.person2MiddleName, formData.person2SurName),
+        person2Dob: formData.person2Dob || "",
+        person2Gender: formData.person2Gender || "",
+        person2MiddleNameType: formData.person2MiddleNameType || "",
+        person3Name: getFullName(formData.person3FirstName, formData.person3MiddleName, formData.person3SurName),
+        person3Dob: formData.person3Dob || "",
+        person3Gender: formData.person3Gender || "",
+        person3MiddleNameType: formData.person3MiddleNameType || "",
+      };
+    }
 
     try {
-      localStorage.setItem(`order_${orderId}`, JSON.stringify(orderData));
+      localStorage.setItem(`order_${orderId}`, JSON.stringify(orderPayload));
     } catch (e) {
       console.warn("Could not store order data in localStorage:", e);
     }
@@ -405,53 +461,14 @@ const OrderFormSection = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: price,
-          mobile: formData.mobile,
-          email: formData.email,
-          city: formData.city,
-          name: getFullName(
-            formData.person1FirstName,
-            formData.person1MiddleName,
-            formData.person1SurName,
-          ),
-          dob: formData.person1Dob || "",
-          gender: formData.person1Gender || "",
-          packageType:
-            packageType === "namecheck"
-              ? `namecheck-${nameCheckCount}`
-              : packageType,
-          orderId: orderId,
-          person1Name: getFullName(
-            formData.person1FirstName,
-            formData.person1MiddleName,
-            formData.person1SurName,
-          ),
-          person1Dob: formData.person1Dob || "",
-          person1Gender: formData.person1Gender || "",
-          person1MiddleNameType: formData.person1MiddleNameType || "",
-          person2Name: getFullName(
-            formData.person2FirstName,
-            formData.person2MiddleName,
-            formData.person2SurName,
-          ),
-          person2Dob: formData.person2Dob || "",
-          person2Gender: formData.person2Gender || "",
-          person2MiddleNameType: formData.person2MiddleNameType || "",
-          person3Name: getFullName(
-            formData.person3FirstName,
-            formData.person3MiddleName,
-            formData.person3SurName,
-          ),
-          person3Dob: formData.person3Dob || "",
-          person3Gender: formData.person3Gender || "",
-          person3MiddleNameType: formData.person3MiddleNameType || "",
+          ...orderPayload,
         }),
       });
 
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        const errorMessage =
-          result.error || result.message || "Payment failed to start.";
+        const errorMessage = result.error || result.message || "Payment failed to start.";
         toast({
           title: "Payment Error",
           description: errorMessage,
@@ -482,6 +499,7 @@ const OrderFormSection = () => {
 
   const price = getPrice();
 
+  // Render Name Check person fields
   const renderPersonFields = (
     personNum: number,
     showHeader: boolean = false,
@@ -503,22 +521,16 @@ const OrderFormSection = () => {
           <Input
             id={`person${personNum}FirstName`}
             name={`person${personNum}FirstName`}
-            value={
-              formData[`person${personNum}FirstName` as keyof typeof formData]
-            }
+            value={formData[`person${personNum}FirstName` as keyof typeof formData]}
             onChange={handleInputChange}
             placeholder="First name"
             required
             className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-              errors[`person${personNum}FirstName`]
-                ? "border-destructive focus:border-destructive"
-                : ""
+              errors[`person${personNum}FirstName`] ? "border-destructive focus:border-destructive" : ""
             }`}
           />
           {errors[`person${personNum}FirstName`] && (
-            <p className="text-destructive text-sm mt-1">
-              {errors[`person${personNum}FirstName`]}
-            </p>
+            <p className="text-destructive text-sm mt-1">{errors[`person${personNum}FirstName`]}</p>
           )}
         </div>
         <div>
@@ -528,12 +540,9 @@ const OrderFormSection = () => {
           <Input
             id={`person${personNum}MiddleName`}
             name={`person${personNum}MiddleName`}
-            value={
-              formData[`person${personNum}MiddleName` as keyof typeof formData]
-            }
+            value={formData[`person${personNum}MiddleName` as keyof typeof formData]}
             onChange={(e) => {
               handleInputChange(e);
-              // Clear middle name type if middle name is cleared
               if (!e.target.value.trim()) {
                 setFormData((prev) => ({ ...prev, [`person${personNum}MiddleNameType`]: "" }));
                 setErrors((prev) => {
@@ -554,22 +563,16 @@ const OrderFormSection = () => {
           <Input
             id={`person${personNum}SurName`}
             name={`person${personNum}SurName`}
-            value={
-              formData[`person${personNum}SurName` as keyof typeof formData]
-            }
+            value={formData[`person${personNum}SurName` as keyof typeof formData]}
             onChange={handleInputChange}
             placeholder="Last name"
             required
             className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-              errors[`person${personNum}SurName`]
-                ? "border-destructive focus:border-destructive"
-                : ""
+              errors[`person${personNum}SurName`] ? "border-destructive focus:border-destructive" : ""
             }`}
           />
           {errors[`person${personNum}SurName`] && (
-            <p className="text-destructive text-sm mt-1">
-              {errors[`person${personNum}SurName`]}
-            </p>
+            <p className="text-destructive text-sm mt-1">{errors[`person${personNum}SurName`]}</p>
           )}
         </div>
       </div>
@@ -606,9 +609,7 @@ const OrderFormSection = () => {
             </div>
           </RadioGroup>
           {errors[`person${personNum}MiddleNameType`] && (
-            <p className="text-destructive text-sm mt-1">
-              {errors[`person${personNum}MiddleNameType`]}
-            </p>
+            <p className="text-destructive text-sm mt-1">{errors[`person${personNum}MiddleNameType`]}</p>
           )}
         </div>
       )}
@@ -668,9 +669,7 @@ const OrderFormSection = () => {
             </PopoverContent>
           </Popover>
           {errors[`person${personNum}Dob`] && (
-            <p className="text-destructive text-sm mt-1">
-              {errors[`person${personNum}Dob`]}
-            </p>
+            <p className="text-destructive text-sm mt-1">{errors[`person${personNum}Dob`]}</p>
           )}
         </div>
         <div>
@@ -706,10 +705,245 @@ const OrderFormSection = () => {
             </div>
           </RadioGroup>
           {errors[`person${personNum}Gender`] && (
-            <p className="text-destructive text-sm mt-1">
-              {errors[`person${personNum}Gender`]}
-            </p>
+            <p className="text-destructive text-sm mt-1">{errors[`person${personNum}Gender`]}</p>
           )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Render Baby Name Report fields (10 fields)
+  const renderBabyNameFields = () => (
+    <div className="space-y-4">
+      {/* Your Name */}
+      <div>
+        <Label htmlFor="yourName">Your Name *</Label>
+        <Input
+          id="yourName"
+          name="yourName"
+          value={babyFormData.yourName}
+          onChange={handleInputChange}
+          placeholder="Enter your full name"
+          required
+          className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+            errors.yourName ? "border-destructive focus:border-destructive" : ""
+          }`}
+        />
+        {errors.yourName && <p className="text-destructive text-sm mt-1">{errors.yourName}</p>}
+      </div>
+
+      {/* Father's First & Last Name */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="fatherFirstName">Father's First Name *</Label>
+          <Input
+            id="fatherFirstName"
+            name="fatherFirstName"
+            value={babyFormData.fatherFirstName}
+            onChange={handleInputChange}
+            placeholder="Father's first name"
+            required
+            className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+              errors.fatherFirstName ? "border-destructive focus:border-destructive" : ""
+            }`}
+          />
+          {errors.fatherFirstName && <p className="text-destructive text-sm mt-1">{errors.fatherFirstName}</p>}
+        </div>
+        <div>
+          <Label htmlFor="fatherLastName">Father's Last Name *</Label>
+          <Input
+            id="fatherLastName"
+            name="fatherLastName"
+            value={babyFormData.fatherLastName}
+            onChange={handleInputChange}
+            placeholder="Father's last name"
+            required
+            className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+              errors.fatherLastName ? "border-destructive focus:border-destructive" : ""
+            }`}
+          />
+          {errors.fatherLastName && <p className="text-destructive text-sm mt-1">{errors.fatherLastName}</p>}
+        </div>
+      </div>
+
+      {/* Child's DOB + Time of Birth */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label>Child's Date of Birth (DD/MM/YYYY) *</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                id="childDob"
+                variant="outline"
+                className={cn(
+                  "w-full mt-1.5 justify-start text-left font-normal transition-all duration-300 focus:shadow-card h-10",
+                  !babyFormData.childDob && "text-muted-foreground",
+                  errors.childDob && "border-destructive focus:border-destructive"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
+                {babyFormData.childDob
+                  ? format(
+                      parse(babyFormData.childDob, "yyyy-MM-dd", new Date()),
+                      "dd/MM/yyyy"
+                    )
+                  : "Pick child's date of birth"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={
+                  babyFormData.childDob
+                    ? parse(babyFormData.childDob, "yyyy-MM-dd", new Date())
+                    : undefined
+                }
+                onSelect={(date) => {
+                  if (date) {
+                    const formatted = formatDateToLocal(date);
+                    setBabyFormData((prev) => ({ ...prev, childDob: formatted }));
+                    if (errors.childDob) {
+                      setErrors((prev) => {
+                        const newErrors = { ...prev };
+                        delete newErrors.childDob;
+                        return newErrors;
+                      });
+                    }
+                  }
+                }}
+                disabled={(date) =>
+                  date > new Date() || date < new Date("1900-01-01")
+                }
+                initialFocus
+                captionLayout="dropdown-buttons"
+                fromYear={2000}
+                toYear={new Date().getFullYear()}
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+          {errors.childDob && <p className="text-destructive text-sm mt-1">{errors.childDob}</p>}
+        </div>
+        <div>
+          <Label htmlFor="timeOfBirth">Time of Birth (HH:MM:SS AM/PM) *</Label>
+          <Input
+            id="timeOfBirth"
+            name="timeOfBirth"
+            value={babyFormData.timeOfBirth}
+            onChange={handleInputChange}
+            placeholder="e.g., 10:30:00 AM"
+            required
+            className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+              errors.timeOfBirth ? "border-destructive focus:border-destructive" : ""
+            }`}
+          />
+          {errors.timeOfBirth && <p className="text-destructive text-sm mt-1">{errors.timeOfBirth}</p>}
+        </div>
+      </div>
+
+      {/* Place of Birth + Pin Code */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="placeOfBirth">Place of Birth *</Label>
+          <Input
+            id="placeOfBirth"
+            name="placeOfBirth"
+            value={babyFormData.placeOfBirth}
+            onChange={handleInputChange}
+            placeholder="Enter place of birth"
+            required
+            className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+              errors.placeOfBirth ? "border-destructive focus:border-destructive" : ""
+            }`}
+          />
+          {errors.placeOfBirth && <p className="text-destructive text-sm mt-1">{errors.placeOfBirth}</p>}
+        </div>
+        <div>
+          <Label htmlFor="pinCode">Pin Code *</Label>
+          <Input
+            id="pinCode"
+            name="pinCode"
+            value={babyFormData.pinCode}
+            onChange={handleInputChange}
+            placeholder="Enter 6-digit pin code"
+            required
+            maxLength={6}
+            className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+              errors.pinCode ? "border-destructive focus:border-destructive" : ""
+            }`}
+          />
+          {errors.pinCode && <p className="text-destructive text-sm mt-1">{errors.pinCode}</p>}
+        </div>
+      </div>
+
+      {/* Gender */}
+      <div>
+        <Label htmlFor="gender">Gender *</Label>
+        <RadioGroup
+          id="gender"
+          value={babyFormData.gender}
+          onValueChange={(value) => {
+            setBabyFormData((prev) => ({ ...prev, gender: value }));
+            if (errors.gender) {
+              setErrors((prev) => {
+                const newErrors = { ...prev };
+                delete newErrors.gender;
+                return newErrors;
+              });
+            }
+          }}
+          className={`flex gap-4 mt-2.5 ${errors.gender ? "text-destructive" : ""}`}
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="male" id="babyGenderMale" />
+            <Label htmlFor="babyGenderMale" className="cursor-pointer font-normal">Male</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="female" id="babyGenderFemale" />
+            <Label htmlFor="babyGenderFemale" className="cursor-pointer font-normal">Female</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="other" id="babyGenderOther" />
+            <Label htmlFor="babyGenderOther" className="cursor-pointer font-normal">Other</Label>
+          </div>
+        </RadioGroup>
+        {errors.gender && <p className="text-destructive text-sm mt-1">{errors.gender}</p>}
+      </div>
+
+      {/* Email + WhatsApp */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="email">Email Address *</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            value={babyFormData.email}
+            onChange={handleInputChange}
+            placeholder="Enter email address"
+            required
+            className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+              errors.email ? "border-destructive focus:border-destructive" : ""
+            }`}
+          />
+          {errors.email && <p className="text-destructive text-sm mt-1">{errors.email}</p>}
+        </div>
+        <div>
+          <Label htmlFor="whatsapp">WhatsApp Number *</Label>
+          <Input
+            id="whatsapp"
+            name="whatsapp"
+            type="tel"
+            value={babyFormData.whatsapp}
+            onChange={handleInputChange}
+            placeholder="Enter 10-digit WhatsApp number"
+            required
+            maxLength={10}
+            className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+              errors.whatsapp ? "border-destructive focus:border-destructive" : ""
+            }`}
+          />
+          {errors.whatsapp && <p className="text-destructive text-sm mt-1">{errors.whatsapp}</p>}
         </div>
       </div>
     </div>
@@ -726,9 +960,7 @@ const OrderFormSection = () => {
         <div className="max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-5 gap-6 lg:gap-12">
             {/* Form Column */}
-            <div
-              className="lg:col-span-3"
-            >
+            <div className="lg:col-span-3">
               <h2 className="heading-lg text-ink-black mb-1.5 md:mb-2">
                 Enter Your Details
               </h2>
@@ -773,9 +1005,7 @@ const OrderFormSection = () => {
                           </span>
                         </div>
                         <span className="text-secondary font-bold">
-                          {formatPrice(
-                            NAME_CHECK_PRICING[nameCheckCount].price,
-                          )}
+                          {formatPrice(NAME_CHECK_PRICING[nameCheckCount].price)}
                         </span>
                       </div>
                     </label>
@@ -832,9 +1062,7 @@ const OrderFormSection = () => {
                           {num} Person{num !== 1 ? "s" : ""}
                           {num > 1 && (
                             <span className="block text-xs mt-1 opacity-80">
-                              Save{" "}
-                              {formatPrice(NAME_CHECK_PRICING[num].savings)}
-                              /person
+                              Save {formatPrice(NAME_CHECK_PRICING[num].savings)}/person
                             </span>
                           )}
                         </button>
@@ -843,7 +1071,7 @@ const OrderFormSection = () => {
                   </div>
                 )}
 
-                {/* Person Fields */}
+                {/* Person Fields / Baby Name Fields */}
                 <div className="space-y-6">
                   {packageType === "namecheck" ? (
                     <>
@@ -855,91 +1083,79 @@ const OrderFormSection = () => {
                       )}
                     </>
                   ) : (
-                    renderPersonFields(1, false)
+                    renderBabyNameFields()
                   )}
                 </div>
 
-                {/* Contact Details */}
-                <div className="space-y-4 pt-2">
-                  <p className="font-semibold text-ink-black">
-                    Contact Details
-                  </p>
-                  <div>
-                    <Label htmlFor="mobile">WhatsApp Number *</Label>
-                    <Input
-                      id="mobile"
-                      name="mobile"
-                      type="tel"
-                      value={formData.mobile}
-                      onChange={handleInputChange}
-                      placeholder="Enter 10-digit WhatsApp number"
-                      required
-                      maxLength={10}
-                      className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-                        errors.mobile
-                          ? "border-destructive focus:border-destructive"
-                          : ""
-                      }`}
-                    />
-                    {errors.mobile && (
-                      <p className="text-destructive text-sm mt-1">
-                        {errors.mobile}
-                      </p>
-                    )}
+                {/* Contact Details (only for namecheck) */}
+                {packageType === "namecheck" && (
+                  <div className="space-y-4 pt-2">
+                    <p className="font-semibold text-ink-black">
+                      Contact Details
+                    </p>
+                    <div>
+                      <Label htmlFor="mobile">WhatsApp Number *</Label>
+                      <Input
+                        id="mobile"
+                        name="mobile"
+                        type="tel"
+                        value={formData.mobile}
+                        onChange={handleInputChange}
+                        placeholder="Enter 10-digit WhatsApp number"
+                        required
+                        maxLength={10}
+                        className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+                          errors.mobile ? "border-destructive focus:border-destructive" : ""
+                        }`}
+                      />
+                      {errors.mobile && (
+                        <p className="text-destructive text-sm mt-1">{errors.mobile}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="email">Email ID *</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="Enter email address"
+                        required
+                        className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+                          errors.email ? "border-destructive focus:border-destructive" : ""
+                        }`}
+                      />
+                      {errors.email && (
+                        <p className="text-destructive text-sm mt-1">{errors.email}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="city">City Name *</Label>
+                      <Input
+                        id="city"
+                        name="city"
+                        type="text"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        placeholder="Enter your city name"
+                        required
+                        maxLength={50}
+                        className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+                          errors.city ? "border-destructive focus:border-destructive" : ""
+                        }`}
+                      />
+                      {errors.city && (
+                        <p className="text-destructive text-sm mt-1">{errors.city}</p>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="email">Email ID *</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="Enter email address"
-                      required
-                      className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-                        errors.email
-                          ? "border-destructive focus:border-destructive"
-                          : ""
-                      }`}
-                    />
-                    {errors.email && (
-                      <p className="text-destructive text-sm mt-1">
-                        {errors.email}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor="city">City Name *</Label>
-                    <Input
-                      id="city"
-                      name="city"
-                      type="text"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      placeholder="Enter your city name"
-                      required
-                      maxLength={50}
-                      className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-                        errors.city
-                          ? "border-destructive focus:border-destructive"
-                          : ""
-                      }`}
-                    />
-                    {errors.city && (
-                      <p className="text-destructive text-sm mt-1">
-                        {errors.city}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                )}
               </form>
             </div>
 
             {/* Order Summary */}
-            <div
-              className="lg:col-span-2"
-            >
+            <div className="lg:col-span-2">
               <div className="rounded-2xl p-6 shadow-card sticky top-24 border border-border transition-all duration-300 hover:shadow-card-hover bg-card">
                 <h3 className="text-xl font-heading font-bold text-ink-black mb-6">
                   Order Summary
@@ -959,18 +1175,13 @@ const OrderFormSection = () => {
                       <div className="flex justify-between text-muted-foreground">
                         <span>Original Price</span>
                         <span className="line-through">
-                          {formatPrice(
-                            NAME_CHECK_PRICING[nameCheckCount].originalPrice,
-                          )}
+                          {formatPrice(NAME_CHECK_PRICING[nameCheckCount].originalPrice)}
                         </span>
                       </div>
                       <div className="flex justify-between text-secondary">
                         <span>You Save</span>
                         <span>
-                          {formatPrice(
-                            NAME_CHECK_PRICING[nameCheckCount].savings *
-                              nameCheckCount,
-                          )}
+                          {formatPrice(NAME_CHECK_PRICING[nameCheckCount].savings * nameCheckCount)}
                         </span>
                       </div>
                     </>
@@ -1014,47 +1225,37 @@ const OrderFormSection = () => {
                     {packageType === "namecheck" ? (
                       <>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Quick
-                          Name Compatibility Check
+                          <Check className="w-4 h-4 text-secondary" /> Quick Name Compatibility Check
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Mulank &
-                          Bhagyank Overview
+                          <Check className="w-4 h-4 text-secondary" /> Mulank & Bhagyank Overview
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Clear
-                          Yes/No Recommendation
+                          <Check className="w-4 h-4 text-secondary" /> Clear Yes/No Recommendation
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Expert
-                          Analysis Summary
+                          <Check className="w-4 h-4 text-secondary" /> Expert Analysis Summary
                         </li>
                       </>
                     ) : (
                       <>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Complete
-                          Mulank & Bhagyank Analysis
+                          <Check className="w-4 h-4 text-secondary" /> Complete Mulank & Bhagyank Analysis
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Current
-                          Name Evaluation
+                          <Check className="w-4 h-4 text-secondary" /> Current Name Evaluation
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> 2
-                          Corrected Name Options
+                          <Check className="w-4 h-4 text-secondary" /> 2 Corrected Name Options
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Personal
-                          Loshu Grid
+                          <Check className="w-4 h-4 text-secondary" /> Personal Loshu Grid
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> 2 Years
-                          Roadmap
+                          <Check className="w-4 h-4 text-secondary" /> 2 Years Roadmap
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> PDF
-                          Report (50+ Pages)
+                          <Check className="w-4 h-4 text-secondary" /> PDF Report (50+ Pages)
                         </li>
                       </>
                     )}

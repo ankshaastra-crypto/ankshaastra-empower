@@ -165,9 +165,12 @@ function useFadeUp() {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Start hidden
+    el.style.opacity = "0";
+    el.style.transform = "translateY(28px)";
     const obs = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { el.classList.add("bn-fadeUp"); obs.disconnect(); } },
-      { threshold: 0.1 }
+      ([entry]) => { if (entry.isIntersecting) { el.classList.add("bn-fadeUp"); el.style.opacity = ""; el.style.transform = ""; obs.disconnect(); } },
+      { threshold: 0.05, rootMargin: "0px 0px 100px 0px" }
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -393,7 +396,7 @@ const ForYouIfSection = () => {
   ];
   return (
     <section className="bn-py-section" style={S.section()}>
-      <div ref={ref} style={{ ...S.sectionInner("760px"), opacity: 0 }}>
+      <div ref={ref} style={{ ...S.sectionInner("760px") }}>
         <div style={{ textAlign: "center", marginBottom: 40 }}>
           <span style={S.tag()}>✦ Is This For You?</span>
           <GoldDivider />
@@ -431,7 +434,7 @@ const ProblemSection = () => {
   ];
   return (
     <section className="bn-py-section" style={S.section(`linear-gradient(160deg, ${T.ivoryDark} 0%, ${T.ivory} 100%)`)}>
-      <div ref={ref} style={{ ...S.sectionInner(), opacity: 0 }}>
+      <div ref={ref} style={{ ...S.sectionInner() }}>
         <div style={{ textAlign: "center", marginBottom: 48 }}>
           <span style={S.tag()}>✦ The Challenge</span>
           <GoldDivider />
@@ -471,7 +474,7 @@ const WhatsIncludedSection = () => {
   ];
   return (
     <section className="bn-py-section" style={S.section()}>
-      <div ref={ref} style={{ ...S.sectionInner(), opacity: 0 }}>
+      <div ref={ref} style={{ ...S.sectionInner() }}>
         <div style={{ textAlign: "center", marginBottom: 48 }}>
           <span style={S.tag()}>✦ What You Receive</span>
           <GoldDivider />
@@ -510,7 +513,7 @@ const ExpertSection = () => {
   const ref = useFadeUp();
   return (
     <section className="bn-py-section" style={S.section(`linear-gradient(160deg, ${T.ivoryDark} 0%, ${T.ivory} 100%)`)}>
-      <div ref={ref} style={{ ...S.sectionInner(), opacity: 0 }}>
+      <div ref={ref} style={{ ...S.sectionInner() }}>
         <div style={{ textAlign: "center", marginBottom: 48 }}>
           <span style={S.tag()}>✦ The Expert</span>
           <GoldDivider />
@@ -582,7 +585,7 @@ const DeliverySection = () => {
   ];
   return (
     <section className="bn-py-section" style={S.section()}>
-      <div ref={ref} style={{ ...S.sectionInner(), opacity: 0 }}>
+      <div ref={ref} style={{ ...S.sectionInner() }}>
         <div style={{ textAlign: "center", marginBottom: 48 }}>
           <span style={S.tag()}>✦ How It Works</span>
           <GoldDivider />
@@ -618,7 +621,7 @@ const TestimonialsSection = () => {
   ];
   return (
     <section className="bn-py-section" style={S.section(`linear-gradient(160deg, ${T.ivoryDark} 0%, ${T.ivory} 100%)`)}>
-      <div ref={ref} style={{ ...S.sectionInner(), opacity: 0 }}>
+      <div ref={ref} style={{ ...S.sectionInner() }}>
         <div style={{ textAlign: "center", marginBottom: 48 }}>
           <span style={S.tag()}>✦ Testimonials</span>
           <GoldDivider />
@@ -669,7 +672,7 @@ const FAQSection = () => {
   ];
   return (
     <section className="bn-py-section" style={S.section()}>
-      <div ref={ref} style={{ ...S.sectionInner("720px"), opacity: 0 }}>
+      <div ref={ref} style={{ ...S.sectionInner("720px") }}>
         <div style={{ textAlign: "center", marginBottom: 48 }}>
           <span style={S.tag()}>✦ FAQ</span>
           <GoldDivider />
@@ -760,7 +763,7 @@ const ClaimFormSection = () => {
 
   return (
     <section id="claim-form" className="bn-py-section" style={S.section(`linear-gradient(160deg, ${T.ivoryDark} 0%, ${T.ivory} 100%)`)}>
-      <div ref={ref} style={{ ...S.sectionInner("640px"), opacity: 0 }}>
+      <div ref={ref} style={{ ...S.sectionInner("640px") }}>
         <div style={{ textAlign: "center", marginBottom: 40 }}>
           <span style={S.tag()}>✦ Get Your Report</span>
           <GoldDivider />
@@ -993,7 +996,7 @@ const FinalCTA = () => {
         </div>
       ))}
 
-      <div ref={ref} style={{ maxWidth: 700, margin: "0 auto", position: "relative", zIndex: 2, opacity: 0 }}>
+      <div ref={ref} style={{ maxWidth: 700, margin: "0 auto", position: "relative", zIndex: 2 }}>
         <div className="bn-float" style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
           <Sparkle size={40} />
         </div>

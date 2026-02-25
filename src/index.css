@@ -78,23 +78,7 @@ html, body, #root {
     --font-body: 'Inter', sans-serif;
   }
 
-  .dark {
-    --background: 225 40% 8%;
-    --foreground: 36 60% 95%;
-    --card: 225 40% 12%;
-    --card-foreground: 36 60% 95%;
-    --primary: 38 92% 50%;
-    --primary-foreground: 225 40% 8%;
-    --secondary: 220 35% 25%;
-    --secondary-foreground: 36 60% 95%;
-    --muted: 220 35% 18%;
-    --muted-foreground: 36 20% 65%;
-    --accent: 38 92% 50%;
-    --accent-foreground: 225 40% 8%;
-    --border: 220 35% 22%;
-    --input: 220 35% 22%;
-    --ring: 38 92% 50%;
-  }
+  /* Dark mode removed — single light theme */
 }
 
 @layer base {

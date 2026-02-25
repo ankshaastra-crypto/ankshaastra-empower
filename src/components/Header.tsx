@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Menu, X } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
+import { Menu, X } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 const Header = () => {
@@ -54,7 +53,6 @@ const Header = () => {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
-          <ThemeToggle />
           <Button variant="hero-small" size="default" onClick={scrollToForm}>
             Get Report
           </Button>
@@ -62,7 +60,6 @@ const Header = () => {
 
         {/* Mobile Menu Button */}
         <div className="md:hidden flex items-center gap-2">
-          <ThemeToggle />
           <button
             className="text-white p-2"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

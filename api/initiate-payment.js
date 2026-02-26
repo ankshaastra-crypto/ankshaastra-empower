@@ -53,20 +53,32 @@ export default async function handler(req, res) {
       });
     }
     
-    if (!name || !name.trim() || !person1Name || !person1Name.trim()) {
+    if (!name || !name.trim()) {
       return res.status(400).json({
         success: false,
         error: "Customer name is required",
         message: "Customer name is mandatory for payment processing"
       });
     }
-    
-    if (!dob || !dob.trim() || !person1Dob || !person1Dob.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: "Date of birth is required",
-        message: "Customer date of birth is mandatory for payment processing"
-      });
+
+    // For namecheck packages, person1Name and person1Dob are required
+    // For baby name report, they are optional (derived from other fields)
+    const isNameCheck = packageType === 'namecheck' || (!packageType && person1Name);
+    if (isNameCheck) {
+      if (!person1Name || !person1Name.trim()) {
+        return res.status(400).json({
+          success: false,
+          error: "Name is required",
+          message: "At least one name is required for Name Check"
+        });
+      }
+      if (!person1Dob || !person1Dob.trim()) {
+        return res.status(400).json({
+          success: false,
+          error: "Date of birth is required",
+          message: "Date of birth is required for Name Check"
+        });
+      }
     }
 
     // Validate email format

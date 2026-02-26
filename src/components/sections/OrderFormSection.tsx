@@ -166,8 +166,8 @@ const OrderFormSection = () => {
 
   const validateTime = (time: string): boolean => {
     if (!time || time.trim() === "") return false;
-    // Accept HH:MM:SS AM/PM or HH:MM AM/PM
-    const timeRegex = /^(0?[1-9]|1[0-2]):([0-5]\d)(:[0-5]\d)?\s?(AM|PM|am|pm)$/;
+    // Accept HH:MM:SS AM/PM, HH:MM AM/PM, with space/colon/no separator before AM/PM
+    const timeRegex = /^(0?[1-9]|1[0-2]):([0-5]\d)(:[0-5]\d)?[\s:.]?(AM|PM|am|pm|Am|Pm|aM|pM)$/i;
     return timeRegex.test(time.trim());
   };
 

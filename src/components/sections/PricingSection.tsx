@@ -95,7 +95,7 @@ const PricingSection = () => {
                       : "bg-muted text-muted-foreground hover:bg-muted/80"
                   }`}
                 >
-                  {num} Person{num !== 1 ? "s" : ""}
+                  {num} Name{num !== 1 ? "s" : ""}
                 </button>
               ))}
             </div>
@@ -117,7 +117,7 @@ const PricingSection = () => {
               {selectedNameCheckPlan > 1 && (
                 <span className="inline-block mt-2 bg-accent/10 text-accent text-xs font-semibold px-2 py-1 rounded-full">
                   {formatPrice(nameCheckPlans[selectedNameCheckPlan].effectivePerPerson)}{" "}
-                  per person
+                  per name
                 </span>
               )}
             </div>
@@ -142,7 +142,7 @@ const PricingSection = () => {
               onClick={() => scrollToForm(`namecheck-${selectedNameCheckPlan}`)}
             >
               <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
-                Get Name Check for {selectedNameCheckPlan} Person
+                Get Name Check for {selectedNameCheckPlan} Name
                 {selectedNameCheckPlan !== 1 ? "s" : ""}
               </span>
             </Button>

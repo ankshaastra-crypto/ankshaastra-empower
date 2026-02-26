@@ -171,6 +171,14 @@ const OrderFormSection = () => {
     return timeRegex.test(time.trim());
   };
 
+  const normalizeTimeInput = (time: string): string => {
+    if (!time) return "";
+    return time
+      .replace(/\s*([ap])m?$/i, (_match, meridiem: string) => ` ${meridiem.toUpperCase()}M`)
+      .replace(/\s{2,}/g, " ")
+      .trimStart();
+  };
+
   const validatePinCode = (pin: string): boolean => {
     if (!pin || pin.trim() === "") return false;
     const pinRegex = /^[1-9][0-9]{5}$/;
@@ -193,6 +201,10 @@ const OrderFormSection = () => {
       if (processedValue.length > 6) {
         processedValue = processedValue.substring(0, 6);
       }
+    }
+
+    if (name === "timeOfBirth") {
+      processedValue = normalizeTimeInput(value);
     }
 
     if (name.includes("Name") || name === "city" || name === "placeOfBirth") {
@@ -408,13 +420,17 @@ const OrderFormSection = () => {
         email: babyFormData.email,
         mobile: babyFormData.whatsapp,
         name: babyFormData.yourName,
+        dob: babyFormData.childDob,
+        gender: babyFormData.gender,
+        person1Name: babyFormData.yourName,
+        person1Dob: babyFormData.childDob,
+        person1Gender: babyFormData.gender,
         fatherFirstName: babyFormData.fatherFirstName,
         fatherLastName: babyFormData.fatherLastName,
         childDob: babyFormData.childDob,
-        timeOfBirth: babyFormData.timeOfBirth,
+        timeOfBirth: normalizeTimeInput(babyFormData.timeOfBirth),
         placeOfBirth: babyFormData.placeOfBirth,
         pinCode: babyFormData.pinCode,
-        gender: babyFormData.gender,
         packageType: "single",
       };
     } else {
@@ -1045,7 +1061,7 @@ const OrderFormSection = () => {
                 {packageType === "namecheck" && (
                   <div className="space-y-3">
                     <Label className="text-base font-semibold text-ink-black">
-                      Number of Persons
+                      Number of Names
                     </Label>
                     <div className="flex gap-2">
                       {([1, 2, 3] as const).map((num) => (
@@ -1059,10 +1075,10 @@ const OrderFormSection = () => {
                               : "bg-muted text-muted-foreground hover:bg-muted/80"
                           }`}
                         >
-                          {num} Person{num !== 1 ? "s" : ""}
+                          {num} Name{num !== 1 ? "s" : ""}
                           {num > 1 && (
                             <span className="block text-xs mt-1 opacity-80">
-                              Save {formatPrice(NAME_CHECK_PRICING[num].savings)}/person
+                              Save {formatPrice(NAME_CHECK_PRICING[num].savings)}/name
                             </span>
                           )}
                         </button>
@@ -1165,7 +1181,7 @@ const OrderFormSection = () => {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">
                       {packageType === "namecheck"
-                        ? `Name Check (${nameCheckCount} Person${nameCheckCount !== 1 ? "s" : ""})`
+                        ? `Name Check (${nameCheckCount} Name${nameCheckCount !== 1 ? "s" : ""})`
                         : "Perfect Baby Name Report"}
                     </span>
                   </div>

@@ -295,7 +295,18 @@ export default async function handler(req, res) {
       customerEmail,
       customerName: customerName || 'Customer',
       customerMobile,
+      customerDob,
+      customerGender,
       packageType: packageType || 'single',
+      person1Name,
+      person1Dob,
+      person1Gender,
+      person2Name,
+      person2Dob,
+      person2Gender,
+      person3Name,
+      person3Dob,
+      person3Gender,
     });
 
   } catch (error) {

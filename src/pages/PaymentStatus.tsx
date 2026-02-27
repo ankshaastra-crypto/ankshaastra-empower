@@ -15,7 +15,18 @@ interface PaymentData {
   customerEmail?: string;
   customerName?: string;
   customerMobile?: string;
+  customerDob?: string;
+  customerGender?: string;
   packageType?: string;
+  person1Name?: string;
+  person1Dob?: string;
+  person1Gender?: string;
+  person2Name?: string;
+  person2Dob?: string;
+  person2Gender?: string;
+  person3Name?: string;
+  person3Dob?: string;
+  person3Gender?: string;
   data?: unknown;
 }
 
@@ -763,7 +774,24 @@ const PaymentStatus = () => {
 
   const getWhatsAppLink = () => {
     if (!paymentData) return "";
-    const msg = `Hi! I just completed my payment for ${packageNames[paymentData.packageType || "single"] || "Numerology Report"}.\n\nOrder ID: ${paymentData.orderId}\nAmount: ₹${paymentData.amount?.toLocaleString() || "N/A"}\n\nPlease confirm my order. Thank you! 🙏`;
+
+    // Build person details section
+    const personLines: string[] = [];
+    if (paymentData.person1Name) {
+      personLines.push(`👤 ${paymentData.person1Name}${paymentData.person1Dob ? ` (DOB: ${paymentData.person1Dob})` : ""}${paymentData.person1Gender ? ` - ${paymentData.person1Gender}` : ""}`);
+    }
+    if (paymentData.person2Name) {
+      personLines.push(`👤 ${paymentData.person2Name}${paymentData.person2Dob ? ` (DOB: ${paymentData.person2Dob})` : ""}${paymentData.person2Gender ? ` - ${paymentData.person2Gender}` : ""}`);
+    }
+    if (paymentData.person3Name) {
+      personLines.push(`👤 ${paymentData.person3Name}${paymentData.person3Dob ? ` (DOB: ${paymentData.person3Dob})` : ""}${paymentData.person3Gender ? ` - ${paymentData.person3Gender}` : ""}`);
+    }
+
+    const personSection = personLines.length > 0
+      ? `\n\n📋 *Person Details:*\n${personLines.join("\n")}`
+      : "";
+
+    const msg = `Hi! I just completed my payment for ${packageNames[paymentData.packageType || "single"] || "Numerology Report"}.\n\n📦 *Order ID:* ${paymentData.orderId}\n💰 *Amount:* ₹${paymentData.amount?.toLocaleString() || "N/A"}${personSection}\n\nPlease confirm my order. Thank you! 🙏`;
     return `https://wa.me/919667305577?text=${encodeURIComponent(msg)}`;
   };
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { format, parse } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -68,6 +69,7 @@ const OrderFormSection = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Calculate yesterday's date for DOB max attribute (using local timezone to avoid UTC shift)
   const getYesterdayDate = (): string => {
@@ -465,6 +467,7 @@ const OrderFormSection = () => {
     }
 
     trackInitiateCheckout(price, "INR", packageType);
+    setIsSubmitting(true);
 
     try {
       toast({
@@ -490,6 +493,7 @@ const OrderFormSection = () => {
           description: errorMessage,
           variant: "destructive",
         });
+        setIsSubmitting(false);
         return;
       }
 
@@ -502,6 +506,7 @@ const OrderFormSection = () => {
           description: "Payment gateway did not return a valid redirect URL.",
           variant: "destructive",
         });
+        setIsSubmitting(false);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -510,6 +515,7 @@ const OrderFormSection = () => {
         description: "Failed to connect to payment server. Please try again.",
         variant: "destructive",
       });
+      setIsSubmitting(false);
     }
   };
 
@@ -1220,10 +1226,18 @@ const OrderFormSection = () => {
                   size="lg"
                   className="w-full mt-6 group"
                   onClick={handleSubmit}
+                  disabled={isSubmitting}
                 >
-                  <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
-                    Proceed to Secure Payment
-                  </span>
+                  {isSubmitting ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Processing Payment...
+                    </span>
+                  ) : (
+                    <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
+                      Proceed to Secure Payment
+                    </span>
+                  )}
                 </Button>
 
                 <div className="mt-4 text-center">

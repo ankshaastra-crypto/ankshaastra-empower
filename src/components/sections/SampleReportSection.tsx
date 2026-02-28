@@ -11,15 +11,13 @@ const SampleReportSection = () => {
   };
 
   const reportItems = [
-    { label: "Baby Name", value: "Aarav Sharma", blurred: false },
-    { label: "Baby First Alphabet Analysis", value: "Detailed alphabet vibration & energy analysis...", blurred: true },
+    { label: "10+ Numerologically Aligned Names", value: "Curated names vibrationally matched to your baby's birth energy...", blurred: true },
+    { label: "Child's Mulank & Bhagyank Analysis", value: "Deep dive into Life Path & Destiny numbers...", blurred: true },
+    { label: "First Name & Full Name Analysis", value: "Vibration score & compatibility breakdown...", blurred: true },
+    { label: "Compound Number Analysis", value: "Personality, strengths & karmic insights...", blurred: true },
     { label: "Personal Loshu Grid", value: "Complete grid mapping & interpretation...", blurred: true },
-    { label: "First Name Number Analysis", value: "Name number: 5 — Adventure & Freedom...", blurred: true },
-    { label: "Full Name Number Analysis", value: "Vibration Score: 92/100 — Excellent alignment...", blurred: true },
-    { label: "Compound Number Analysis", value: "Personality: Leadership, Creativity, Compassion...", blurred: true },
-    { label: "Implementation Guide", value: "Step-by-step name adoption guide...", blurred: true },
-    { label: "Name Recommendation Rating", value: "Overall Rating: ★★★★★ (5/5)...", blurred: true },
-    { label: "& Much More", value: "Lucky colors, career alignment, 2-year roadmap...", blurred: true },
+    { label: "First Alphabet Analysis", value: "Detailed alphabet vibration & energy analysis...", blurred: true },
+    { label: "PDF Report (50+ Pages)", value: "Comprehensive personalised document...", blurred: true },
   ];
 
   return (

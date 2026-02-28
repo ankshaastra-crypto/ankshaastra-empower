@@ -21,7 +21,7 @@ const HeroSection = () => {
   };
 
   const badges = [
-    "2 meaningful, well-aligned name options",
+    "10+ meaningful, numerologically aligned name options",
     "Clear explanation with each suggestion",
     "Trusted by thousands of parents",
   ];

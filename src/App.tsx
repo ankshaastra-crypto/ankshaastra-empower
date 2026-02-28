@@ -10,6 +10,7 @@ import ShippingPolicy from "@/pages/ShippingPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import PaymentStatus from "@/pages/PaymentStatus";
 import BabyNameLandingPage from "@/pages/BabyNameLandingPage";
+import TrackOrder from "@/pages/TrackOrder";
 
 const App = () => (
   <TooltipProvider>
@@ -26,6 +27,7 @@ const App = () => (
         <Route path="/payment/success" element={<PaymentStatus />} />
         <Route path="/payment/failed" element={<PaymentStatus />} />
         <Route path="/baby-name" element={<BabyNameLandingPage />} />
+        <Route path="/track-order" element={<TrackOrder />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

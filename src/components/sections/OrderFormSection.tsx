@@ -1241,9 +1241,28 @@ const OrderFormSection = () => {
                 </Button>
 
                 <div className="mt-4 text-center">
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground mb-3">
                     🔒 Your payment is 100% secure and encrypted
                   </p>
+                  {/* Trust Badges */}
+                  <div className="flex items-center justify-center gap-3 flex-wrap">
+                    <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5">
+                      <svg viewBox="0 0 24 24" className="w-4 h-4 text-accent" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                      <span className="text-[10px] font-semibold text-muted-foreground">SSL Secure</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5">
+                      <svg viewBox="0 0 24 24" className="w-4 h-4 text-[#5f259f]" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                      <span className="text-[10px] font-semibold text-muted-foreground">PhonePe</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5">
+                      <svg viewBox="0 0 24 24" className="w-4 h-4 text-[#00897b]" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                      <span className="text-[10px] font-semibold text-muted-foreground">UPI</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5">
+                      <svg viewBox="0 0 24 24" className="w-4 h-4 text-accent" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 12l2 2 4-4"/><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/></svg>
+                      <span className="text-[10px] font-semibold text-muted-foreground">Verified</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* What's Included */}

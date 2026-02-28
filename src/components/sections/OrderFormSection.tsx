@@ -56,8 +56,8 @@ const OrderFormSection = () => {
 
   // Baby Name Report form data
   const [babyFormData, setBabyFormData] = useState({
-    yourName: "",
     fatherFirstName: "",
+    fatherMiddleName: "",
     fatherLastName: "",
     childDob: "",
     timeOfBirth: "",
@@ -323,9 +323,6 @@ const OrderFormSection = () => {
 
     if (packageType === "single") {
       // Validate Baby Name Report fields
-      if (!babyFormData.yourName || !validateName(babyFormData.yourName, true)) {
-        newErrors.yourName = "Your name is required";
-      }
       if (!babyFormData.fatherFirstName || !validateName(babyFormData.fatherFirstName, true)) {
         newErrors.fatherFirstName = "Father's first name is required";
       }
@@ -417,17 +414,19 @@ const OrderFormSection = () => {
     let orderPayload: Record<string, any>;
 
     if (packageType === "single") {
+      const fullFatherName = [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ");
       orderPayload = {
         orderId,
         email: babyFormData.email,
         mobile: babyFormData.whatsapp,
-        name: babyFormData.yourName,
+        name: fullFatherName,
         dob: babyFormData.childDob,
         gender: babyFormData.gender,
-        person1Name: babyFormData.yourName,
+        person1Name: fullFatherName,
         person1Dob: babyFormData.childDob,
         person1Gender: babyFormData.gender,
         fatherFirstName: babyFormData.fatherFirstName,
+        fatherMiddleName: babyFormData.fatherMiddleName,
         fatherLastName: babyFormData.fatherLastName,
         childDob: babyFormData.childDob,
         timeOfBirth: normalizeTimeInput(babyFormData.timeOfBirth),
@@ -737,25 +736,8 @@ const OrderFormSection = () => {
   // Render Baby Name Report fields (10 fields)
   const renderBabyNameFields = () => (
     <div className="space-y-4">
-      {/* Your Name */}
-      <div>
-        <Label htmlFor="yourName">Your Name *</Label>
-        <Input
-          id="yourName"
-          name="yourName"
-          value={babyFormData.yourName}
-          onChange={handleInputChange}
-          placeholder="Enter your full name"
-          required
-          className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-            errors.yourName ? "border-destructive focus:border-destructive" : ""
-          }`}
-        />
-        {errors.yourName && <p className="text-destructive text-sm mt-1">{errors.yourName}</p>}
-      </div>
-
-      {/* Father's First & Last Name */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Father's First Name, Middle Name & Last Name */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <Label htmlFor="fatherFirstName">Father's First Name *</Label>
           <Input
@@ -770,6 +752,17 @@ const OrderFormSection = () => {
             }`}
           />
           {errors.fatherFirstName && <p className="text-destructive text-sm mt-1">{errors.fatherFirstName}</p>}
+        </div>
+        <div>
+          <Label htmlFor="fatherMiddleName">Father's Middle Name</Label>
+          <Input
+            id="fatherMiddleName"
+            name="fatherMiddleName"
+            value={babyFormData.fatherMiddleName}
+            onChange={handleInputChange}
+            placeholder="Middle name (optional)"
+            className="mt-1.5 transition-all duration-300 focus:shadow-card"
+          />
         </div>
         <div>
           <Label htmlFor="fatherLastName">Father's Last Name *</Label>

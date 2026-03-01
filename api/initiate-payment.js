@@ -35,24 +35,6 @@ export default async function handler(req, res) {
         message: "Order ID must contain only alphanumeric characters, dashes, and underscores"
       });
     }
-
-    // Validate required fields
-    if (!gender || !gender.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: "gender is required",
-        message: "Customer gender is mandatory for payment processing"
-      });
-    }
-    
-    // Validate required fields
-    if (!city || !city.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: "City is required",
-        message: "Customer city is mandatory for payment processing"
-      });
-    }
     
     // Validate required fields
     if (!email || !email.trim()) {

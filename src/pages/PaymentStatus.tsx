@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { CheckCircle2, XCircle, Loader2, Download } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, Download, MessageCircle, User, CreditCard, Package, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -781,8 +781,8 @@ const PaymentStatus = () => {
               )}
 
               {status === "success" && (
-                <div className="bg-card rounded-2xl p-8 shadow-card text-center">
-                  <div className="mb-6">
+                <div className="bg-card rounded-2xl p-8 shadow-card">
+                  <div className="text-center mb-6">
                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <CheckCircle2 className="w-12 h-12 text-green-600" />
                     </div>
@@ -794,12 +794,17 @@ const PaymentStatus = () => {
                     </p>
                   </div>
 
+                  {/* Order Summary Card */}
                   {paymentData && (
-                    <div className="bg-muted/50 rounded-xl p-6 mb-6 text-left">
-                      <div className="space-y-4">
+                    <div className="bg-muted/50 rounded-xl p-6 mb-6">
+                      <h3 className="font-heading font-bold text-lg text-ink-black mb-4 flex items-center gap-2">
+                        <Package className="w-5 h-5 text-accent" />
+                        Order Summary
+                      </h3>
+                      <div className="space-y-3">
                         <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
-                          <span className="text-muted-foreground text-sm shrink-0">
-                            Order ID:
+                          <span className="text-muted-foreground text-sm flex items-center gap-2">
+                            <CreditCard className="w-4 h-4" /> Order ID
                           </span>
                           <span className="font-semibold text-ink-black text-sm break-all sm:text-right">
                             {paymentData.orderId}
@@ -807,20 +812,60 @@ const PaymentStatus = () => {
                         </div>
                         {paymentData.transactionId && (
                           <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
-                            <span className="text-muted-foreground text-sm shrink-0">
-                              Transaction ID:
+                            <span className="text-muted-foreground text-sm flex items-center gap-2">
+                              <CreditCard className="w-4 h-4" /> Transaction ID
                             </span>
                             <span className="font-semibold text-ink-black text-sm break-all sm:text-right">
                               {paymentData.transactionId}
                             </span>
                           </div>
                         )}
-                        {paymentData.amount && (
-                          <div className="flex justify-between items-center pt-2 border-t border-border">
-                            <span className="text-muted-foreground text-sm">
-                              Amount Paid:
+                        {paymentData.packageType && (
+                          <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                            <span className="text-muted-foreground text-sm flex items-center gap-2">
+                              <Package className="w-4 h-4" /> Package
                             </span>
-                            <span className="font-bold text-accent text-lg">
+                            <span className="font-semibold text-ink-black text-sm sm:text-right">
+                              {packageNames[paymentData.packageType] || paymentData.packageType}
+                            </span>
+                          </div>
+                        )}
+                        {paymentData.customerName && (
+                          <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                            <span className="text-muted-foreground text-sm flex items-center gap-2">
+                              <User className="w-4 h-4" /> Name
+                            </span>
+                            <span className="font-semibold text-ink-black text-sm sm:text-right">
+                              {paymentData.customerName}
+                            </span>
+                          </div>
+                        )}
+                        {paymentData.customerEmail && (
+                          <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                            <span className="text-muted-foreground text-sm flex items-center gap-2">
+                              <Mail className="w-4 h-4" /> Email
+                            </span>
+                            <span className="font-semibold text-ink-black text-sm sm:text-right">
+                              {paymentData.customerEmail}
+                            </span>
+                          </div>
+                        )}
+                        {paymentData.customerMobile && (
+                          <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                            <span className="text-muted-foreground text-sm flex items-center gap-2">
+                              <Phone className="w-4 h-4" /> Mobile
+                            </span>
+                            <span className="font-semibold text-ink-black text-sm sm:text-right">
+                              {paymentData.customerMobile}
+                            </span>
+                          </div>
+                        )}
+                        {paymentData.amount && (
+                          <div className="flex justify-between items-center pt-3 border-t border-border">
+                            <span className="text-muted-foreground text-sm font-medium">
+                              Amount Paid
+                            </span>
+                            <span className="font-bold text-accent text-xl">
                               ₹{paymentData.amount.toLocaleString()}
                             </span>
                           </div>
@@ -834,6 +879,9 @@ const PaymentStatus = () => {
                       <strong>What's Next?</strong>
                     </p>
                     <ul className="text-muted-foreground text-sm space-y-2 list-disc list-inside">
+                      <li>
+                        <strong>Confirm on WhatsApp:</strong> Share your order details on WhatsApp for faster processing.
+                      </li>
                       <li>
                         <strong>Download Invoice:</strong> Click the button
                         below to download your invoice in PDF format.
@@ -850,9 +898,30 @@ const PaymentStatus = () => {
                     </ul>
                   </div>
 
-                  <div className="flex gap-4 justify-center">
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Button
                       variant="hero"
+                      onClick={() => {
+                        if (!paymentData) return;
+                        const msg = encodeURIComponent(
+                          `✅ *Payment Confirmed*\n\n` +
+                          `Order ID: ${paymentData.orderId}\n` +
+                          `Amount: ₹${paymentData.amount?.toLocaleString() || "N/A"}\n` +
+                          `Package: ${packageNames[paymentData.packageType || "single"] || paymentData.packageType}\n` +
+                          `Name: ${paymentData.customerName || "N/A"}\n` +
+                          `Email: ${paymentData.customerEmail || "N/A"}\n` +
+                          `Mobile: ${paymentData.customerMobile || "N/A"}\n\n` +
+                          `Please process my report. Thank you! 🙏`
+                        );
+                        window.open(`https://wa.me/919667305577?text=${msg}`, "_blank");
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      Confirm on WhatsApp
+                    </Button>
+                    <Button
+                      variant="outline"
                       onClick={handleDownloadInvoice}
                       className="flex items-center gap-2"
                     >

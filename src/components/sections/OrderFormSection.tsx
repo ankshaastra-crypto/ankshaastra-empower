@@ -420,6 +420,7 @@ const OrderFormSection = () => {
         name: fatherFullName,
         dob: babyFormData.childDob,
         gender: babyFormData.gender,
+        city: formData.city,
         person1Name: fatherFullName,
         person1Dob: babyFormData.childDob,
         person1Gender: babyFormData.gender,

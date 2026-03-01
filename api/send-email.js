@@ -61,8 +61,8 @@ export async function sendPaymentEmail({
   customerName, 
   customerMobile = '',
   customerDob = '',
-  customerGender = '',
-  customerCity = '',
+  customerGender = form.gender,
+  customerCity = form.city,
   person1Name = '',
   person1Dob = '',
   person1Gender = '',
@@ -85,8 +85,7 @@ export async function sendPaymentEmail({
   const finalCustomerMobile = (customerMobile && customerMobile.toString().trim()) || '';
   const finalCustomerDob = (customerDob && customerDob.toString().trim()) || '';
   const finalCustomerGender = (customerGender && customerGender.toString().trim()) || '';
-  //const finalCustomerCity = (customerCity && customerCity.toString().trim()) || '';
-  const finalCustomerCity = customerCity?.toString().trim() || '';
+  const finalCustomerCity = (customerCity && customerCity.toString().trim()) || '';
   const finalPerson1Name = (person1Name && person1Name.toString().trim()) || (customerName && customerName.toString().trim()) || '';
   const finalPerson1Dob = (person1Dob && person1Dob.toString().trim()) || finalCustomerDob;
   const finalPerson1Gender = (person1Gender && person1Gender.toString().trim()) || finalCustomerGender;

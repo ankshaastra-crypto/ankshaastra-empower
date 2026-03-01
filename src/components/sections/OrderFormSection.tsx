@@ -55,8 +55,8 @@ const OrderFormSection = () => {
 
   // Baby Name Report form data
   const [babyFormData, setBabyFormData] = useState({
-    yourName: "",
     fatherFirstName: "",
+    fatherMiddleName: "",
     fatherLastName: "",
     childDob: "",
     timeOfBirth: "",
@@ -321,9 +321,6 @@ const OrderFormSection = () => {
 
     if (packageType === "single") {
       // Validate Baby Name Report fields
-      if (!babyFormData.yourName || !validateName(babyFormData.yourName, true)) {
-        newErrors.yourName = "Your name is required";
-      }
       if (!babyFormData.fatherFirstName || !validateName(babyFormData.fatherFirstName, true)) {
         newErrors.fatherFirstName = "Father's first name is required";
       }
@@ -415,14 +412,15 @@ const OrderFormSection = () => {
     let orderPayload: Record<string, any>;
 
     if (packageType === "single") {
+      const fatherFullName = [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ").trim();
       orderPayload = {
         orderId,
         email: babyFormData.email,
         mobile: babyFormData.whatsapp,
-        name: babyFormData.yourName,
+        name: fatherFullName,
         dob: babyFormData.childDob,
         gender: babyFormData.gender,
-        person1Name: babyFormData.yourName,
+        person1Name: fatherFullName,
         person1Dob: babyFormData.childDob,
         person1Gender: babyFormData.gender,
         fatherFirstName: babyFormData.fatherFirstName,
@@ -731,25 +729,8 @@ const OrderFormSection = () => {
   // Render Baby Name Report fields (10 fields)
   const renderBabyNameFields = () => (
     <div className="space-y-4">
-      {/* Your Name */}
-      <div>
-        <Label htmlFor="yourName">Your Name *</Label>
-        <Input
-          id="yourName"
-          name="yourName"
-          value={babyFormData.yourName}
-          onChange={handleInputChange}
-          placeholder="Enter your full name"
-          required
-          className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
-            errors.yourName ? "border-destructive focus:border-destructive" : ""
-          }`}
-        />
-        {errors.yourName && <p className="text-destructive text-sm mt-1">{errors.yourName}</p>}
-      </div>
-
-      {/* Father's First & Last Name */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Father's First, Middle & Last Name */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <Label htmlFor="fatherFirstName">Father's First Name *</Label>
           <Input
@@ -757,7 +738,7 @@ const OrderFormSection = () => {
             name="fatherFirstName"
             value={babyFormData.fatherFirstName}
             onChange={handleInputChange}
-            placeholder="Father's first name"
+            placeholder="First name"
             required
             className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
               errors.fatherFirstName ? "border-destructive focus:border-destructive" : ""
@@ -766,13 +747,24 @@ const OrderFormSection = () => {
           {errors.fatherFirstName && <p className="text-destructive text-sm mt-1">{errors.fatherFirstName}</p>}
         </div>
         <div>
+          <Label htmlFor="fatherMiddleName">Father's Middle Name</Label>
+          <Input
+            id="fatherMiddleName"
+            name="fatherMiddleName"
+            value={babyFormData.fatherMiddleName}
+            onChange={handleInputChange}
+            placeholder="Middle name (optional)"
+            className="mt-1.5 transition-all duration-300 focus:shadow-card"
+          />
+        </div>
+        <div>
           <Label htmlFor="fatherLastName">Father's Last Name *</Label>
           <Input
             id="fatherLastName"
             name="fatherLastName"
             value={babyFormData.fatherLastName}
             onChange={handleInputChange}
-            placeholder="Father's last name"
+            placeholder="Last name"
             required
             className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
               errors.fatherLastName ? "border-destructive focus:border-destructive" : ""
@@ -1254,21 +1246,24 @@ const OrderFormSection = () => {
                         </li>
                       </>
                     ) : (
-                      <>
+                    <>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Complete Mulank & Bhagyank Analysis
+                          <Check className="w-4 h-4 text-secondary" /> 10+ Numerologically Aligned Name Options
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> Current Name Evaluation
+                          <Check className="w-4 h-4 text-secondary" /> Child's Mulank & Bhagyank Analysis
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> 2 Corrected Name Options
+                          <Check className="w-4 h-4 text-secondary" /> First Name & Full Name Analysis
+                        </li>
+                        <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Check className="w-4 h-4 text-secondary" /> Compound Number Analysis
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Check className="w-4 h-4 text-secondary" /> Personal Loshu Grid
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Check className="w-4 h-4 text-secondary" /> 2 Years Roadmap
+                          <Check className="w-4 h-4 text-secondary" /> First Alphabet Analysis
                         </li>
                         <li className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Check className="w-4 h-4 text-secondary" /> PDF Report (50+ Pages)

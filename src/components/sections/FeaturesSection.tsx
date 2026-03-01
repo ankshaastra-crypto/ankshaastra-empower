@@ -8,8 +8,8 @@ const FeaturesSection = () => {
   const features = [
     {
       icon: Baby,
-      title: "2 Meaningful, Well-Aligned Name Options",
-      text: "Receive 2 carefully curated name suggestions — each numerologically compatible with your baby's birth date, Mulank, and Bhagyank for lifelong harmony.",
+      title: "10+ Meaningful, Numerologically Aligned Name Options",
+      text: "Receive 10+ carefully curated name suggestions — each numerologically compatible with your baby's birth date, Mulank, and Bhagyank for lifelong harmony.",
     },
     {
       icon: Stars,
@@ -29,7 +29,7 @@ const FeaturesSection = () => {
   ];
 
   const highlights = [
-    "2 meaningful, well-aligned name options",
+    "10+ meaningful, numerologically aligned name options",
     "Personal Loshu Grid Analysis",
     "Based on Numerology & Vedic principles",
     "Trusted by thousands of happy parents",

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { format, parse } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -56,8 +55,8 @@ const OrderFormSection = () => {
 
   // Baby Name Report form data
   const [babyFormData, setBabyFormData] = useState({
+    yourName: "",
     fatherFirstName: "",
-    fatherMiddleName: "",
     fatherLastName: "",
     childDob: "",
     timeOfBirth: "",
@@ -69,7 +68,6 @@ const OrderFormSection = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Calculate yesterday's date for DOB max attribute (using local timezone to avoid UTC shift)
   const getYesterdayDate = (): string => {
@@ -323,6 +321,9 @@ const OrderFormSection = () => {
 
     if (packageType === "single") {
       // Validate Baby Name Report fields
+      if (!babyFormData.yourName || !validateName(babyFormData.yourName, true)) {
+        newErrors.yourName = "Your name is required";
+      }
       if (!babyFormData.fatherFirstName || !validateName(babyFormData.fatherFirstName, true)) {
         newErrors.fatherFirstName = "Father's first name is required";
       }
@@ -414,19 +415,17 @@ const OrderFormSection = () => {
     let orderPayload: Record<string, any>;
 
     if (packageType === "single") {
-      const fullFatherName = [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ");
       orderPayload = {
         orderId,
         email: babyFormData.email,
         mobile: babyFormData.whatsapp,
-        name: fullFatherName,
+        name: babyFormData.yourName,
         dob: babyFormData.childDob,
         gender: babyFormData.gender,
-        person1Name: fullFatherName,
+        person1Name: babyFormData.yourName,
         person1Dob: babyFormData.childDob,
         person1Gender: babyFormData.gender,
         fatherFirstName: babyFormData.fatherFirstName,
-        fatherMiddleName: babyFormData.fatherMiddleName,
         fatherLastName: babyFormData.fatherLastName,
         childDob: babyFormData.childDob,
         timeOfBirth: normalizeTimeInput(babyFormData.timeOfBirth),
@@ -466,7 +465,6 @@ const OrderFormSection = () => {
     }
 
     trackInitiateCheckout(price, "INR", packageType);
-    setIsSubmitting(true);
 
     try {
       toast({
@@ -492,7 +490,6 @@ const OrderFormSection = () => {
           description: errorMessage,
           variant: "destructive",
         });
-        setIsSubmitting(false);
         return;
       }
 
@@ -505,7 +502,6 @@ const OrderFormSection = () => {
           description: "Payment gateway did not return a valid redirect URL.",
           variant: "destructive",
         });
-        setIsSubmitting(false);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -514,7 +510,6 @@ const OrderFormSection = () => {
         description: "Failed to connect to payment server. Please try again.",
         variant: "destructive",
       });
-      setIsSubmitting(false);
     }
   };
 
@@ -736,8 +731,25 @@ const OrderFormSection = () => {
   // Render Baby Name Report fields (10 fields)
   const renderBabyNameFields = () => (
     <div className="space-y-4">
-      {/* Father's First Name, Middle Name & Last Name */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Your Name */}
+      <div>
+        <Label htmlFor="yourName">Your Name *</Label>
+        <Input
+          id="yourName"
+          name="yourName"
+          value={babyFormData.yourName}
+          onChange={handleInputChange}
+          placeholder="Enter your full name"
+          required
+          className={`mt-1.5 transition-all duration-300 focus:shadow-card ${
+            errors.yourName ? "border-destructive focus:border-destructive" : ""
+          }`}
+        />
+        {errors.yourName && <p className="text-destructive text-sm mt-1">{errors.yourName}</p>}
+      </div>
+
+      {/* Father's First & Last Name */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="fatherFirstName">Father's First Name *</Label>
           <Input
@@ -752,17 +764,6 @@ const OrderFormSection = () => {
             }`}
           />
           {errors.fatherFirstName && <p className="text-destructive text-sm mt-1">{errors.fatherFirstName}</p>}
-        </div>
-        <div>
-          <Label htmlFor="fatherMiddleName">Father's Middle Name</Label>
-          <Input
-            id="fatherMiddleName"
-            name="fatherMiddleName"
-            value={babyFormData.fatherMiddleName}
-            onChange={handleInputChange}
-            placeholder="Middle name (optional)"
-            className="mt-1.5 transition-all duration-300 focus:shadow-card"
-          />
         </div>
         <div>
           <Label htmlFor="fatherLastName">Father's Last Name *</Label>
@@ -1219,43 +1220,16 @@ const OrderFormSection = () => {
                   size="lg"
                   className="w-full mt-6 group"
                   onClick={handleSubmit}
-                  disabled={isSubmitting}
                 >
-                  {isSubmitting ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Processing Payment...
-                    </span>
-                  ) : (
-                    <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
-                      Proceed to Secure Payment
-                    </span>
-                  )}
+                  <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
+                    Proceed to Secure Payment
+                  </span>
                 </Button>
 
                 <div className="mt-4 text-center">
-                  <p className="text-xs text-muted-foreground mb-3">
+                  <p className="text-xs text-muted-foreground">
                     🔒 Your payment is 100% secure and encrypted
                   </p>
-                  {/* Trust Badges */}
-                  <div className="flex items-center justify-center gap-3 flex-wrap">
-                    <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5">
-                      <svg viewBox="0 0 24 24" className="w-4 h-4 text-accent" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                      <span className="text-[10px] font-semibold text-muted-foreground">SSL Secure</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5">
-                      <svg viewBox="0 0 24 24" className="w-4 h-4 text-[#5f259f]" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
-                      <span className="text-[10px] font-semibold text-muted-foreground">PhonePe</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5">
-                      <svg viewBox="0 0 24 24" className="w-4 h-4 text-[#00897b]" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                      <span className="text-[10px] font-semibold text-muted-foreground">UPI</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 bg-muted/50 rounded-full px-3 py-1.5">
-                      <svg viewBox="0 0 24 24" className="w-4 h-4 text-accent" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 12l2 2 4-4"/><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/></svg>
-                      <span className="text-[10px] font-semibold text-muted-foreground">Verified</span>
-                    </div>
-                  </div>
                 </div>
 
                 {/* What's Included */}

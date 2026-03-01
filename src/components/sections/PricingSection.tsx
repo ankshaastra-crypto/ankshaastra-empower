@@ -38,12 +38,13 @@ const PricingSection = () => {
   ];
 
   const singleFeatures = [
-    "10+ Numerologically Aligned Names",
-    "Child's Mulank & Bhagyank Analysis",
+    "Complete Mulank & Bhagyank Analysis",
+    "Current Name Evaluation",
     "First Name & Full Name Analysis",
     "Compound Number Analysis",
-    "Personal Loshu Grid",
-    "First Alphabet Analysis",
+    "2 Corrected Name Options",
+    "Your Personal Loshu Grid",
+    "2 Years Roadmap",
     "PDF Report (50+ Pages)",
   ];
 

@@ -35,7 +35,7 @@ export default async function handler(req, res) {
         message: "Order ID must contain only alphanumeric characters, dashes, and underscores"
       });
     }
-    
+
     // Validate required fields
     if (!email || !email.trim()) {
       return res.status(400).json({

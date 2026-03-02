@@ -12,7 +12,6 @@ import { useToast } from "@/hooks/use-toast";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { trackInitiateCheckout } from "@/lib/metaPixel";
 import { getPackagePrice, formatPrice } from "@/lib/packagePricing";
-import { saveNameCheckOrder, saveBabyNameOrder } from "@/lib/orderDb";
 
 // Name Check pricing configuration
 const NAME_CHECK_PRICING = {
@@ -421,7 +420,6 @@ const OrderFormSection = () => {
         name: fatherFullName,
         dob: babyFormData.childDob,
         gender: babyFormData.gender,
-        city: formData.city,
         person1Name: fatherFullName,
         person1Dob: babyFormData.childDob,
         person1Gender: babyFormData.gender,
@@ -462,54 +460,6 @@ const OrderFormSection = () => {
       localStorage.setItem(`order_${orderId}`, JSON.stringify(orderPayload));
     } catch (e) {
       console.warn("Could not store order data in localStorage:", e);
-    }
-
-    // Save order to database
-    if (packageType === "single") {
-      await saveBabyNameOrder({
-        orderId,
-        packageType: "single",
-        amount: price,
-        customerName: orderPayload.name,
-        customerEmail: babyFormData.email,
-        customerMobile: babyFormData.whatsapp,
-        fatherFirstName: babyFormData.fatherFirstName,
-        fatherMiddleName: babyFormData.fatherMiddleName,
-        fatherLastName: babyFormData.fatherLastName,
-        childDob: babyFormData.childDob,
-        childTob: normalizeTimeInput(babyFormData.timeOfBirth),
-        childPob: babyFormData.placeOfBirth,
-        childPincode: babyFormData.pinCode,
-        childGender: babyFormData.gender,
-      });
-    } else {
-      await saveNameCheckOrder({
-        orderId,
-        packageType: `namecheck-${nameCheckCount}`,
-        amount: price,
-        customerName: orderPayload.name,
-        customerEmail: formData.email,
-        customerMobile: formData.mobile,
-        customerCity: formData.city,
-        person1FirstName: formData.person1FirstName,
-        person1MiddleName: formData.person1MiddleName,
-        person1MiddleNameType: formData.person1MiddleNameType,
-        person1FullName: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
-        person1Dob: formData.person1Dob,
-        person1Gender: formData.person1Gender,
-        person2FirstName: formData.person2FirstName,
-        person2MiddleName: formData.person2MiddleName,
-        person2MiddleNameType: formData.person2MiddleNameType,
-        person2FullName: getFullName(formData.person2FirstName, formData.person2MiddleName, formData.person2SurName),
-        person2Dob: formData.person2Dob,
-        person2Gender: formData.person2Gender,
-        person3FirstName: formData.person3FirstName,
-        person3MiddleName: formData.person3MiddleName,
-        person3MiddleNameType: formData.person3MiddleNameType,
-        person3FullName: getFullName(formData.person3FirstName, formData.person3MiddleName, formData.person3SurName),
-        person3Dob: formData.person3Dob,
-        person3Gender: formData.person3Gender,
-      });
     }
 
     trackInitiateCheckout(price, "INR", packageType);

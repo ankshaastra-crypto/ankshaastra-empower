@@ -8,9 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { saveBabyNameOrder } from "@/lib/orderDb";
-import { trackInitiateCheckout } from "@/lib/metaPixel";
-import { useToast } from "@/hooks/use-toast";
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const T = {
@@ -747,88 +744,13 @@ const ClaimFormSection = () => {
   const allErrors = validate(formData);
   const isValid   = Object.keys(allErrors).length === 0;
 
-  const { toast } = useToast();
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setTouched({ yourName: true, fatherFirstName: true, fatherLastName: true, dob: true, timeOfBirth: true, placeOfBirth: true, pinCode: true, gender: true, email: true, whatsapp: true });
     const errs = validate(formData);
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
-
-    const price = 2497;
-    const orderId = "ORD" + Date.now() + "-" + Math.random().toString(36).substring(2, 8);
-    const fatherFullName = [formData.fatherFirstName, formData.fatherLastName].filter(Boolean).join(" ").trim();
-    const childDobStr = formData.dob ? format(formData.dob, "yyyy-MM-dd") : "";
-
-    // Save to database
-    await saveBabyNameOrder({
-      orderId,
-      packageType: "single",
-      amount: price,
-      customerName: formData.yourName || fatherFullName,
-      customerEmail: formData.email,
-      customerMobile: formData.whatsapp,
-      fatherFirstName: formData.fatherFirstName,
-      fatherLastName: formData.fatherLastName,
-      childDob: childDobStr,
-      childTob: formData.timeOfBirth.trim(),
-      childPob: formData.placeOfBirth.trim(),
-      childPincode: formData.pinCode.trim(),
-      childGender: formData.gender,
-    });
-
-    // Save to localStorage as backup
-    const orderPayload = {
-      orderId,
-      email: formData.email,
-      mobile: formData.whatsapp,
-      name: formData.yourName || fatherFullName,
-      dob: childDobStr,
-      gender: formData.gender,
-      person1Name: fatherFullName,
-      person1Dob: childDobStr,
-      person1Gender: formData.gender,
-      fatherFirstName: formData.fatherFirstName,
-      fatherLastName: formData.fatherLastName,
-      childDob: childDobStr,
-      timeOfBirth: formData.timeOfBirth.trim(),
-      placeOfBirth: formData.placeOfBirth.trim(),
-      pinCode: formData.pinCode.trim(),
-      packageType: "single",
-    };
-    try {
-      localStorage.setItem(`order_${orderId}`, JSON.stringify(orderPayload));
-    } catch (_e) { /* silent */ }
-
-    trackInitiateCheckout(price, "INR", "single");
-
-    try {
-      toast({ title: "Processing...", description: "Initiating payment..." });
-
-      const response = await fetch("/api/initiate-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: price, ...orderPayload }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        toast({ title: "Payment Error", description: result.error || "Payment failed to start.", variant: "destructive" });
-        return;
-      }
-
-      const redirectUrl = result.data?.instrumentResponse?.redirectInfo?.url;
-      if (redirectUrl) {
-        window.location.href = redirectUrl;
-      } else {
-        toast({ title: "Payment Error", description: "Payment gateway did not return a valid redirect URL.", variant: "destructive" });
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      toast({ title: "Network Error", description: "Failed to connect to payment server. Please try again.", variant: "destructive" });
-    }
+    alert("Form submitted! Payment gateway integration coming soon.");
   };
 
   const fieldBorder = (name: keyof FormErrors) =>

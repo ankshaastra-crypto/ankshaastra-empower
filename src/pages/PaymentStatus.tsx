@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { trackPurchase } from "@/lib/metaPixel";
-
+import { updateOrderStatus } from "@/lib/orderDb";
 interface PaymentData {
   success: boolean;
   status: "SUCCESS" | "FAILED";
@@ -139,9 +139,12 @@ const PaymentStatus = () => {
           setStatus("success");
           setPaymentData(result);
 
+          // Update order status in database
+          const orderId = result.orderId || merchantTransactionId;
+          await updateOrderStatus(orderId, "SUCCESS", result.transactionId, result.amount);
+
           // Track purchase event with Meta Pixel
           const amount = result.amount || 0;
-          const orderId = result.orderId || merchantTransactionId;
           const pkgType = packageType || "single";
 
           if (amount > 0) {
@@ -157,6 +160,10 @@ const PaymentStatus = () => {
           console.warn("Payment marked as failed");
           setStatus("failed");
           setPaymentData(result);
+
+          // Update order status in database
+          const orderId = result.orderId || merchantTransactionId;
+          await updateOrderStatus(orderId, "FAILED", result.transactionId);
 
           // Navigate to failed URL if not already there
           if (!location.pathname.includes("/failed")) {

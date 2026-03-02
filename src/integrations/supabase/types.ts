@@ -14,7 +14,129 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      orders: {
+        Row: {
+          amount: number
+          child_dob: string | null
+          child_gender: string | null
+          child_pincode: string | null
+          child_pob: string | null
+          child_tob: string | null
+          created_at: string
+          customer_city: string | null
+          customer_email: string
+          customer_mobile: string
+          customer_name: string
+          father_first_name: string | null
+          father_last_name: string | null
+          father_middle_name: string | null
+          id: string
+          order_id: string
+          package_type: string
+          person1_dob: string | null
+          person1_first_name: string | null
+          person1_full_name: string | null
+          person1_gender: string | null
+          person1_middle_name: string | null
+          person1_middle_name_type: string | null
+          person2_dob: string | null
+          person2_first_name: string | null
+          person2_full_name: string | null
+          person2_gender: string | null
+          person2_middle_name: string | null
+          person2_middle_name_type: string | null
+          person3_dob: string | null
+          person3_first_name: string | null
+          person3_full_name: string | null
+          person3_gender: string | null
+          person3_middle_name: string | null
+          person3_middle_name_type: string | null
+          status: string
+          transaction_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          child_dob?: string | null
+          child_gender?: string | null
+          child_pincode?: string | null
+          child_pob?: string | null
+          child_tob?: string | null
+          created_at?: string
+          customer_city?: string | null
+          customer_email?: string
+          customer_mobile?: string
+          customer_name?: string
+          father_first_name?: string | null
+          father_last_name?: string | null
+          father_middle_name?: string | null
+          id?: string
+          order_id: string
+          package_type?: string
+          person1_dob?: string | null
+          person1_first_name?: string | null
+          person1_full_name?: string | null
+          person1_gender?: string | null
+          person1_middle_name?: string | null
+          person1_middle_name_type?: string | null
+          person2_dob?: string | null
+          person2_first_name?: string | null
+          person2_full_name?: string | null
+          person2_gender?: string | null
+          person2_middle_name?: string | null
+          person2_middle_name_type?: string | null
+          person3_dob?: string | null
+          person3_first_name?: string | null
+          person3_full_name?: string | null
+          person3_gender?: string | null
+          person3_middle_name?: string | null
+          person3_middle_name_type?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          child_dob?: string | null
+          child_gender?: string | null
+          child_pincode?: string | null
+          child_pob?: string | null
+          child_tob?: string | null
+          created_at?: string
+          customer_city?: string | null
+          customer_email?: string
+          customer_mobile?: string
+          customer_name?: string
+          father_first_name?: string | null
+          father_last_name?: string | null
+          father_middle_name?: string | null
+          id?: string
+          order_id?: string
+          package_type?: string
+          person1_dob?: string | null
+          person1_first_name?: string | null
+          person1_full_name?: string | null
+          person1_gender?: string | null
+          person1_middle_name?: string | null
+          person1_middle_name_type?: string | null
+          person2_dob?: string | null
+          person2_first_name?: string | null
+          person2_full_name?: string | null
+          person2_gender?: string | null
+          person2_middle_name?: string | null
+          person2_middle_name_type?: string | null
+          person3_dob?: string | null
+          person3_first_name?: string | null
+          person3_full_name?: string | null
+          person3_gender?: string | null
+          person3_middle_name?: string | null
+          person3_middle_name_type?: string | null
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

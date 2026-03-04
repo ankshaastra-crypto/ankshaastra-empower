@@ -547,10 +547,10 @@ const OrderFormSection = () => {
               if (errors[`person${personNum}Gender`]) setErrors((prev) => { const n = { ...prev }; delete n[`person${personNum}Gender`]; return n; });
             }}
             className={`flex gap-4 mt-2.5 ${errors[`person${personNum}Gender`] ? "text-destructive" : ""}`}>
-            {["male", "female", "other"].map((g) => (
-              <div key={g} className="flex items-center space-x-2">
-                <RadioGroupItem value={g} id={`person${personNum}Gender${g}`} />
-                <Label htmlFor={`person${personNum}Gender${g}`} className="cursor-pointer font-normal capitalize">{g}</Label>
+            {[{ value: "Male", label: "Male" }, { value: "Female", label: "Female" }, { value: "Other", label: "Other" }].map((g) => (
+              <div key={g.value} className="flex items-center space-x-2">
+                <RadioGroupItem value={g.value} id={`person${personNum}Gender${g.value}`} />
+                <Label htmlFor={`person${personNum}Gender${g.value}`} className="cursor-pointer font-normal">{g.label}</Label>
               </div>
             ))}
           </RadioGroup>
@@ -656,10 +656,10 @@ const OrderFormSection = () => {
             if (errors.gender) setErrors((prev) => { const n = { ...prev }; delete n.gender; return n; });
           }}
           className={`flex gap-4 mt-2.5 ${errors.gender ? "text-destructive" : ""}`}>
-          {["male", "female", "other"].map((g) => (
-            <div key={g} className="flex items-center space-x-2">
-              <RadioGroupItem value={g} id={`babyGender${g}`} />
-              <Label htmlFor={`babyGender${g}`} className="cursor-pointer font-normal capitalize">{g}</Label>
+          {[{ value: "Male", label: "Male" }, { value: "Female", label: "Female" }, { value: "Other", label: "Other" }].map((g) => (
+            <div key={g.value} className="flex items-center space-x-2">
+              <RadioGroupItem value={g.value} id={`babyGender${g.value}`} />
+              <Label htmlFor={`babyGender${g.value}`} className="cursor-pointer font-normal">{g.label}</Label>
             </div>
           ))}
         </RadioGroup>

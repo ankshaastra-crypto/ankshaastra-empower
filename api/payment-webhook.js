@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { response, customerEmail, customerName, customerMobile, customerDob, customerGender, customerCity, packageType, amount, person1Name, person1Dob, person1Gender, person2Name, person2Dob, person2Gender, person3Name, person3Dob, person3Gender } = req.body;
+    const { response, customerEmail, customerName, customerMobile, customerDob, customerGender, customerCity, packageType, amount, person1Name, person1Dob, person1Gender, person1MiddleNameType, person2Name, person2Dob, person2Gender, person2MiddleNameType, person3Name, person3Dob, person3Gender, person3MiddleNameType, fatherFirstName, fatherMiddleName, fatherLastName, childDob, timeOfBirth, placeOfBirth, pinCode } = req.body;
 
     // Get PhonePe keys for verification
     const saltKey = process.env.PHONEPE_SALT_KEY;
@@ -114,12 +114,22 @@ export default async function handler(req, res) {
       person1Name: finalPerson1Name,
       person1Dob: finalPerson1Dob,
       person1Gender: finalPerson1Gender,
+      person1MiddleNameType: (metadata.person1MiddleNameType && metadata.person1MiddleNameType.trim()) || person1MiddleNameType || '',
       person2Name: finalPerson2Name,
       person2Dob: finalPerson2Dob,
       person2Gender: finalPerson2Gender,
+      person2MiddleNameType: (metadata.person2MiddleNameType && metadata.person2MiddleNameType.trim()) || person2MiddleNameType || '',
       person3Name: finalPerson3Name,
       person3Dob: finalPerson3Dob,
       person3Gender: finalPerson3Gender,
+      person3MiddleNameType: (metadata.person3MiddleNameType && metadata.person3MiddleNameType.trim()) || person3MiddleNameType || '',
+      fatherFirstName: (metadata.fatherFirstName && metadata.fatherFirstName.trim()) || fatherFirstName || '',
+      fatherMiddleName: (metadata.fatherMiddleName && metadata.fatherMiddleName.trim()) || fatherMiddleName || '',
+      fatherLastName: (metadata.fatherLastName && metadata.fatherLastName.trim()) || fatherLastName || '',
+      childDob: (metadata.childDob && metadata.childDob.trim()) || childDob || '',
+      timeOfBirth: (metadata.timeOfBirth && metadata.timeOfBirth.trim()) || timeOfBirth || '',
+      placeOfBirth: (metadata.placeOfBirth && metadata.placeOfBirth.trim()) || placeOfBirth || '',
+      pinCode: (metadata.pinCode && metadata.pinCode.trim()) || pinCode || '',
       orderId,
       amount: paymentAmount,
       packageType: finalPackageType,

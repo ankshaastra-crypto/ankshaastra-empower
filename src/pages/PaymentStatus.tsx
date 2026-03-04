@@ -774,9 +774,17 @@ const PaymentStatus = () => {
                   <h2 className="text-2xl font-heading font-bold text-ink-black mb-2">
                     Checking Payment Status...
                   </h2>
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground mb-4">
                     Please wait while we verify your payment
                   </p>
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-md mx-auto">
+                    <p className="text-amber-800 font-semibold text-sm flex items-center justify-center gap-2">
+                      ⚠️ Please do not close, refresh, or press back on this page.
+                    </p>
+                    <p className="text-amber-700 text-xs mt-1">
+                      This may take a few seconds. Closing the page may result in payment confirmation issues.
+                    </p>
+                  </div>
                 </div>
               )}
 

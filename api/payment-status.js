@@ -225,6 +225,10 @@ export default async function handler(req, res) {
       getQueryParam('person1Gender') ||
       (metadata.person1Gender && metadata.person1Gender.trim()) ||
       customerGender;
+    const person1MiddleNameType = (decryptedData.person1MiddleNameType && decryptedData.person1MiddleNameType.trim()) ||
+      getQueryParam('person1MiddleNameType') ||
+      (metadata.person1MiddleNameType && metadata.person1MiddleNameType.trim()) ||
+      '';
     const person2Name = (decryptedData.person2Name && decryptedData.person2Name.trim()) ||
       getQueryParam('person2Name') ||
       (metadata.person2Name && metadata.person2Name.trim()) ||
@@ -236,6 +240,10 @@ export default async function handler(req, res) {
     const person2Gender = (decryptedData.person2Gender && decryptedData.person2Gender.trim()) ||
       getQueryParam('person2Gender') ||
       (metadata.person2Gender && metadata.person2Gender.trim()) ||
+      '';
+    const person2MiddleNameType = (decryptedData.person2MiddleNameType && decryptedData.person2MiddleNameType.trim()) ||
+      getQueryParam('person2MiddleNameType') ||
+      (metadata.person2MiddleNameType && metadata.person2MiddleNameType.trim()) ||
       '';
     const person3Name = (decryptedData.person3Name && decryptedData.person3Name.trim()) ||
       getQueryParam('person3Name') ||
@@ -249,6 +257,19 @@ export default async function handler(req, res) {
       getQueryParam('person3Gender') ||
       (metadata.person3Gender && metadata.person3Gender.trim()) ||
       '';
+    const person3MiddleNameType = (decryptedData.person3MiddleNameType && decryptedData.person3MiddleNameType.trim()) ||
+      getQueryParam('person3MiddleNameType') ||
+      (metadata.person3MiddleNameType && metadata.person3MiddleNameType.trim()) ||
+      '';
+
+    // Baby report specific fields
+    const fatherFirstName = (decryptedData.fatherFirstName && decryptedData.fatherFirstName.trim()) || '';
+    const fatherMiddleName = (decryptedData.fatherMiddleName && decryptedData.fatherMiddleName.trim()) || '';
+    const fatherLastName = (decryptedData.fatherLastName && decryptedData.fatherLastName.trim()) || '';
+    const childDob = (decryptedData.childDob && decryptedData.childDob.trim()) || '';
+    const timeOfBirth = (decryptedData.timeOfBirth && decryptedData.timeOfBirth.trim()) || '';
+    const placeOfBirth = (decryptedData.placeOfBirth && decryptedData.placeOfBirth.trim()) || '';
+    const pinCode = (decryptedData.pinCode && decryptedData.pinCode.trim()) || '';
 
     // Send payment confirmation emails (customer and admin)
     if (customerEmail && customerEmail.trim() !== '') {
@@ -264,12 +285,22 @@ export default async function handler(req, res) {
           person1Name: person1Name,
           person1Dob: person1Dob,
           person1Gender: person1Gender,
+          person1MiddleNameType: person1MiddleNameType,
           person2Name: person2Name,
           person2Dob: person2Dob,
           person2Gender: person2Gender,
+          person2MiddleNameType: person2MiddleNameType,
           person3Name: person3Name,
           person3Dob: person3Dob,
           person3Gender: person3Gender,
+          person3MiddleNameType: person3MiddleNameType,
+          fatherFirstName: fatherFirstName,
+          fatherMiddleName: fatherMiddleName,
+          fatherLastName: fatherLastName,
+          childDob: childDob,
+          timeOfBirth: timeOfBirth,
+          placeOfBirth: placeOfBirth,
+          pinCode: pinCode,
           orderId,
           amount: amountInPaise,
           packageType: packageType || 'single',

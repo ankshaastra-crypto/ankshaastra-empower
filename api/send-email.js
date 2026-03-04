@@ -66,12 +66,22 @@ export async function sendPaymentEmail({
   person1Name = '',
   person1Dob = '',
   person1Gender = '',
+  person1MiddleNameType = '',
   person2Name = '',
   person2Dob = '',
   person2Gender = '',
+  person2MiddleNameType = '',
   person3Name = '',
   person3Dob = '',
   person3Gender = '',
+  person3MiddleNameType = '',
+  fatherFirstName = '',
+  fatherMiddleName = '',
+  fatherLastName = '',
+  childDob = '',
+  timeOfBirth = '',
+  placeOfBirth = '',
+  pinCode = '',
   orderId, 
   amount, 
   packageType, 
@@ -89,12 +99,24 @@ export async function sendPaymentEmail({
   const finalPerson1Name = (person1Name && person1Name.toString().trim()) || (customerName && customerName.toString().trim()) || '';
   const finalPerson1Dob = (person1Dob && person1Dob.toString().trim()) || finalCustomerDob;
   const finalPerson1Gender = (person1Gender && person1Gender.toString().trim()) || finalCustomerGender;
+  const finalPerson1MiddleNameType = (person1MiddleNameType && person1MiddleNameType.toString().trim()) || '';
   const finalPerson2Name = (person2Name && person2Name.toString().trim()) || '';
   const finalPerson2Dob = (person2Dob && person2Dob.toString().trim()) || '';
   const finalPerson2Gender = (person2Gender && person2Gender.toString().trim()) || '';
+  const finalPerson2MiddleNameType = (person2MiddleNameType && person2MiddleNameType.toString().trim()) || '';
   const finalPerson3Name = (person3Name && person3Name.toString().trim()) || '';
   const finalPerson3Dob = (person3Dob && person3Dob.toString().trim()) || '';
   const finalPerson3Gender = (person3Gender && person3Gender.toString().trim()) || '';
+  const finalPerson3MiddleNameType = (person3MiddleNameType && person3MiddleNameType.toString().trim()) || '';
+  
+  // Baby report specific fields
+  const finalFatherFirstName = (fatherFirstName && fatherFirstName.toString().trim()) || '';
+  const finalFatherMiddleName = (fatherMiddleName && fatherMiddleName.toString().trim()) || '';
+  const finalFatherLastName = (fatherLastName && fatherLastName.toString().trim()) || '';
+  const finalChildDob = (childDob && childDob.toString().trim()) || '';
+  const finalTimeOfBirth = (timeOfBirth && timeOfBirth.toString().trim()) || '';
+  const finalPlaceOfBirth = (placeOfBirth && placeOfBirth.toString().trim()) || '';
+  const finalPinCode = (pinCode && pinCode.toString().trim()) || '';
   
   // Validate required parameters
   if (!customerEmail || !orderId) {
@@ -319,9 +341,9 @@ export async function sendPaymentEmail({
   if (personCount > 1) {
     // Multiple persons - show each person in separate sections
     const persons = [
-      { name: finalPerson1Name, dob: finalPerson1Dob, gender: finalPerson1Gender },
-      { name: finalPerson2Name, dob: finalPerson2Dob, gender: finalPerson2Gender },
-      { name: finalPerson3Name, dob: finalPerson3Dob, gender: finalPerson3Gender },
+      { name: finalPerson1Name, dob: finalPerson1Dob, gender: finalPerson1Gender, middleNameType: finalPerson1MiddleNameType },
+      { name: finalPerson2Name, dob: finalPerson2Dob, gender: finalPerson2Gender, middleNameType: finalPerson2MiddleNameType },
+      { name: finalPerson3Name, dob: finalPerson3Dob, gender: finalPerson3Gender, middleNameType: finalPerson3MiddleNameType },
     ];
     
     customerDetailsHtml = persons
@@ -341,11 +363,61 @@ export async function sendPaymentEmail({
             <strong>Gender:</strong>
             <span>${hasValue(person.gender) ? person.gender : 'N/A'}</span>
           </div>
+          ${hasValue(person.middleNameType) ? `
+          <div class="detail-row">
+            <strong>Middle Name is Father's/Husband's:</strong>
+            <span>${person.middleNameType === 'yes' ? 'Yes' : 'No'}</span>
+          </div>
+          ` : ''}
         </div>
       `)
       .join('');
+  } else if (packageType === 'single') {
+    // Baby Name Report - show baby-specific details
+    customerDetailsHtml = `
+      <div class="detail-row">
+        <strong>Father's First Name:</strong>
+        <span>${hasValue(finalFatherFirstName) ? finalFatherFirstName : 'N/A'}</span>
+      </div>
+      ${hasValue(finalFatherMiddleName) ? `
+      <div class="detail-row">
+        <strong>Father's Middle Name:</strong>
+        <span>${finalFatherMiddleName}</span>
+      </div>
+      ` : ''}
+      <div class="detail-row">
+        <strong>Father's Last Name:</strong>
+        <span>${hasValue(finalFatherLastName) ? finalFatherLastName : 'N/A'}</span>
+      </div>
+      <div class="detail-row">
+        <strong>Child's Date of Birth:</strong>
+        <span>${hasValue(finalChildDob) ? formatDob(finalChildDob) : formatDob(finalPerson1Dob)}</span>
+      </div>
+      ${hasValue(finalTimeOfBirth) ? `
+      <div class="detail-row">
+        <strong>Time of Birth:</strong>
+        <span>${finalTimeOfBirth}</span>
+      </div>
+      ` : ''}
+      ${hasValue(finalPlaceOfBirth) ? `
+      <div class="detail-row">
+        <strong>Place of Birth:</strong>
+        <span>${finalPlaceOfBirth}</span>
+      </div>
+      ` : ''}
+      ${hasValue(finalPinCode) ? `
+      <div class="detail-row">
+        <strong>Pin Code:</strong>
+        <span>${finalPinCode}</span>
+      </div>
+      ` : ''}
+      <div class="detail-row">
+        <strong>Gender:</strong>
+        <span>${hasValue(finalPerson1Gender) ? finalPerson1Gender : (hasValue(finalCustomerGender) ? finalCustomerGender : 'N/A')}</span>
+      </div>
+    `;
   } else {
-    // Single person - show single person details
+    // Single person Name Check - show single person details
     customerDetailsHtml = `
       <div class="detail-row">
         <strong>Customer Name:</strong>
@@ -359,6 +431,12 @@ export async function sendPaymentEmail({
         <strong>Gender:</strong>
         <span>${hasValue(finalPerson1Gender) ? finalPerson1Gender : 'N/A'}</span>
       </div>
+      ${hasValue(finalPerson1MiddleNameType) ? `
+      <div class="detail-row">
+        <strong>Middle Name is Father's/Husband's:</strong>
+        <span>${finalPerson1MiddleNameType === 'yes' ? 'Yes' : 'No'}</span>
+      </div>
+      ` : ''}
     `;
   }
   

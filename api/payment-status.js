@@ -326,8 +326,6 @@ export default async function handler(req, res) {
       customerEmail,
       customerName: customerName || 'Customer',
       customerMobile,
-      customerCity,
-      customerPincode: pinCode,
       packageType: packageType || 'single',
     });
 

@@ -14,6 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      invoice_sequences: {
+        Row: {
+          financial_year: string
+          last_sequence: number
+        }
+        Insert: {
+          financial_year: string
+          last_sequence?: number
+        }
+        Update: {
+          financial_year?: string
+          last_sequence?: number
+        }
+        Relationships: []
+      }
+      invoices: {
+        Row: {
+          cgst_amount: number
+          cgst_rate: number
+          created_at: string
+          customer_city: string | null
+          customer_email: string
+          customer_mobile: string
+          customer_name: string
+          customer_pincode: string | null
+          customer_state: string | null
+          financial_year: string
+          hsn_sac_code: string
+          id: string
+          igst_amount: number
+          igst_rate: number
+          invoice_number: string
+          invoice_sequence: number
+          is_intra_state: boolean
+          order_id: string
+          package_type: string
+          sgst_amount: number
+          sgst_rate: number
+          subtotal: number
+          total_amount: number
+          transaction_id: string | null
+        }
+        Insert: {
+          cgst_amount?: number
+          cgst_rate?: number
+          created_at?: string
+          customer_city?: string | null
+          customer_email?: string
+          customer_mobile?: string
+          customer_name?: string
+          customer_pincode?: string | null
+          customer_state?: string | null
+          financial_year: string
+          hsn_sac_code?: string
+          id?: string
+          igst_amount?: number
+          igst_rate?: number
+          invoice_number: string
+          invoice_sequence: number
+          is_intra_state?: boolean
+          order_id: string
+          package_type?: string
+          sgst_amount?: number
+          sgst_rate?: number
+          subtotal?: number
+          total_amount?: number
+          transaction_id?: string | null
+        }
+        Update: {
+          cgst_amount?: number
+          cgst_rate?: number
+          created_at?: string
+          customer_city?: string | null
+          customer_email?: string
+          customer_mobile?: string
+          customer_name?: string
+          customer_pincode?: string | null
+          customer_state?: string | null
+          financial_year?: string
+          hsn_sac_code?: string
+          id?: string
+          igst_amount?: number
+          igst_rate?: number
+          invoice_number?: string
+          invoice_sequence?: number
+          is_intra_state?: boolean
+          order_id?: string
+          package_type?: string
+          sgst_amount?: number
+          sgst_rate?: number
+          subtotal?: number
+          total_amount?: number
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["order_id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           amount: number
@@ -142,7 +246,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_next_invoice_number: {
+        Args: { p_financial_year: string }
+        Returns: {
+          invoice_number: string
+          sequence_num: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

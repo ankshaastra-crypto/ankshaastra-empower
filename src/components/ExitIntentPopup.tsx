@@ -86,14 +86,17 @@ const ExitIntentPopup = () => {
               <div className="flex items-center justify-center gap-1.5 mb-2">
                 <Sparkles className="w-4 h-4 text-accent" />
                 <span className="text-xs font-semibold tracking-widest uppercase text-accent">
-                  Wait! Free Gift
+                  Wait! Special Offer
                 </span>
                 <Sparkles className="w-4 h-4 text-accent" />
               </div>
 
               <h3 className="text-xl md:text-2xl font-heading font-bold text-foreground mb-2">
-                Get Your FREE Lucky Color Analysis
+                Get FREE Lucky Color Analysis
               </h3>
+              <p className="text-sm font-semibold text-accent mb-1">
+                Worth ₹199 — FREE with every report!
+              </p>
               <p className="text-sm text-muted-foreground mb-5">
                 Discover which colors attract positivity & success for your child based on numerology. Enter your email to receive it instantly!
               </p>

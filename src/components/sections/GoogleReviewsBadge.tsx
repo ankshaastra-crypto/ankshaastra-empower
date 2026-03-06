@@ -113,7 +113,7 @@ const GoogleReviewsBadge = () => {
         {/* Google Reviews Section */}
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-center gap-2 mb-5">
-            <FaGoogle className="w-5 h-5 text-accent" />
+            <GoogleIcon className="w-5 h-5" />
             <span className="text-sm font-semibold text-foreground">Google Reviews</span>
             <div className="flex items-center gap-0.5 ml-1">
               {[...Array(5)].map((_, i) => (
@@ -141,7 +141,7 @@ const GoogleReviewsBadge = () => {
                       ))}
                     </div>
                   </div>
-                  <FaGoogle className="w-4 h-4 text-muted-foreground ml-auto" />
+                  <GoogleIcon className="w-4 h-4" />
                 </div>
                 <p className="text-sm text-muted-foreground leading-relaxed">"{review.text}"</p>
               </div>

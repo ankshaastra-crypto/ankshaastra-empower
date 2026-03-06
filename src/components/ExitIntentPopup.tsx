@@ -17,21 +17,51 @@ const ExitIntentPopup = () => {
     [hasShown]
   );
 
+  // Mobile back button / tab close detection
+  const handleBeforeUnload = useCallback(
+    (e: BeforeUnloadEvent) => {
+      if (!hasShown) {
+        setIsVisible(true);
+        setHasShown(true);
+        sessionStorage.setItem("exitPopupShown", "true");
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    },
+    [hasShown]
+  );
+
+  // Mobile: detect back button via popstate
+  const handlePopState = useCallback(() => {
+    if (!hasShown) {
+      // Push state back so user stays on page
+      window.history.pushState(null, "", window.location.href);
+      setIsVisible(true);
+      setHasShown(true);
+      sessionStorage.setItem("exitPopupShown", "true");
+    }
+  }, [hasShown]);
+
   useEffect(() => {
     if (sessionStorage.getItem("exitPopupShown") === "true") {
       setHasShown(true);
       return;
     }
 
+    // Push an extra history entry so back button triggers popstate instead of leaving
+    window.history.pushState(null, "", window.location.href);
+
     const timer = setTimeout(() => {
       document.addEventListener("mouseleave", handleExitIntent);
+      window.addEventListener("popstate", handlePopState);
     }, 5000);
 
     return () => {
       clearTimeout(timer);
       document.removeEventListener("mouseleave", handleExitIntent);
+      window.removeEventListener("popstate", handlePopState);
     };
-  }, [handleExitIntent]);
+  }, [handleExitIntent, handlePopState]);
 
   const scrollToForm = () => {
     setIsVisible(false);

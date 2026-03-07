@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { response, customerEmail, customerName, customerMobile, customerDob, customerGender, customerCity, packageType, amount, person1Name, person1FirstName, person1MiddleName, person1SurName, person1Dob, person1Gender, person1MiddleNameType, person2Name, person2FirstName, person2MiddleName, person2SurName, person2Dob, person2Gender, person2MiddleNameType, person3Name, person3FirstName, person3MiddleName, person3SurName, person3Dob, person3Gender, person3MiddleNameType, fatherFirstName, fatherMiddleName, fatherLastName, childDob, timeOfBirth, placeOfBirth, pinCode } = req.body;
+    const { response, customerEmail, customerName, customerMobile, customerDob, customerGender, customerCity, packageType, amount, person1Name, person1FirstName, person1MiddleName, person1SurName, person1Dob, person1Gender, person1MiddleNameType, person2Name, person2FirstName, person2MiddleName, person2SurName, person2Dob, person2Gender, person2MiddleNameType, person3Name, person3FirstName, person3MiddleName, person3SurName, person3Dob, person3Gender, person3MiddleNameType, fatherFirstName, fatherMiddleName, fatherMiddleNameType, fatherLastName, childDob, timeOfBirth, placeOfBirth, pinCode } = req.body;
 
     // Get PhonePe keys for verification
     const saltKey = process.env.PHONEPE_SALT_KEY;
@@ -75,6 +75,20 @@ export default async function handler(req, res) {
       } catch (error) {
         // If parsing fails, metadata remains empty object
         console.error("Error parsing metaInfo");
+      }
+    }
+    
+    // If metadata is empty, try to get order data from Redis (stored at payment initiation)
+    if (Object.keys(metadata).length === 0 && orderId) {
+      try {
+        const { getRedisCache } = await import('./redis-cache.js');
+        const cache = getRedisCache();
+        const storedOrder = await cache.get(`order:${orderId}`);
+        if (storedOrder && typeof storedOrder === 'object') {
+          metadata = storedOrder;
+        }
+      } catch {
+        // Non-fatal: fall back to request body
       }
     }
     
@@ -143,6 +157,7 @@ export default async function handler(req, res) {
       person3MiddleNameType: (metadata.person3MiddleNameType && metadata.person3MiddleNameType.trim()) || person3MiddleNameType || '',
       fatherFirstName: (metadata.fatherFirstName && metadata.fatherFirstName.trim()) || fatherFirstName || '',
       fatherMiddleName: (metadata.fatherMiddleName && metadata.fatherMiddleName.trim()) || fatherMiddleName || '',
+      fatherMiddleNameType: (metadata.fatherMiddleNameType && metadata.fatherMiddleNameType.trim()) || fatherMiddleNameType || '',
       fatherLastName: (metadata.fatherLastName && metadata.fatherLastName.trim()) || fatherLastName || '',
       childDob: (metadata.childDob && metadata.childDob.trim()) || childDob || '',
       timeOfBirth: (metadata.timeOfBirth && metadata.timeOfBirth.trim()) || timeOfBirth || '',

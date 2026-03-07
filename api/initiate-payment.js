@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { amount, mobile, orderId, email, name, dob, gender, packageType, city, person1Name, person1FirstName, person1MiddleName, person1SurName, person1Dob, person1Gender, person2Name, person2FirstName, person2MiddleName, person2SurName, person2Dob, person2Gender, person3Name, person3FirstName, person3MiddleName, person3SurName, person3Dob, person3Gender, person1MiddleNameType, person2MiddleNameType, person3MiddleNameType, fatherFirstName, fatherMiddleName, fatherLastName, childDob, timeOfBirth, placeOfBirth, pinCode } = req.body;
+    const { amount, mobile, orderId, email, name, dob, gender, packageType, city, person1Name, person1FirstName, person1MiddleName, person1SurName, person1Dob, person1Gender, person2Name, person2FirstName, person2MiddleName, person2SurName, person2Dob, person2Gender, person3Name, person3FirstName, person3MiddleName, person3SurName, person3Dob, person3Gender, person1MiddleNameType, person2MiddleNameType, person3MiddleNameType, fatherFirstName, fatherMiddleName, fatherMiddleNameType, fatherLastName, childDob, timeOfBirth, placeOfBirth, pinCode } = req.body;
 
     // Validate amount
     if (!amount || isNaN(amount) || amount <= 0) {
@@ -152,12 +152,22 @@ export default async function handler(req, res) {
       person3MiddleNameType: (person3MiddleNameType && person3MiddleNameType.trim()) || '',
       fatherFirstName: (fatherFirstName && fatherFirstName.trim()) || '',
       fatherMiddleName: (fatherMiddleName && fatherMiddleName.trim()) || '',
+      fatherMiddleNameType: (fatherMiddleNameType && fatherMiddleNameType.trim()) || '',
       fatherLastName: (fatherLastName && fatherLastName.trim()) || '',
       childDob: (childDob && childDob.trim()) || '',
       timeOfBirth: (timeOfBirth && timeOfBirth.trim()) || '',
       placeOfBirth: (placeOfBirth && placeOfBirth.trim()) || '',
       pinCode: (pinCode && pinCode.trim()) || '',
     };
+
+    // Store order data in Redis for webhook (webhook doesn't receive our custom data from PhonePe)
+    try {
+      const { getRedisCache } = await import('./redis-cache.js');
+      const cache = getRedisCache();
+      await cache.set(`order:${orderId}`, customerData, 3600); // 1 hour TTL
+    } catch {
+      // Non-fatal: webhook may fall back to empty metadata
+    }
 
     // Encrypt customer data for secure transmission in URL
     let encryptedData = '';

@@ -126,10 +126,24 @@ const PaymentStatus = () => {
             params.append("person3MiddleName", storedOrderData.person3MiddleName);
           if (storedOrderData.person3SurName)
             params.append("person3SurName", storedOrderData.person3SurName);
+          if (storedOrderData.person1MiddleNameType)
+            params.append("person1MiddleNameType", storedOrderData.person1MiddleNameType);
+          if (storedOrderData.person2MiddleNameType)
+            params.append("person2MiddleNameType", storedOrderData.person2MiddleNameType);
+          if (storedOrderData.person3MiddleNameType)
+            params.append("person3MiddleNameType", storedOrderData.person3MiddleNameType);
+          if (storedOrderData.person1Gender)
+            params.append("person1Gender", storedOrderData.person1Gender);
+          if (storedOrderData.person2Gender)
+            params.append("person2Gender", storedOrderData.person2Gender);
+          if (storedOrderData.person3Gender)
+            params.append("person3Gender", storedOrderData.person3Gender);
           if (storedOrderData.fatherFirstName)
             params.append("fatherFirstName", storedOrderData.fatherFirstName);
           if (storedOrderData.fatherMiddleName)
             params.append("fatherMiddleName", storedOrderData.fatherMiddleName);
+          if (storedOrderData.fatherMiddleNameType)
+            params.append("fatherMiddleNameType", storedOrderData.fatherMiddleNameType);
           if (storedOrderData.fatherLastName)
             params.append("fatherLastName", storedOrderData.fatherLastName);
           if (storedOrderData.childDob)

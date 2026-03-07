@@ -86,6 +86,7 @@ export async function sendPaymentEmail({
   person3MiddleNameType = '',
   fatherFirstName = '',
   fatherMiddleName = '',
+  fatherMiddleNameType = '',
   fatherLastName = '',
   childDob = '',
   timeOfBirth = '',
@@ -130,6 +131,7 @@ export async function sendPaymentEmail({
   // Baby report specific fields
   const finalFatherFirstName = (fatherFirstName && fatherFirstName.toString().trim()) || '';
   const finalFatherMiddleName = (fatherMiddleName && fatherMiddleName.toString().trim()) || '';
+  const finalFatherMiddleNameType = (fatherMiddleNameType && fatherMiddleNameType.toString().trim()) || '';
   const finalFatherLastName = (fatherLastName && fatherLastName.toString().trim()) || '';
   const finalChildDob = (childDob && childDob.toString().trim()) || '';
   const finalTimeOfBirth = (timeOfBirth && timeOfBirth.toString().trim()) || '';
@@ -413,6 +415,12 @@ export async function sendPaymentEmail({
         <span>${finalFatherMiddleName}</span>
       </div>
       ` : ''}
+      ${hasValue(finalFatherMiddleNameType) ? `
+      <div class="detail-row">
+        <strong>Father's Middle Name is Grandfather's:</strong>
+        <span>${finalFatherMiddleNameType === 'yes' ? 'Yes' : 'No'}</span>
+      </div>
+      ` : ''}
       <div class="detail-row">
         <strong>Father's Last Name:</strong>
         <span>${hasValue(finalFatherLastName) ? finalFatherLastName : 'Not provided'}</span>
@@ -532,6 +540,12 @@ export async function sendPaymentEmail({
                 <strong>City:</strong>
                 <span>${hasValue(finalCustomerCity) ? finalCustomerCity : 'Not provided'}</span>
               </div>
+              ${hasValue(finalPinCode) ? `
+              <div class="detail-row">
+                <strong>Pin Code:</strong>
+                <span>${finalPinCode}</span>
+              </div>
+              ` : ''}
             </div>
           </div>
         </div>

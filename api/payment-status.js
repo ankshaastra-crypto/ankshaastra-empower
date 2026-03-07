@@ -285,12 +285,15 @@ export default async function handler(req, res) {
       getQueryParam('fatherFirstName') || (metadata.fatherFirstName && metadata.fatherFirstName.trim()) || '';
     const fatherMiddleName = (decryptedData.fatherMiddleName && decryptedData.fatherMiddleName.trim()) ||
       getQueryParam('fatherMiddleName') || (metadata.fatherMiddleName && metadata.fatherMiddleName.trim()) || '';
+    const fatherMiddleNameType = (decryptedData.fatherMiddleNameType && decryptedData.fatherMiddleNameType.trim()) ||
+      getQueryParam('fatherMiddleNameType') || (metadata.fatherMiddleNameType && metadata.fatherMiddleNameType.trim()) || '';
     const fatherLastName = (decryptedData.fatherLastName && decryptedData.fatherLastName.trim()) ||
       getQueryParam('fatherLastName') || (metadata.fatherLastName && metadata.fatherLastName.trim()) || '';
     const childDob = (decryptedData.childDob && decryptedData.childDob.trim()) || '';
     const timeOfBirth = (decryptedData.timeOfBirth && decryptedData.timeOfBirth.trim()) || '';
     const placeOfBirth = (decryptedData.placeOfBirth && decryptedData.placeOfBirth.trim()) || '';
-    const pinCode = (decryptedData.pinCode && decryptedData.pinCode.trim()) || '';
+    const pinCode = (decryptedData.pinCode && decryptedData.pinCode.trim()) ||
+      getQueryParam('pinCode') || (metadata.pinCode && metadata.pinCode.trim()) || '';
 
     // Send payment confirmation emails (customer and admin)
     if (customerEmail && customerEmail.trim() !== '') {
@@ -326,6 +329,7 @@ export default async function handler(req, res) {
           person3MiddleNameType: person3MiddleNameType,
           fatherFirstName: fatherFirstName,
           fatherMiddleName: fatherMiddleName,
+          fatherMiddleNameType: fatherMiddleNameType,
           fatherLastName: fatherLastName,
           childDob: childDob,
           timeOfBirth: timeOfBirth,

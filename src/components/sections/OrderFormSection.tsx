@@ -57,12 +57,14 @@ const OrderFormSection = () => {
     mobile: "",
     email: "",
     city: "",
+    pinCode: "",
   });
 
   // Baby Name Report form data
   const [babyFormData, setBabyFormData] = useState({
     fatherFirstName: "",
     fatherMiddleName: "",
+    fatherMiddleNameType: "",
     fatherLastName: "",
     childDob: "",
     timeOfBirth: "",
@@ -197,6 +199,7 @@ const OrderFormSection = () => {
       if (fieldName === "mobile") return validateMobile(val);
       if (fieldName === "email") return validateEmail(val);
       if (fieldName === "city") return validateCity(val);
+      if (fieldName === "pinCode") return validatePinCode(val);
       return false;
     }
   }, [formData, babyFormData, packageType]);
@@ -301,6 +304,8 @@ const OrderFormSection = () => {
         newErrors.fatherFirstName = "Father's first name is required";
       if (!babyFormData.fatherLastName || !validateName(babyFormData.fatherLastName, true))
         newErrors.fatherLastName = "Father's last name is required";
+      if (babyFormData.fatherMiddleName && babyFormData.fatherMiddleName.trim() !== "" && (!babyFormData.fatherMiddleNameType || babyFormData.fatherMiddleNameType.trim() === ""))
+        newErrors.fatherMiddleNameType = "Please specify if father's middle name is grandfather's name";
       if (!babyFormData.childDob || !validateDob(babyFormData.childDob))
         newErrors.childDob = !babyFormData.childDob ? "Child's date of birth is required" : "Date of birth must be a valid date in the past";
       if (!babyFormData.timeOfBirth || !validateTime(babyFormData.timeOfBirth))
@@ -338,6 +343,8 @@ const OrderFormSection = () => {
         newErrors.email = !formData.email ? "Email address is required" : "Please enter a valid email address";
       if (!formData.city || !validateCity(formData.city))
         newErrors.city = !formData.city ? "City name is required" : "City must be 2-50 characters with only letters";
+      if (!formData.pinCode || !validatePinCode(formData.pinCode))
+        newErrors.pinCode = !formData.pinCode ? "Pin code is required" : "Please enter a valid 6-digit Indian pin code";
     }
     return newErrors;
   };
@@ -385,13 +392,13 @@ const OrderFormSection = () => {
         orderId, email: babyFormData.email, mobile: babyFormData.whatsapp, name: fatherFullName,
         dob: babyFormData.childDob, gender: babyFormData.gender,
         person1Name: fatherFullName, person1Dob: babyFormData.childDob, person1Gender: babyFormData.gender,
-        fatherFirstName: babyFormData.fatherFirstName, fatherMiddleName: babyFormData.fatherMiddleName || "", fatherLastName: babyFormData.fatherLastName,
+        fatherFirstName: babyFormData.fatherFirstName, fatherMiddleName: babyFormData.fatherMiddleName || "", fatherMiddleNameType: babyFormData.fatherMiddleNameType || "", fatherLastName: babyFormData.fatherLastName,
         childDob: babyFormData.childDob, timeOfBirth: normalizeTimeInput(babyFormData.timeOfBirth),
         placeOfBirth: babyFormData.placeOfBirth, pinCode: babyFormData.pinCode, packageType: "single",
       };
     } else {
       orderPayload = {
-        orderId, email: formData.email, mobile: formData.mobile, city: formData.city,
+        orderId, email: formData.email, mobile: formData.mobile, city: formData.city, pinCode: formData.pinCode || "",
         name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
         dob: formData.person1Dob || "", gender: formData.person1Gender || "",
         packageType: `namecheck-${nameCheckCount}`,
@@ -576,7 +583,14 @@ const OrderFormSection = () => {
             <Label htmlFor={f.id}>{f.label}</Label>
             <div className="relative">
               <Input id={f.id} name={f.id}
-                value={babyFormData[f.id as keyof typeof babyFormData]} onChange={handleInputChange}
+                value={babyFormData[f.id as keyof typeof babyFormData]}
+                onChange={(e) => {
+                  handleInputChange(e);
+                  if (f.id === "fatherMiddleName" && !e.target.value.trim()) {
+                    setBabyFormData((prev) => ({ ...prev, fatherMiddleNameType: "" }));
+                    setErrors((prev) => { const n = { ...prev }; delete n.fatherMiddleNameType; return n; });
+                  }
+                }}
                 placeholder={f.placeholder} required={f.required}
                 className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors[f.id] ? "border-destructive" : isFieldValid(f.id) ? "border-success" : ""}`} />
               <ValidIcon field={f.id} />
@@ -585,6 +599,29 @@ const OrderFormSection = () => {
           </div>
         ))}
       </div>
+      {babyFormData.fatherMiddleName?.trim() && (
+        <div>
+          <Label>Is the father's middle name grandfather's name? *</Label>
+          <RadioGroup
+            value={babyFormData.fatherMiddleNameType}
+            onValueChange={(value) => {
+              setBabyFormData((prev) => ({ ...prev, fatherMiddleNameType: value }));
+              if (errors.fatherMiddleNameType) setErrors((prev) => { const n = { ...prev }; delete n.fatherMiddleNameType; return n; });
+            }}
+            className={`flex gap-4 mt-2 ${errors.fatherMiddleNameType ? "text-destructive" : ""}`}
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="yes" id="fatherMiddleNameTypeYes" />
+              <Label htmlFor="fatherMiddleNameTypeYes" className="cursor-pointer font-normal">Yes</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="no" id="fatherMiddleNameTypeNo" />
+              <Label htmlFor="fatherMiddleNameTypeNo" className="cursor-pointer font-normal">No</Label>
+            </div>
+          </RadioGroup>
+          {errors.fatherMiddleNameType && <p className="text-destructive text-sm mt-1">{errors.fatherMiddleNameType}</p>}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -698,6 +735,7 @@ const OrderFormSection = () => {
       items.push(
         { label: "Package", value: "Perfect Baby Name Report" },
         { label: "Father's Name", value: [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ") },
+        ...(babyFormData.fatherMiddleNameType ? [{ label: "Father's Middle Name is Grandfather's", value: babyFormData.fatherMiddleNameType === "yes" ? "Yes" : "No" }] : []),
         { label: "Child's DOB", value: babyFormData.childDob ? format(parse(babyFormData.childDob, "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" },
         { label: "Time of Birth", value: babyFormData.timeOfBirth },
         { label: "Place of Birth", value: babyFormData.placeOfBirth },
@@ -713,7 +751,7 @@ const OrderFormSection = () => {
         items.push({ label: `DOB ${i}`, value: formData[`person${i}Dob` as keyof typeof formData] ? format(parse(formData[`person${i}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" });
         items.push({ label: `Gender ${i}`, value: formData[`person${i}Gender` as keyof typeof formData] });
       }
-      items.push({ label: "City", value: formData.city }, { label: "Email", value: formData.email }, { label: "WhatsApp", value: formData.mobile });
+      items.push({ label: "City", value: formData.city }, { label: "Pin Code", value: formData.pinCode }, { label: "Email", value: formData.email }, { label: "WhatsApp", value: formData.mobile });
     }
     return (
       <div className="space-y-4">
@@ -945,10 +983,20 @@ const OrderFormSection = () => {
                           {errors.email && <p className="text-destructive text-sm mt-1">{errors.email}</p>}
                         </div>
                         <div>
+                          <Label htmlFor="pinCode">Pin Code *</Label>
+                          <div className="relative">
+                            <Input id="pinCode" name="pinCode" type="text" value={formData.pinCode} onChange={handleInputChange}
+                              placeholder="Enter 6-digit pin code" required maxLength={6}
+                              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.pinCode ? "border-destructive" : isFieldValid("pinCode") ? "border-success" : ""}`} />
+                            {cityLoading ? <Loader2 className="w-4 h-4 animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" /> : <ValidIcon field="pinCode" />}
+                          </div>
+                          {errors.pinCode && <p className="text-destructive text-sm mt-1">{errors.pinCode}</p>}
+                        </div>
+                        <div>
                           <Label htmlFor="city">City Name *</Label>
                           <div className="relative">
                             <Input id="city" name="city" type="text" value={formData.city} onChange={handleInputChange}
-                              placeholder="Enter your city name" required maxLength={50}
+                              placeholder={cityLoading ? "Fetching city..." : "Enter your city name"} required maxLength={50}
                               className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.city ? "border-destructive" : isFieldValid("city") ? "border-success" : ""}`} />
                             <ValidIcon field="city" />
                           </div>

@@ -16,16 +16,21 @@ let pool = null;
  */
 export function getPool() {
   if (!pool) {
-    const connectionString = process.env.DATABASE_URL;
+    let connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
       return null;
     }
-    pool = new Pool({
+    // Supabase requires SSL - append sslmode if not present
+    if (connectionString.includes('supabase') && !connectionString.includes('sslmode=')) {
+      connectionString += (connectionString.includes('?') ? '&' : '?') + 'sslmode=require';
+    }
+    const poolConfig = {
       connectionString,
       max: 5,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
-    });
+      connectionTimeoutMillis: 10000,
+    };
+    pool = new Pool(poolConfig);
   }
   return pool;
 }

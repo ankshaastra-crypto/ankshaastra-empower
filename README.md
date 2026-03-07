@@ -73,23 +73,25 @@ Generate encryption key:
 openssl rand -hex 32
 ```
 
-### Database Setup (PostgreSQL)
+### Database Setup (PostgreSQL / Supabase)
 
-1. Create a PostgreSQL database (e.g. [Neon](https://neon.tech), [Supabase](https://supabase.com), [Vercel Postgres](https://vercel.com/storage/postgres), or self-hosted).
+**For Supabase + Vercel (recommended):**
 
-2. Run the schema to create tables:
+1. Create a project at [supabase.com](https://supabase.com) → **New Project**.
+2. In Supabase: **Project Settings** → **Database** → copy the **Connection string** (URI).
+3. In Vercel: **Settings** → **Environment Variables** → add:
+   - `DATABASE_URL` = your Supabase connection string (encode `@` in password as `%40`)
+   - `INIT_DB_SECRET` = a random string (e.g. `openssl rand -hex 16`)
+4. **Deploy** your app to Vercel.
+5. **Create tables** (one-time): open in browser:
+   ```
+   https://your-app.vercel.app/api/admin/init-db?secret=YOUR_INIT_DB_SECRET
+   ```
+   You should see: `{"success":true,"message":"Tables created successfully..."}`
 
-```bash
-psql $DATABASE_URL -f database/schema.sql
-```
+**Alternative (manual schema):** Run `psql $DATABASE_URL -f database/schema.sql` locally.
 
-3. Set `DATABASE_URL` in your environment. If not set, the app continues to work (emails, Redis) but data is not persisted to the database.
-
-**Tables:**
-
-- `orders` – order_id (PK), amount, package_type, status
-- `customer_details` – order_id (FK), email, name, mobile, person details, baby report fields
-- `payment` – order_id (FK), transaction_id, amount_paise, status
+**Tables:** `orders`, `customer_details`, `payment`
 
 ## Development
 
@@ -231,11 +233,13 @@ PhonePe webhook endpoint.
 
 ## Troubleshooting
 
-### Database Connection Failed
+### Database Connection Failed / Tables Not Created / Payments Not Stored
 
-- Check `DATABASE_URL` is correct (format: `postgresql://user:password@host:5432/dbname?sslmode=require`)
-- For serverless (Vercel): Use a connection-pooling URL (e.g. Neon, Supabase)
-- App continues without DB; orders/payments won't be persisted
+- **Tables not created:** After deploying, call `https://your-app.vercel.app/api/admin/init-db?secret=YOUR_INIT_DB_SECRET` once. Set `INIT_DB_SECRET` in Vercel env vars.
+- **Payments not stored:** Ensure tables exist (run init-db above) and `DATABASE_URL` is set in Vercel.
+- Check `DATABASE_URL` format: `postgresql://user:password@host:5432/dbname` (Supabase: add `?sslmode=require` if missing; encode `@` in password as `%40`).
+- For Supabase: Use the **Connection string (URI)** from Project Settings → Database.
+- App continues without DB; orders/payments won't be persisted if DB fails.
 
 ### Redis Connection Failed
 
@@ -268,8 +272,9 @@ PhonePe webhook endpoint.
 - [ ] PhonePe credentials configured
 - [ ] SMTP credentials configured
 - [ ] Encryption key generated (32+ chars)
-- [ ] PostgreSQL database created and schema applied
-- [ ] `DATABASE_URL` set (if using database)
+- [ ] PostgreSQL database created (Supabase/Neon)
+- [ ] `DATABASE_URL` set in Vercel
+- [ ] `INIT_DB_SECRET` set, then called `/api/admin/init-db?secret=...` to create tables
 - [ ] Redis URL set (if using Redis)
 - [ ] `.env` not committed to git
 - [ ] Rate limits tested

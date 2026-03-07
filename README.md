@@ -78,8 +78,8 @@ openssl rand -hex 32
 **For Supabase + Vercel (recommended):**
 
 1. Create a project at [supabase.com](https://supabase.com) → **New Project**.
-2. In Supabase: **Project Settings** → **Database** → copy the **Connection string** (URI).
-3. In Vercel: **Settings** → **Environment Variables** → add `DATABASE_URL` = your Supabase connection string (encode `@` in password as `%40`).
+2. In Supabase: **Project Settings** → **Database** → under **Connection pooling**, copy the **URI** (port 6543, host `aws-0-XX.pooler.supabase.com`). **Do not use** the direct connection (`db.xxx.supabase.co`) — it can fail with ENOTFOUND on serverless.
+3. In Vercel: **Settings** → **Environment Variables** → add `DATABASE_URL` = pooler URI (encode `@` in password as `%40`).
 4. **Deploy** your app to Vercel.
 
 **Tables are created automatically** on first use (first order, first admin page load, or first payment). No manual setup needed.
@@ -230,11 +230,11 @@ PhonePe webhook endpoint.
 
 ### Database Connection Failed / Tables Not Created / Payments Not Stored
 
-- **Tables auto-create** on first DB use (first order, admin page load, or payment). No manual step needed.
-- **Payments not stored:** Ensure `DATABASE_URL` is set in Vercel and Supabase connection string is correct.
-- Check `DATABASE_URL` format: `postgresql://user:password@host:5432/dbname` (Supabase: add `?sslmode=require` if missing; encode `@` in password as `%40`).
-- For Supabase: Use the **Connection string (URI)** from Project Settings → Database.
-- App continues without DB; orders/payments won't be persisted if DB fails.
+- **ENOTFOUND / getaddrinfo:** Use the **Connection pooler** URL (not direct). In Supabase: Project Settings → Database → **Connection string** → choose **URI** under **Connection pooling** (port 6543, host `aws-0-XX.pooler.supabase.com`). Direct connection (`db.xxx.supabase.co`) can fail with ENOTFOUND.
+- **Project paused:** Supabase free tier pauses after ~1 week inactivity. Go to dashboard → **Restore project**.
+- **Tables auto-create** on first DB use. No manual step needed.
+- **Payments not stored:** Ensure `DATABASE_URL` is set in Vercel with the pooler URL.
+- Encode `@` in password as `%40`.
 
 ### Redis Connection Failed
 

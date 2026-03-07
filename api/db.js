@@ -124,9 +124,9 @@ export function getPool() {
     if (!connectionString) {
       return null;
     }
-    // Supabase requires SSL - append sslmode if not present
+    // Supabase requires SSL - use verify-full (avoids pg v9 deprecation warning)
     if (connectionString.includes('supabase') && !connectionString.includes('sslmode=')) {
-      connectionString += (connectionString.includes('?') ? '&' : '?') + 'sslmode=require';
+      connectionString += (connectionString.includes('?') ? '&' : '?') + 'sslmode=verify-full';
     }
     const poolConfig = {
       connectionString,

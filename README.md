@@ -1,6 +1,6 @@
 # Ankshaastra Payment System
 
-Production-ready payment processing system with PhonePe integration and email notifications. Optimized for serverless deployment on Vercel.
+Production-ready payment processing system with PhonePe integration and email notifications. Optimized for serverless deployment on Vercel
 
 ## Features
 

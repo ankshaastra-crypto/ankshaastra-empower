@@ -64,14 +64,23 @@ export async function sendPaymentEmail({
   customerGender = '',
   customerCity = '',
   person1Name = '',
+  person1FirstName = '',
+  person1MiddleName = '',
+  person1SurName = '',
   person1Dob = '',
   person1Gender = '',
   person1MiddleNameType = '',
   person2Name = '',
+  person2FirstName = '',
+  person2MiddleName = '',
+  person2SurName = '',
   person2Dob = '',
   person2Gender = '',
   person2MiddleNameType = '',
   person3Name = '',
+  person3FirstName = '',
+  person3MiddleName = '',
+  person3SurName = '',
   person3Dob = '',
   person3Gender = '',
   person3MiddleNameType = '',
@@ -100,11 +109,20 @@ export async function sendPaymentEmail({
   const finalPerson1Dob = (person1Dob && person1Dob.toString().trim()) || finalCustomerDob;
   const finalPerson1Gender = (person1Gender && person1Gender.toString().trim()) || finalCustomerGender;
   const finalPerson1MiddleNameType = (person1MiddleNameType && person1MiddleNameType.toString().trim()) || '';
+  const finalPerson1FirstName = (person1FirstName && person1FirstName.toString().trim()) || '';
+  const finalPerson1MiddleName = (person1MiddleName && person1MiddleName.toString().trim()) || '';
+  const finalPerson1SurName = (person1SurName && person1SurName.toString().trim()) || '';
   const finalPerson2Name = (person2Name && person2Name.toString().trim()) || '';
+  const finalPerson2FirstName = (person2FirstName && person2FirstName.toString().trim()) || '';
+  const finalPerson2MiddleName = (person2MiddleName && person2MiddleName.toString().trim()) || '';
+  const finalPerson2SurName = (person2SurName && person2SurName.toString().trim()) || '';
   const finalPerson2Dob = (person2Dob && person2Dob.toString().trim()) || '';
   const finalPerson2Gender = (person2Gender && person2Gender.toString().trim()) || '';
   const finalPerson2MiddleNameType = (person2MiddleNameType && person2MiddleNameType.toString().trim()) || '';
   const finalPerson3Name = (person3Name && person3Name.toString().trim()) || '';
+  const finalPerson3FirstName = (person3FirstName && person3FirstName.toString().trim()) || '';
+  const finalPerson3MiddleName = (person3MiddleName && person3MiddleName.toString().trim()) || '';
+  const finalPerson3SurName = (person3SurName && person3SurName.toString().trim()) || '';
   const finalPerson3Dob = (person3Dob && person3Dob.toString().trim()) || '';
   const finalPerson3Gender = (person3Gender && person3Gender.toString().trim()) || '';
   const finalPerson3MiddleNameType = (person3MiddleNameType && person3MiddleNameType.toString().trim()) || '';
@@ -240,7 +258,7 @@ export async function sendPaymentEmail({
               </div>
               <div class="detail-row">
                 <strong>Transaction ID:</strong>
-                <span>${transactionId || 'N/A'}</span>
+                <span>${transactionId || 'Pending'}</span>
               </div>
             </div>
 
@@ -309,15 +327,15 @@ export async function sendPaymentEmail({
   // Admin email template
   const adminSubject = `Payment ${status === 'SUCCESS' ? 'Success' : 'Failed'} - Order ${orderId}`;
   
-  // Format DOB for display
+  // Format DOB for display (never use N/A for email content)
   const formatDob = (dob) => {
-    if (!dob || dob.trim() === '') return 'N/A';
+    if (!dob || dob.trim() === '') return 'Not provided';
     try {
       const date = new Date(dob);
       if (isNaN(date.getTime())) return dob; // If invalid date, return as-is
       return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
     } catch {
-      return dob || 'N/A';
+      return dob || 'Not provided';
     }
   };
 
@@ -338,12 +356,25 @@ export async function sendPaymentEmail({
     personCount = parseInt(countStr, 10) || 1;
   }
   
+  // Helper: build name section - show First, Middle, Last as separate fields when available
+  const buildNameSection = (firstName, middleName, surName, fullName) => {
+    const hasParts = hasValue(firstName) || hasValue(middleName) || hasValue(surName);
+    if (hasParts) {
+      let html = '';
+      if (hasValue(firstName)) html += `<div class="detail-row"><strong>First Name:</strong><span>${firstName}</span></div>`;
+      if (hasValue(middleName)) html += `<div class="detail-row"><strong>Middle Name:</strong><span>${middleName}</span></div>`;
+      if (hasValue(surName)) html += `<div class="detail-row"><strong>Last Name:</strong><span>${surName}</span></div>`;
+      return html;
+    }
+    return `<div class="detail-row"><strong>Name:</strong><span>${hasValue(fullName) ? fullName : 'Not provided'}</span></div>`;
+  };
+
   if (personCount > 1) {
-    // Multiple persons - show each person in separate sections
+    // Multiple persons - show each person with First, Middle, Last Name separately
     const persons = [
-      { name: finalPerson1Name, dob: finalPerson1Dob, gender: finalPerson1Gender, middleNameType: finalPerson1MiddleNameType },
-      { name: finalPerson2Name, dob: finalPerson2Dob, gender: finalPerson2Gender, middleNameType: finalPerson2MiddleNameType },
-      { name: finalPerson3Name, dob: finalPerson3Dob, gender: finalPerson3Gender, middleNameType: finalPerson3MiddleNameType },
+      { firstName: finalPerson1FirstName, middleName: finalPerson1MiddleName, surName: finalPerson1SurName, name: finalPerson1Name, dob: finalPerson1Dob, gender: finalPerson1Gender, middleNameType: finalPerson1MiddleNameType },
+      { firstName: finalPerson2FirstName, middleName: finalPerson2MiddleName, surName: finalPerson2SurName, name: finalPerson2Name, dob: finalPerson2Dob, gender: finalPerson2Gender, middleNameType: finalPerson2MiddleNameType },
+      { firstName: finalPerson3FirstName, middleName: finalPerson3MiddleName, surName: finalPerson3SurName, name: finalPerson3Name, dob: finalPerson3Dob, gender: finalPerson3Gender, middleNameType: finalPerson3MiddleNameType },
     ];
     
     customerDetailsHtml = persons
@@ -351,17 +382,14 @@ export async function sendPaymentEmail({
       .map((person, index) => `
         <div class="person-section">
           <h3 style="color: #2E1A47; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #2E1A47; padding-bottom: 5px;">Person ${index + 1} Details:</h3>
-          <div class="detail-row">
-            <strong>Name:</strong>
-            <span>${hasValue(person.name) ? person.name : 'N/A'}</span>
-          </div>
+          ${buildNameSection(person.firstName, person.middleName, person.surName, person.name)}
           <div class="detail-row">
             <strong>Date of Birth:</strong>
             <span>${formatDob(person.dob)}</span>
           </div>
           <div class="detail-row">
             <strong>Gender:</strong>
-            <span>${hasValue(person.gender) ? person.gender : 'N/A'}</span>
+            <span>${hasValue(person.gender) ? person.gender : 'Not provided'}</span>
           </div>
           ${hasValue(person.middleNameType) ? `
           <div class="detail-row">
@@ -377,7 +405,7 @@ export async function sendPaymentEmail({
     customerDetailsHtml = `
       <div class="detail-row">
         <strong>Father's First Name:</strong>
-        <span>${hasValue(finalFatherFirstName) ? finalFatherFirstName : 'N/A'}</span>
+        <span>${hasValue(finalFatherFirstName) ? finalFatherFirstName : 'Not provided'}</span>
       </div>
       ${hasValue(finalFatherMiddleName) ? `
       <div class="detail-row">
@@ -387,7 +415,7 @@ export async function sendPaymentEmail({
       ` : ''}
       <div class="detail-row">
         <strong>Father's Last Name:</strong>
-        <span>${hasValue(finalFatherLastName) ? finalFatherLastName : 'N/A'}</span>
+        <span>${hasValue(finalFatherLastName) ? finalFatherLastName : 'Not provided'}</span>
       </div>
       <div class="detail-row">
         <strong>Child's Date of Birth:</strong>
@@ -413,23 +441,20 @@ export async function sendPaymentEmail({
       ` : ''}
       <div class="detail-row">
         <strong>Gender:</strong>
-        <span>${hasValue(finalPerson1Gender) ? finalPerson1Gender : (hasValue(finalCustomerGender) ? finalCustomerGender : 'N/A')}</span>
+        <span>${hasValue(finalPerson1Gender) ? finalPerson1Gender : (hasValue(finalCustomerGender) ? finalCustomerGender : 'Not provided')}</span>
       </div>
     `;
   } else {
-    // Single person Name Check - show single person details
+    // Single person Name Check - show First, Middle, Last Name separately when available
     customerDetailsHtml = `
-      <div class="detail-row">
-        <strong>Customer Name:</strong>
-        <span>${hasValue(finalPerson1Name) ? finalPerson1Name : 'N/A'}</span>
-      </div>
+      ${buildNameSection(finalPerson1FirstName, finalPerson1MiddleName, finalPerson1SurName, finalPerson1Name)}
       <div class="detail-row">
         <strong>Date of Birth:</strong>
         <span>${formatDob(finalPerson1Dob)}</span>
       </div>
       <div class="detail-row">
         <strong>Gender:</strong>
-        <span>${hasValue(finalPerson1Gender) ? finalPerson1Gender : 'N/A'}</span>
+        <span>${hasValue(finalPerson1Gender) ? finalPerson1Gender : 'Not provided'}</span>
       </div>
       ${hasValue(finalPerson1MiddleNameType) ? `
       <div class="detail-row">
@@ -483,7 +508,7 @@ export async function sendPaymentEmail({
             </div>
             <div class="detail-row">
               <strong>Transaction ID:</strong>
-              <span>${transactionId || 'N/A'}</span>
+              <span>${transactionId || 'Pending'}</span>
             </div>
             <div class="detail-row">
               <strong>Status:</strong>
@@ -501,11 +526,11 @@ export async function sendPaymentEmail({
               </div>
               <div class="detail-row">
                 <strong>Mobile Number:</strong>
-                <span><a href="tel:${hasValue(finalCustomerMobile) ? finalCustomerMobile : ''}" style="color: #2E1A47;">${hasValue(finalCustomerMobile) ? finalCustomerMobile : 'N/A'}</a></span>
+                <span><a href="tel:${hasValue(finalCustomerMobile) ? finalCustomerMobile : ''}" style="color: #2E1A47;">${hasValue(finalCustomerMobile) ? finalCustomerMobile : 'Not provided'}</a></span>
               </div>
               <div class="detail-row">
                 <strong>City:</strong>
-                <span>${hasValue(finalCustomerCity) ? finalCustomerCity : 'N/A'}</span>
+                <span>${hasValue(finalCustomerCity) ? finalCustomerCity : 'Not provided'}</span>
               </div>
             </div>
           </div>

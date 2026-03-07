@@ -27,6 +27,8 @@ const PaymentStatus = () => {
     "loading"
   );
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
+  // Store order data from localStorage/params as fallback for email, name, mobile (ensures never N/A)
+  const [orderFallback, setOrderFallback] = useState<{ email?: string; name?: string; mobile?: string } | null>(null);
 
   useEffect(() => {
     const checkPaymentStatus = async () => {
@@ -63,8 +65,12 @@ const PaymentStatus = () => {
       // Use stored data if available, otherwise use URL params
       const finalEmail = storedOrderData?.email || email || "";
       const finalName = storedOrderData?.name || name || "";
+      const finalMobile = storedOrderData?.mobile || searchParams.get("mobile") || "";
       const finalPackageType =
         storedOrderData?.packageType || packageType || "single";
+
+      // Store fallback data for invoice/display (ensures email never shows N/A)
+      setOrderFallback(finalEmail || finalName || finalMobile ? { email: finalEmail, name: finalName, mobile: finalMobile } : null);
 
       if (!merchantTransactionId) {
         console.error(
@@ -101,12 +107,50 @@ const PaymentStatus = () => {
           if (storedOrderData.mobile)
             params.append("mobile", storedOrderData.mobile);
           if (storedOrderData.dob) params.append("dob", storedOrderData.dob);
+          // Baby report fields
+          if (storedOrderData.person1FirstName)
+            params.append("person1FirstName", storedOrderData.person1FirstName);
+          if (storedOrderData.person1MiddleName)
+            params.append("person1MiddleName", storedOrderData.person1MiddleName);
+          if (storedOrderData.person1SurName)
+            params.append("person1SurName", storedOrderData.person1SurName);
+          if (storedOrderData.person2FirstName)
+            params.append("person2FirstName", storedOrderData.person2FirstName);
+          if (storedOrderData.person2MiddleName)
+            params.append("person2MiddleName", storedOrderData.person2MiddleName);
+          if (storedOrderData.person2SurName)
+            params.append("person2SurName", storedOrderData.person2SurName);
+          if (storedOrderData.person3FirstName)
+            params.append("person3FirstName", storedOrderData.person3FirstName);
+          if (storedOrderData.person3MiddleName)
+            params.append("person3MiddleName", storedOrderData.person3MiddleName);
+          if (storedOrderData.person3SurName)
+            params.append("person3SurName", storedOrderData.person3SurName);
+          if (storedOrderData.fatherFirstName)
+            params.append("fatherFirstName", storedOrderData.fatherFirstName);
+          if (storedOrderData.fatherMiddleName)
+            params.append("fatherMiddleName", storedOrderData.fatherMiddleName);
+          if (storedOrderData.fatherLastName)
+            params.append("fatherLastName", storedOrderData.fatherLastName);
+          if (storedOrderData.childDob)
+            params.append("childDob", storedOrderData.childDob);
+          if (storedOrderData.timeOfBirth)
+            params.append("timeOfBirth", storedOrderData.timeOfBirth);
+          if (storedOrderData.placeOfBirth)
+            params.append("placeOfBirth", storedOrderData.placeOfBirth);
+          if (storedOrderData.pinCode)
+            params.append("pinCode", storedOrderData.pinCode);
+          if (storedOrderData.gender)
+            params.append("gender", storedOrderData.gender);
         }
 
         // Preserve all query parameters for navigation (build before API call)
         const currentParams = new URLSearchParams(searchParams.toString());
         const dataParam = currentParams.get("data");
         const orderIdParam = currentParams.get("orderId") || merchantTransactionId;
+
+        // Pass encrypted data to API for decryption (ensures email/details are available)
+        if (dataParam) params.append("data", dataParam);
         
         // Build new params object with orderId and data
         const newParams = new URLSearchParams();
@@ -137,7 +181,13 @@ const PaymentStatus = () => {
 
         if (result.success && result.status === "SUCCESS") {
           setStatus("success");
-          setPaymentData(result);
+          // Merge fallback data so email/name/mobile never show N/A
+          setPaymentData({
+            ...result,
+            customerEmail: result.customerEmail || finalEmail,
+            customerName: result.customerName || finalName,
+            customerMobile: result.customerMobile || finalMobile,
+          });
 
           // Track purchase event with Meta Pixel
           const amount = result.amount || 0;
@@ -156,7 +206,12 @@ const PaymentStatus = () => {
         } else {
           console.warn("Payment marked as failed");
           setStatus("failed");
-          setPaymentData(result);
+          setPaymentData({
+            ...result,
+            customerEmail: result.customerEmail || finalEmail,
+            customerName: result.customerName || finalName,
+            customerMobile: result.customerMobile || finalMobile,
+          });
 
           // Navigate to failed URL if not already there
           if (!location.pathname.includes("/failed")) {
@@ -228,11 +283,12 @@ const PaymentStatus = () => {
       invoiceHtml = getEmbeddedInvoiceTemplate();
     }
 
-    // Replace placeholders with actual data
+    // Replace placeholders with actual data (orderFallback ensures email never N/A)
     invoiceHtml = populateInvoiceTemplate(
       invoiceHtml,
       paymentData,
-      invoiceData
+      invoiceData,
+      orderFallback || undefined
     );
 
     // Create a new window with the invoice HTML
@@ -256,7 +312,8 @@ const PaymentStatus = () => {
   const populateInvoiceTemplate = (
     template: string,
     data: PaymentData,
-    invoiceData: any = null
+    invoiceData: any = null,
+    fallback?: { email?: string; name?: string; mobile?: string }
   ): string => {
     const invoiceDate = new Date().toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -314,9 +371,9 @@ const PaymentStatus = () => {
       .replace(/\{\{INVOICE_NUMBER\}\}/g, data.orderId)
       .replace(/\{\{INVOICE_DATE\}\}/g, invoiceDate)
       .replace(/\{\{DUE_DATE\}\}/g, dueDate)
-      .replace(/\{\{CUSTOMER_NAME\}\}/g, data.customerName || "Customer")
-      .replace(/\{\{CUSTOMER_EMAIL\}\}/g, data.customerEmail || "N/A")
-      .replace(/\{\{CUSTOMER_PHONE\}\}/g, data.customerMobile || "N/A")
+      .replace(/\{\{CUSTOMER_NAME\}\}/g, data.customerName || fallback?.name || "Customer")
+      .replace(/\{\{CUSTOMER_EMAIL\}\}/g, data.customerEmail || fallback?.email || "Not provided")
+      .replace(/\{\{CUSTOMER_PHONE\}\}/g, data.customerMobile || fallback?.mobile || "Not provided")
       .replace(
         /\{\{TRANSACTION_ID_SECTION\}\}/g,
         data.transactionId
@@ -914,11 +971,11 @@ const PaymentStatus = () => {
                         const msg = encodeURIComponent(
                           `✅ *Payment Confirmed*\n\n` +
                           `Order ID: ${paymentData.orderId}\n` +
-                          `Amount: ₹${paymentData.amount?.toLocaleString() || "N/A"}\n` +
+                          `Amount: ₹${paymentData.amount?.toLocaleString() || "—"}\n` +
                           `Package: ${packageNames[paymentData.packageType || "single"] || paymentData.packageType}\n` +
-                          `Name: ${paymentData.customerName || "N/A"}\n` +
-                          `Email: ${paymentData.customerEmail || "N/A"}\n` +
-                          `Mobile: ${paymentData.customerMobile || "N/A"}\n\n` +
+                          `Name: ${paymentData.customerName || orderFallback?.name || "—"}\n` +
+                          `Email: ${paymentData.customerEmail || orderFallback?.email || "—"}\n` +
+                          `Mobile: ${paymentData.customerMobile || orderFallback?.mobile || "—"}\n\n` +
                           `Please process my report. Thank you! 🙏`
                         );
                         window.open(`https://wa.me/919667305577?text=${msg}`, "_blank");

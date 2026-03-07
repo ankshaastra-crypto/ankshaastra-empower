@@ -229,10 +229,22 @@ export default async function handler(req, res) {
       getQueryParam('person1MiddleNameType') ||
       (metadata.person1MiddleNameType && metadata.person1MiddleNameType.trim()) ||
       '';
+    const person1FirstName = (decryptedData.person1FirstName && decryptedData.person1FirstName.trim()) ||
+      getQueryParam('person1FirstName') || (metadata.person1FirstName && metadata.person1FirstName.trim()) || '';
+    const person1MiddleName = (decryptedData.person1MiddleName && decryptedData.person1MiddleName.trim()) ||
+      getQueryParam('person1MiddleName') || (metadata.person1MiddleName && metadata.person1MiddleName.trim()) || '';
+    const person1SurName = (decryptedData.person1SurName && decryptedData.person1SurName.trim()) ||
+      getQueryParam('person1SurName') || (metadata.person1SurName && metadata.person1SurName.trim()) || '';
     const person2Name = (decryptedData.person2Name && decryptedData.person2Name.trim()) ||
       getQueryParam('person2Name') ||
       (metadata.person2Name && metadata.person2Name.trim()) ||
       '';
+    const person2FirstName = (decryptedData.person2FirstName && decryptedData.person2FirstName.trim()) ||
+      getQueryParam('person2FirstName') || (metadata.person2FirstName && metadata.person2FirstName.trim()) || '';
+    const person2MiddleName = (decryptedData.person2MiddleName && decryptedData.person2MiddleName.trim()) ||
+      getQueryParam('person2MiddleName') || (metadata.person2MiddleName && metadata.person2MiddleName.trim()) || '';
+    const person2SurName = (decryptedData.person2SurName && decryptedData.person2SurName.trim()) ||
+      getQueryParam('person2SurName') || (metadata.person2SurName && metadata.person2SurName.trim()) || '';
     const person2Dob = (decryptedData.person2Dob && decryptedData.person2Dob.trim()) ||
       getQueryParam('person2Dob') ||
       (metadata.person2Dob && metadata.person2Dob.trim()) ||
@@ -261,11 +273,20 @@ export default async function handler(req, res) {
       getQueryParam('person3MiddleNameType') ||
       (metadata.person3MiddleNameType && metadata.person3MiddleNameType.trim()) ||
       '';
+    const person3FirstName = (decryptedData.person3FirstName && decryptedData.person3FirstName.trim()) ||
+      getQueryParam('person3FirstName') || (metadata.person3FirstName && metadata.person3FirstName.trim()) || '';
+    const person3MiddleName = (decryptedData.person3MiddleName && decryptedData.person3MiddleName.trim()) ||
+      getQueryParam('person3MiddleName') || (metadata.person3MiddleName && metadata.person3MiddleName.trim()) || '';
+    const person3SurName = (decryptedData.person3SurName && decryptedData.person3SurName.trim()) ||
+      getQueryParam('person3SurName') || (metadata.person3SurName && metadata.person3SurName.trim()) || '';
 
     // Baby report specific fields
-    const fatherFirstName = (decryptedData.fatherFirstName && decryptedData.fatherFirstName.trim()) || '';
-    const fatherMiddleName = (decryptedData.fatherMiddleName && decryptedData.fatherMiddleName.trim()) || '';
-    const fatherLastName = (decryptedData.fatherLastName && decryptedData.fatherLastName.trim()) || '';
+    const fatherFirstName = (decryptedData.fatherFirstName && decryptedData.fatherFirstName.trim()) ||
+      getQueryParam('fatherFirstName') || (metadata.fatherFirstName && metadata.fatherFirstName.trim()) || '';
+    const fatherMiddleName = (decryptedData.fatherMiddleName && decryptedData.fatherMiddleName.trim()) ||
+      getQueryParam('fatherMiddleName') || (metadata.fatherMiddleName && metadata.fatherMiddleName.trim()) || '';
+    const fatherLastName = (decryptedData.fatherLastName && decryptedData.fatherLastName.trim()) ||
+      getQueryParam('fatherLastName') || (metadata.fatherLastName && metadata.fatherLastName.trim()) || '';
     const childDob = (decryptedData.childDob && decryptedData.childDob.trim()) || '';
     const timeOfBirth = (decryptedData.timeOfBirth && decryptedData.timeOfBirth.trim()) || '';
     const placeOfBirth = (decryptedData.placeOfBirth && decryptedData.placeOfBirth.trim()) || '';
@@ -283,14 +304,23 @@ export default async function handler(req, res) {
           customerGender: customerGender,
           customerCity: customerCity,
           person1Name: person1Name,
+          person1FirstName: person1FirstName,
+          person1MiddleName: person1MiddleName,
+          person1SurName: person1SurName,
           person1Dob: person1Dob,
           person1Gender: person1Gender,
           person1MiddleNameType: person1MiddleNameType,
           person2Name: person2Name,
+          person2FirstName: person2FirstName,
+          person2MiddleName: person2MiddleName,
+          person2SurName: person2SurName,
           person2Dob: person2Dob,
           person2Gender: person2Gender,
           person2MiddleNameType: person2MiddleNameType,
           person3Name: person3Name,
+          person3FirstName: person3FirstName,
+          person3MiddleName: person3MiddleName,
+          person3SurName: person3SurName,
           person3Dob: person3Dob,
           person3Gender: person3Gender,
           person3MiddleNameType: person3MiddleNameType,

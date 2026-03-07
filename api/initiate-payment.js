@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { amount, mobile, orderId, email, name, dob, gender, packageType, city, person1Name, person1Dob, person1Gender, person2Name, person2Dob, person2Gender, person3Name, person3Dob, person3Gender, person1MiddleNameType, person2MiddleNameType, person3MiddleNameType, fatherFirstName, fatherMiddleName, fatherLastName, childDob, timeOfBirth, placeOfBirth, pinCode } = req.body;
+    const { amount, mobile, orderId, email, name, dob, gender, packageType, city, person1Name, person1FirstName, person1MiddleName, person1SurName, person1Dob, person1Gender, person2Name, person2FirstName, person2MiddleName, person2SurName, person2Dob, person2Gender, person3Name, person3FirstName, person3MiddleName, person3SurName, person3Dob, person3Gender, person1MiddleNameType, person2MiddleNameType, person3MiddleNameType, fatherFirstName, fatherMiddleName, fatherLastName, childDob, timeOfBirth, placeOfBirth, pinCode } = req.body;
 
     // Validate amount
     if (!amount || isNaN(amount) || amount <= 0) {
@@ -130,14 +130,23 @@ export default async function handler(req, res) {
       city: (city && city.trim()) || '',
       packageType: (packageType && packageType.trim()) || 'single',
       person1Name: (person1Name && person1Name.trim()) || name.trim(),
+      person1FirstName: (person1FirstName && person1FirstName.trim()) || '',
+      person1MiddleName: (person1MiddleName && person1MiddleName.trim()) || '',
+      person1SurName: (person1SurName && person1SurName.trim()) || '',
       person1Dob: (person1Dob && person1Dob.trim()) || (dob && dob.trim()) || '',
       person1Gender: (person1Gender && person1Gender.trim()) || (gender && gender.trim()) || '',
       person1MiddleNameType: (person1MiddleNameType && person1MiddleNameType.trim()) || '',
       person2Name: (person2Name && person2Name.trim()) || '',
+      person2FirstName: (person2FirstName && person2FirstName.trim()) || '',
+      person2MiddleName: (person2MiddleName && person2MiddleName.trim()) || '',
+      person2SurName: (person2SurName && person2SurName.trim()) || '',
       person2Dob: (person2Dob && person2Dob.trim()) || '',
       person2Gender: (person2Gender && person2Gender.trim()) || '',
       person2MiddleNameType: (person2MiddleNameType && person2MiddleNameType.trim()) || '',
       person3Name: (person3Name && person3Name.trim()) || '',
+      person3FirstName: (person3FirstName && person3FirstName.trim()) || '',
+      person3MiddleName: (person3MiddleName && person3MiddleName.trim()) || '',
+      person3SurName: (person3SurName && person3SurName.trim()) || '',
       person3Dob: (person3Dob && person3Dob.trim()) || '',
       person3Gender: (person3Gender && person3Gender.trim()) || '',
       person3MiddleNameType: (person3MiddleNameType && person3MiddleNameType.trim()) || '',

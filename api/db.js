@@ -124,9 +124,10 @@ export function getPool() {
     if (!connectionString) {
       return null;
     }
-    // Supabase requires SSL - use verify-full (avoids pg v9 deprecation warning)
-    if (connectionString.includes('supabase') && !connectionString.includes('sslmode=')) {
-      connectionString += (connectionString.includes('?') ? '&' : '?') + 'sslmode=verify-full';
+    // Supabase: SSL required, allow self-signed/intermediate certs (common with pooler)
+    const isSupabase = connectionString.includes('supabase');
+    if (isSupabase && !connectionString.includes('sslmode=')) {
+      connectionString += (connectionString.includes('?') ? '&' : '?') + 'sslmode=require';
     }
     const poolConfig = {
       connectionString,
@@ -134,6 +135,9 @@ export function getPool() {
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
     };
+    if (isSupabase) {
+      poolConfig.ssl = { rejectUnauthorized: false };
+    }
     pool = new Pool(poolConfig);
   }
   return pool;

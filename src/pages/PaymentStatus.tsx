@@ -351,7 +351,7 @@ const PaymentStatus = () => {
       const url = buildWhatsAppUrl(paymentData, orderFallback);
       // Small delay to let the success page render first
       const timer = setTimeout(() => {
-        window.open(url, "_blank");
+        window.location.href = url;
       }, 1500);
       return () => clearTimeout(timer);
     }

@@ -160,6 +160,15 @@ export default async function handler(req, res) {
       pinCode: (pinCode && pinCode.trim()) || '',
     };
 
+    // Store order and customer details in PostgreSQL
+    try {
+      const { saveOrderAndCustomer } = await import('./db.js');
+      await saveOrderAndCustomer(orderId, amount, packageType || 'single', customerData);
+    } catch (dbError) {
+      console.error('DB save order error:', dbError?.message || dbError);
+      // Non-fatal: continue with payment flow
+    }
+
     // Store order data in Redis for webhook (webhook doesn't receive our custom data from PhonePe)
     try {
       const { getRedisCache } = await import('./redis-cache.js');

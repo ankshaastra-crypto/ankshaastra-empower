@@ -125,6 +125,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    // Save payment to PostgreSQL
+    try {
+      const { savePayment } = await import('./db.js');
+      await savePayment(orderId, transactionId, paymentAmount, status);
+    } catch (dbError) {
+      console.error('DB save payment error:', dbError?.message || dbError);
+      // Non-fatal: continue with email flow
+    }
+
     // Send payment confirmation emails (customer and admin)
     const emailResult = await sendPaymentEmail({
       to: finalCustomerEmail,

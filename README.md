@@ -6,6 +6,7 @@ Production-ready payment processing system with PhonePe integration and email no
 
 - PhonePe Payment Integration
 - Email Notifications (Customer & Admin)
+- PostgreSQL Database (orders, customer_details, payment)
 - Redis Caching & Rate Limiting
 - Production-Ready & Serverless-Friendly
 
@@ -41,9 +42,12 @@ FROM_EMAIL=Ankshaastra <noreply@ankshaastra.com>
 ENCRYPTION_KEY=your_32_character_key
 ```
 
-**Optional:**
+**Optional (required for /admin/orders):**
 
 ```bash
+# PostgreSQL - stores orders, customer details, and payments
+DATABASE_URL=postgresql://user:password@host:5432/database?sslmode=require
+
 REDIS_URL=redis://localhost:6379
 NODE_ENV=development
 
@@ -69,12 +73,33 @@ Generate encryption key:
 openssl rand -hex 32
 ```
 
+### Database Setup (PostgreSQL)
+
+1. Create a PostgreSQL database (e.g. [Neon](https://neon.tech), [Supabase](https://supabase.com), [Vercel Postgres](https://vercel.com/storage/postgres), or self-hosted).
+
+2. Run the schema to create tables:
+
+```bash
+psql $DATABASE_URL -f database/schema.sql
+```
+
+3. Set `DATABASE_URL` in your environment. If not set, the app continues to work (emails, Redis) but data is not persisted to the database.
+
+**Tables:**
+
+- `orders` – order_id (PK), amount, package_type, status
+- `customer_details` – order_id (FK), email, name, mobile, person details, baby report fields
+- `payment` – order_id (FK), transaction_id, amount_paise, status
+
 ## Development
 
 ```bash
-npm run dev              # Start development server (deprecation warnings suppressed)
+npm run dev              # Start frontend only (Vite)
+vercel dev               # Full stack: frontend + API (requires Vercel CLI)
 npm run build            # Build for production
 ```
+
+**Note:** For `/admin/orders` and payment APIs to work locally, use `vercel dev` (or deploy to Vercel).
 
 **Note:** The `DEP0169` deprecation warning about `url.parse()` comes from dependencies (nodemailer, ioredis, etc.) and is automatically suppressed. This is safe as it's not from our code.
 
@@ -188,13 +213,16 @@ PhonePe webhook endpoint.
 
 ```
 ├── api/
+│   ├── db.js                    # PostgreSQL connection & queries
 │   ├── encryption.js            # Data encryption
-│   ├── initiate-payment.js     # Payment initiation
+│   ├── initiate-payment.js      # Payment initiation
 │   ├── payment-status.js        # Payment status check
 │   ├── payment-webhook.js       # PhonePe webhook
 │   ├── rate-limiter.js          # Rate limiting
 │   ├── redis-cache.js           # Redis cache
 │   └── send-email.js            # Email sending
+├── database/
+│   └── schema.sql               # PostgreSQL schema (orders, customer_details, payment)
 ├── public/
 │   └── templates/
 │       └── invoice.html         # Invoice HTML template (client-side PDF generation)
@@ -202,6 +230,12 @@ PhonePe webhook endpoint.
 ```
 
 ## Troubleshooting
+
+### Database Connection Failed
+
+- Check `DATABASE_URL` is correct (format: `postgresql://user:password@host:5432/dbname?sslmode=require`)
+- For serverless (Vercel): Use a connection-pooling URL (e.g. Neon, Supabase)
+- App continues without DB; orders/payments won't be persisted
 
 ### Redis Connection Failed
 
@@ -234,6 +268,8 @@ PhonePe webhook endpoint.
 - [ ] PhonePe credentials configured
 - [ ] SMTP credentials configured
 - [ ] Encryption key generated (32+ chars)
+- [ ] PostgreSQL database created and schema applied
+- [ ] `DATABASE_URL` set (if using database)
 - [ ] Redis URL set (if using Redis)
 - [ ] `.env` not committed to git
 - [ ] Rate limits tested

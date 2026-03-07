@@ -79,17 +79,12 @@ openssl rand -hex 32
 
 1. Create a project at [supabase.com](https://supabase.com) → **New Project**.
 2. In Supabase: **Project Settings** → **Database** → copy the **Connection string** (URI).
-3. In Vercel: **Settings** → **Environment Variables** → add:
-   - `DATABASE_URL` = your Supabase connection string (encode `@` in password as `%40`)
-   - `INIT_DB_SECRET` = a random string (e.g. `openssl rand -hex 16`)
+3. In Vercel: **Settings** → **Environment Variables** → add `DATABASE_URL` = your Supabase connection string (encode `@` in password as `%40`).
 4. **Deploy** your app to Vercel.
-5. **Create tables** (one-time): open in browser:
-   ```
-   https://your-app.vercel.app/api/admin/init-db?secret=YOUR_INIT_DB_SECRET
-   ```
-   You should see: `{"success":true,"message":"Tables created successfully..."}`
 
-**Alternative (manual schema):** Run `psql $DATABASE_URL -f database/schema.sql` locally.
+**Tables are created automatically** on first use (first order, first admin page load, or first payment). No manual setup needed.
+
+**Optional:** Call `/api/admin/init-db?secret=YOUR_INIT_DB_SECRET` to create tables immediately (set `INIT_DB_SECRET` in Vercel).
 
 **Tables:** `orders`, `customer_details`, `payment`
 
@@ -235,8 +230,8 @@ PhonePe webhook endpoint.
 
 ### Database Connection Failed / Tables Not Created / Payments Not Stored
 
-- **Tables not created:** After deploying, call `https://your-app.vercel.app/api/admin/init-db?secret=YOUR_INIT_DB_SECRET` once. Set `INIT_DB_SECRET` in Vercel env vars.
-- **Payments not stored:** Ensure tables exist (run init-db above) and `DATABASE_URL` is set in Vercel.
+- **Tables auto-create** on first DB use (first order, admin page load, or payment). No manual step needed.
+- **Payments not stored:** Ensure `DATABASE_URL` is set in Vercel and Supabase connection string is correct.
 - Check `DATABASE_URL` format: `postgresql://user:password@host:5432/dbname` (Supabase: add `?sslmode=require` if missing; encode `@` in password as `%40`).
 - For Supabase: Use the **Connection string (URI)** from Project Settings → Database.
 - App continues without DB; orders/payments won't be persisted if DB fails.
@@ -273,8 +268,7 @@ PhonePe webhook endpoint.
 - [ ] SMTP credentials configured
 - [ ] Encryption key generated (32+ chars)
 - [ ] PostgreSQL database created (Supabase/Neon)
-- [ ] `DATABASE_URL` set in Vercel
-- [ ] `INIT_DB_SECRET` set, then called `/api/admin/init-db?secret=...` to create tables
+- [ ] `DATABASE_URL` set in Vercel (tables auto-create on first use)
 - [ ] Redis URL set (if using Redis)
 - [ ] `.env` not committed to git
 - [ ] Rate limits tested

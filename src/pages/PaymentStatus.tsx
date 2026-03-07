@@ -1014,15 +1014,53 @@ const PaymentStatus = () => {
                       variant="hero"
                       onClick={() => {
                         if (!paymentData) return;
+                        const d = paymentData;
+                        const fb = orderFallback;
+                        const pkg = packageNames[d.packageType || "single"] || d.packageType;
+                        const isBaby = d.packageType === 'baby' || d.packageType === 'babyname';
+                        
+                        let personDetails = '';
+                        
+                        if (isBaby) {
+                          // Baby Name Report details
+                          const fatherName = [d.fatherFirstName, d.fatherMiddleName, d.fatherLastName].filter(Boolean).join(' ');
+                          personDetails = 
+                            (fatherName ? `\nFather's Name: ${fatherName}` : '') +
+                            (d.childDob ? `\nChild's DOB: ${d.childDob}` : '') +
+                            (d.timeOfBirth ? `\nTime of Birth: ${d.timeOfBirth}` : '') +
+                            (d.placeOfBirth ? `\nPlace of Birth: ${d.placeOfBirth}` : '') +
+                            (d.pinCode ? `\nPin Code: ${d.pinCode}` : '') +
+                            (d.customerGender || d.person1Gender ? `\nGender: ${d.customerGender || d.person1Gender}` : '');
+                        } else {
+                          // Name Check details
+                          const buildPersonBlock = (label: string, name?: string, firstName?: string, middleName?: string, surName?: string, dob?: string, gender?: string, middleNameType?: string) => {
+                            const fullName = name || [firstName, middleName, surName].filter(Boolean).join(' ');
+                            if (!fullName) return '';
+                            let block = `\n\n*${label}:*\nName: ${fullName}`;
+                            if (dob) block += `\nDOB: ${dob}`;
+                            if (gender) block += `\nGender: ${gender}`;
+                            if (middleName && middleNameType) block += `\nMiddle Name (${middleNameType})`;
+                            return block;
+                          };
+                          
+                          personDetails = buildPersonBlock('Person 1', d.person1Name, d.person1FirstName, d.person1MiddleName, d.person1SurName, d.person1Dob, d.person1Gender, d.person1MiddleNameType);
+                          personDetails += buildPersonBlock('Person 2', d.person2Name, d.person2FirstName, d.person2MiddleName, d.person2SurName, d.person2Dob, d.person2Gender, d.person2MiddleNameType);
+                          personDetails += buildPersonBlock('Person 3', d.person3Name, d.person3FirstName, d.person3MiddleName, d.person3SurName, d.person3Dob, d.person3Gender, d.person3MiddleNameType);
+                        }
+                        
                         const msg = encodeURIComponent(
                           `✅ *Payment Confirmed*\n\n` +
-                          `Order ID: ${paymentData.orderId}\n` +
-                          `Amount: ₹${paymentData.amount?.toLocaleString() || "—"}\n` +
-                          `Package: ${packageNames[paymentData.packageType || "single"] || paymentData.packageType}\n` +
-                          `Name: ${paymentData.customerName || orderFallback?.name || "—"}\n` +
-                          `Email: ${paymentData.customerEmail || orderFallback?.email || "—"}\n` +
-                          `Mobile: ${paymentData.customerMobile || orderFallback?.mobile || "—"}\n\n` +
-                          `Please process my report. Thank you! 🙏`
+                          `*Order Details:*\n` +
+                          `Order ID: ${d.orderId}\n` +
+                          `Amount: ₹${d.amount?.toLocaleString() || "—"}\n` +
+                          `Package: ${pkg}\n\n` +
+                          `*Customer Details:*\n` +
+                          `Name: ${d.customerName || fb?.name || "—"}\n` +
+                          `Email: ${d.customerEmail || fb?.email || "—"}\n` +
+                          `Mobile: ${d.customerMobile || fb?.mobile || "—"}` +
+                          (d.customerCity ? `\nCity: ${d.customerCity}` : '') +
+                          personDetails +
+                          `\n\nPlease process my report. Thank you! 🙏`
                         );
                         window.open(`https://wa.me/919667305577?text=${msg}`, "_blank");
                       }}

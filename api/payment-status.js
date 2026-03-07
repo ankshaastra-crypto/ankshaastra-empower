@@ -350,7 +350,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // Return payment status
+    // Return payment status with all form details
     return res.status(200).json({
       success: true,
       status: paymentStatus,
@@ -360,7 +360,39 @@ export default async function handler(req, res) {
       customerEmail,
       customerName: customerName || 'Customer',
       customerMobile,
+      customerDob,
+      customerGender,
+      customerCity,
       packageType: packageType || 'single',
+      person1Name,
+      person1FirstName,
+      person1MiddleName,
+      person1SurName,
+      person1Dob,
+      person1Gender,
+      person1MiddleNameType,
+      person2Name,
+      person2FirstName,
+      person2MiddleName,
+      person2SurName,
+      person2Dob,
+      person2Gender,
+      person2MiddleNameType,
+      person3Name,
+      person3FirstName,
+      person3MiddleName,
+      person3SurName,
+      person3Dob,
+      person3Gender,
+      person3MiddleNameType,
+      fatherFirstName,
+      fatherMiddleName,
+      fatherMiddleNameType,
+      fatherLastName,
+      childDob,
+      timeOfBirth,
+      placeOfBirth,
+      pinCode,
     });
 
   } catch (error) {

@@ -10,7 +10,7 @@ import { Check, CalendarIcon, CheckCircle2, ChevronRight, ChevronLeft, Loader2, 
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
-import { trackInitiateCheckout, trackAddToCart, trackCompleteRegistration } from "@/lib/metaPixel";
+import { trackInitiateCheckout } from "@/lib/metaPixel";
 import { getPackagePrice, formatPrice } from "@/lib/packagePricing";
 
 // Name Check pricing configuration
@@ -351,8 +351,7 @@ const OrderFormSection = () => {
 
   const goToStep = (step: number) => {
     if (step === 2 && formStep === 1) {
-      // Track package selection (AddToCart)
-      trackAddToCart(packageType === "namecheck" ? `namecheck-${nameCheckCount}` : "single", getPrice());
+      // No validation needed for step 1 (just package selection)
       setFormStep(2);
       scrollToFormTop();
     } else if (step === 3 && formStep === 2) {
@@ -366,8 +365,6 @@ const OrderFormSection = () => {
         return;
       }
       setErrors({});
-      // Track form completion (CompleteRegistration)
-      trackCompleteRegistration(packageType === "namecheck" ? `namecheck-${nameCheckCount}` : "single", getPrice());
       setFormStep(3);
       scrollToFormTop();
     } else if (step < formStep) {

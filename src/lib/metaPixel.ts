@@ -81,54 +81,6 @@ export const trackInitiateCheckout = (
 };
 
 /**
- * Track when user views a key section (e.g., pricing)
- */
-export const trackViewContent = (
-  contentName: string,
-  value?: number,
-  currency: string = 'INR'
-): void => {
-  const params: Record<string, unknown> = {
-    content_name: contentName,
-  };
-  if (value !== undefined) {
-    params.value = value;
-    params.currency = currency;
-  }
-  trackMetaEvent('ViewContent', params);
-};
-
-/**
- * Track when user selects a package (AddToCart equivalent)
- */
-export const trackAddToCart = (
-  packageType: string,
-  value: number,
-  currency: string = 'INR'
-): void => {
-  trackMetaEvent('AddToCart', {
-    content_name: packageType,
-    value,
-    currency,
-  });
-};
-
-/**
- * Track when user completes form details (step 2 → 3)
- */
-export const trackCompleteRegistration = (
-  packageType: string,
-  value: number,
-  currency: string = 'INR'
-): void => {
-  trackMetaEvent('CompleteRegistration', {
-    content_name: packageType,
-    value,
-    currency,
-  });
-};
-
-/**
  * Track a page view (usually handled automatically, but can be used for SPA navigation)
  */
 export const trackPageView = (): void => {

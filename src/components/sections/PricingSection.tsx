@@ -19,9 +19,6 @@ const PricingSection = () => {
       trackViewContent('Pricing Section', 199);
     }
   }, [isVisible]);
-  const [selectedNameCheckPlan, setSelectedNameCheckPlan] = useState<1 | 2 | 3>(
-    1,
-  );
 
   const scrollToForm = (packageType?: string) => {
     const formSection = document.getElementById("order-form");

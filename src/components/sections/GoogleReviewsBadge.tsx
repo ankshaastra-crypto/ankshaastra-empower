@@ -55,35 +55,29 @@ const GoogleReviewsBadge = () => {
       sub: "70+ Reviews",
     },
     {
-      icon: <CertifiedIcon className="w-5 h-5 text-accent" />,
-      iconBg: "hsl(42 55% 54% / 0.12)",
-      value: "Certified",
-      sub: "Numerologist",
-    },
-    {
       icon: <SecurePaymentIcon className="w-5 h-5 text-accent" />,
       iconBg: "hsl(42 55% 54% / 0.12)",
-      value: "Payment",
+      value: "100% Secure",
       sub: "SSL Encrypted",
     },
     {
       icon: <DeliveryIcon className="w-5 h-5 text-accent" />,
       iconBg: "hsl(42 55% 54% / 0.12)",
       value: "24-48 hrs",
-      sub: "Guaranteed",
+      sub: "Delivery Promise",
     },
     {
       icon: <FamiliesIcon className="w-5 h-5 text-accent" />,
       iconBg: "hsl(42 55% 54% / 0.12)",
       value: "5000+",
-      sub: "Families Served",
+      sub: "Happy Families",
     },
   ];
 
   const reviews = [
-    { name: "Priya M.", stars: 5, text: "Amazing report! The name suggestions were so well-researched." },
-    { name: "Rahul S.", stars: 5, text: "Himansshu Ji explained everything clearly. Highly recommended!" },
-    { name: "Sneha K.", stars: 5, text: "Got our baby's name corrected. Feeling so much more confident now." },
+    { name: "Anita D.", stars: 5, text: "The name suggestions were deeply researched. We felt so confident choosing our baby's name!" },
+    { name: "Vikram P.", stars: 5, text: "Himansshu Ji's report was detailed and personal. Worth every rupee we spent." },
+    { name: "Meera & Karan T.", stars: 5, text: "We were confused between 5 names. The report made the decision crystal clear for us." },
   ];
 
   return (

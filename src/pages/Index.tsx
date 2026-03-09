@@ -27,7 +27,7 @@ const Index = () => {
       <FloatingElements />
       <SocialProofCounter />
       
-      <ExitIntentPopup />
+      
       <HeroSection />
       <ProblemSection />
       <RootCauseSection />

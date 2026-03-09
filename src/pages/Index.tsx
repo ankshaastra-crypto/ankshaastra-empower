@@ -1,23 +1,29 @@
+import { lazy, Suspense } from "react";
 import Header from "@/components/Header";
 import ScrollProgress from "@/components/ScrollProgress";
 import FloatingElements from "@/components/FloatingElements";
 import SocialProofCounter from "@/components/SocialProofCounter";
-
 import HeroSection from "@/components/sections/HeroSection";
-import ProblemSection from "@/components/sections/ProblemSection";
-import RootCauseSection from "@/components/sections/RootCauseSection";
-import ExpertSection from "@/components/sections/ExpertSection";
-import YouTubeSection from "@/components/sections/YouTubeSection";
-import FeaturesSection from "@/components/sections/FeaturesSection";
-import BenefitsSection from "@/components/sections/BenefitsSection";
-import TestimonialsSection from "@/components/sections/TestimonialsSection";
-import PricingSection from "@/components/sections/PricingSection";
-import OrderFormSection from "@/components/sections/OrderFormSection";
-import SampleReportSection from "@/components/sections/SampleReportSection";
-import TrustSection from "@/components/sections/TrustSection";
-import GoogleReviewsBadge from "@/components/sections/GoogleReviewsBadge";
-import FAQSection from "@/components/sections/FAQSection";
-import Footer from "@/components/Footer";
+
+// Lazy-load below-fold sections for better page speed
+const ProblemSection = lazy(() => import("@/components/sections/ProblemSection"));
+const RootCauseSection = lazy(() => import("@/components/sections/RootCauseSection"));
+const ExpertSection = lazy(() => import("@/components/sections/ExpertSection"));
+const YouTubeSection = lazy(() => import("@/components/sections/YouTubeSection"));
+const FeaturesSection = lazy(() => import("@/components/sections/FeaturesSection"));
+const BenefitsSection = lazy(() => import("@/components/sections/BenefitsSection"));
+const TestimonialsSection = lazy(() => import("@/components/sections/TestimonialsSection"));
+const PricingSection = lazy(() => import("@/components/sections/PricingSection"));
+const OrderFormSection = lazy(() => import("@/components/sections/OrderFormSection"));
+const SampleReportSection = lazy(() => import("@/components/sections/SampleReportSection"));
+const TrustSection = lazy(() => import("@/components/sections/TrustSection"));
+const GoogleReviewsBadge = lazy(() => import("@/components/sections/GoogleReviewsBadge"));
+const FAQSection = lazy(() => import("@/components/sections/FAQSection"));
+const Footer = lazy(() => import("@/components/Footer"));
+
+const SectionFallback = () => (
+  <div className="min-h-[200px]" />
+);
 
 const Index = () => {
   return (
@@ -27,22 +33,23 @@ const Index = () => {
       <FloatingElements />
       <SocialProofCounter />
       
-      
       <HeroSection />
-      <ProblemSection />
-      <RootCauseSection />
-      <ExpertSection />
-      <YouTubeSection />
-      <FeaturesSection />
-      <BenefitsSection />
-      <SampleReportSection />
-      <TestimonialsSection />
-      <GoogleReviewsBadge />
-      <PricingSection />
-      <OrderFormSection />
-      <TrustSection />
-      <FAQSection />
-      <Footer />
+      <Suspense fallback={<SectionFallback />}>
+        <ProblemSection />
+        <RootCauseSection />
+        <ExpertSection />
+        <YouTubeSection />
+        <FeaturesSection />
+        <BenefitsSection />
+        <SampleReportSection />
+        <TestimonialsSection />
+        <GoogleReviewsBadge />
+        <PricingSection />
+        <OrderFormSection />
+        <TrustSection />
+        <FAQSection />
+        <Footer />
+      </Suspense>
     </main>
   );
 };

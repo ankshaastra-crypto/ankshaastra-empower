@@ -1,16 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { Check, Clock, Lock } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { getPackagePricing, formatPrice } from "@/lib/packagePricing";
 import CountdownTimer from "@/components/CountdownTimer";
+import { trackViewContent } from "@/lib/metaPixel";
 
 const PricingSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
   const pricing = getPackagePricing();
-  const [selectedNameCheckPlan, setSelectedNameCheckPlan] = useState<1 | 2 | 3>(
-    1,
-  );
+  const hasTrackedView = useRef(false);
+  const [selectedNameCheckPlan, setSelectedNameCheckPlan] = useState<1 | 2 | 3>(1);
+
+  // Track when pricing section is first viewed
+  useEffect(() => {
+    if (isVisible && !hasTrackedView.current) {
+      hasTrackedView.current = true;
+      trackViewContent('Pricing Section', 199);
+    }
+  }, [isVisible]);
 
   const scrollToForm = (packageType?: string) => {
     const formSection = document.getElementById("order-form");

@@ -219,6 +219,81 @@ export async function sendPaymentEmail({
     : `Payment Failed - Order ${orderId}`;
 
 
+  // Build invoice HTML section for customer success email
+  const invoiceHtml = `
+    <div style="margin-top: 30px; border-top: 2px solid #C9A84C; padding-top: 20px;">
+      <h2 style="color: #2E1A47; text-align: center; margin-bottom: 20px; font-size: 20px;">TAX INVOICE</h2>
+      
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+        <tr>
+          <td style="padding: 8px 0; vertical-align: top; width: 50%;">
+            <strong style="color: #2E1A47;">From:</strong><br/>
+            <span style="font-size: 14px; font-weight: bold; color: #C9A84C;">Ankshaastra</span><br/>
+            <span style="font-size: 11px; color: #666;">Empower Your Name</span><br/>
+            <span style="font-size: 11px; color: #666;">Unit No. O-622, Block-E, Eye of Noida,<br/>Sector 140A, Noida-201305</span><br/>
+            <span style="font-size: 11px; color: #666;">Phone: 9667305577</span><br/>
+            <span style="font-size: 11px; color: #666;">Email: social@ankshaastra.com</span><br/>
+            <span style="font-size: 11px; color: #666;">GSTIN: APPLIED FOR</span>
+          </td>
+          <td style="padding: 8px 0; vertical-align: top; width: 50%; text-align: right;">
+            <strong style="color: #2E1A47;">Bill To:</strong><br/>
+            <span style="font-size: 12px; color: #333;">${customerName || 'Customer'}</span><br/>
+            <span style="font-size: 11px; color: #666;">${customerEmail}</span><br/>
+            ${finalCustomerMobile ? '<span style="font-size: 11px; color: #666;">Phone: ' + finalCustomerMobile + '</span><br/>' : ''}
+            ${finalCustomerCity ? '<span style="font-size: 11px; color: #666;">' + finalCustomerCity + '</span><br/>' : ''}
+            ${finalPinCode ? '<span style="font-size: 11px; color: #666;">PIN: ' + finalPinCode + '</span>' : ''}
+          </td>
+        </tr>
+      </table>
+
+      <table style="width: 100%; margin-bottom: 10px;">
+        <tr>
+          <td style="font-size: 12px; color: #333;"><strong>Order ID:</strong> ${orderId}</td>
+          <td style="font-size: 12px; color: #333; text-align: right;"><strong>Date:</strong> ${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+        </tr>
+        ${transactionId ? '<tr><td style="font-size: 12px; color: #333;"><strong>Transaction ID:</strong> ' + transactionId + '</td><td></td></tr>' : ''}
+      </table>
+
+      <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+        <thead>
+          <tr style="background: #2E1A47;">
+            <th style="color: white; padding: 10px; text-align: left; font-size: 12px;">Description</th>
+            <th style="color: white; padding: 10px; text-align: center; font-size: 12px;">HSN/SAC</th>
+            <th style="color: white; padding: 10px; text-align: center; font-size: 12px;">Qty</th>
+            <th style="color: white; padding: 10px; text-align: right; font-size: 12px;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 10px; font-size: 12px;">${packageName}<br/><small style="color: #666;">Numerology Report</small></td>
+            <td style="padding: 10px; text-align: center; font-size: 12px;">998399</td>
+            <td style="padding: 10px; text-align: center; font-size: 12px;">1</td>
+            <td style="padding: 10px; text-align: right; font-size: 12px;">${amountFormatted}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table style="width: 100%; margin-top: 10px;">
+        <tr>
+          <td style="text-align: right; padding: 5px 0;">
+            <strong style="font-size: 14px; color: #2E1A47;">Total Amount: ${amountFormatted}</strong>
+          </td>
+        </tr>
+      </table>
+
+      <div style="margin-top: 20px; padding: 12px; background: #f9f9f9; border-radius: 6px;">
+        <p style="font-size: 11px; color: #666; margin: 0;">
+          <strong>Bank Details:</strong> UCO Bank | A/C: 01200110039892 | IFSC: UCBA0000120 | Ankshaastra Occult Experts LLP
+        </p>
+        <p style="font-size: 11px; color: #666; margin: 4px 0 0 0;"><strong>UPI:</strong> ankshaastra@paytm</p>
+      </div>
+
+      <p style="font-size: 10px; color: #999; margin-top: 15px; text-align: center;">
+        This is a computer-generated invoice and does not require a signature.
+      </p>
+    </div>
+  `;
+
   const customerHtml = status === 'SUCCESS' 
     ? `
       <!DOCTYPE html>
@@ -267,6 +342,8 @@ export async function sendPaymentEmail({
             <p>Your personalized numerology report will be delivered to this email address within 24-48 hours.</p>
             <p>If you have any questions, please contact us at <a href="tel:9667305577">9667305577</a>.</p>
             
+            ${invoiceHtml}
+
             <div class="footer">
               <p>Thank you for choosing Ankshaastra!</p>
             </div>

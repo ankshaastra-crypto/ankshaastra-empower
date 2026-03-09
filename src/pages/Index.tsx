@@ -2,7 +2,7 @@ import Header from "@/components/Header";
 import ScrollProgress from "@/components/ScrollProgress";
 import FloatingElements from "@/components/FloatingElements";
 import SocialProofCounter from "@/components/SocialProofCounter";
-import ExitIntentPopup from "@/components/ExitIntentPopup";
+
 import HeroSection from "@/components/sections/HeroSection";
 import ProblemSection from "@/components/sections/ProblemSection";
 import RootCauseSection from "@/components/sections/RootCauseSection";
@@ -27,7 +27,7 @@ const Index = () => {
       <FloatingElements />
       <SocialProofCounter />
       
-      <ExitIntentPopup />
+      
       <HeroSection />
       <ProblemSection />
       <RootCauseSection />

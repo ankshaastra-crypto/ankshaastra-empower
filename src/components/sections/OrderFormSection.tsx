@@ -10,7 +10,7 @@ import { Check, CalendarIcon, CheckCircle2, ChevronRight, ChevronLeft, Loader2, 
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
-import { trackInitiateCheckout } from "@/lib/metaPixel";
+import { trackInitiateCheckout, trackAddToCart, trackCompleteRegistration } from "@/lib/metaPixel";
 import { getPackagePrice, formatPrice } from "@/lib/packagePricing";
 
 // Name Check pricing configuration

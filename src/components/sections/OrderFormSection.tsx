@@ -695,7 +695,7 @@ const OrderFormSection = () => {
           <Label htmlFor="pinCode">Pin Code *</Label>
           <div className="relative">
             <Input id="pinCode" name="pinCode" value={babyFormData.pinCode} onChange={handleInputChange}
-              placeholder="Enter the 6-digit PIN code of the child's place of birth" required maxLength={6}
+              placeholder="Enter the 6-digit PIN Code of child's birthplace" required maxLength={6}
               className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.pinCode ? "border-destructive" : isFieldValid("pinCode") ? "border-success" : ""}`} />
             {cityLoading ? <Loader2 className="w-4 h-4 animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" /> : <ValidIcon field="pinCode" />}
           </div>

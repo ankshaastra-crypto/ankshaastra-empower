@@ -66,6 +66,7 @@ const OrderFormSection = () => {
     fatherMiddleName: "",
     fatherMiddleNameType: "",
     fatherLastName: "",
+    fatherFirstNameAsMiddleName: "",
     childDob: "",
     timeOfBirth: "",
     placeOfBirth: "",

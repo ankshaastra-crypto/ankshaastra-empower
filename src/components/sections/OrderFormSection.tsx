@@ -307,6 +307,8 @@ const OrderFormSection = () => {
         newErrors.fatherLastName = "Father's last name is required";
       if (babyFormData.fatherMiddleName && babyFormData.fatherMiddleName.trim() !== "" && (!babyFormData.fatherMiddleNameType || babyFormData.fatherMiddleNameType.trim() === ""))
         newErrors.fatherMiddleNameType = "Please specify if father's middle name is grandfather's name";
+      if (!babyFormData.fatherFirstNameAsMiddleName || babyFormData.fatherFirstNameAsMiddleName.trim() === "")
+        newErrors.fatherFirstNameAsMiddleName = "Please specify if father's first name is used as child's middle name";
       if (!babyFormData.childDob || !validateDob(babyFormData.childDob))
         newErrors.childDob = !babyFormData.childDob ? "Child's date of birth is required" : "Date of birth must be a valid date in the past";
       if (!babyFormData.timeOfBirth || !validateTime(babyFormData.timeOfBirth))

@@ -45,6 +45,7 @@ const PricingSection = () => {
     "Personal Loshu Grid",
     "First Alphabet Analysis",
     "PDF Report (50+ Pages)",
+    "Call Consultation Included",
   ];
 
   return (

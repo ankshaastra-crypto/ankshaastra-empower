@@ -624,6 +624,28 @@ const OrderFormSection = () => {
         </div>
       )}
 
+      <div>
+        <Label>Is the father's first name used as the child's middle name? *</Label>
+        <RadioGroup
+          value={babyFormData.fatherFirstNameAsMiddleName}
+          onValueChange={(value) => {
+            setBabyFormData((prev) => ({ ...prev, fatherFirstNameAsMiddleName: value }));
+            if (errors.fatherFirstNameAsMiddleName) setErrors((prev) => { const n = { ...prev }; delete n.fatherFirstNameAsMiddleName; return n; });
+          }}
+          className={`flex gap-4 mt-2 ${errors.fatherFirstNameAsMiddleName ? "text-destructive" : ""}`}
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="yes" id="fatherFirstNameAsMiddleNameYes" />
+            <Label htmlFor="fatherFirstNameAsMiddleNameYes" className="cursor-pointer font-normal">Yes</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="no" id="fatherFirstNameAsMiddleNameNo" />
+            <Label htmlFor="fatherFirstNameAsMiddleNameNo" className="cursor-pointer font-normal">No</Label>
+          </div>
+        </RadioGroup>
+        {errors.fatherFirstNameAsMiddleName && <p className="text-destructive text-sm mt-1">{errors.fatherFirstNameAsMiddleName}</p>}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label>Child's Date of Birth (DD/MM/YYYY) *</Label>

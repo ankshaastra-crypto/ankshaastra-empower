@@ -863,7 +863,7 @@ const ClaimFormSection = () => {
               <Input type="tel" inputMode="numeric" maxLength={6}
                 value={formData.pinCode}
                 onChange={e => handleChange("pinCode", e.target.value.replace(/\D/g, ""))}
-                onBlur={() => handleBlur("pinCode")} placeholder="Enter 6-digit pin code"
+                onBlur={() => handleBlur("pinCode")} placeholder="Enter 6-digit pin code of child's birth"
                 style={{ ...inputSx, border: fieldBorder("pinCode"), height: 48 }}
                 className="focus-visible:ring-0" />
               {touched.pinCode && errors.pinCode && <p style={{ color: "#DC2626", fontSize: "0.78rem", marginTop: 4, fontFamily: T.body }}>{errors.pinCode}</p>}

@@ -66,6 +66,7 @@ const OrderFormSection = () => {
     fatherMiddleName: "",
     fatherMiddleNameType: "",
     fatherLastName: "",
+    fatherFirstNameAsMiddleName: "",
     childDob: "",
     timeOfBirth: "",
     placeOfBirth: "",
@@ -306,6 +307,8 @@ const OrderFormSection = () => {
         newErrors.fatherLastName = "Father's last name is required";
       if (babyFormData.fatherMiddleName && babyFormData.fatherMiddleName.trim() !== "" && (!babyFormData.fatherMiddleNameType || babyFormData.fatherMiddleNameType.trim() === ""))
         newErrors.fatherMiddleNameType = "Please specify if father's middle name is grandfather's name";
+      if (!babyFormData.fatherFirstNameAsMiddleName || babyFormData.fatherFirstNameAsMiddleName.trim() === "")
+        newErrors.fatherFirstNameAsMiddleName = "Please specify if father's first name is used as child's middle name";
       if (!babyFormData.childDob || !validateDob(babyFormData.childDob))
         newErrors.childDob = !babyFormData.childDob ? "Child's date of birth is required" : "Date of birth must be a valid date in the past";
       if (!babyFormData.timeOfBirth || !validateTime(babyFormData.timeOfBirth))
@@ -392,7 +395,7 @@ const OrderFormSection = () => {
         orderId, email: babyFormData.email, mobile: babyFormData.whatsapp, name: fatherFullName,
         dob: babyFormData.childDob, gender: babyFormData.gender,
         person1Name: fatherFullName, person1Dob: babyFormData.childDob, person1Gender: babyFormData.gender,
-        fatherFirstName: babyFormData.fatherFirstName, fatherMiddleName: babyFormData.fatherMiddleName || "", fatherMiddleNameType: babyFormData.fatherMiddleNameType || "", fatherLastName: babyFormData.fatherLastName,
+        fatherFirstName: babyFormData.fatherFirstName, fatherMiddleName: babyFormData.fatherMiddleName || "", fatherMiddleNameType: babyFormData.fatherMiddleNameType || "", fatherFirstNameAsMiddleName: babyFormData.fatherFirstNameAsMiddleName || "", fatherLastName: babyFormData.fatherLastName,
         childDob: babyFormData.childDob, timeOfBirth: normalizeTimeInput(babyFormData.timeOfBirth),
         placeOfBirth: babyFormData.placeOfBirth, pinCode: babyFormData.pinCode, packageType: "single",
       };
@@ -623,6 +626,28 @@ const OrderFormSection = () => {
         </div>
       )}
 
+      <div>
+        <Label>Is the father's first name used as the child's middle name? *</Label>
+        <RadioGroup
+          value={babyFormData.fatherFirstNameAsMiddleName}
+          onValueChange={(value) => {
+            setBabyFormData((prev) => ({ ...prev, fatherFirstNameAsMiddleName: value }));
+            if (errors.fatherFirstNameAsMiddleName) setErrors((prev) => { const n = { ...prev }; delete n.fatherFirstNameAsMiddleName; return n; });
+          }}
+          className={`flex gap-4 mt-2 ${errors.fatherFirstNameAsMiddleName ? "text-destructive" : ""}`}
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="yes" id="fatherFirstNameAsMiddleNameYes" />
+            <Label htmlFor="fatherFirstNameAsMiddleNameYes" className="cursor-pointer font-normal">Yes</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="no" id="fatherFirstNameAsMiddleNameNo" />
+            <Label htmlFor="fatherFirstNameAsMiddleNameNo" className="cursor-pointer font-normal">No</Label>
+          </div>
+        </RadioGroup>
+        {errors.fatherFirstNameAsMiddleName && <p className="text-destructive text-sm mt-1">{errors.fatherFirstNameAsMiddleName}</p>}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label>Child's Date of Birth (DD/MM/YYYY) *</Label>
@@ -670,7 +695,7 @@ const OrderFormSection = () => {
           <Label htmlFor="pinCode">Pin Code *</Label>
           <div className="relative">
             <Input id="pinCode" name="pinCode" value={babyFormData.pinCode} onChange={handleInputChange}
-              placeholder="Enter 6-digit pin code" required maxLength={6}
+              placeholder="Enter 6-digit pin code of child's birth" required maxLength={6}
               className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.pinCode ? "border-destructive" : isFieldValid("pinCode") ? "border-success" : ""}`} />
             {cityLoading ? <Loader2 className="w-4 h-4 animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" /> : <ValidIcon field="pinCode" />}
           </div>
@@ -736,6 +761,7 @@ const OrderFormSection = () => {
         { label: "Package", value: "Perfect Baby Name Report" },
         { label: "Father's Name", value: [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ") },
         ...(babyFormData.fatherMiddleNameType ? [{ label: "Father's Middle Name is Grandfather's", value: babyFormData.fatherMiddleNameType === "yes" ? "Yes" : "No" }] : []),
+        ...(babyFormData.fatherFirstNameAsMiddleName ? [{ label: "Father's First Name as Child's Middle Name", value: babyFormData.fatherFirstNameAsMiddleName === "yes" ? "Yes" : "No" }] : []),
         { label: "Child's DOB", value: babyFormData.childDob ? format(parse(babyFormData.childDob, "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" },
         { label: "Time of Birth", value: babyFormData.timeOfBirth },
         { label: "Place of Birth", value: babyFormData.placeOfBirth },

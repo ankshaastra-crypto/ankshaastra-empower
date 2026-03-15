@@ -759,6 +759,7 @@ const OrderFormSection = () => {
         { label: "Package", value: "Perfect Baby Name Report" },
         { label: "Father's Name", value: [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ") },
         ...(babyFormData.fatherMiddleNameType ? [{ label: "Father's Middle Name is Grandfather's", value: babyFormData.fatherMiddleNameType === "yes" ? "Yes" : "No" }] : []),
+        ...(babyFormData.fatherFirstNameAsMiddleName ? [{ label: "Father's First Name as Child's Middle Name", value: babyFormData.fatherFirstNameAsMiddleName === "yes" ? "Yes" : "No" }] : []),
         { label: "Child's DOB", value: babyFormData.childDob ? format(parse(babyFormData.childDob, "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" },
         { label: "Time of Birth", value: babyFormData.timeOfBirth },
         { label: "Place of Birth", value: babyFormData.placeOfBirth },

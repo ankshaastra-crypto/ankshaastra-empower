@@ -340,6 +340,12 @@ section {
   .animate-gentle-pulse { animation: gentle-pulse 3s ease-in-out infinite; }
   .animate-border-glow { animation: border-glow 2s ease-in-out infinite; }
 
+  @keyframes blinker {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.045); }
+  }
+  .animate-blinker { animation: blinker 1.5s ease-in-out infinite; }
+
   /* Scroll-triggered section reveal */
   .section-hidden {
     opacity: 0;

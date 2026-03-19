@@ -4,6 +4,7 @@ import ScrollProgress from "@/components/ScrollProgress";
 import FloatingElements from "@/components/FloatingElements";
 import SocialProofCounter from "@/components/SocialProofCounter";
 import HeroSection from "@/components/sections/HeroSection";
+import SectionDivider from "@/components/SectionDivider";
 
 // Lazy-load below-fold sections for better page speed
 const ProblemSection = lazy(() => import("@/components/sections/ProblemSection"));
@@ -35,18 +36,28 @@ const Index = () => {
       
       <HeroSection />
       <Suspense fallback={<SectionFallback />}>
+        <SectionDivider />
         <ProblemSection />
+        <SectionDivider />
         <RootCauseSection />
+        <SectionDivider />
         <ExpertSection />
         <YouTubeSection />
+        <SectionDivider />
         <FeaturesSection />
+        <SectionDivider />
         <BenefitsSection />
+        <SectionDivider />
         <SampleReportSection />
+        <SectionDivider />
         <TestimonialsSection />
         <GoogleReviewsBadge />
+        <SectionDivider />
         <PricingSection />
         <OrderFormSection />
+        <SectionDivider />
         <TrustSection />
+        <SectionDivider />
         <FAQSection />
         <Footer />
       </Suspense>

@@ -89,7 +89,7 @@ const HeroSection = () => {
             <Button
               onClick={scrollToForm}
               size="xl"
-              className="w-full sm:w-auto font-bold text-base md:text-lg shadow-xl hover:scale-105 transition-transform animate-pulse-glow border-none"
+              className="w-full sm:w-auto font-bold text-base md:text-lg shadow-xl hover:scale-105 transition-transform animate-pulse-glow animate-blinker border-none"
               style={{ background: 'linear-gradient(135deg, #C9A84C 0%, #e0bf6a 100%)', color: '#2C2C2C' }}
             >
               Get Name Check @ ₹199

@@ -1,11 +1,11 @@
-import { Heart, Shield, Smile, Users, Star, Leaf } from "lucide-react";
+import { useState } from "react";
+import { Heart, Shield, Smile, Users, Star, Leaf, ChevronDown } from "lucide-react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { Button } from "@/components/ui/button";
 
-const DARK_BG = 'linear-gradient(135deg, #2C2C2C 0%, #1a1a1a 100%)';
-
 const BenefitsSection = () => {
   const { ref } = useScrollAnimation({ threshold: 0.1 });
+  const [expandedBenefit, setExpandedBenefit] = useState<number | null>(null);
 
   const scrollToForm = () => {
     const section = document.getElementById("order-form");
@@ -30,8 +30,12 @@ const BenefitsSection = () => {
     { icon: Leaf, title: "Empower Your Child's Potential", text: "Our report makes it a breeze to find a name that matches their potential and boosts their development from the very start." },
   ];
 
+  const toggleBenefit = (index: number) => {
+    setExpandedBenefit(expandedBenefit === index ? null : index);
+  };
+
   return (
-    <section className="section-padding relative overflow-hidden" style={{ background: DARK_BG }} ref={ref}>
+    <section className="section-padding relative overflow-hidden bg-primary" ref={ref}>
       <div className="absolute inset-0 mystic-pattern pointer-events-none" />
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-accent/5 rounded-full blur-3xl" />
@@ -59,7 +63,7 @@ const BenefitsSection = () => {
           </div>
         </div>
 
-        {/* Benefits Grid */}
+        {/* Benefits */}
         <div className="text-center max-w-3xl mx-auto mb-6 md:mb-10">
           <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase text-accent mb-3">Benefits</span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-white mb-4">
@@ -70,11 +74,12 @@ const BenefitsSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-6xl mx-auto mb-12">
+        {/* Desktop: grid cards */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-12">
           {benefits.map((benefit, index) => (
-            <div key={index} className="glass-card-dark rounded-xl md:rounded-2xl p-5 md:p-6 card-hover group transition-all duration-300 hover:border-accent/30 border border-white/10 text-center md:text-left">
-              <div className="w-11 h-11 md:w-12 md:h-12 bg-accent/20 rounded-xl flex items-center justify-center mb-3 md:mb-4 mx-auto md:mx-0 group-hover:bg-accent/30 group-hover:scale-110 transition-all duration-300">
-                <benefit.icon className="w-5 h-5 md:w-6 md:h-6 text-accent" />
+            <div key={index} className="glass-card-dark rounded-2xl p-6 card-hover group transition-all duration-300 hover:border-accent/30 border border-white/10 text-left">
+              <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mb-4 group-hover:bg-accent/30 group-hover:scale-110 transition-all duration-300">
+                <benefit.icon className="w-6 h-6 text-accent" />
               </div>
               <h3 className="text-lg font-heading font-semibold text-white mb-2 group-hover:text-accent transition-colors duration-300">
                 {benefit.title}
@@ -82,6 +87,41 @@ const BenefitsSection = () => {
               <p className="text-white/65 leading-relaxed text-sm">{benefit.text}</p>
             </div>
           ))}
+        </div>
+
+        {/* Mobile: collapsible accordion */}
+        <div className="md:hidden space-y-2 max-w-lg mx-auto mb-10">
+          {benefits.map((benefit, index) => {
+            const isOpen = expandedBenefit === index;
+            return (
+              <div
+                key={index}
+                className="rounded-xl border border-white/10 overflow-hidden backdrop-blur-sm bg-white/5 transition-all duration-300"
+              >
+                <button
+                  onClick={() => toggleBenefit(index)}
+                  className="w-full flex items-center gap-3 p-4 text-left"
+                >
+                  <div className="w-9 h-9 bg-accent/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <benefit.icon className="w-4 h-4 text-accent" />
+                  </div>
+                  <h3 className="text-sm font-heading font-semibold text-white flex-1 leading-tight">
+                    {benefit.title}
+                  </h3>
+                  <ChevronDown
+                    className={`w-4 h-4 text-white/50 flex-shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+                <div
+                  className={`overflow-hidden transition-all duration-300 ${isOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}
+                >
+                  <p className="text-sm text-white/65 leading-relaxed px-4 pb-4">
+                    {benefit.text}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         <div className="text-center">

@@ -1,9 +1,10 @@
-import { Stars, BookOpen, Baby, MessageCircle } from "lucide-react";
-import { CheckCircle } from "lucide-react";
+import { useState } from "react";
+import { Stars, BookOpen, Baby, MessageCircle, CheckCircle, ChevronDown } from "lucide-react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 
 const FeaturesSection = () => {
   const { ref } = useScrollAnimation({ threshold: 0.1 });
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const features = [
     {
@@ -37,6 +38,10 @@ const FeaturesSection = () => {
     "Written in English, easy to understand",
   ];
 
+  const toggleFeature = (index: number) => {
+    setExpandedIndex(expandedIndex === index ? null : index);
+  };
+
   return (
     <section className="section-padding bg-background" ref={ref}>
       <div className="container mx-auto px-4">
@@ -50,27 +55,63 @@ const FeaturesSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-6xl mx-auto mb-8 md:mb-12">
+        {/* Desktop: grid cards | Mobile: accordion */}
+        <div className="hidden md:grid grid-cols-2 gap-8 max-w-6xl mx-auto mb-12">
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-card rounded-2xl p-5 md:p-8 shadow-card card-hover card-hover-gold group transition-all duration-300"
+              className="bg-card rounded-2xl p-8 shadow-card card-hover card-hover-gold group transition-all duration-300"
             >
-              <div className="w-11 h-11 md:w-14 md:h-14 rounded-xl flex items-center justify-center mb-4 md:mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300" style={{ backgroundColor: 'rgba(201,168,76,0.1)' }}>
-                <feature.icon className="w-5 h-5 md:w-7 md:h-7 text-accent" />
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 bg-accent/10">
+                <feature.icon className="w-7 h-7 text-accent" />
               </div>
-              <h3 className="text-lg md:text-xl font-heading font-semibold mb-2 md:mb-3 group-hover:text-accent transition-colors duration-300 text-foreground">
+              <h3 className="text-xl font-heading font-semibold mb-3 group-hover:text-accent transition-colors duration-300 text-foreground">
                 {feature.title}
               </h3>
-              <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+              <p className="text-base text-muted-foreground leading-relaxed">
                 {feature.text}
               </p>
             </div>
           ))}
         </div>
 
+        {/* Mobile: tap-to-expand accordion */}
+        <div className="md:hidden space-y-3 max-w-lg mx-auto mb-8">
+          {features.map((feature, index) => {
+            const isOpen = expandedIndex === index;
+            return (
+              <div
+                key={index}
+                className="bg-card rounded-xl shadow-card border border-border overflow-hidden transition-all duration-300"
+              >
+                <button
+                  onClick={() => toggleFeature(index)}
+                  className="w-full flex items-center gap-3 p-4 text-left"
+                >
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-accent/10">
+                    <feature.icon className="w-5 h-5 text-accent" />
+                  </div>
+                  <h3 className="text-sm font-heading font-semibold text-foreground flex-1 leading-tight">
+                    {feature.title}
+                  </h3>
+                  <ChevronDown
+                    className={`w-4 h-4 text-muted-foreground flex-shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+                <div
+                  className={`overflow-hidden transition-all duration-300 ${isOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}`}
+                >
+                  <p className="text-sm text-muted-foreground leading-relaxed px-4 pb-4">
+                    {feature.text}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
         {/* Quick Highlights Strip */}
-        <div className="max-w-4xl mx-auto rounded-2xl p-6 md:p-8 border-2 border-accent/20" style={{ backgroundColor: 'rgba(201,168,76,0.05)' }}>
+        <div className="max-w-4xl mx-auto rounded-2xl p-6 md:p-8 border-2 border-accent/20 bg-accent/5">
           <h3 className="text-center text-lg md:text-xl font-heading font-bold mb-5 md:mb-6 text-foreground">Your Report Includes:</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {highlights.map((item, i) => (

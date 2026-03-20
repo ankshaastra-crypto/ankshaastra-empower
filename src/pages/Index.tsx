@@ -49,8 +49,6 @@ const Index = () => {
         <BenefitsSection />
         <SectionDivider />
         <SampleReportSection />
-        <SectionDivider />
-        <TestimonialsSection />
         <GoogleReviewsBadge />
         <SectionDivider />
         <PricingSection />

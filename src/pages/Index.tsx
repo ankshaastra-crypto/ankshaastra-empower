@@ -13,7 +13,7 @@ const ExpertSection = lazy(() => import("@/components/sections/ExpertSection"));
 const YouTubeSection = lazy(() => import("@/components/sections/YouTubeSection"));
 const FeaturesSection = lazy(() => import("@/components/sections/FeaturesSection"));
 const BenefitsSection = lazy(() => import("@/components/sections/BenefitsSection"));
-const TestimonialsSection = lazy(() => import("@/components/sections/TestimonialsSection"));
+
 const PricingSection = lazy(() => import("@/components/sections/PricingSection"));
 const OrderFormSection = lazy(() => import("@/components/sections/OrderFormSection"));
 const SampleReportSection = lazy(() => import("@/components/sections/SampleReportSection"));

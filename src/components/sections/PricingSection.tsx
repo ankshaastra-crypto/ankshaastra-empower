@@ -198,7 +198,7 @@ const PricingSection = () => {
                 : "text-muted-foreground"
             }`}
           >
-            Perfect Baby Name ⭐
+            Perfect Baby Name
           </button>
           <button
             onClick={() => setActiveTab("namecheck")}

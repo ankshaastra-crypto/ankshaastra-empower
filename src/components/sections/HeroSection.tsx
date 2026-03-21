@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Users, Star, Shield } from "lucide-react";
-import heroBg from "@/assets/hero-mother-blessing-baby.jpg";
+import heroBg from "@/assets/hero-mother-baby-3.jpg";
 
 const HeroSection = () => {
   const [parallaxY, setParallaxY] = useState(0);
@@ -85,11 +85,11 @@ const HeroSection = () => {
             — based on Numerology & Vedic principles, aligned to your child's birth energy.
           </p>
 
-          <div className="mb-8">
+          <div className="mb-6">
             <Button
               onClick={scrollToForm}
-              size="xl"
-              className="w-full sm:w-auto font-bold text-base md:text-lg shadow-xl hover:scale-105 transition-transform animate-pulse-glow animate-blinker border-none"
+              size="default"
+              className="w-auto font-bold text-sm md:text-lg shadow-xl hover:scale-105 transition-transform animate-pulse-glow animate-blinker border-none px-6 py-3 md:px-8 md:py-4"
               style={{ background: 'linear-gradient(135deg, #C9A84C 0%, #e0bf6a 100%)', color: '#2C2C2C' }}
             >
               Get Name Check @ ₹199
@@ -98,7 +98,7 @@ const HeroSection = () => {
           </div>
 
           {/* Badges */}
-          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 md:gap-4 mb-6">
+          <div className="flex flex-col items-start sm:flex-row sm:flex-wrap sm:justify-center gap-2 md:gap-4 mb-6 text-left">
             {badges.map((badge, i) => (
               <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#C9A84C' }} />

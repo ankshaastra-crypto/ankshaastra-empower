@@ -72,15 +72,15 @@ const FAQSection = () => {
         </div>
 
         <div className="max-w-3xl mx-auto mb-10">
-          <Accordion type="single" collapsible className="space-y-3">
+          <Accordion type="single" collapsible className="space-y-2 md:space-y-3">
             {faqs.map((faq, index) => (
               <AccordionItem
                 key={index}
                 value={`item-${index}`}
-                className="rounded-2xl px-5 md:px-6 shadow-card border-none transition-all duration-300 hover:shadow-card-hover"
+                className="rounded-xl md:rounded-2xl px-4 md:px-6 shadow-card border-none transition-all duration-300 hover:shadow-card-hover"
                 style={{ backgroundColor: 'hsl(var(--card))' }}
               >
-                <AccordionTrigger className="text-left text-base md:text-lg font-semibold hover:text-accent py-5 hover:no-underline transition-colors duration-300 text-foreground">
+                <AccordionTrigger className="text-left text-sm md:text-lg font-semibold hover:text-accent py-4 md:py-5 hover:no-underline transition-colors duration-300 text-foreground">
                   {faq.question}
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground leading-relaxed pb-5 text-sm md:text-base animate-fade-in">

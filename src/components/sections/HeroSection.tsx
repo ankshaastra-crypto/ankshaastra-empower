@@ -28,7 +28,7 @@ const HeroSection = () => {
 
   return (
     <section
-      className="min-h-screen flex items-center pt-16 pb-6 md:pt-20 md:pb-10 relative overflow-hidden bg-background"
+      className="min-h-[85vh] md:min-h-screen flex items-center pt-14 pb-4 md:pt-20 md:pb-10 relative overflow-hidden bg-background"
     >
       {/* Background mother & baby image — parallax */}
       <div
@@ -74,7 +74,7 @@ const HeroSection = () => {
 
 
 
-          <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold mb-5 leading-tight text-foreground">
+          <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight text-foreground">
             Because a Name Is the{" "}
             <span style={{ color: '#C9A84C' }}>First Gift You Give Your Child</span>
           </h1>

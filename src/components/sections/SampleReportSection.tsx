@@ -24,8 +24,7 @@ const SampleReportSection = () => {
   return (
     <section
       ref={ref}
-      className={`section-padding section-hidden ${isVisible ? "section-visible" : ""}`}
-      style={{ backgroundColor: "hsl(var(--background))" }}
+      className={`section-padding bg-background section-hidden ${isVisible ? "section-visible" : ""}`}
     >
       <div className="container mx-auto px-4">
         {/* Header */}
@@ -35,7 +34,7 @@ const SampleReportSection = () => {
           </span>
           <h2 className="heading-lg mb-4 text-foreground">
             Here's What Your Report{" "}
-            <span style={{ color: "#C9A84C" }}>Looks Like</span>
+            <span className="text-accent">Looks Like</span>
           </h2>
           <p className="body-md text-muted-foreground">
             A glimpse of the detailed, personalised analysis you'll receive — crafted with care by Himansshu Ji.
@@ -46,21 +45,21 @@ const SampleReportSection = () => {
         <div className="max-w-2xl mx-auto">
           <div
             className="rounded-2xl overflow-hidden shadow-card-hover border border-accent/20"
-            style={{ background: "linear-gradient(180deg, hsl(38 67% 96%) 0%, #FFFFFF 100%)" }}
+            style={{ background: "linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--card)) 100%)" }}
           >
             {/* Report Header */}
             <div
               className="px-6 py-5 flex items-center gap-3 border-b border-accent/15"
-              style={{ background: "linear-gradient(135deg, #2C2C2C 0%, #3a3a3a 100%)" }}
+              style={{ background: "linear-gradient(135deg, hsl(var(--foreground)) 0%, #3a3a3a 100%)" }}
             >
-              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(201,168,76,0.2)" }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center bg-accent/20">
                 <FileText className="w-5 h-5 text-accent" />
               </div>
               <div>
-                <p className="font-heading font-bold text-base" style={{ color: "#FDF6EC" }}>
+                <p className="font-heading font-bold text-base text-background">
                   Ankshaastra Baby Name Report
                 </p>
-                <p className="text-xs" style={{ color: "hsl(38 67% 80%)" }}>
+                <p className="text-xs text-background/70">
                   Personalised Numerology Analysis
                 </p>
               </div>
@@ -103,7 +102,7 @@ const SampleReportSection = () => {
             </div>
 
             {/* Unlock CTA */}
-            <div className="px-6 py-6 text-center border-t border-accent/15" style={{ background: "hsl(38 67% 96% / 0.5)" }}>
+            <div className="px-6 py-6 text-center border-t border-accent/15 bg-background/50">
               <div className="flex items-center justify-center gap-2 mb-3 text-muted-foreground">
                 <Eye className="w-4 h-4" />
                 <span className="text-xs font-medium">Unlock your full personalised report</span>
@@ -111,8 +110,7 @@ const SampleReportSection = () => {
               <Button
                 onClick={scrollToForm}
                 size="lg"
-                className="font-bold shadow-xl hover:scale-105 transition-transform border-none"
-                style={{ background: "linear-gradient(135deg, #C9A84C 0%, #e0bf6a 100%)", color: "#2C2C2C" }}
+                className="font-bold shadow-xl hover:scale-105 transition-transform border-none bg-gold-cta text-accent-foreground"
               >
                 Get My Full Report
               </Button>

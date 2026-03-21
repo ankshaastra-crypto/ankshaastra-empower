@@ -32,34 +32,33 @@ const HeroSection = () => {
     >
       {/* Background mother & baby image — parallax */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat will-change-transform"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat will-change-transform opacity-35"
         style={{
           backgroundImage: `url(${heroBg})`,
-          opacity: 0.35,
           transform: `translateY(${parallaxY}px)`,
         }}
       />
 
-      {/* Softer gradient overlay — lets image show through more */}
+      {/* Softer gradient overlay */}
       <div
         className="absolute inset-0"
         style={{
-          background: 'linear-gradient(160deg, rgba(253,246,236,0.75) 0%, rgba(249,237,218,0.55) 50%, rgba(253,246,236,0.75) 100%)',
+          background: 'linear-gradient(160deg, hsl(var(--background) / 0.75) 0%, hsl(var(--background) / 0.55) 50%, hsl(var(--background) / 0.75) 100%)',
         }}
       />
 
       {/* Soft decorative blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full opacity-20" style={{ background: 'radial-gradient(circle, #C9A84C 0%, transparent 70%)' }} />
-        <div className="absolute bottom-10 -left-20 w-80 h-80 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #C9A84C 0%, transparent 70%)' }} />
+        <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full opacity-20 gold-radial-blob" />
+        <div className="absolute bottom-10 -left-20 w-80 h-80 rounded-full opacity-10 gold-radial-blob" />
       </div>
 
       {/* Sparkle decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-        <span className="absolute top-24 left-[10%] text-2xl opacity-30 animate-float" style={{ color: '#C9A84C' }}>✦</span>
-        <span className="absolute top-40 right-[12%] text-xl opacity-25 animate-float-subtle" style={{ color: '#C9A84C' }}>★</span>
-        <span className="absolute bottom-32 left-[20%] text-lg opacity-20 animate-float" style={{ color: '#C9A84C', animationDelay: '1s' }}>✦</span>
-        <span className="absolute bottom-24 right-[18%] text-2xl opacity-20 animate-float-subtle" style={{ color: '#C9A84C', animationDelay: '0.5s' }}>✧</span>
+        <span className="absolute top-24 left-[10%] text-2xl opacity-30 animate-float text-accent">✦</span>
+        <span className="absolute top-40 right-[12%] text-xl opacity-25 animate-float-subtle text-accent">★</span>
+        <span className="absolute bottom-32 left-[20%] text-lg opacity-20 animate-float text-accent" style={{ animationDelay: '1s' }}>✦</span>
+        <span className="absolute bottom-24 right-[18%] text-2xl opacity-20 animate-float-subtle text-accent" style={{ animationDelay: '0.5s' }}>✧</span>
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -67,16 +66,14 @@ const HeroSection = () => {
 
           {/* Gold divider */}
           <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="h-px w-16" style={{ background: 'linear-gradient(to right, transparent, #C9A84C)' }} />
-            <span style={{ color: '#C9A84C' }}>✦</span>
-            <div className="h-px w-16" style={{ background: 'linear-gradient(to left, transparent, #C9A84C)' }} />
+            <div className="h-px w-16 gold-divider-right" />
+            <span className="text-accent">✦</span>
+            <div className="h-px w-16 gold-divider-left" />
           </div>
-
-
 
           <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight text-foreground">
             Because a Name Is the{" "}
-            <span style={{ color: '#C9A84C' }}>First Gift You Give Your Child</span>
+            <span className="text-accent">First Gift You Give Your Child</span>
           </h1>
 
           <p className="text-base md:text-lg mb-3 max-w-xl mx-auto leading-relaxed text-muted-foreground">
@@ -89,8 +86,7 @@ const HeroSection = () => {
             <Button
               onClick={scrollToForm}
               size="default"
-              className="w-auto font-bold text-sm md:text-lg shadow-xl hover:scale-105 transition-transform animate-pulse-glow animate-blinker border-none px-6 py-3 md:px-8 md:py-4"
-              style={{ background: 'linear-gradient(135deg, #C9A84C 0%, #e0bf6a 100%)', color: '#2C2C2C' }}
+              className="w-auto font-bold text-sm md:text-lg shadow-xl hover:scale-105 transition-transform animate-pulse-glow animate-blinker border-none px-6 py-3 md:px-8 md:py-4 bg-gold-cta text-accent-foreground"
             >
               Get Name Check @ ₹199
             </Button>
@@ -101,7 +97,7 @@ const HeroSection = () => {
           <div className="flex flex-col items-start sm:flex-row sm:flex-wrap sm:justify-center gap-2 md:gap-4 mb-6 text-left">
             {badges.map((badge, i) => (
               <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#C9A84C' }} />
+                <CheckCircle className="w-4 h-4 flex-shrink-0 text-accent" />
                 <span>{badge}</span>
               </div>
             ))}

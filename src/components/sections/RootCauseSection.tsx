@@ -25,32 +25,32 @@ const RootCauseSection = () => {
     <section
       ref={ref}
       className={`py-10 md:py-20 lg:py-28 relative overflow-hidden section-hidden ${isVisible ? 'section-visible' : ''}`}
-      style={{ background: 'linear-gradient(135deg, #2C2C2C 0%, #1a1a1a 100%)' }}
+      style={{ background: 'linear-gradient(135deg, hsl(var(--foreground)) 0%, #1a1a1a 100%)' }}
     >
       {/* Decorative blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%)' }} />
-        <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%)' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl" style={{ background: 'radial-gradient(circle, rgba(201,168,76,0.04) 0%, transparent 70%)' }} />
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl gold-radial-blob-subtle" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full blur-3xl gold-radial-blob-faint" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl gold-radial-center" />
       </div>
 
       {/* Gold divider top */}
       <div className="flex items-center justify-center gap-3 mb-10 relative z-10">
-        <div className="h-px w-16" style={{ background: 'linear-gradient(to right, transparent, #C9A84C)' }} />
-        <span style={{ color: '#C9A84C', fontSize: '1.2rem' }}>✦</span>
-        <div className="h-px w-16" style={{ background: 'linear-gradient(to left, transparent, #C9A84C)' }} />
+        <div className="h-px w-16 gold-divider-right" />
+        <span className="text-accent text-[1.2rem]">✦</span>
+        <div className="h-px w-16 gold-divider-left" />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-5xl mx-auto">
           {/* Heading block */}
           <div className="text-center mb-12 md:mb-16">
-            <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase mb-3" style={{ color: '#C9A84C' }}>The Philosophy</span>
+            <span className="inline-block text-xs md:text-sm font-semibold tracking-widest uppercase mb-3 text-accent">The Philosophy</span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-white mb-4 leading-tight">
               More Than Just a{" "}
-              <span style={{ color: '#C9A84C' }}>Beautiful Name</span>
+              <span className="text-accent">Beautiful Name</span>
             </h2>
-            <p className="text-lg md:text-xl italic text-white/70 mb-5" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+            <p className="text-lg md:text-xl italic text-white/70 mb-5 font-heading">
               Choose a name that grows with your child.
             </p>
             <p className="text-base md:text-lg text-white/65 max-w-3xl mx-auto leading-relaxed px-2">
@@ -63,34 +63,32 @@ const RootCauseSection = () => {
             {pillars.map((pillar, index) => (
               <div
                 key={index}
-                className="relative group rounded-3xl p-7 md:p-9 border border-white/10 backdrop-blur-xl transition-all duration-500 hover:-translate-y-3 cursor-default overflow-hidden"
-                style={{ background: 'rgba(255,255,255,0.05)' }}
+                className="relative group rounded-3xl p-7 md:p-9 border border-white/10 backdrop-blur-xl transition-all duration-500 hover:-translate-y-3 cursor-default overflow-hidden bg-white/5"
               >
                 {/* Hover glow background */}
-                <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'radial-gradient(circle at 50% 0%, rgba(201,168,76,0.12) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 gold-radial-blob-subtle" />
 
                 {/* Corner accents */}
-                <div className="absolute top-0 left-0 w-10 h-10 border-t-2 border-l-2 rounded-tl-3xl transition-all duration-500 group-hover:w-16 group-hover:h-16" style={{ borderColor: '#C9A84C' }} />
-                <div className="absolute bottom-0 right-0 w-10 h-10 border-b-2 border-r-2 rounded-br-3xl transition-all duration-500 group-hover:w-16 group-hover:h-16" style={{ borderColor: '#C9A84C' }} />
+                <div className="absolute top-0 left-0 w-10 h-10 border-t-2 border-l-2 rounded-tl-3xl transition-all duration-500 group-hover:w-16 group-hover:h-16 border-gold" />
+                <div className="absolute bottom-0 right-0 w-10 h-10 border-b-2 border-r-2 rounded-br-3xl transition-all duration-500 group-hover:w-16 group-hover:h-16 border-gold" />
 
                 {/* Outer glow on hover */}
-                <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ boxShadow: '0 0 60px rgba(201,168,76,0.15), inset 0 1px 0 rgba(201,168,76,0.2)' }} />
+                <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 gold-hover-glow" />
 
                 {/* Stylish icon — centered */}
                 <div className="relative mb-5 flex justify-center">
                   <div
-                    className="w-18 h-18 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-115 group-hover:rotate-6 animate-icon-bounce"
-                    style={{ width: '4.5rem', height: '4.5rem', background: 'linear-gradient(135deg, rgba(201,168,76,0.25) 0%, rgba(201,168,76,0.08) 100%)', border: '1.5px solid rgba(201,168,76,0.4)', boxShadow: '0 6px 24px rgba(201,168,76,0.18), inset 0 1px 0 rgba(255,255,255,0.08)' }}
+                    className="w-[4.5rem] h-[4.5rem] rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 animate-icon-bounce gold-icon-box"
                   >
-                    <span className="font-heading font-bold" style={{ color: '#C9A84C', fontSize: '2rem', textShadow: '0 0 12px rgba(201,168,76,0.4)' }}>{pillar.icon}</span>
+                    <span className="font-heading font-bold text-accent text-[2rem] gold-text-glow">{pillar.icon}</span>
                   </div>
                 </div>
 
-                <h3 className="text-xl md:text-2xl font-heading font-bold mb-3 text-center transition-colors duration-300" style={{ color: '#C9A84C' }}>{pillar.title}</h3>
+                <h3 className="text-xl md:text-2xl font-heading font-bold mb-3 text-center transition-colors duration-300 text-accent">{pillar.title}</h3>
                 <p className="text-white/65 text-sm md:text-base leading-relaxed text-center group-hover:text-white/85 transition-colors duration-300">{pillar.desc}</p>
 
                 {/* Bottom accent line — expands on hover */}
-                <div className="mt-6 h-px w-0 group-hover:w-full transition-all duration-500 rounded-full" style={{ background: 'linear-gradient(to right, #C9A84C, transparent)' }} />
+                <div className="mt-6 h-px w-0 group-hover:w-full transition-all duration-500 rounded-full gold-divider-fade" />
               </div>
             ))}
           </div>
@@ -99,9 +97,9 @@ const RootCauseSection = () => {
 
       {/* Gold divider bottom */}
       <div className="flex items-center justify-center gap-3 mt-10 relative z-10">
-        <div className="h-px w-16" style={{ background: 'linear-gradient(to right, transparent, #C9A84C)' }} />
-        <span style={{ color: '#C9A84C', fontSize: '1.2rem' }}>✦</span>
-        <div className="h-px w-16" style={{ background: 'linear-gradient(to left, transparent, #C9A84C)' }} />
+        <div className="h-px w-16 gold-divider-right" />
+        <span className="text-accent text-[1.2rem]">✦</span>
+        <div className="h-px w-16 gold-divider-left" />
       </div>
     </section>
   );

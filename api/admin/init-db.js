@@ -3,10 +3,36 @@ import '../suppress-deprecation.js';
 
 import { getPool, ensureSchemaOnce } from '../db.js';
 
+/** Success text returned by HTTP API and echoed by CLI */
+export const INIT_DB_MESSAGE =
+  'Schema ankshaastra verified/created (orders, customer_details, payment, emailDelivery).';
+
 /**
- * Manual trigger for schema creation (optional - tables auto-create on first DB use).
- * Call: GET /api/admin/init-db?secret=YOUR_INIT_DB_SECRET
- * Set INIT_DB_SECRET in Vercel env vars.
+ * Create / verify DB schema (idempotent). Shared by:
+ * - GET /api/admin/init-db?secret=...
+ * - `npm run db:setup` (CLI passes closePool: true)
+ *
+ * @param {{ closePool?: boolean }} options - use closePool: true only in CLI so the process can exit
+ * @returns {Promise<{ ok: true } | { ok: false, error: string, message: string }>}
+ */
+export async function initDatabaseSchema(options = {}) {
+  const { closePool = false } = options;
+  const pool = getPool();
+  if (!pool) {
+    return {
+      ok: false,
+      error: 'no_database',
+      message: 'Set DATABASE_URL in environment variables.',
+    };
+  }
+  await ensureSchemaOnce(true);
+  if (closePool) await pool.end();
+  return { ok: true };
+}
+
+/**
+ * Vercel serverless: GET /api/admin/init-db?secret=YOUR_INIT_DB_SECRET
+ * Set INIT_DB_SECRET in environment variables.
  */
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -16,20 +42,20 @@ export default async function handler(req, res) {
   const secret = process.env.INIT_DB_SECRET;
   const providedSecret = req.query.secret;
 
-  if (secret && providedSecret && secret === providedSecret) {
-    const p = getPool();
-    if (!p) {
-      return res.status(500).json({
-        error: 'Database not configured',
-        message: 'Set DATABASE_URL in environment variables.',
-      });
-    }
-    await ensureSchemaOnce(true);
-    return res.status(200).json({
-      success: true,
-      message: 'Tables verified/created (orders, customer_details, payment).',
+  if (!secret || !providedSecret || secret !== providedSecret) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  const result = await initDatabaseSchema({ closePool: false });
+  if (!result.ok) {
+    return res.status(500).json({
+      error: 'Database not configured',
+      message: result.message,
     });
   }
 
-  return res.status(403).json({ error: 'Forbidden' });
+  return res.status(200).json({
+    success: true,
+    message: INIT_DB_MESSAGE,
+  });
 }

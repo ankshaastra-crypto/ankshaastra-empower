@@ -8,11 +8,35 @@ import pg from 'pg';
 
 const { Pool } = pg;
 
+/** All app tables live in this schema (see api/admin/init-db.js). */
+export const DB_SCHEMA = 'ankshaastra';
+
 let pool = null;
 let schemaChecked = false;
 
+/**
+ * Drop legacy minimal `ankshaastra.orders` if present (UUID id, no order_id)
+ * so the real orders table can be created.
+ */
+const LEGACY_MIGRATION_SQL = `
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = '${DB_SCHEMA}' AND table_name = 'orders'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = '${DB_SCHEMA}' AND table_name = 'orders' AND column_name = 'order_id'
+  ) THEN
+    EXECUTE 'DROP TABLE IF EXISTS ${DB_SCHEMA}.orders CASCADE';
+  END IF;
+END $$;
+`;
+
 const SCHEMA_SQL = `
-CREATE TABLE IF NOT EXISTS orders (
+CREATE SCHEMA IF NOT EXISTS ${DB_SCHEMA};
+
+CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}.orders (
   order_id VARCHAR(100) PRIMARY KEY,
   amount DECIMAL(12, 2) NOT NULL,
   package_type VARCHAR(50) NOT NULL DEFAULT 'single',
@@ -20,9 +44,9 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS customer_details (
+CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}.customer_details (
   id SERIAL PRIMARY KEY,
-  order_id VARCHAR(100) NOT NULL REFERENCES orders(order_id) ON DELETE CASCADE,
+  order_id VARCHAR(100) NOT NULL REFERENCES ${DB_SCHEMA}.orders(order_id) ON DELETE CASCADE,
   email VARCHAR(255) NOT NULL,
   name VARCHAR(255) NOT NULL,
   mobile VARCHAR(20) NOT NULL,
@@ -62,25 +86,33 @@ CREATE TABLE IF NOT EXISTS customer_details (
   UNIQUE(order_id)
 );
 
-CREATE TABLE IF NOT EXISTS payment (
+CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}.payment (
   id SERIAL PRIMARY KEY,
-  order_id VARCHAR(100) NOT NULL REFERENCES orders(order_id) ON DELETE CASCADE,
+  order_id VARCHAR(100) NOT NULL REFERENCES ${DB_SCHEMA}.orders(order_id) ON DELETE CASCADE,
   transaction_id VARCHAR(255),
   amount_paise BIGINT NOT NULL DEFAULT 0,
   status VARCHAR(20) NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_customer_details_order_id ON customer_details(order_id);
-CREATE INDEX IF NOT EXISTS idx_payment_order_id ON payment(order_id);
-CREATE INDEX IF NOT EXISTS idx_payment_transaction_id ON payment(transaction_id);
-CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
-CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}."emailDelivery" (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL,
+  status TEXT,
+  sent_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_customer_details_order_id ON ${DB_SCHEMA}.customer_details(order_id);
+CREATE INDEX IF NOT EXISTS idx_payment_order_id ON ${DB_SCHEMA}.payment(order_id);
+CREATE INDEX IF NOT EXISTS idx_payment_transaction_id ON ${DB_SCHEMA}.payment(transaction_id);
+CREATE INDEX IF NOT EXISTS idx_orders_created_at ON ${DB_SCHEMA}.orders(created_at);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON ${DB_SCHEMA}.orders(status);
 `;
 
 /**
  * Ensure tables exist - runs once per serverless instance on first DB use.
- * Creates tables if they don't exist (idempotent).
+ * Creates schema `ankshaastra` and tables if they don't exist (idempotent).
  * @param {boolean} force - If true, run schema creation even if already checked (for manual init-db).
  */
 export async function ensureSchemaOnce(force = false) {
@@ -92,25 +124,38 @@ export async function ensureSchemaOnce(force = false) {
   }
   try {
     const r = await p.query(
-      `SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'orders'`
+      `SELECT 1 FROM information_schema.tables
+       WHERE table_schema = $1 AND table_name = 'orders'`,
+      [DB_SCHEMA]
     );
     if (r.rows && r.rows.length > 0) {
-      schemaChecked = true;
-      return;
+      const col = await p.query(
+        `SELECT 1 FROM information_schema.columns
+         WHERE table_schema = $1 AND table_name = 'orders' AND column_name = 'order_id'`,
+        [DB_SCHEMA]
+      );
+      if (col.rows && col.rows.length > 0) {
+        schemaChecked = true;
+        return;
+      }
     }
   } catch {
-    /* tables don't exist, fall through to create */
+    /* fall through to create */
   }
+
   try {
-    const statements = SCHEMA_SQL.split(';').map((s) => s.trim()).filter(Boolean);
+    await p.query(LEGACY_MIGRATION_SQL);
+
+    const statements = SCHEMA_SQL.split(';')
+      .map((s) => s.trim())
+      .filter(Boolean);
     for (const stmt of statements) {
       if (stmt) await p.query(stmt + ';');
     }
-    console.log('DB schema initialized (tables created)');
+    console.log(`DB schema initialized (${DB_SCHEMA}: orders, customer_details, payment, emailDelivery)`);
     schemaChecked = true;
   } catch (err) {
     console.error('ensureSchema error:', err.message);
-    // Don't set schemaChecked so we retry on next request
   }
 }
 
@@ -124,20 +169,21 @@ export function getPool() {
     if (!connectionString) {
       return null;
     }
-    // Supabase: SSL required, allow self-signed/intermediate certs (common with pooler)
-    const isSupabase = connectionString.includes('supabase');
-    if (isSupabase && !connectionString.includes('sslmode=')) {
-      connectionString += (connectionString.includes('?') ? '&' : '?') + 'sslmode=require';
-    }
+    // Strip sslmode from URI; use explicit ssl object below (pooler-friendly)
+    connectionString = connectionString.replace(/[?&]sslmode=[^&]*/g, '');
+    connectionString = connectionString.replace(/\?$/, '').replace(/\?&/, '?');
+
     const poolConfig = {
       connectionString,
       max: 5,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
+      connectionTimeoutMillis: 15000,
     };
-    if (isSupabase) {
+
+    if (connectionString.includes('supabase')) {
       poolConfig.ssl = { rejectUnauthorized: false };
     }
+
     pool = new Pool(poolConfig);
   }
   return pool;
@@ -167,20 +213,20 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
   await ensureSchemaOnce();
 
   const client = await p.connect();
+  const ord = `${DB_SCHEMA}.orders`;
+  const cust = `${DB_SCHEMA}.customer_details`;
   try {
     await client.query('BEGIN');
 
-    // Insert order
     await client.query(
-      `INSERT INTO orders (order_id, amount, package_type, status)
+      `INSERT INTO ${ord} (order_id, amount, package_type, status)
        VALUES ($1, $2, $3, 'PENDING')
        ON CONFLICT (order_id) DO UPDATE SET amount = EXCLUDED.amount, package_type = EXCLUDED.package_type`,
       [orderId, amount, packageType || 'single']
     );
 
-    // Insert/update customer details
     await client.query(
-      `INSERT INTO customer_details (
+      `INSERT INTO ${cust} (
         order_id, email, name, mobile, dob, gender, city, pin_code,
         person1_name, person1_first_name, person1_middle_name, person1_middle_name_type, person1_sur_name, person1_dob, person1_gender,
         person2_name, person2_first_name, person2_middle_name, person2_middle_name_type, person2_sur_name, person2_dob, person2_gender,
@@ -262,19 +308,20 @@ export async function savePayment(orderId, transactionId, amountPaise, status) {
 
   await ensureSchemaOnce();
 
+  const ord = `${DB_SCHEMA}.orders`;
+  const pay = `${DB_SCHEMA}.payment`;
+
   try {
-    // Ensure order exists (webhook may fire before user returns; order created at initiate-payment)
     const amountRupees = (amountPaise || 0) / 100;
     await p.query(
-      `INSERT INTO orders (order_id, amount, package_type, status)
+      `INSERT INTO ${ord} (order_id, amount, package_type, status)
        VALUES ($1, $2, 'single', $3)
        ON CONFLICT (order_id) DO UPDATE SET status = EXCLUDED.status`,
       [orderId, amountRupees, status]
     );
 
-    // Insert payment record
     await p.query(
-      `INSERT INTO payment (order_id, transaction_id, amount_paise, status)
+      `INSERT INTO ${pay} (order_id, transaction_id, amount_paise, status)
        VALUES ($1, $2, $3, $4)`,
       [orderId, transactionId || null, amountPaise || 0, status]
     );
@@ -295,6 +342,10 @@ export async function getOrders() {
 
   await ensureSchemaOnce();
 
+  const ord = `${DB_SCHEMA}.orders`;
+  const cust = `${DB_SCHEMA}.customer_details`;
+  const pay = `${DB_SCHEMA}.payment`;
+
   try {
     const result = await p.query(`
       SELECT 
@@ -305,11 +356,11 @@ export async function getOrders() {
         c.person3_name, c.person3_first_name, c.person3_middle_name, c.person3_sur_name, c.person3_dob, c.person3_gender,
         c.father_first_name, c.father_middle_name, c.father_last_name, c.child_dob, c.time_of_birth, c.place_of_birth,
         p.id as payment_id, p.transaction_id, p.amount_paise, p.status as payment_status, p.created_at as payment_created_at
-      FROM orders o
-      LEFT JOIN customer_details c ON o.order_id = c.order_id
+      FROM ${ord} o
+      LEFT JOIN ${cust} c ON o.order_id = c.order_id
       LEFT JOIN (
         SELECT DISTINCT ON (order_id) id, order_id, transaction_id, amount_paise, status, created_at
-        FROM payment
+        FROM ${pay}
         ORDER BY order_id, created_at DESC
       ) p ON o.order_id = p.order_id
       ORDER BY o.created_at DESC

@@ -6,7 +6,7 @@ Production-ready payment processing system with PhonePe integration and email no
 
 - PhonePe Payment Integration
 - Email Notifications (Customer & Admin)
-- PostgreSQL Database (orders, customer_details, payment)
+- PostgreSQL Database (`ankshaastra` schema: orders, customer_details, payment, emailDelivery)
 - Redis Caching & Rate Limiting
 - Production-Ready & Serverless-Friendly
 
@@ -45,8 +45,8 @@ ENCRYPTION_KEY=your_32_character_key
 **Optional (required for /admin/orders):**
 
 ```bash
-# PostgreSQL - stores orders, customer details, and payments
-DATABASE_URL=postgresql://user:password@host:5432/database?sslmode=require
+# PostgreSQL — use Supabase Session/Transaction pooler URI (port 6543) on IPv4-only networks
+DATABASE_URL=postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
 
 REDIS_URL=redis://localhost:6379
 NODE_ENV=development
@@ -75,18 +75,28 @@ openssl rand -hex 32
 
 ### Database Setup (PostgreSQL / Supabase)
 
+All app tables live in the **`ankshaastra`** schema: `orders`, `customer_details`, `payment`, and `emailDelivery` (for future email tracking). The API (`api/db.js`) creates them automatically.
+
+**IPv6 note:** Supabase **direct** DB host (`db.*.supabase.co:5432`) is **IPv6-only** by default. Use the **Session** or **Transaction pooler** URI from the dashboard (usually `*.pooler.supabase.com`, port **6543**) so local dev and Vercel can connect on IPv4.
+
 **For Supabase + Vercel (recommended):**
 
 1. Create a project at [supabase.com](https://supabase.com) → **New Project**.
-2. In Supabase: **Project Settings** → **Database** → under **Connection pooling**, copy the **URI** (port 6543, host `aws-0-XX.pooler.supabase.com`). **Do not use** the direct connection (`db.xxx.supabase.co`) — it can fail with ENOTFOUND on serverless.
-3. In Vercel: **Settings** → **Environment Variables** → add `DATABASE_URL` = pooler URI (encode `@` in password as `%40`).
-4. **Deploy** your app to Vercel.
+2. **Project Settings** → **Database** → **Connection string** → copy the **pooler** URI (not the direct host if you hit connection timeouts).
+3. In Vercel: **Environment Variables** → set `DATABASE_URL` (encode `@` in password as `%40` if you build the URL by hand).
+4. **Deploy** your app.
 
-**Tables are created automatically** on first use (first order, first admin page load, or first payment). No manual setup needed.
+**Tables are created automatically** on first use (first order, first `/admin/orders` load, or first payment).
 
-**Optional:** Call `/api/admin/init-db?secret=YOUR_INIT_DB_SECRET` to create tables immediately (set `INIT_DB_SECRET` in Vercel).
+**Manual setup (optional):** same code path as the HTTP init endpoint.
 
-**Tables:** `orders`, `customer_details`, `payment`
+```bash
+npm run db:setup
+```
+
+Requires `DATABASE_URL` in `.env`. Same as `GET /api/admin/init-db?secret=...` — both use `initDatabaseSchema` in `api/admin/init-db.js` (CLI wrapper: `scripts/db-setup.mjs`).
+
+**HTTP:** `GET /api/admin/init-db?secret=YOUR_INIT_DB_SECRET` — set `INIT_DB_SECRET` in Vercel.
 
 ## Development
 

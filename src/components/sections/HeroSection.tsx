@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Users, Star, Shield } from "lucide-react";
 import heroBg from "@/assets/hero-mother-baby-3.jpg";

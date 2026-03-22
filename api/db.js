@@ -110,6 +110,9 @@ CREATE INDEX IF NOT EXISTS idx_orders_created_at ON ${DB_SCHEMA}.orders(created_
 CREATE INDEX IF NOT EXISTS idx_orders_status ON ${DB_SCHEMA}.orders(status);
 `;
 
+/** Must all exist before we skip running SCHEMA_SQL (avoids partial deploys where only `orders` was created). */
+const REQUIRED_TABLES = ['orders', 'customer_details', 'payment', 'emailDelivery'];
+
 /**
  * Ensure tables exist - runs once per serverless instance on first DB use.
  * Creates schema `ankshaastra` and tables if they don't exist (idempotent).
@@ -123,21 +126,16 @@ export async function ensureSchemaOnce(force = false) {
     return;
   }
   try {
-    const r = await p.query(
-      `SELECT 1 FROM information_schema.tables
-       WHERE table_schema = $1 AND table_name = 'orders'`,
-      [DB_SCHEMA]
+    const tbl = await p.query(
+      `SELECT table_name FROM information_schema.tables
+       WHERE table_schema = $1 AND table_name = ANY($2::text[])`,
+      [DB_SCHEMA, REQUIRED_TABLES]
     );
-    if (r.rows && r.rows.length > 0) {
-      const col = await p.query(
-        `SELECT 1 FROM information_schema.columns
-         WHERE table_schema = $1 AND table_name = 'orders' AND column_name = 'order_id'`,
-        [DB_SCHEMA]
-      );
-      if (col.rows && col.rows.length > 0) {
-        schemaChecked = true;
-        return;
-      }
+    const found = new Set(tbl.rows.map((row) => row.table_name));
+    const allPresent = REQUIRED_TABLES.every((name) => found.has(name));
+    if (allPresent) {
+      schemaChecked = true;
+      return;
     }
   } catch {
     /* fall through to create */

@@ -190,28 +190,28 @@ const PricingSection = () => {
 
         {/* Mobile: Tab toggle */}
         <div className="md:hidden max-w-sm mx-auto mb-6">
-          <div className="flex bg-muted rounded-xl p-1 relative">
+          <div className="flex bg-card rounded-2xl p-1.5 relative border border-border shadow-lg">
             {/* Sliding indicator */}
             <div
-              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg transition-all duration-300 ease-in-out ${
+              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] rounded-xl transition-all duration-300 ease-in-out ${
                 activeTab === "single"
-                  ? "left-1 bg-accent shadow-gold"
-                  : "left-[calc(50%+2px)] bg-secondary shadow-md"
+                  ? "left-1.5 bg-accent shadow-gold"
+                  : "left-[calc(50%+3px)] bg-secondary shadow-md"
               }`}
             />
             <button
               onClick={() => setActiveTab("single")}
-              className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-colors duration-300 relative z-10 ${
+              className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-colors duration-300 relative z-10 ${
                 activeTab === "single"
                   ? "text-accent-foreground"
                   : "text-muted-foreground"
               }`}
             >
-              ✨ Baby Name
+              ✨ Perfect Baby Name
             </button>
             <button
               onClick={() => setActiveTab("namecheck")}
-              className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-colors duration-300 relative z-10 ${
+              className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-colors duration-300 relative z-10 ${
                 activeTab === "namecheck"
                   ? "text-secondary-foreground"
                   : "text-muted-foreground"
@@ -220,7 +220,7 @@ const PricingSection = () => {
               🔍 Name Check
             </button>
           </div>
-          <p className="text-center text-xs text-muted-foreground mt-2">← Swipe to compare plans →</p>
+          <p className="text-center text-[11px] text-muted-foreground mt-2 opacity-60">Tap to switch plans</p>
         </div>
 
         {/* Mobile: show active tab card only */}

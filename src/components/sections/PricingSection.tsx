@@ -122,9 +122,9 @@ const PricingSection = () => {
   );
 
   const SingleReportCard = () => (
-    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow animate-border-glow bg-card">
-      <div className="absolute -top-4 left-1/2 -translate-x-1/2 animate-float-subtle">
-        <span className="bg-accent text-accent-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-gold">
+    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow animate-border-glow bg-card mt-6">
+      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
+        <span className="bg-accent text-accent-foreground text-xs font-bold px-4 py-1 rounded-full shadow-gold whitespace-nowrap leading-none">
           MOST POPULAR
         </span>
       </div>
@@ -164,7 +164,7 @@ const PricingSection = () => {
         onClick={() => scrollToForm("single")}
       >
         <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
-          Get Single Report
+          Get Perfect Baby Name Analysis
         </span>
       </Button>
 
@@ -189,27 +189,38 @@ const PricingSection = () => {
         </div>
 
         {/* Mobile: Tab toggle */}
-        <div className="md:hidden flex gap-1 max-w-sm mx-auto mb-6 bg-muted rounded-xl p-1">
-          <button
-            onClick={() => setActiveTab("single")}
-            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${
-              activeTab === "single"
-                ? "bg-accent text-accent-foreground shadow-gold"
-                : "text-muted-foreground"
-            }`}
-          >
-            Perfect Baby Name
-          </button>
-          <button
-            onClick={() => setActiveTab("namecheck")}
-            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-300 ${
-              activeTab === "namecheck"
-                ? "bg-secondary text-secondary-foreground shadow-md"
-                : "text-muted-foreground"
-            }`}
-          >
-            Name Check
-          </button>
+        <div className="md:hidden max-w-sm mx-auto mb-6">
+          <div className="flex bg-muted rounded-xl p-1 relative">
+            {/* Sliding indicator */}
+            <div
+              className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg transition-all duration-300 ease-in-out ${
+                activeTab === "single"
+                  ? "left-1 bg-accent shadow-gold"
+                  : "left-[calc(50%+2px)] bg-secondary shadow-md"
+              }`}
+            />
+            <button
+              onClick={() => setActiveTab("single")}
+              className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-colors duration-300 relative z-10 ${
+                activeTab === "single"
+                  ? "text-accent-foreground"
+                  : "text-muted-foreground"
+              }`}
+            >
+              ✨ Baby Name
+            </button>
+            <button
+              onClick={() => setActiveTab("namecheck")}
+              className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-colors duration-300 relative z-10 ${
+                activeTab === "namecheck"
+                  ? "text-secondary-foreground"
+                  : "text-muted-foreground"
+              }`}
+            >
+              🔍 Name Check
+            </button>
+          </div>
+          <p className="text-center text-xs text-muted-foreground mt-2">← Swipe to compare plans →</p>
         </div>
 
         {/* Mobile: show active tab card only */}

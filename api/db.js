@@ -230,7 +230,7 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
         person2_name, person2_first_name, person2_middle_name, person2_middle_name_type, person2_sur_name, person2_dob, person2_gender,
         person3_name, person3_first_name, person3_middle_name, person3_middle_name_type, person3_sur_name, person3_dob, person3_gender,
         father_first_name, father_middle_name, father_middle_name_type, father_last_name, child_dob, time_of_birth, place_of_birth
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36)
       ON CONFLICT (order_id) DO UPDATE SET
         email = EXCLUDED.email, name = EXCLUDED.name, mobile = EXCLUDED.mobile, dob = EXCLUDED.dob, gender = EXCLUDED.gender,
         city = EXCLUDED.city, pin_code = EXCLUDED.pin_code,

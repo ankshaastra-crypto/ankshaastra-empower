@@ -106,23 +106,34 @@ export default async function handler(req, res) {
       });
     }
 
-    // Check multiple possible success indicators from PhonePe
+    // Check multiple possible success indicators from PhonePe (status API shapes vary)
+    const d = paymentData.data;
+    const d2 = d?.data;
     const isSuccess =
       paymentData.code === 'PAYMENT_SUCCESS' ||
       paymentData.code === 'SUCCESS' ||
+      d?.code === 'PAYMENT_SUCCESS' ||
+      d?.code === 'SUCCESS' ||
       paymentData.success === true ||
-      (paymentData.data && paymentData.data.state === 'COMPLETED') ||
-      (paymentData.data && paymentData.data.responseCode === 'SUCCESS') ||
+      (d && d.state === 'COMPLETED') ||
+      (d2 && d2.state === 'COMPLETED') ||
+      (d && d.responseCode === 'SUCCESS') ||
+      (d2 && d2.responseCode === 'SUCCESS') ||
       (paymentData.state === 'COMPLETED');
 
     const paymentStatus = isSuccess ? 'SUCCESS' : 'FAILED';
 
     // Payment status determined
     const orderId = merchantTransactionId;
-    const transactionId = paymentData.data?.transactionId || paymentData.data?.merchantTransactionId || '';
+    const transactionId =
+      d?.transactionId ||
+      d2?.transactionId ||
+      d?.merchantTransactionId ||
+      d2?.merchantTransactionId ||
+      '';
     // PhonePe returns amount in paise (e.g., 199700 = ₹1997)
     // Convert to rupees for API response (user-friendly)
-    const amountInPaise = paymentData.data?.amount || 0;
+    const amountInPaise = d?.amount ?? d2?.amount ?? paymentData.amount ?? 0;
     const amount = amountInPaise > 0 ? amountInPaise / 100 : 0; // Convert paise to rupees for API response
 
     // Extract metaInfo from PhonePe response (PhonePe returns it as metaInfo at data.data.metaInfo)
@@ -294,6 +305,14 @@ export default async function handler(req, res) {
     const placeOfBirth = (decryptedData.placeOfBirth && decryptedData.placeOfBirth.trim()) || '';
     const pinCode = (decryptedData.pinCode && decryptedData.pinCode.trim()) ||
       getQueryParam('pinCode') || (metadata.pinCode && metadata.pinCode.trim()) || '';
+
+    // Persist order + payment (browser redirect flow — do not rely on webhook alone)
+    try {
+      const { savePayment } = await import('./db.js');
+      await savePayment(orderId, transactionId, amountInPaise, paymentStatus);
+    } catch (dbError) {
+      console.error('DB save order error:', dbError?.message || dbError);
+    }
 
     // Send payment confirmation emails (customer and admin)
     if (customerEmail && customerEmail.trim() !== '') {

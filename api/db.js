@@ -332,6 +332,26 @@ export async function savePayment(orderId, transactionId, amountPaise, status) {
 }
 
 /**
+ * Log a sent email for analytics/debugging (optional table `emailDelivery`).
+ */
+export async function recordEmailDelivery(email, deliveryStatus = 'sent') {
+  const p = getPool();
+  if (!p || !email) return false;
+  await ensureSchemaOnce();
+  try {
+    await p.query(
+      `INSERT INTO ${DB_SCHEMA}."emailDelivery" (email, status, sent_at)
+       VALUES ($1, $2, NOW())`,
+      [email, deliveryStatus]
+    );
+    return true;
+  } catch (error) {
+    console.error('recordEmailDelivery error:', error.message);
+    return false;
+  }
+}
+
+/**
  * Fetch all orders with customer details and payments (for admin)
  */
 export async function getOrders() {

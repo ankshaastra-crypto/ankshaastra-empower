@@ -2,6 +2,7 @@
 import './suppress-deprecation.js';
 
 import nodemailer from 'nodemailer';
+import { recordEmailDelivery } from './db.js';
 
 // Reuse transporter instance (singleton pattern) for better performance
 let transporterInstance = null;
@@ -696,6 +697,11 @@ export async function sendPaymentEmail({
       if (customerEmailResult && customerEmailResult.messageId) {
         customerSuccess = true;
         console.log(`✅ Customer email sent successfully! Message ID: ${customerEmailResult.messageId}`);
+        try {
+          await recordEmailDelivery(customerEmail, 'sent');
+        } catch {
+          /* non-fatal */
+        }
       } else {
         customerError = new Error("Email sent but no messageId returned");
         console.error("❌ Customer email sent but invalid response");

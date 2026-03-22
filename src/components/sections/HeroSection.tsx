@@ -19,11 +19,6 @@ const HeroSection = () => {
     if (formSection) formSection.scrollIntoView({ behavior: "smooth" });
   };
 
-  const badges = [
-    "10+ meaningful, numerologically aligned name options",
-    "Complete Mulank & Bhagyank analysis",
-    "Trusted by thousands of parents",
-  ];
 
   return (
     <section

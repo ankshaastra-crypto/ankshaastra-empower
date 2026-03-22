@@ -49,28 +49,16 @@ const GoogleReviewsBadge = () => {
 
   const badges = [
     {
-      icon: <GoogleIcon className="w-5 h-5" />,
-      iconBg: "hsl(42 55% 54% / 0.12)",
-      value: "4.9 ★",
-      sub: "70+ Reviews",
-    },
-    {
-      icon: <SecurePaymentIcon className="w-5 h-5 text-accent" />,
-      iconBg: "hsl(42 55% 54% / 0.12)",
-      value: "100% Secure",
-      sub: "SSL Encrypted",
-    },
-    {
-      icon: <DeliveryIcon className="w-5 h-5 text-accent" />,
-      iconBg: "hsl(42 55% 54% / 0.12)",
-      value: "24-48 hrs",
-      sub: "Delivery Promise",
-    },
-    {
       icon: <FamiliesIcon className="w-5 h-5 text-accent" />,
       iconBg: "hsl(42 55% 54% / 0.12)",
       value: "5000+",
-      sub: "Happy Families",
+      sub: "Families Served",
+    },
+    {
+      icon: <GoogleIcon className="w-5 h-5" />,
+      iconBg: "hsl(42 55% 54% / 0.12)",
+      value: "4.9 ★",
+      sub: "Average Rating",
     },
   ];
 
@@ -83,22 +71,19 @@ const GoogleReviewsBadge = () => {
   return (
     <section className="py-8 md:py-12 bg-muted/50" ref={ref}>
       <div className="container mx-auto px-4">
-        {/* Trust Badges Row */}
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mb-8 md:mb-10">
+        {/* Trust Stats - Black box with gold text */}
+        <div className="flex items-center justify-center gap-4 md:gap-8 mb-8 md:mb-10">
           {badges.map((badge, i) => (
             <div
               key={i}
-              className="flex items-center gap-3 rounded-xl px-4 py-3 bg-card shadow-sm border border-border hover:shadow-md transition-shadow duration-300"
+              className="flex items-center gap-3 rounded-xl px-5 py-4 md:px-8 md:py-5 bg-primary border border-accent/20 shadow-lg"
             >
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: badge.iconBg }}
-              >
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-accent/15">
                 {badge.icon}
               </div>
               <div className="text-left">
-                <div className="text-sm font-semibold text-foreground leading-tight">{badge.value}</div>
-                <div className="text-xs text-muted-foreground">{badge.sub}</div>
+                <div className="text-lg md:text-xl font-heading font-bold text-accent leading-tight">{badge.value}</div>
+                <div className="text-xs md:text-sm text-white/70">{badge.sub}</div>
               </div>
             </div>
           ))}

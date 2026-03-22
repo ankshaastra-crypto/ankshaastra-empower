@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Users, Star, Shield } from "lucide-react";
 import heroBg from "@/assets/hero-mother-baby-3.jpg";
@@ -20,11 +19,6 @@ const HeroSection = () => {
     if (formSection) formSection.scrollIntoView({ behavior: "smooth" });
   };
 
-  const badges = [
-    "10+ meaningful, numerologically aligned name options",
-    "Complete Mulank & Bhagyank analysis",
-    "Trusted by thousands of parents",
-  ];
 
   return (
     <section
@@ -82,7 +76,7 @@ const HeroSection = () => {
             — based on Numerology & Vedic principles, aligned to your child's birth energy.
           </p>
 
-          <div className="mb-6">
+          <div className="my-8 md:my-10">
             <Button
               onClick={scrollToForm}
               size="default"
@@ -90,30 +84,20 @@ const HeroSection = () => {
             >
               Get Name Check @ ₹199
             </Button>
-            <p className="text-xs mt-3 text-muted-foreground">Limited Reports this week — Book Early · Delivered within 24–48 Hours</p>
+            <p className="text-xs mt-4 text-muted-foreground">Limited Reports this week — Book Early · Delivered within 24–48 Hours</p>
           </div>
 
-          {/* Badges */}
-          <div className="flex flex-col items-start sm:flex-row sm:flex-wrap sm:justify-center gap-2 md:gap-4 mb-6 text-left">
-            {badges.map((badge, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle className="w-4 h-4 flex-shrink-0 text-accent" />
-                <span>{badge}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Static trust stats */}
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
+          {/* Static trust stats — bigger & bolder */}
+          <div className="flex flex-wrap justify-center gap-6 sm:gap-10">
             {[
-              { icon: Users, value: "5000+", label: "Reports Delivered" },
-              { icon: Star, value: "4.9/5", label: "Parent Rating" },
+              { icon: Users, value: "5000+", label: "Reports" },
+              { icon: Star, value: "4.9/5", label: "Rating" },
               { icon: Shield, value: "100%", label: "Satisfaction" },
             ].map((stat, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <stat.icon className="w-4 h-4 text-accent" />
-                <span className="font-heading font-bold text-foreground text-sm sm:text-base">{stat.value}</span>
-                <span className="text-muted-foreground text-xs sm:text-sm">{stat.label}</span>
+              <div key={i} className="flex flex-col items-center gap-1">
+                <stat.icon className="w-6 h-6 md:w-7 md:h-7 text-accent" />
+                <span className="font-heading font-extrabold text-foreground text-xl md:text-2xl">{stat.value}</span>
+                <span className="text-muted-foreground text-xs">{stat.label}</span>
               </div>
             ))}
           </div>

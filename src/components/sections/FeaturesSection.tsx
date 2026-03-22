@@ -30,12 +30,14 @@ const FeaturesSection = () => {
   ];
 
   const highlights = [
-    "10+ meaningful, numerologically aligned name options",
-    "Personal Loshu Grid Analysis",
-    "Based on Numerology & Vedic principles",
-    "Trusted by thousands of happy parents",
-    "Delivered within 24–48 Hours",
-    "Written in English, easy to understand",
+    "10+ Numerologically Aligned Name Options",
+    "Child's Mulank & Bhagyank Analysis",
+    "First Name & Full Name Analysis",
+    "Compound Number Analysis",
+    "Personal Loshu Grid",
+    "First Alphabet Analysis",
+    "PDF Report (50+ Pages)",
+    "Call Consultation Included",
   ];
 
   const toggleFeature = (index: number) => {

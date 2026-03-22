@@ -51,6 +51,28 @@ interface PaymentData {
   data?: unknown;
 }
 
+/** Loaded from `public/invoice-data.json` for PDF/print template placeholders */
+interface InvoiceTemplateData {
+  company?: {
+    name?: string;
+    description?: string;
+    address?: string;
+    phone?: string;
+    email?: string;
+    gstin?: string;
+  };
+  bankDetails?: {
+    name?: string;
+    accountNumber?: string;
+    ifsc?: string;
+    accountHolder?: string;
+    branch?: string;
+  };
+  upiDetails?: { upiId?: string };
+  notes?: string[];
+  terms?: string[];
+}
+
 const PaymentStatus = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -420,7 +442,7 @@ const PaymentStatus = () => {
   const populateInvoiceTemplate = (
     template: string,
     data: PaymentData,
-    invoiceData: any = null,
+    invoiceData: InvoiceTemplateData | null = null,
     fallback?: { email?: string; name?: string; mobile?: string }
   ): string => {
     const invoiceDate = new Date().toLocaleDateString("en-GB", {

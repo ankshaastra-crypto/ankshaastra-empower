@@ -387,7 +387,7 @@ const OrderFormSection = () => {
     const price = getPrice();
     const orderId = "ORD" + Date.now() + "-" + Math.random().toString(36).substring(2, 8);
 
-    let orderPayload: Record<string, any>;
+    let orderPayload: Record<string, unknown>;
 
     if (packageType === "single") {
       const fatherFullName = [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ").trim();
@@ -420,7 +420,11 @@ const OrderFormSection = () => {
       };
     }
 
-    try { localStorage.setItem(`order_${orderId}`, JSON.stringify(orderPayload)); } catch {}
+    try {
+      localStorage.setItem(`order_${orderId}`, JSON.stringify(orderPayload));
+    } catch {
+      /* storage full or disabled */
+    }
     trackInitiateCheckout(price, "INR", packageType);
 
     try {

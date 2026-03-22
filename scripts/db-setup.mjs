@@ -4,7 +4,7 @@
  *   npm run db:setup
  */
 import 'dotenv/config';
-import { initDatabaseSchema, INIT_DB_MESSAGE } from '../admin/init-db.js';
+import { initDatabaseSchema, INIT_DB_MESSAGE } from '../api/admin/init-db.js';
 
 async function main() {
   if (!process.env.DATABASE_URL) {

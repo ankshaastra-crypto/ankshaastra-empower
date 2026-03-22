@@ -1,5 +1,10 @@
 -- PostgreSQL Schema for Ankshaastra Payment System
--- Run this script to create the database tables
+--
+-- Source of truth at runtime: `api/db.js` (`ensureSchemaOnce` / SCHEMA_SQL).
+-- The app creates schema `ankshaastra` with tables orders, customer_details,
+-- payment, and emailDelivery (see README). This file documents the same logical
+-- shape for the three core tables in `public` for manual DBA / reference only.
+-- Prefer `npm run db:setup` or GET /api/admin/init-db for provisioning.
 
 -- Orders table (primary table - order_id is the merchant transaction ID)
 CREATE TABLE IF NOT EXISTS orders (

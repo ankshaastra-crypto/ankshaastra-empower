@@ -84,7 +84,13 @@ const HeroSection = () => {
             >
               Get Name Check @ ₹199
             </Button>
-            <p className="text-xs mt-4 text-muted-foreground">Limited Reports this week — Book Early · Delivered within 24–48 Hours</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 mt-4 text-xs text-muted-foreground">
+              <span>✦ 10+ Numerologically Aligned Names</span>
+              <span className="hidden sm:inline">·</span>
+              <span>✦ Delivered within 24–48 Hours</span>
+              <span className="hidden sm:inline">·</span>
+              <span>✦ First Name, Full Name & Compound Number Analysis</span>
+            </div>
           </div>
 
           {/* Static trust stats — bigger & bolder */}

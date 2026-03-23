@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Users, Star, Shield } from "lucide-react";
 import heroBg1 from "@/assets/hero-option-1-golden-mother.jpg";
@@ -8,8 +8,15 @@ import heroBg4 from "@/assets/hero-option-4-cosmic-baby.jpg";
 
 const heroImages = [heroBg1, heroBg2, heroBg3, heroBg4];
 
+// Rotate hero image every 7 days based on current date
+const getWeeklyImage = () => {
+  const weekIndex = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % heroImages.length;
+  return heroImages[weekIndex];
+};
+
 const HeroSection = () => {
   const [parallaxY, setParallaxY] = useState(0);
+  const heroBg = getWeeklyImage();
 
   useEffect(() => {
     const handleScroll = () => {

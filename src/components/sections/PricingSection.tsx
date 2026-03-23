@@ -60,18 +60,17 @@ const PricingSection = () => {
         <p className="text-muted-foreground text-sm">Find out if you need a name correction</p>
       </div>
 
-      <div className="flex gap-1.5 mb-4 bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 rounded-xl p-1.5 border border-border/80 shadow-sm relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-secondary/5 to-transparent animate-shimmer pointer-events-none" />
+      <div className="flex gap-2 mb-4 bg-muted/50 rounded-xl p-1.5 border border-border">
         {([1, 2, 3] as const).map((num) => {
           const discountLabel = num === 2 ? "10% OFF" : num === 3 ? "15% OFF" : null;
           return (
             <button
               key={num}
               onClick={() => setSelectedNameCheckPlan(num)}
-              className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-bold transition-all duration-200 relative z-10 ${
+              className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-bold transition-all duration-200 relative ${
                 selectedNameCheckPlan === num
-                  ? "bg-gradient-to-br from-secondary to-secondary/80 text-secondary-foreground shadow-md scale-[1.02]"
-                  : "text-muted-foreground hover:bg-muted/80"
+                  ? "bg-secondary text-secondary-foreground shadow-md scale-[1.02]"
+                  : "text-muted-foreground hover:bg-muted"
               }`}
             >
               {num} Name{num !== 1 ? "s" : ""}
@@ -199,45 +198,37 @@ const PricingSection = () => {
 
         {/* Mobile: Tab toggle */}
         <div className="md:hidden max-w-sm mx-auto mb-6">
-          <div className="flex bg-gradient-to-r from-card via-muted/30 to-card rounded-2xl p-1.5 relative border border-accent/20 shadow-xl overflow-hidden">
-            {/* Decorative shimmer */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-accent/5 to-transparent animate-shimmer pointer-events-none" />
+          <div className="flex bg-card rounded-2xl p-1.5 relative border border-border shadow-lg">
             {/* Sliding indicator */}
             <div
-              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] rounded-xl transition-all duration-400 ease-in-out ${
+              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] rounded-xl transition-all duration-300 ease-in-out ${
                 activeTab === "single"
-                  ? "left-1.5 bg-gradient-to-br from-accent to-accent/80 shadow-gold"
-                  : "left-[calc(50%+3px)] bg-gradient-to-br from-secondary to-secondary/80 shadow-md"
+                  ? "left-1.5 bg-accent shadow-gold"
+                  : "left-[calc(50%+3px)] bg-secondary shadow-md"
               }`}
             />
             <button
               onClick={() => setActiveTab("single")}
-              className={`flex-1 py-3.5 px-4 rounded-xl text-sm font-bold transition-all duration-300 relative z-10 flex flex-col items-center gap-0.5 ${
+              className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-colors duration-300 relative z-10 ${
                 activeTab === "single"
-                  ? "text-accent-foreground drop-shadow-sm"
+                  ? "text-accent-foreground"
                   : "text-muted-foreground"
               }`}
             >
-              <span>✨ Perfect Baby Name</span>
-              {activeTab !== "single" && (
-                <span className="text-[9px] font-semibold text-accent opacity-80">POPULAR</span>
-              )}
+              ✨ Perfect Baby Name
             </button>
             <button
               onClick={() => setActiveTab("namecheck")}
-              className={`flex-1 py-3.5 px-4 rounded-xl text-sm font-bold transition-all duration-300 relative z-10 flex flex-col items-center gap-0.5 ${
+              className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-colors duration-300 relative z-10 ${
                 activeTab === "namecheck"
-                  ? "text-secondary-foreground drop-shadow-sm"
+                  ? "text-secondary-foreground"
                   : "text-muted-foreground"
               }`}
             >
-              <span>🔍 Name Check</span>
-              {activeTab !== "namecheck" && (
-                <span className="text-[9px] font-semibold text-secondary opacity-80">FROM ₹199</span>
-              )}
+              🔍 Name Check
             </button>
           </div>
-          <p className="text-center text-[11px] text-muted-foreground mt-2.5 opacity-50 tracking-wide">✦ Tap to switch plans ✦</p>
+          <p className="text-center text-[11px] text-muted-foreground mt-2 opacity-60">Tap to switch plans</p>
         </div>
 
         {/* Mobile: show active tab card only */}

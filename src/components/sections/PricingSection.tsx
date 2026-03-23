@@ -61,19 +61,27 @@ const PricingSection = () => {
       </div>
 
       <div className="flex gap-2 mb-4 bg-muted/50 rounded-xl p-1.5 border border-border">
-        {([1, 2, 3] as const).map((num) => (
-          <button
-            key={num}
-            onClick={() => setSelectedNameCheckPlan(num)}
-            className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-bold transition-all duration-200 ${
-              selectedNameCheckPlan === num
-                ? "bg-secondary text-secondary-foreground shadow-md scale-[1.02]"
-                : "text-muted-foreground hover:bg-muted"
-            }`}
-          >
-            {num} Name{num !== 1 ? "s" : ""}
-          </button>
-        ))}
+        {([1, 2, 3] as const).map((num) => {
+          const discountLabel = num === 2 ? "10% OFF" : num === 3 ? "15% OFF" : null;
+          return (
+            <button
+              key={num}
+              onClick={() => setSelectedNameCheckPlan(num)}
+              className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-bold transition-all duration-200 relative ${
+                selectedNameCheckPlan === num
+                  ? "bg-secondary text-secondary-foreground shadow-md scale-[1.02]"
+                  : "text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {num} Name{num !== 1 ? "s" : ""}
+              {discountLabel && selectedNameCheckPlan !== num && (
+                <span className="block text-[10px] font-semibold text-accent mt-0.5">
+                  {discountLabel}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       <div className="mb-4">

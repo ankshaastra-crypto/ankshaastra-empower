@@ -60,15 +60,15 @@ const PricingSection = () => {
         <p className="text-muted-foreground text-sm">Find out if you need a name correction</p>
       </div>
 
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-4 bg-muted/50 rounded-xl p-1.5 border border-border">
         {([1, 2, 3] as const).map((num) => (
           <button
             key={num}
             onClick={() => setSelectedNameCheckPlan(num)}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+            className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-bold transition-all duration-200 ${
               selectedNameCheckPlan === num
-                ? "bg-secondary text-secondary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-muted/80"
+                ? "bg-secondary text-secondary-foreground shadow-md scale-[1.02]"
+                : "text-muted-foreground hover:bg-muted"
             }`}
           >
             {num} Name{num !== 1 ? "s" : ""}

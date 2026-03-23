@@ -1,7 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Users, Star, Shield } from "lucide-react";
-import heroBg from "@/assets/hero-option-2-baby-feet.jpg";
+import heroBg1 from "@/assets/hero-option-1-golden-mother.jpg";
+import heroBg2 from "@/assets/hero-option-2-baby-feet.jpg";
+import heroBg3 from "@/assets/hero-option-3-naming-ceremony.jpg";
+import heroBg4 from "@/assets/hero-option-4-cosmic-baby.jpg";
+
+const heroImages = [heroBg1, heroBg2, heroBg3, heroBg4];
 
 const HeroSection = () => {
   const [parallaxY, setParallaxY] = useState(0);

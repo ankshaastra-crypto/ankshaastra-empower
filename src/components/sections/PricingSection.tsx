@@ -60,17 +60,18 @@ const PricingSection = () => {
         <p className="text-muted-foreground text-sm">Find out if you need a name correction</p>
       </div>
 
-      <div className="flex gap-2 mb-4 bg-muted/50 rounded-xl p-1.5 border border-border">
+      <div className="flex gap-1.5 mb-4 bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 rounded-xl p-1.5 border border-border/80 shadow-sm relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-secondary/5 to-transparent animate-shimmer pointer-events-none" />
         {([1, 2, 3] as const).map((num) => {
           const discountLabel = num === 2 ? "10% OFF" : num === 3 ? "15% OFF" : null;
           return (
             <button
               key={num}
               onClick={() => setSelectedNameCheckPlan(num)}
-              className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-bold transition-all duration-200 relative ${
+              className={`flex-1 py-2.5 px-2 rounded-lg text-sm font-bold transition-all duration-200 relative z-10 ${
                 selectedNameCheckPlan === num
-                  ? "bg-secondary text-secondary-foreground shadow-md scale-[1.02]"
-                  : "text-muted-foreground hover:bg-muted"
+                  ? "bg-gradient-to-br from-secondary to-secondary/80 text-secondary-foreground shadow-md scale-[1.02]"
+                  : "text-muted-foreground hover:bg-muted/80"
               }`}
             >
               {num} Name{num !== 1 ? "s" : ""}

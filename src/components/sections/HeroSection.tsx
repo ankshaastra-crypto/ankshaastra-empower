@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Users, Star, Shield } from "lucide-react";
-import heroBg from "@/assets/hero-mother-baby-3.jpg";
+import heroBg from "@/assets/hero-option-2-baby-feet.jpg";
 
 const HeroSection = () => {
   const [parallaxY, setParallaxY] = useState(0);

@@ -11,6 +11,7 @@ import TermsOfService from "@/pages/TermsOfService";
 import PaymentStatus from "@/pages/PaymentStatus";
 import BabyNameLandingPage from "@/pages/BabyNameLandingPage";
 import AdminOrders from "@/pages/AdminOrders";
+import TogglePreview from "@/pages/TogglePreview";
 
 const App = () => (
   <TooltipProvider>

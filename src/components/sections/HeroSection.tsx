@@ -94,7 +94,7 @@ const HeroSection = () => {
               size="default"
               className="w-auto font-bold text-sm md:text-lg shadow-xl hover:scale-105 transition-transform animate-pulse-glow animate-blinker border-none px-6 py-3 md:px-8 md:py-4 bg-gold-cta text-accent-foreground"
             >
-              Get Name Check @ ₹199
+              Get Name Check @ ₹293
             </Button>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 mt-4 text-xs text-muted-foreground">
               <span>✦ 10+ Numerologically Aligned Names</span>

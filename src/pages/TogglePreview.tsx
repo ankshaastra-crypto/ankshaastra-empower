@@ -3,9 +3,9 @@ import { Check } from "lucide-react";
 import { formatPrice } from "@/lib/packagePricing";
 
 const nameCheckPlans = {
-  1: { price: 199, originalPrice: 199, effectivePerPerson: 199 },
-  2: { price: 358.2, originalPrice: 398, effectivePerPerson: 179.1 },
-  3: { price: 507.45, originalPrice: 597, effectivePerPerson: 169.15 },
+  1: { price: 293, originalPrice: 293, effectivePerPerson: 293 },
+  2: { price: 528, originalPrice: 586, effectivePerPerson: 264 },
+  3: { price: 747, originalPrice: 879, effectivePerPerson: 249 },
 };
 
 const TogglePreview = () => {

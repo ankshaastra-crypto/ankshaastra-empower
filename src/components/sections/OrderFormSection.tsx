@@ -15,9 +15,9 @@ import { getPackagePrice, formatPrice } from "@/lib/packagePricing";
 
 // Name Check pricing configuration
 const NAME_CHECK_PRICING = {
-  1: { price: 199, originalPrice: 199, savings: 0 },
-  2: { price: 358.2, originalPrice: 398, savings: 19.9 },
-  3: { price: 507.45, originalPrice: 597, savings: 29.85 },
+  1: { price: 293, originalPrice: 293, savings: 0 },
+  2: { price: 528, originalPrice: 586, savings: 29 },
+  3: { price: 747, originalPrice: 879, savings: 44 },
 };
 
 const STEPS = [

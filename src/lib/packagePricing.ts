@@ -47,17 +47,17 @@ export function getPackagePricing(): PackagePricing {
 
   return {
     namecheck: {
-      price: getEnvNumber(import.meta.env.VITE_PACKAGE_NAMECHECK_PRICE, 199),
+      price: getEnvNumber(import.meta.env.VITE_PACKAGE_NAMECHECK_PRICE, 293),
       originalPrice: getEnvNumber(
         import.meta.env.VITE_PACKAGE_NAMECHECK_ORIGINAL_PRICE,
-        199,
+        293,
       ),
     },
     single: {
-      price: getEnvNumber(import.meta.env.VITE_PACKAGE_SINGLE_PRICE, 1997),
+      price: getEnvNumber(import.meta.env.VITE_PACKAGE_SINGLE_PRICE, 2447),
       originalPrice: getEnvNumber(
         import.meta.env.VITE_PACKAGE_SINGLE_ORIGINAL_PRICE,
-        5100,
+        7500,
       ),
     },
   };

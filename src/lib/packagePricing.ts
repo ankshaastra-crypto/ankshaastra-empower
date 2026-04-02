@@ -14,6 +14,17 @@ export interface PackagePricing {
   };
 }
 
+const DEFAULT_PACKAGE_PRICING: PackagePricing = {
+  namecheck: {
+    price: 293,
+    originalPrice: 293,
+  },
+  single: {
+    price: 2447,
+    originalPrice: 7500,
+  },
+};
+
 /**
  * Get package pricing from environment variables
  * Falls back to default values if env vars are not set
@@ -47,18 +58,18 @@ export function getPackagePricing(): PackagePricing {
 
   return {
     namecheck: {
-      price: getEnvNumber(import.meta.env.VITE_PACKAGE_NAMECHECK_PRICE, 293),
+      price: getEnvNumber(
+        import.meta.env.VITE_PACKAGE_NAMECHECK_PRICE,
+        DEFAULT_PACKAGE_PRICING.namecheck.price,
+      ),
       originalPrice: getEnvNumber(
         import.meta.env.VITE_PACKAGE_NAMECHECK_ORIGINAL_PRICE,
-        293,
+        DEFAULT_PACKAGE_PRICING.namecheck.originalPrice,
       ),
     },
     single: {
-      price: getEnvNumber(import.meta.env.VITE_PACKAGE_SINGLE_PRICE, 2447),
-      originalPrice: getEnvNumber(
-        import.meta.env.VITE_PACKAGE_SINGLE_ORIGINAL_PRICE,
-        7500,
-      ),
+      price: DEFAULT_PACKAGE_PRICING.single.price,
+      originalPrice: DEFAULT_PACKAGE_PRICING.single.originalPrice,
     },
   };
 }

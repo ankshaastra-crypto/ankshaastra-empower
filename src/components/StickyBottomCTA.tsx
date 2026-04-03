@@ -1,17 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 
 const StickyBottomCTA = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const visRef = useRef(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      // Show after scrolling past the hero section (~600px)
-      setIsVisible(window.scrollY > 600);
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const show = window.scrollY > 600;
+          if (show !== visRef.current) {
+            visRef.current = show;
+            setIsVisible(show);
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const scrollToForm = () => {

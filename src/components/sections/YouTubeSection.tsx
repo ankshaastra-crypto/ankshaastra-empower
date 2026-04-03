@@ -1,4 +1,50 @@
+import { useState, useCallback } from "react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
+
+interface YouTubeFacadeProps {
+  id: string;
+  title: string;
+}
+
+const YouTubeFacade = ({ id, title }: YouTubeFacadeProps) => {
+  const [loaded, setLoaded] = useState(false);
+
+  const handleClick = useCallback(() => setLoaded(true), []);
+
+  if (loaded) {
+    return (
+      <iframe
+        src={`https://www.youtube-nocookie.com/embed/${id}?rel=0&autoplay=1`}
+        title={title}
+        className="w-full h-full"
+        frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+        referrerPolicy="strict-origin-when-cross-origin"
+      />
+    );
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      className="w-full h-full relative bg-black/80 flex items-center justify-center group cursor-pointer"
+      aria-label={`Play: ${title}`}
+    >
+      <img
+        src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`}
+        alt={title}
+        className="absolute inset-0 w-full h-full object-cover opacity-80"
+        loading="lazy"
+      />
+      <div className="relative z-10 w-16 h-16 md:w-20 md:h-20 rounded-full bg-red-600 flex items-center justify-center shadow-lg group-hover:bg-red-700 transition-colors">
+        <svg viewBox="0 0 24 24" fill="white" className="w-7 h-7 md:w-9 md:h-9 ml-1">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+      </div>
+    </button>
+  );
+};
 
 const YouTubeSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
@@ -38,24 +84,12 @@ const YouTubeSection = () => {
                 key={index}
                 className="relative rounded-xl md:rounded-2xl p-3 md:p-4 border border-white/10 group hover:border-white/20 transition-all duration-300 hover:-translate-y-2 bg-white/5"
               >
-                {/* Corner accents */}
                 <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 rounded-tl-xl md:rounded-tl-2xl border-gold-half" />
                 <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 rounded-br-xl md:rounded-br-2xl border-gold-half" />
-
-                {/* Hover glow */}
                 <div className="absolute inset-0 rounded-xl md:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 gold-card-shadow" />
 
                 <div className="aspect-video rounded-lg overflow-hidden bg-black/50 mb-2">
-                  <iframe
-                    src={`https://www.youtube-nocookie.com/embed/${video.id}?rel=0`}
-                    title={video.title}
-                    className="w-full h-full"
-                    frameBorder="0"
-                    loading="lazy"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                    referrerPolicy="strict-origin-when-cross-origin"
-                  />
+                  <YouTubeFacade id={video.id} title={video.title} />
                 </div>
               </div>
             ))}

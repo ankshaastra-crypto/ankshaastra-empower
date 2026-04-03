@@ -1,32 +1,39 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowUp, FileText } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 
 const FloatingElements = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const showRef = useRef(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setShowBackToTop(window.scrollY > 500);
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const show = window.scrollY > 500;
+          if (show !== showRef.current) {
+            showRef.current = show;
+            setShowBackToTop(show);
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   const scrollToPricing = () => {
-    const pricingSection = document.getElementById("pricing");
-    if (pricingSection) {
-      pricingSection.scrollIntoView({ behavior: "smooth" });
-    }
+    const el = document.getElementById("pricing");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <>
-      {/* Get My Report Button - Primary CTA */}
       <button
         onClick={scrollToPricing}
         className="fixed bottom-20 right-6 z-50 bg-accent text-accent-foreground px-5 py-3.5 rounded-full shadow-[0_0_25px_hsl(42_55%_54%_/_0.35)] transition-all duration-300 hover:scale-110 hover:shadow-[0_0_40px_hsl(42_55%_54%_/_0.5)] flex items-center gap-2 font-bold text-sm animate-pulse-glow"
@@ -36,7 +43,6 @@ const FloatingElements = () => {
         <span>Get My Report</span>
       </button>
 
-      {/* Chat With Me - WhatsApp */}
       <a
         href="https://wa.me/919667305577"
         target="_blank"
@@ -48,7 +54,6 @@ const FloatingElements = () => {
         <span className="text-sm font-medium">Chat With Me</span>
       </a>
 
-      {/* Back to Top Button */}
       {showBackToTop && (
         <button
           onClick={scrollToTop}

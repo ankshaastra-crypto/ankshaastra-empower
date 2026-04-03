@@ -1,10 +1,11 @@
 import { lazy, Suspense } from "react";
 import Header from "@/components/Header";
 import ScrollProgress from "@/components/ScrollProgress";
-import FloatingElements from "@/components/FloatingElements";
-import SocialProofCounter from "@/components/SocialProofCounter";
 import HeroSection from "@/components/sections/HeroSection";
 import SectionDivider from "@/components/SectionDivider";
+
+const FloatingElements = lazy(() => import("@/components/FloatingElements"));
+const SocialProofCounter = lazy(() => import("@/components/SocialProofCounter"));
 
 // Lazy-load below-fold sections for better page speed
 const ProblemSection = lazy(() => import("@/components/sections/ProblemSection"));
@@ -31,8 +32,10 @@ const Index = () => {
     <main className="min-h-screen bg-background">
       <ScrollProgress />
       <Header />
-      <FloatingElements />
-      <SocialProofCounter />
+      <Suspense fallback={null}>
+        <FloatingElements />
+        <SocialProofCounter />
+      </Suspense>
       
       <HeroSection />
       <Suspense fallback={<SectionFallback />}>

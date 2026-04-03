@@ -1,17 +1,26 @@
-import { useState, useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Users, Star, Shield } from "lucide-react";
 import heroBg from "@/assets/hero-option-1-golden-mother.jpg";
 
 const HeroSection = () => {
-  const [parallaxY, setParallaxY] = useState(0);
+  const bgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setParallaxY(window.scrollY * 0.3);
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          if (bgRef.current) {
+            bgRef.current.style.transform = `translateY(${window.scrollY * 0.3}px)`;
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const scrollToForm = () => {
@@ -19,21 +28,14 @@ const HeroSection = () => {
     if (formSection) formSection.scrollIntoView({ behavior: "smooth" });
   };
 
-
   return (
-    <section
-      className="min-h-[85vh] md:min-h-screen flex items-center pt-14 pb-4 md:pt-20 md:pb-10 relative overflow-hidden bg-background"
-    >
-      {/* Background mother & baby image — parallax */}
+    <section className="min-h-[85vh] md:min-h-screen flex items-center pt-14 pb-4 md:pt-20 md:pb-10 relative overflow-hidden bg-background">
       <div
+        ref={bgRef}
         className="absolute inset-0 bg-cover bg-center bg-no-repeat will-change-transform opacity-35"
-        style={{
-          backgroundImage: `url(${heroBg})`,
-          transform: `translateY(${parallaxY}px)`,
-        }}
+        style={{ backgroundImage: `url(${heroBg})` }}
       />
 
-      {/* Softer gradient overlay */}
       <div
         className="absolute inset-0"
         style={{
@@ -41,13 +43,11 @@ const HeroSection = () => {
         }}
       />
 
-      {/* Soft decorative blobs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full opacity-20 gold-radial-blob" />
         <div className="absolute bottom-10 -left-20 w-80 h-80 rounded-full opacity-10 gold-radial-blob" />
       </div>
 
-      {/* Sparkle decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
         <span className="absolute top-24 left-[10%] text-2xl opacity-30 animate-float text-accent">✦</span>
         <span className="absolute top-40 right-[12%] text-xl opacity-25 animate-float-subtle text-accent">★</span>
@@ -57,8 +57,6 @@ const HeroSection = () => {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-3xl mx-auto text-center animate-fade-in-up">
-
-          {/* Gold divider */}
           <div className="flex items-center justify-center gap-3 mb-6">
             <div className="h-px w-16 gold-divider-right" />
             <span className="text-accent">✦</span>
@@ -93,7 +91,6 @@ const HeroSection = () => {
             </div>
           </div>
 
-          {/* Static trust stats — bigger & bolder */}
           <div className="flex flex-wrap justify-center gap-6 sm:gap-10">
             {[
               { icon: Users, value: "5000+", label: "Reports" },

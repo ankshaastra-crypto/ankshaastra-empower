@@ -32,8 +32,10 @@ const Index = () => {
     <main className="min-h-screen bg-background">
       <ScrollProgress />
       <Header />
-      <FloatingElements />
-      <SocialProofCounter />
+      <Suspense fallback={null}>
+        <FloatingElements />
+        <SocialProofCounter />
+      </Suspense>
       
       <HeroSection />
       <Suspense fallback={<SectionFallback />}>

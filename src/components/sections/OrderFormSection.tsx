@@ -292,6 +292,7 @@ const OrderFormSection = () => {
 
   const getPrice = (): number => {
     if (packageType === "namecheck") return NAME_CHECK_PRICING[nameCheckCount].price;
+    if (packageType === "premium") return getPackagePrice("premium");
     return getPackagePrice("single");
   };
 

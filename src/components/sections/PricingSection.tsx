@@ -9,7 +9,7 @@ const PricingSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
   const pricing = getPackagePricing();
   const [selectedNameCheckPlan, setSelectedNameCheckPlan] = useState<1 | 2 | 3>(1);
-  const [activeTab, setActiveTab] = useState<"namecheck" | "single">("single");
+  const [activeTab, setActiveTab] = useState<"namecheck" | "single" | "premium">("single");
 
   const scrollToForm = (packageType?: string) => {
     const formSection = document.getElementById("order-form");
@@ -46,6 +46,19 @@ const PricingSection = () => {
     "PDF Report (50+ Pages)",
     "Call Consultation Included",
   ];
+
+  const premiumFeatures = [
+    "10+ Numerologically Aligned Name Options",
+    "Child's Mulank & Bhagyank Analysis",
+    "First Name & Full Name Analysis",
+    "Compound Number Analysis",
+    "Personal Loshu Grid",
+    "First Alphabet Analysis",
+    "PDF Report (50+ Pages)",
+    "Call Consultation Included",
+  ];
+
+  const premiumHighlight = "20-Minute Live Video Consultation with Himansshu Ji";
 
   const NameCheckCard = () => (
     <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative bg-card">
@@ -130,7 +143,7 @@ const PricingSection = () => {
   );
 
   const SingleReportCard = () => (
-    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow animate-border-glow bg-card mt-6">
+    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow animate-border-glow bg-card">
       <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
         <span className="bg-accent text-accent-foreground text-xs font-bold px-4 py-1 rounded-full shadow-gold whitespace-nowrap leading-none">
           MOST POPULAR
@@ -183,6 +196,77 @@ const PricingSection = () => {
     </div>
   );
 
+  const PremiumReportCard = () => (
+    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 bg-card"
+      style={{ borderColor: 'hsl(var(--foreground))' }}>
+      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
+        <span className="text-xs font-bold px-4 py-1 rounded-full whitespace-nowrap leading-none shadow-lg"
+          style={{ background: 'linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(30 10% 25%) 100%)', color: 'hsl(var(--accent))' }}>
+          ✦ PREMIUM
+        </span>
+      </div>
+
+      <div className="mb-3 pt-2">
+        <h3 className="text-xl font-heading font-bold text-foreground mb-1">Perfect Baby Name Report + Live Session</h3>
+        <p className="text-muted-foreground text-xs">Same details required as Perfect Baby Name Report</p>
+      </div>
+
+      <div className="mb-4">
+        <div className="flex items-baseline gap-2">
+          <span className="text-base text-muted-foreground line-through">
+            {formatPrice(pricing.premium.originalPrice)}
+          </span>
+          <span className="text-3xl font-heading font-bold" style={{ color: 'hsl(var(--foreground))' }}>
+            {formatPrice(pricing.premium.price)}
+          </span>
+        </div>
+        <span className="inline-block mt-2 text-xs font-semibold px-2 py-1 rounded-full"
+          style={{ background: 'hsl(var(--foreground) / 0.1)', color: 'hsl(var(--foreground))' }}>
+          {Math.round(((pricing.premium.originalPrice - pricing.premium.price) / pricing.premium.originalPrice) * 100)}% OFF
+        </span>
+      </div>
+
+      <ul className="space-y-2 mb-3">
+        {premiumFeatures.map((feature, index) => (
+          <li key={index} className="flex items-start gap-2 group">
+            <Check className="w-4 h-4 text-accent flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
+            <span className="text-muted-foreground text-sm">{feature}</span>
+          </li>
+        ))}
+      </ul>
+
+      {/* Premium highlight */}
+      <div className="mb-6 rounded-xl p-3 border border-accent/30" style={{ background: 'hsl(var(--accent) / 0.08)' }}>
+        <div className="flex items-start gap-2">
+          <span className="text-lg flex-shrink-0 mt-0.5">🎥</span>
+          <span className="text-sm font-bold text-accent">{premiumHighlight}</span>
+        </div>
+      </div>
+
+      <Button
+        size="default"
+        className="w-full group rounded-xl font-bold"
+        style={{ background: 'hsl(var(--foreground))', color: 'hsl(var(--background))' }}
+        onClick={() => scrollToForm("premium")}
+      >
+        <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
+          Get Premium Report + Live Session
+        </span>
+      </Button>
+
+      <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 24-48 hr</span>
+        <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Secure</span>
+      </div>
+    </div>
+  );
+
+  const tabs = [
+    { key: "single" as const, label: "✨ Baby Name", color: "accent" },
+    { key: "premium" as const, label: "✦ Premium", color: "foreground" },
+    { key: "namecheck" as const, label: "🔍 Name Check", color: "secondary" },
+  ];
+
   return (
     <section className="section-padding bg-background" id="pricing" ref={ref}>
       <div className="container mx-auto px-4">
@@ -198,35 +282,24 @@ const PricingSection = () => {
 
         {/* Mobile: Tab toggle */}
         <div className="md:hidden max-w-sm mx-auto mb-6">
-          <div className="flex bg-card rounded-2xl p-1.5 relative border border-border shadow-lg">
-            {/* Sliding indicator */}
-            <div
-              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] rounded-xl transition-all duration-300 ease-in-out ${
-                activeTab === "single"
-                  ? "left-1.5 bg-accent shadow-gold"
-                  : "left-[calc(50%+3px)] bg-secondary shadow-md"
-              }`}
-            />
-            <button
-              onClick={() => setActiveTab("single")}
-              className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-colors duration-300 relative z-10 ${
-                activeTab === "single"
-                  ? "text-accent-foreground"
-                  : "text-muted-foreground"
-              }`}
-            >
-              ✨ Perfect Baby Name
-            </button>
-            <button
-              onClick={() => setActiveTab("namecheck")}
-              className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-colors duration-300 relative z-10 ${
-                activeTab === "namecheck"
-                  ? "text-secondary-foreground"
-                  : "text-muted-foreground"
-              }`}
-            >
-              🔍 Name Check
-            </button>
+          <div className="flex bg-card rounded-2xl p-1 relative border border-border shadow-lg">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex-1 py-2.5 px-2 rounded-xl text-xs font-bold transition-colors duration-300 relative z-10 ${
+                  activeTab === tab.key
+                    ? tab.key === "premium"
+                      ? "bg-foreground text-background"
+                      : tab.key === "single"
+                        ? "bg-accent text-accent-foreground"
+                        : "bg-secondary text-secondary-foreground"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
           <p className="text-center text-[11px] text-muted-foreground mt-2 opacity-60">Tap to switch plans</p>
         </div>
@@ -234,14 +307,17 @@ const PricingSection = () => {
         {/* Mobile: show active tab card only */}
         <div className="md:hidden max-w-sm mx-auto">
           <div className="mt-4">
-            {activeTab === "single" ? <SingleReportCard /> : <NameCheckCard />}
+            {activeTab === "single" && <SingleReportCard />}
+            {activeTab === "premium" && <PremiumReportCard />}
+            {activeTab === "namecheck" && <NameCheckCard />}
           </div>
         </div>
 
-        {/* Desktop: side-by-side */}
-        <div className="hidden md:grid grid-cols-2 gap-6 max-w-4xl mx-auto">
+        {/* Desktop: three columns */}
+        <div className="hidden md:grid grid-cols-3 gap-5 max-w-5xl mx-auto items-start">
           <NameCheckCard />
           <SingleReportCard />
+          <PremiumReportCard />
         </div>
       </div>
     </section>

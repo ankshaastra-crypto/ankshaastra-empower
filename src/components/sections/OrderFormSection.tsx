@@ -31,7 +31,7 @@ const OrderFormSection = () => {
   const { ref } = useScrollAnimation({ threshold: 0.1 });
   const [formStep, setFormStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [packageType, setPackageType] = useState<"namecheck" | "single">("single");
+  const [packageType, setPackageType] = useState<"namecheck" | "single" | "premium">("single");
   const [nameCheckCount, setNameCheckCount] = useState<1 | 2 | 3>(1);
 
   // Name Check form data

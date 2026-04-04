@@ -75,6 +75,10 @@ export function getPackagePricing(): PackagePricing {
       price: DEFAULT_PACKAGE_PRICING.single.price,
       originalPrice: DEFAULT_PACKAGE_PRICING.single.originalPrice,
     },
+    premium: {
+      price: DEFAULT_PACKAGE_PRICING.premium.price,
+      originalPrice: DEFAULT_PACKAGE_PRICING.premium.originalPrice,
+    },
   };
 }
 

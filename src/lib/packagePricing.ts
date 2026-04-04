@@ -85,7 +85,7 @@ export function getPackagePricing(): PackagePricing {
 /**
  * Get price for a specific package type
  */
-export function getPackagePrice(packageType: "namecheck" | "single"): number {
+export function getPackagePrice(packageType: "namecheck" | "single" | "premium"): number {
   const pricing = getPackagePricing();
   return pricing[packageType].price;
 }

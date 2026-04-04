@@ -392,7 +392,7 @@ const OrderFormSection = () => {
 
     let orderPayload: Record<string, unknown>;
 
-    if (packageType === "single") {
+    if (packageType === "single" || packageType === "premium") {
       const fatherFullName = [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ").trim();
       orderPayload = {
         orderId, email: babyFormData.email, mobile: babyFormData.whatsapp, name: fatherFullName,
@@ -400,7 +400,7 @@ const OrderFormSection = () => {
         person1Name: fatherFullName, person1Dob: babyFormData.childDob, person1Gender: babyFormData.gender,
         fatherFirstName: babyFormData.fatherFirstName, fatherMiddleName: babyFormData.fatherMiddleName || "", fatherMiddleNameType: babyFormData.fatherMiddleNameType || "", fatherFirstNameAsMiddleName: babyFormData.fatherFirstNameAsMiddleName || "", fatherLastName: babyFormData.fatherLastName,
         childDob: babyFormData.childDob, timeOfBirth: normalizeTimeInput(babyFormData.timeOfBirth),
-        placeOfBirth: babyFormData.placeOfBirth, pinCode: babyFormData.pinCode, packageType: "single",
+        placeOfBirth: babyFormData.placeOfBirth, pinCode: babyFormData.pinCode, packageType,
       };
     } else {
       orderPayload = {

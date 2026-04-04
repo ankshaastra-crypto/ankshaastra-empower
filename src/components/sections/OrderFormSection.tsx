@@ -249,7 +249,7 @@ const OrderFormSection = () => {
     }
 
     // Update the right form state
-    if (packageType === "single" && name in babyFormData) {
+    if ((packageType === "single" || packageType === "premium") && name in babyFormData) {
       setBabyFormData((prev) => ({ ...prev, [name]: processedValue }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: processedValue }));

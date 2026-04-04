@@ -60,7 +60,7 @@ const Header = () => {
           <Button
             variant="hero-small"
             size="default"
-            onClick={() => window.open("https://wa.me/919699965868?text=Hi%2C%20I%20want%20to%20know%20about%20C-Section%20Dates", "_blank")}
+            onClick={() => window.open("https://miraclebaby.ankshaastra.com", "_blank")}
           >
             C-Section Dates
           </Button>

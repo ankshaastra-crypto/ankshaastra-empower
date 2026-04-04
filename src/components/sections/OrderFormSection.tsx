@@ -95,6 +95,8 @@ const OrderFormSection = () => {
         setNameCheckCount(count);
       } else if (detail === "single") {
         setPackageType("single");
+      } else if (detail === "premium") {
+        setPackageType("premium");
       } else if (detail === "namecheck") {
         setPackageType("namecheck");
         setNameCheckCount(1);

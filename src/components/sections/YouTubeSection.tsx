@@ -14,13 +14,14 @@ const YouTubeFacade = ({ id, title }: YouTubeFacadeProps) => {
   if (loaded) {
     return (
       <iframe
-        src={`https://www.youtube-nocookie.com/embed/${id}?rel=0&autoplay=1`}
+        src={`https://www.youtube-nocookie.com/embed/${id}?rel=0&autoplay=1&controls=1&modestbranding=1`}
         title={title}
-        className="w-full h-full"
+        className="w-full h-full absolute inset-0"
         frameBorder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen
         referrerPolicy="strict-origin-when-cross-origin"
+        style={{ width: '100%', height: '100%' }}
       />
     );
   }

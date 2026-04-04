@@ -94,7 +94,7 @@ export function getPackagePrice(packageType: "namecheck" | "single" | "premium")
  * Get original price for a specific package type
  */
 export function getPackageOriginalPrice(
-  packageType: "namecheck" | "single",
+  packageType: "namecheck" | "single" | "premium",
 ): number {
   const pricing = getPackagePricing();
   return pricing[packageType].originalPrice;

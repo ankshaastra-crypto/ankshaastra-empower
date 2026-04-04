@@ -216,7 +216,7 @@ const OrderFormSection = () => {
       const data = await response.json();
       if (data?.[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
         const district = data[0].PostOffice[0].District || "";
-        if (packageType === "single") {
+        if (packageType === "single" || packageType === "premium") {
           setBabyFormData((prev) => ({ ...prev, placeOfBirth: district }));
           setErrors((prev) => { const n = { ...prev }; delete n.placeOfBirth; return n; });
         } else {

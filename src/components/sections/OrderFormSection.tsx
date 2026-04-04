@@ -934,7 +934,7 @@ const OrderFormSection = () => {
             <div className="max-w-3xl mx-auto">
               {formStep === 1 && (
                 <div className="space-y-4">
-                  <RadioGroup value={packageType} onValueChange={(val) => setPackageType(val as "namecheck" | "single")} className="grid gap-4">
+                  <RadioGroup value={packageType} onValueChange={(val) => setPackageType(val as "namecheck" | "single" | "premium")} className="grid gap-4">
                     {/* Name Check Option */}
                     <label htmlFor="namecheck"
                       className={`flex items-center gap-4 p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${packageType === "namecheck" ? "border-secondary bg-secondary/5 shadow-card" : "border-border hover:border-secondary/50"}`}>
@@ -959,6 +959,19 @@ const OrderFormSection = () => {
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">10+ numerologically aligned name suggestions with full analysis</p>
                         <span className="text-accent font-bold text-lg">{formatPrice(getPackagePrice("single"))}</span>
+                      </div>
+                    </label>
+                    {/* Premium Report + Live Session Option */}
+                    <label htmlFor="premium"
+                      className={`flex items-center gap-4 p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${packageType === "premium" ? "border-foreground bg-foreground/5 shadow-card" : "border-border hover:border-foreground/50"}`}>
+                      <RadioGroupItem value="premium" id="premium" className="text-foreground flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground">Premium Report + Live Session</span>
+                          <span className="bg-foreground text-background text-xs font-bold px-2 py-0.5 rounded-full">✦ PREMIUM</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">Full report + 20-min live video consultation with Himansshu Ji</p>
+                        <span className="text-foreground font-bold text-lg">{formatPrice(getPackagePrice("premium"))}</span>
                       </div>
                     </label>
                   </RadioGroup>

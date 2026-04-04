@@ -166,7 +166,7 @@ const OrderFormSection = () => {
 
   // --- Field validity check for green checkmark ---
   const isFieldValid = useCallback((fieldName: string): boolean => {
-    if (packageType === "single") {
+    if (packageType === "single" || packageType === "premium") {
       const val = babyFormData[fieldName as keyof typeof babyFormData];
       if (!val || (typeof val === "string" && !val.trim())) return false;
       switch (fieldName) {

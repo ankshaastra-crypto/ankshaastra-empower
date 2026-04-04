@@ -303,7 +303,7 @@ const OrderFormSection = () => {
   // --- Step validation ---
   const validateStep2 = (): Record<string, string> => {
     const newErrors: Record<string, string> = {};
-    if (packageType === "single") {
+    if (packageType === "single" || packageType === "premium") {
       if (!babyFormData.fatherFirstName || !validateName(babyFormData.fatherFirstName, true))
         newErrors.fatherFirstName = "Father's first name is required";
       if (!babyFormData.fatherLastName || !validateName(babyFormData.fatherLastName, true))

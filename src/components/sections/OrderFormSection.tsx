@@ -763,9 +763,9 @@ const OrderFormSection = () => {
   // --- Review summary for step 3 ---
   const renderReviewSummary = () => {
     const items: { label: string; value: string }[] = [];
-    if (packageType === "single") {
+    if (packageType === "single" || packageType === "premium") {
       items.push(
-        { label: "Package", value: "Perfect Baby Name Report" },
+        { label: "Package", value: packageType === "premium" ? "Premium Report + Live Session" : "Perfect Baby Name Report" },
         { label: "Father's Name", value: [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ") },
         ...(babyFormData.fatherMiddleNameType ? [{ label: "Father's Middle Name is Grandfather's", value: babyFormData.fatherMiddleNameType === "yes" ? "Yes" : "No" }] : []),
         ...(babyFormData.fatherFirstNameAsMiddleName ? [{ label: "Father's First Name as Child's Middle Name", value: babyFormData.fatherFirstNameAsMiddleName === "yes" ? "Yes" : "No" }] : []),

@@ -208,7 +208,7 @@ const PricingSection = () => {
 
       <div className="mb-3 pt-2">
         <h3 className="text-xl font-heading font-bold text-foreground mb-1">Perfect Baby Name Report + Live Session</h3>
-        <p className="text-muted-foreground text-xs">Same details required as Perfect Baby Name Report</p>
+        <p className="text-muted-foreground text-xs">Get your full report — and discuss it live with Himansshu Ji personally</p>
       </div>
 
       <div className="mb-4">

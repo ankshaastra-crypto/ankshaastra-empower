@@ -3,15 +3,15 @@
  * Reads prices from environment variables for easy management
  */
 
+export interface PackageTier {
+  price: number;
+  originalPrice: number;
+}
+
 export interface PackagePricing {
-  namecheck: {
-    price: number;
-    originalPrice: number;
-  };
-  single: {
-    price: number;
-    originalPrice: number;
-  };
+  namecheck: PackageTier;
+  single: PackageTier;
+  premium: PackageTier;
 }
 
 const DEFAULT_PACKAGE_PRICING: PackagePricing = {
@@ -22,6 +22,10 @@ const DEFAULT_PACKAGE_PRICING: PackagePricing = {
   single: {
     price: 2447,
     originalPrice: 7500,
+  },
+  premium: {
+    price: 8927,
+    originalPrice: 18218,
   },
 };
 

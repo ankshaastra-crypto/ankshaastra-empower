@@ -31,7 +31,7 @@ const OrderFormSection = () => {
   const { ref } = useScrollAnimation({ threshold: 0.1 });
   const [formStep, setFormStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [packageType, setPackageType] = useState<"namecheck" | "single">("single");
+  const [packageType, setPackageType] = useState<"namecheck" | "single" | "premium">("single");
   const [nameCheckCount, setNameCheckCount] = useState<1 | 2 | 3>(1);
 
   // Name Check form data
@@ -95,6 +95,8 @@ const OrderFormSection = () => {
         setNameCheckCount(count);
       } else if (detail === "single") {
         setPackageType("single");
+      } else if (detail === "premium") {
+        setPackageType("premium");
       } else if (detail === "namecheck") {
         setPackageType("namecheck");
         setNameCheckCount(1);
@@ -164,7 +166,7 @@ const OrderFormSection = () => {
 
   // --- Field validity check for green checkmark ---
   const isFieldValid = useCallback((fieldName: string): boolean => {
-    if (packageType === "single") {
+    if (packageType === "single" || packageType === "premium") {
       const val = babyFormData[fieldName as keyof typeof babyFormData];
       if (!val || (typeof val === "string" && !val.trim())) return false;
       switch (fieldName) {
@@ -214,7 +216,7 @@ const OrderFormSection = () => {
       const data = await response.json();
       if (data?.[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
         const district = data[0].PostOffice[0].District || "";
-        if (packageType === "single") {
+        if (packageType === "single" || packageType === "premium") {
           setBabyFormData((prev) => ({ ...prev, placeOfBirth: district }));
           setErrors((prev) => { const n = { ...prev }; delete n.placeOfBirth; return n; });
         } else {
@@ -247,7 +249,7 @@ const OrderFormSection = () => {
     }
 
     // Update the right form state
-    if (packageType === "single" && name in babyFormData) {
+    if ((packageType === "single" || packageType === "premium") && name in babyFormData) {
       setBabyFormData((prev) => ({ ...prev, [name]: processedValue }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: processedValue }));
@@ -292,6 +294,7 @@ const OrderFormSection = () => {
 
   const getPrice = (): number => {
     if (packageType === "namecheck") return NAME_CHECK_PRICING[nameCheckCount].price;
+    if (packageType === "premium") return getPackagePrice("premium");
     return getPackagePrice("single");
   };
 
@@ -300,7 +303,7 @@ const OrderFormSection = () => {
   // --- Step validation ---
   const validateStep2 = (): Record<string, string> => {
     const newErrors: Record<string, string> = {};
-    if (packageType === "single") {
+    if (packageType === "single" || packageType === "premium") {
       if (!babyFormData.fatherFirstName || !validateName(babyFormData.fatherFirstName, true))
         newErrors.fatherFirstName = "Father's first name is required";
       if (!babyFormData.fatherLastName || !validateName(babyFormData.fatherLastName, true))
@@ -389,7 +392,7 @@ const OrderFormSection = () => {
 
     let orderPayload: Record<string, unknown>;
 
-    if (packageType === "single") {
+    if (packageType === "single" || packageType === "premium") {
       const fatherFullName = [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ").trim();
       orderPayload = {
         orderId, email: babyFormData.email, mobile: babyFormData.whatsapp, name: fatherFullName,
@@ -397,7 +400,7 @@ const OrderFormSection = () => {
         person1Name: fatherFullName, person1Dob: babyFormData.childDob, person1Gender: babyFormData.gender,
         fatherFirstName: babyFormData.fatherFirstName, fatherMiddleName: babyFormData.fatherMiddleName || "", fatherMiddleNameType: babyFormData.fatherMiddleNameType || "", fatherFirstNameAsMiddleName: babyFormData.fatherFirstNameAsMiddleName || "", fatherLastName: babyFormData.fatherLastName,
         childDob: babyFormData.childDob, timeOfBirth: normalizeTimeInput(babyFormData.timeOfBirth),
-        placeOfBirth: babyFormData.placeOfBirth, pinCode: babyFormData.pinCode, packageType: "single",
+        placeOfBirth: babyFormData.placeOfBirth, pinCode: babyFormData.pinCode, packageType,
       };
     } else {
       orderPayload = {
@@ -760,9 +763,9 @@ const OrderFormSection = () => {
   // --- Review summary for step 3 ---
   const renderReviewSummary = () => {
     const items: { label: string; value: string }[] = [];
-    if (packageType === "single") {
+    if (packageType === "single" || packageType === "premium") {
       items.push(
-        { label: "Package", value: "Perfect Baby Name Report" },
+        { label: "Package", value: packageType === "premium" ? "Premium Report + Live Session" : "Perfect Baby Name Report" },
         { label: "Father's Name", value: [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ") },
         ...(babyFormData.fatherMiddleNameType ? [{ label: "Father's Middle Name is Grandfather's", value: babyFormData.fatherMiddleNameType === "yes" ? "Yes" : "No" }] : []),
         ...(babyFormData.fatherFirstNameAsMiddleName ? [{ label: "Father's First Name as Child's Middle Name", value: babyFormData.fatherFirstNameAsMiddleName === "yes" ? "Yes" : "No" }] : []),
@@ -931,7 +934,7 @@ const OrderFormSection = () => {
             <div className="max-w-3xl mx-auto">
               {formStep === 1 && (
                 <div className="space-y-4">
-                  <RadioGroup value={packageType} onValueChange={(val) => setPackageType(val as "namecheck" | "single")} className="grid gap-4">
+                  <RadioGroup value={packageType} onValueChange={(val) => setPackageType(val as "namecheck" | "single" | "premium")} className="grid gap-4">
                     {/* Name Check Option */}
                     <label htmlFor="namecheck"
                       className={`flex items-center gap-4 p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${packageType === "namecheck" ? "border-secondary bg-secondary/5 shadow-card" : "border-border hover:border-secondary/50"}`}>
@@ -956,6 +959,19 @@ const OrderFormSection = () => {
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">10+ numerologically aligned name suggestions with full analysis</p>
                         <span className="text-accent font-bold text-lg">{formatPrice(getPackagePrice("single"))}</span>
+                      </div>
+                    </label>
+                    {/* Premium Report + Live Session Option */}
+                    <label htmlFor="premium"
+                      className={`flex items-center gap-4 p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${packageType === "premium" ? "border-foreground bg-foreground/5 shadow-card" : "border-border hover:border-foreground/50"}`}>
+                      <RadioGroupItem value="premium" id="premium" className="text-foreground flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground">Premium Report + Live Session</span>
+                          <span className="bg-foreground text-background text-xs font-bold px-2 py-0.5 rounded-full">✦ PREMIUM</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">Full report + 20-min live video consultation with Himansshu Ji</p>
+                        <span className="text-foreground font-bold text-lg">{formatPrice(getPackagePrice("premium"))}</span>
                       </div>
                     </label>
                   </RadioGroup>

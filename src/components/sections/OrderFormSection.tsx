@@ -443,9 +443,53 @@ const OrderFormSection = () => {
         setIsSubmitting(false);
         return;
       }
-      const redirectUrl = result.data?.instrumentResponse?.redirectInfo?.url;
-      if (redirectUrl) { window.location.href = redirectUrl; }
-      else { toast({ title: "Payment Error", description: "Payment gateway did not return a valid redirect URL.", variant: "destructive" }); setIsSubmitting(false); }
+
+      // Load Razorpay Checkout script if not already loaded
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => {
+        const razorpayKeyId = import.meta.env.VITE_RAZORPAY_KEY_ID;
+        if (!razorpayKeyId) {
+          toast({ title: "Configuration Error", description: "Razorpay Key ID not configured. Please contact support.", variant: "destructive" });
+          setIsSubmitting(false);
+          return;
+        }
+
+        const options = {
+          key: razorpayKeyId,
+          order_id: result.orderId,
+          handler: (response: any) => {
+            // Payment successful - redirect to payment status page
+            window.location.href = `/payment-status?orderId=${result.orderId}&razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`;
+          },
+          prefill: {
+            name: orderPayload.name || "",
+            email: orderPayload.email || "",
+            contact: orderPayload.mobile || "",
+          },
+          theme: {
+            color: "#C9A961",
+          },
+        };
+        
+        const rzp = new (window as any).Razorpay(options);
+        rzp.on("payment.failed", (response: any) => {
+          toast({ 
+            title: "Payment Failed", 
+            description: response.error.description || "Your payment could not be processed. Please try again.", 
+            variant: "destructive" 
+          });
+          setIsSubmitting(false);
+        });
+        
+        rzp.open();
+      };
+      script.onerror = () => {
+        toast({ title: "Error", description: "Failed to load Razorpay. Please try again.", variant: "destructive" });
+        setIsSubmitting(false);
+      };
+      document.body.appendChild(script);
     } catch {
       toast({ title: "Network Error", description: "Failed to connect to payment server. Please try again.", variant: "destructive" });
       setIsSubmitting(false);

@@ -3,6 +3,7 @@ import { Check, Clock, Lock } from "lucide-react";
 import { useState } from "react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { getPackagePricing, formatPrice } from "@/lib/packagePricing";
+import PriceDisplay from "@/components/PriceDisplay";
 import CountdownTimer from "@/components/CountdownTimer";
 
 const PricingSection = () => {
@@ -99,9 +100,7 @@ const PricingSection = () => {
 
       <div className="mb-4">
         <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-heading font-bold text-secondary">
-            {formatPrice(nameCheckPlans[selectedNameCheckPlan].price)}
-          </span>
+          <PriceDisplay price={nameCheckPlans[selectedNameCheckPlan].price} className="text-3xl font-heading font-bold text-secondary" />
           {selectedNameCheckPlan > 1 && (
             <span className="text-sm text-muted-foreground line-through">
               {formatPrice(nameCheckPlans[selectedNameCheckPlan].originalPrice)}
@@ -160,9 +159,7 @@ const PricingSection = () => {
           <span className="text-base text-muted-foreground line-through">
             {formatPrice(pricing.single.originalPrice)}
           </span>
-          <span className="text-3xl font-heading font-bold text-accent">
-            {formatPrice(pricing.single.price)}
-          </span>
+          <PriceDisplay price={pricing.single.price} className="text-3xl font-heading font-bold text-accent" />
         </div>
         <span className="inline-block mt-2 bg-accent/10 text-accent text-xs font-semibold px-2 py-1 rounded-full">
           {Math.round(((pricing.single.originalPrice - pricing.single.price) / pricing.single.originalPrice) * 100)}% OFF
@@ -216,9 +213,7 @@ const PricingSection = () => {
           <span className="text-base text-muted-foreground line-through">
             {formatPrice(pricing.premium.originalPrice)}
           </span>
-          <span className="text-3xl font-heading font-bold" style={{ color: 'hsl(var(--foreground))' }}>
-            {formatPrice(pricing.premium.price)}
-          </span>
+          <PriceDisplay price={pricing.premium.price} className="text-3xl font-heading font-bold" style={{ color: 'hsl(var(--foreground))' }} />
         </div>
         <span className="inline-block mt-2 text-xs font-semibold px-2 py-1 rounded-full"
           style={{ background: 'hsl(var(--foreground) / 0.1)', color: 'hsl(var(--foreground))' }}>

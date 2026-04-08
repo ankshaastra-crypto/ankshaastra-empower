@@ -104,5 +104,5 @@ export function getPackageOriginalPrice(
  * Format price as currency string (₹X,XXX)
  */
 export function formatPrice(price: number): string {
-  return `₹${price.toLocaleString("en-IN")}`;
+  return `₹\u2009${price.toLocaleString("en-IN")}`;
 }

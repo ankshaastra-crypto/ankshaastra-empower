@@ -15,71 +15,50 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { response, customerEmail, customerName, customerMobile, customerDob, customerGender, customerCity, packageType, amount, person1Name, person1FirstName, person1MiddleName, person1SurName, person1Dob, person1Gender, person1MiddleNameType, person2Name, person2FirstName, person2MiddleName, person2SurName, person2Dob, person2Gender, person2MiddleNameType, person3Name, person3FirstName, person3MiddleName, person3SurName, person3Dob, person3Gender, person3MiddleNameType, fatherFirstName, fatherMiddleName, fatherMiddleNameType, fatherLastName, childDob, timeOfBirth, placeOfBirth, pinCode } = req.body;
+    // For Razorpay webhooks, the body is direct JSON
+    const event = req.body.event;
+    const paymentEntity = req.body.data?.payment || req.body.data?.order;
 
-    // Get PhonePe keys for verification
-    const saltKey = process.env.PHONEPE_SALT_KEY;
-    const saltIndex = process.env.PHONEPE_SALT_INDEX;
+    if (!paymentEntity) {
+      console.error("Invalid Razorpay webhook payload");
+      return res.status(400).json({ error: "Invalid payload" });
+    }
 
-    if (!saltKey || !saltIndex) {
-      console.error("Missing PhonePe credentials for webhook verification");
+    // Get Razorpay webhook secret for verification
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+
+    if (!webhookSecret) {
+      console.error("Missing Razorpay webhook secret");
       return res.status(500).json({ error: "Server configuration error" });
     }
 
-    // Verify the webhook signature (PhonePe sends X-VERIFY header)
-    const xVerify = req.headers['x-verify'];
-    if (!xVerify) {
-      console.error("Missing X-VERIFY header");
+    // Verify the webhook signature (Razorpay sends X-Razorpay-Signature header)
+    const xRazorpaySignature = req.headers['x-razorpay-signature'];
+    if (!xRazorpaySignature) {
+      console.error("Missing X-Razorpay-Signature header");
       return res.status(400).json({ error: "Invalid webhook signature" });
     }
 
-    // Decode and verify the response
-    let decodedResponse;
-    try {
-      decodedResponse = JSON.parse(Buffer.from(response, 'base64').toString('utf-8'));
-    } catch (error) {
-      console.error("Error decoding response:", error);
-      return res.status(400).json({ error: "Invalid response format" });
-    }
+    // Get raw body for signature verification
+    const rawBody = JSON.stringify(req.body);
 
-    // Verify checksum
-    const checksumString = response + "/pg/v1/status/" + saltKey + "###" + saltIndex;
-    const sha256 = crypto.createHash('sha256').update(checksumString).digest('hex');
-    const expectedChecksum = sha256 + "###" + saltIndex;
+    // Verify signature
+    const expectedSignature = crypto.createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
 
-    if (xVerify !== expectedChecksum) {
-      console.error("Checksum verification failed");
-      return res.status(400).json({ error: "Invalid checksum" });
+    if (xRazorpaySignature !== expectedSignature) {
+      console.error("Invalid webhook signature");
+      return res.status(400).json({ error: "Invalid webhook signature" });
     }
 
     // Extract payment details
-    const paymentData = decodedResponse;
-    const orderId = paymentData.data?.merchantTransactionId;
-    const transactionId = paymentData.data?.transactionId;
-    const status = paymentData.code === 'PAYMENT_SUCCESS' ? 'SUCCESS' : 'FAILED';
-    // PhonePe returns amount in paise, use it directly or fallback to request amount
-    const paymentAmount = paymentData.data?.amount || amount || 0;
+    const orderId = paymentEntity.order_id || paymentEntity.id;
+    const transactionId = paymentEntity.id;
+    const status = (event === 'payment.captured' || paymentEntity.status === 'paid') ? 'SUCCESS' : 'FAILED';
+    const paymentAmount = paymentEntity.amount || 0;
 
-    // Extract metaInfo from PhonePe response (PhonePe returns it as metaInfo)
+    // Razorpay doesn't have metaInfo, so fetch from Redis
     let metadata = {};
-    const metaInfo = paymentData.data?.metaInfo || paymentData.metaInfo;
-    
-    if (metaInfo) {
-      try {
-        // If metaInfo is a string, parse it; if it's already an object, use it directly
-        if (typeof metaInfo === 'string') {
-          metadata = JSON.parse(metaInfo);
-        } else if (typeof metaInfo === 'object') {
-          metadata = metaInfo;
-        }
-      } catch (error) {
-        // If parsing fails, metadata remains empty object
-        console.error("Error parsing metaInfo");
-      }
-    }
-    
-    // If metadata is empty, try to get order data from Redis (stored at payment initiation)
-    if (Object.keys(metadata).length === 0 && orderId) {
+    if (orderId) {
       try {
         const { getRedisCache } = await import('./redis-cache.js');
         const cache = getRedisCache();
@@ -88,16 +67,16 @@ export default async function handler(req, res) {
           metadata = storedOrder;
         }
       } catch {
-        // Non-fatal: fall back to request body
+        // Non-fatal: fall back to empty
       }
     }
     
-    // Use metadata if available, otherwise use request body values
-    const finalCustomerEmail = (metadata.email && metadata.email.trim()) || customerEmail || '';
-    const finalCustomerName = (metadata.name && metadata.name.trim()) || customerName || 'Customer';
-    const finalCustomerMobile = (metadata.mobile && metadata.mobile.trim()) || customerMobile || '';
-    const finalCustomerDob = (metadata.dob && metadata.dob.trim()) || customerDob || '';
-    const finalCustomerGender = (metadata.gender && metadata.gender.trim()) || customerGender || '';
+    // Use metadata for customer data
+    const finalCustomerEmail = (metadata.email && metadata.email.trim()) || '';
+    const finalCustomerName = (metadata.name && metadata.name.trim()) || 'Customer';
+    const finalCustomerMobile = (metadata.mobile && metadata.mobile.trim()) || '';
+    const finalCustomerDob = (metadata.dob && metadata.dob.trim()) || '';
+    const finalCustomerGender = (metadata.gender && metadata.gender.trim()) || '';
     const finalCustomerCity = (metadata.city && metadata.city.trim()) || customerCity || '';
     const finalPackageType = (metadata.packageType && metadata.packageType.trim()) || packageType || 'single';
     const finalPerson1Name = (metadata.person1Name && metadata.person1Name.trim()) || person1Name || finalCustomerName;
@@ -183,7 +162,7 @@ export default async function handler(req, res) {
       console.error("Failed to send confirmation emails:", emailResult.error);
     }
 
-    // Return success response to PhonePe
+    // Return success response to Razorpay
     return res.status(200).json({ 
       success: true,
       message: 'Webhook processed successfully',

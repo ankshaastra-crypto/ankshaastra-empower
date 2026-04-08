@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "@/pages/Index";
+import ProtectedRoute from "@/components/admin/ProtectedRoute";
 
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
@@ -12,7 +13,8 @@ const ShippingPolicy = lazy(() => import("@/pages/ShippingPolicy"));
 const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
 const PaymentStatus = lazy(() => import("@/pages/PaymentStatus"));
 const BabyNameLandingPage = lazy(() => import("@/pages/BabyNameLandingPage"));
-const AdminOrders = lazy(() => import("@/pages/AdminOrders"));
+const AdminLogin = lazy(() => import("@/pages/AdminLogin"));
+const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const TogglePreview = lazy(() => import("@/pages/TogglePreview"));
 
 const App = () => (
@@ -31,7 +33,15 @@ const App = () => (
           <Route path="/payment/success" element={<PaymentStatus />} />
           <Route path="/payment/failed" element={<PaymentStatus />} />
           <Route path="/baby-name" element={<BabyNameLandingPage />} />
-          <Route path="/admin/orders" element={<AdminOrders />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route
+            path="/admin/dashboard"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/toggle-preview" element={<TogglePreview />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

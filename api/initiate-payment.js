@@ -102,21 +102,19 @@ export default async function handler(req, res) {
     }
 
     // Get your keys from Vercel Environment Variables
-    const merchantId = process.env.PHONEPE_MERCHANT_ID;
-    const saltKey = process.env.PHONEPE_SALT_KEY;
-    const saltIndex = process.env.PHONEPE_SALT_INDEX;
+    const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
+    const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
 
     // Validate environment variables
-    if (!merchantId || !saltKey || !saltIndex) {
-      console.error("Missing PhonePe credentials:", {
-        hasMerchantId: !!merchantId,
-        hasSaltKey: !!saltKey,
-        hasSaltIndex: !!saltIndex
+    if (!razorpayKeyId || !razorpayKeySecret) {
+      console.error("Missing Razorpay credentials:", {
+        hasKeyId: !!razorpayKeyId,
+        hasKeySecret: !!razorpayKeySecret
       });
       return res.status(500).json({ 
         success: false,
-        error: "Payment configuration error. Please check PhonePe API keys in environment variables.",
-        message: "PHONEPE_MERCHANT_ID, PHONEPE_SALT_KEY, and PHONEPE_SALT_INDEX must be set."
+        error: "Payment configuration error. Please check Razorpay API keys in environment variables.",
+        message: "RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET must be set."
       });
     }
 
@@ -221,46 +219,13 @@ export default async function handler(req, res) {
     }
     const redirectUrl = `https://${host}/payment-status${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
 
-    // 1. Build the Payment Payload (PhonePe standard fields only)
-    // Note: PhonePe doesn't accept metadata/metaInfo in payment payload
-    // Customer data is passed via redirect URL query parameters instead
+    // 1. Build the Payment Payload (Razorpay order creation)
     const payload = {
-      merchantId,
-      merchantTransactionId: orderId,
-      merchantUserId: "U" + mobile,
       amount: amount * 100, // Amount in Paise
-      redirectUrl: redirectUrl,
-      redirectMode: "REDIRECT",
-      paymentInstrument: { type: "PAY_PAGE" },
+      currency: "INR",
+      receipt: orderId,
+      payment_capture: 1, // Auto capture
     };
-
-    // 2. Create the Checksum (Digital Signature)
-    const base64Payload = Buffer.from(JSON.stringify(payload)).toString('base64');
-    const stringToHash = base64Payload + "/pg/v1/pay" + saltKey;
-    const sha256 = crypto.createHash('sha256').update(stringToHash).digest('hex');
-    const checksum = sha256 + "###" + saltIndex;
-
-    // 3. Call PhonePe API
-    const response = await fetch("https://api.phonepe.com/apis/hermes/pg/v1/pay", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-VERIFY": checksum,
-      },
-      body: JSON.stringify({ request: base64Payload }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("PhonePe API Error:", response.status, response.statusText);
-      return res.status(500).json({
-        success: false,
-        error: "Payment initiation failed",
-        message: "Unable to initiate payment. Please try again later."
-      });
-    }
-
-    const result = await response.json();
     
     // Send the response back to your React app
     return res.status(200).json(result);

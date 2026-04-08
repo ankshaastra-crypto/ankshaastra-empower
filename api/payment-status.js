@@ -16,152 +16,65 @@ export default async function handler(req, res) {
   }
 
   try {
-    // PhonePe redirects with query parameters - check multiple possible parameter names
-    const merchantTransactionId =
+    // Razorpay redirects with query parameters
+    const orderId =
+      req.query.order_id ||
+      req.query.orderId ||
       req.query.merchantTransactionId ||
       req.query.txnId ||
       req.query.transactionId ||
-      req.query.transaction_id ||
-      req.query.orderId;
+      req.query.transaction_id;
 
-    // Get PhonePe keys
-    const merchantId = process.env.PHONEPE_MERCHANT_ID;
-    const saltKey = process.env.PHONEPE_SALT_KEY;
-    const saltIndex = process.env.PHONEPE_SALT_INDEX;
+    // Get Razorpay keys
+    const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
+    const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
 
-    if (!merchantId || !saltKey || !saltIndex) {
-      console.error("Missing PhonePe credentials");
+    if (!razorpayKeyId || !razorpayKeySecret) {
+      console.error("Missing Razorpay credentials");
       return res.status(500).json({ error: "Server configuration error" });
     }
 
-    if (!merchantTransactionId) {
-      console.error("Missing transaction ID");
+    if (!orderId) {
+      console.error("Missing order ID");
       return res.status(400).json({
-        error: "Missing transaction ID"
+        error: "Missing order ID"
       });
     }
 
-    // Check payment status with PhonePe
-    const statusUrl = `/pg/v1/status/${merchantId}/${merchantTransactionId}`;
-    // PhonePe checksum format: sha256(statusUrl + saltKey) + "###" + saltIndex
-    const checksumString = statusUrl + saltKey;
-    const sha256 = crypto.createHash('sha256').update(checksumString).digest('hex');
-    const checksum = sha256 + "###" + saltIndex;
+    // Check payment status with Razorpay
+    const auth = Buffer.from(`${razorpayKeyId}:${razorpayKeySecret}`).toString('base64');
 
-    // Status API checksum generated
-
-    const statusResponse = await fetch(`https://api.phonepe.com/apis/hermes${statusUrl}`, {
+    const statusResponse = await fetch(`https://api.razorpay.com/v1/orders/${orderId}`, {
       method: 'GET',
       headers: {
+        'Authorization': `Basic ${auth}`,
         'Content-Type': 'application/json',
-        'X-VERIFY': checksum,
-        'X-MERCHANT-ID': merchantId,
-        'Accept': 'application/json',
       },
     });
 
     if (!statusResponse.ok) {
-      console.error("PhonePe API Error:", statusResponse.status, statusResponse.statusText);
+      console.error("Razorpay API Error:", statusResponse.status, statusResponse.statusText);
       return res.status(500).json({
-        error: "Failed to fetch payment status from PhonePe",
-        details: `PhonePe API returned ${statusResponse.status}: ${statusResponse.statusText}`
+        error: "Failed to fetch payment status from Razorpay",
+        details: `Razorpay API returned ${statusResponse.status}: ${statusResponse.statusText}`
       });
     }
 
     const statusResult = await statusResponse.json();
 
-    // Handle both response formats:
-    // 1. Old format: response field with base64-encoded data
-    // 2. New format: direct JSON response
-    let paymentData;
-
-    if (statusResult.response) {
-      // Old format: decode base64 response
-      try {
-        paymentData = JSON.parse(Buffer.from(statusResult.response, 'base64').toString('utf-8'));
-      } catch (error) {
-        console.error("Error decoding base64 response");
-        return res.status(500).json({
-          error: "Failed to decode payment status",
-          details: error.message
-        });
-      }
-    } else if (statusResult.code || statusResult.data) {
-      // New format: direct JSON response
-      paymentData = statusResult;
-    } else {
-      console.error("Invalid PhonePe response structure");
-      return res.status(500).json({
-        error: "Invalid response from PhonePe",
-        details: "Response format not recognized"
-      });
-    }
-
-    // Validate paymentData structure
-    if (!paymentData || typeof paymentData !== 'object') {
-      console.error("Invalid paymentData structure");
-      return res.status(500).json({
-        error: "Invalid payment data structure",
-        details: "Payment data is not a valid object"
-      });
-    }
-
-    // Check multiple possible success indicators from PhonePe (status API shapes vary)
-    const d = paymentData.data;
-    const d2 = d?.data;
-    const isSuccess =
-      paymentData.code === 'PAYMENT_SUCCESS' ||
-      paymentData.code === 'SUCCESS' ||
-      d?.code === 'PAYMENT_SUCCESS' ||
-      d?.code === 'SUCCESS' ||
-      paymentData.success === true ||
-      (d && d.state === 'COMPLETED') ||
-      (d2 && d2.state === 'COMPLETED') ||
-      (d && d.responseCode === 'SUCCESS') ||
-      (d2 && d2.responseCode === 'SUCCESS') ||
-      (paymentData.state === 'COMPLETED');
+    // Check success from Razorpay order status
+    const isSuccess = statusResult.status === 'paid';
 
     const paymentStatus = isSuccess ? 'SUCCESS' : 'FAILED';
 
     // Payment status determined
-    const orderId = merchantTransactionId;
-    const transactionId =
-      d?.transactionId ||
-      d2?.transactionId ||
-      d?.merchantTransactionId ||
-      d2?.merchantTransactionId ||
-      '';
-    // PhonePe returns amount in paise (e.g., 199700 = ₹1997)
-    // Convert to rupees for API response (user-friendly)
-    const amountInPaise = d?.amount ?? d2?.amount ?? paymentData.amount ?? 0;
-    const amount = amountInPaise > 0 ? amountInPaise / 100 : 0; // Convert paise to rupees for API response
+    const transactionId = statusResult.id;
+    // Razorpay returns amount in paise
+    const amountInPaise = statusResult.amount;
+    const amount = amountInPaise > 0 ? amountInPaise / 100 : 0; // Convert paise to rupees
 
-    // Extract metaInfo from PhonePe response (PhonePe returns it as metaInfo at data.data.metaInfo)
-    // Based on your response structure: data.data.metaInfo
+    // Razorpay doesn't have metaInfo like PhonePe, so metadata is empty
     let metadata = {};
-    const metaInfo = paymentData.data?.data?.metaInfo || paymentData.data?.metaInfo || paymentData.metaInfo;
-
-    if (metaInfo && metaInfo !== null) {
-      try {
-        // If metaInfo is a string, parse it; if it's already an object, use it directly
-        if (typeof metaInfo === 'string') {
-          metadata = JSON.parse(metaInfo);
-        } else if (typeof metaInfo === 'object' && metaInfo !== null) {
-          metadata = metaInfo;
-        }
-      } catch (error) {
-        // If parsing fails, metadata remains empty object
-        console.error("Error parsing metaInfo");
-      }
-    }
-
-    // Also check if PhonePe returns customer data in other fields
-    // Some payment gateways return customer info in different locations
-    const phonePeCustomerInfo = paymentData.data?.customerInfo || paymentData.customerInfo || {};
-    if (phonePeCustomerInfo && Object.keys(phonePeCustomerInfo).length > 0) {
-      // Merge PhonePe customer info into metadata as fallback
-      metadata = { ...metadata, ...phonePeCustomerInfo };
-    }
 
     // Extract encrypted customer data from query parameters
     const encryptedData = req.query.data || '';

@@ -167,7 +167,7 @@ export default async function handler(req, res) {
       // Non-fatal: continue with payment flow
     }
 
-    // Store order data in Redis for webhook (webhook doesn't receive our custom data from PhonePe)
+    // Store order data in Redis for webhook (webhook doesn't receive our custom data from Razorpay)
     try {
       const { getRedisCache } = await import('./redis-cache.js');
       const cache = getRedisCache();
@@ -199,7 +199,7 @@ export default async function handler(req, res) {
 
     // Build redirect URL with encrypted customer data
     // We include orderId unencrypted because we need it to check payment status
-    // Note: PhonePe may strip or modify query parameters, so we rely on webhook as backup
+    // Note: Razorpay JS SDK handles redirects, but we keep this for compatibility
     const redirectParams = new URLSearchParams();
     redirectParams.append('orderId', orderId); // Include orderId so we can check payment status
     if (encryptedData) {
@@ -226,6 +226,31 @@ export default async function handler(req, res) {
       receipt: orderId,
       payment_capture: 1, // Auto capture
     };
+
+    // 2. Create Basic Auth header
+    const auth = Buffer.from(`${razorpayKeyId}:${razorpayKeySecret}`).toString('base64');
+
+    // 3. Call Razorpay API to create order
+    const response = await fetch("https://api.razorpay.com/v1/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Basic ${auth}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Razorpay API Error:", response.status, response.statusText, errorText);
+      return res.status(500).json({
+        success: false,
+        error: "Payment initiation failed",
+        message: "Unable to initiate payment. Please try again later."
+      });
+    }
+
+    const result = await response.json();
     
     // Send the response back to your React app
     return res.status(200).json(result);

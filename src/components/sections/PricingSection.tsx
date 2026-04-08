@@ -3,6 +3,7 @@ import { Check, Clock, Lock } from "lucide-react";
 import { useState } from "react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { getPackagePricing, formatPrice } from "@/lib/packagePricing";
+import PriceDisplay from "@/components/PriceDisplay";
 import CountdownTimer from "@/components/CountdownTimer";
 
 const PricingSection = () => {

@@ -86,30 +86,31 @@ const PaymentStatus = () => {
 
   useEffect(() => {
     const checkPaymentStatus = async () => {
-      // PhonePe may redirect with different parameter names
-      // Check multiple possible parameter names that PhonePe might use
+      // Razorpay may redirect with different parameter names
+      // Check multiple possible parameter names that Razorpay might use
       // Also check for orderId which we include in our redirect URL
-      const merchantTransactionId =
+      const orderId =
+        searchParams.get("order_id") ||
+        searchParams.get("orderId") ||
         searchParams.get("merchantTransactionId") ||
         searchParams.get("txnId") ||
         searchParams.get("transactionId") ||
         searchParams.get("transaction_id") ||
-        searchParams.get("orderId") || // Use orderId as fallback since we include it in redirect URL
-        searchParams.get("merchantTransactionId");
+        searchParams.get("orderId"); // Use orderId as fallback since we include it in redirect URL
 
       const email = searchParams.get("email");
       const name = searchParams.get("name");
       const packageType = searchParams.get("package");
 
-      // Try to retrieve order data from localStorage (backup if PhonePe stripped query params)
+      // Try to retrieve order data from localStorage (backup if Razorpay stripped query params)
       let storedOrderData = null;
-      if (merchantTransactionId) {
+      if (orderId) {
         try {
-          const stored = localStorage.getItem(`order_${merchantTransactionId}`);
+          const stored = localStorage.getItem(`order_${orderId}`);
           if (stored) {
             storedOrderData = JSON.parse(stored);
             // Clean up localStorage after retrieving
-            localStorage.removeItem(`order_${merchantTransactionId}`);
+            localStorage.removeItem(`order_${orderId}`);
           }
         } catch (e) {
           // Silent fail
@@ -126,7 +127,7 @@ const PaymentStatus = () => {
       // Store fallback data for invoice/display (ensures email never shows N/A)
       setOrderFallback(finalEmail || finalName || finalMobile ? { email: finalEmail, name: finalName, mobile: finalMobile } : null);
 
-      if (!merchantTransactionId) {
+      if (!orderId) {
         console.error(
           "No transaction ID found in URL parameters. Available params:",
           Object.fromEntries(searchParams.entries())
@@ -138,7 +139,7 @@ const PaymentStatus = () => {
       try {
         // Build query parameters - include stored order data if available
         const params = new URLSearchParams({
-          merchantTransactionId,
+          orderId,
           email: finalEmail,
           name: finalName,
           package: finalPackageType,
@@ -215,7 +216,7 @@ const PaymentStatus = () => {
         // Preserve all query parameters for navigation (build before API call)
         const currentParams = new URLSearchParams(searchParams.toString());
         const dataParam = currentParams.get("data");
-        const orderIdParam = currentParams.get("orderId") || merchantTransactionId;
+        const orderIdParam = currentParams.get("orderId") || orderId;
 
         // Pass encrypted data to API for decryption (ensures email/details are available)
         if (dataParam) params.append("data", dataParam);
@@ -259,11 +260,11 @@ const PaymentStatus = () => {
 
           // Track purchase event with Meta Pixel
           const amount = result.amount || 0;
-          const orderId = result.orderId || merchantTransactionId;
+          const paymentOrderId = result.orderId || orderId;
           const pkgType = packageType || "single";
 
           if (amount > 0) {
-            trackPurchase(amount, "INR", orderId, pkgType);
+            trackPurchase(amount, "INR", paymentOrderId, pkgType);
           }
 
           // Navigate to success URL if not already there
@@ -309,7 +310,7 @@ const PaymentStatus = () => {
     };
 
     checkPaymentStatus();
-  }, [searchParams]);
+  }, [searchParams, location.pathname, navigate]);
 
   const packageNames: Record<string, string> = {
     namecheck: "Name Check",
@@ -377,7 +378,7 @@ const PaymentStatus = () => {
       }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [status, paymentData, orderFallback]);
+  }, [status, paymentData, orderFallback, buildWhatsAppUrl]);
 
   const handleDownloadInvoice = async () => {
     if (!paymentData) return;

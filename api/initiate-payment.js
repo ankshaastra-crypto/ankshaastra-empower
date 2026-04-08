@@ -251,12 +251,20 @@ export default async function handler(req, res) {
     }
 
     const result = await response.json();
-    
-    // Send the response back to your React app
-    return res.status(200).json(result);
+
+    // Wrap response with success flag for frontend
+    return res.status(200).json({ 
+      success: true,
+      data: result,
+      orderId: result.id  // Include order ID for Razorpay Checkout
+    });
 
   } catch (error) {
-    console.error("API Error");
-    return res.status(500).json({ error: "Internal Server Error" });
+    console.error("API Error:", error);
+    return res.status(500).json({ 
+      success: false,
+      error: "Internal Server Error",
+      message: error.message || "Failed to initiate payment"
+    });
   }
 }

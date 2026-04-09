@@ -17,13 +17,17 @@ export default async function handler(req, res) {
 
   try {
     // Razorpay redirects with query parameters
-    const orderId =
-      req.query.order_id ||
+    const internalOrderId =
       req.query.orderId ||
+      req.query.order_id ||
       req.query.merchantTransactionId ||
       req.query.txnId ||
       req.query.transactionId ||
       req.query.transaction_id;
+
+    const razorpayOrderId =
+      req.query.razorpay_order_id ||
+      req.query.razorpayOrderId;
 
     // Get Razorpay keys
     const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
@@ -34,17 +38,24 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Server configuration error" });
     }
 
-    if (!orderId) {
-      console.error("Missing order ID");
+    if (!internalOrderId) {
+      console.error("Missing internal order ID");
       return res.status(400).json({
         error: "Missing order ID"
+      });
+    }
+
+    if (!razorpayOrderId) {
+      console.error("Missing Razorpay order ID");
+      return res.status(400).json({
+        error: "Missing Razorpay order ID"
       });
     }
 
     // Check payment status with Razorpay
     const auth = Buffer.from(`${razorpayKeyId}:${razorpayKeySecret}`).toString('base64');
 
-    const statusResponse = await fetch(`https://api.razorpay.com/v1/orders/${orderId}`, {
+    const statusResponse = await fetch(`https://api.razorpay.com/v1/orders/${razorpayOrderId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Basic ${auth}`,
@@ -222,7 +233,7 @@ export default async function handler(req, res) {
     // Persist order + payment (browser redirect flow — do not rely on webhook alone)
     try {
       const { savePayment } = await import('./db.js');
-      await savePayment(orderId, transactionId, amountInPaise, paymentStatus);
+      await savePayment(internalOrderId, transactionId, amountInPaise, paymentStatus);
     } catch (dbError) {
       console.error('DB save order error:', dbError?.message || dbError);
     }
@@ -267,7 +278,7 @@ export default async function handler(req, res) {
           timeOfBirth: timeOfBirth,
           placeOfBirth: placeOfBirth,
           pinCode: pinCode,
-          orderId,
+          orderId: internalOrderId,
           amount: amountInPaise,
           packageType: packageType || 'single',
           status: paymentStatus,
@@ -286,7 +297,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       success: true,
       status: paymentStatus,
-      orderId,
+      orderId: internalOrderId,
       transactionId,
       amount,
       customerEmail,

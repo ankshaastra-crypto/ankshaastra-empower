@@ -142,6 +142,24 @@ const OrderDetailDialog = ({ order, onClose, onUpdated }: Props) => {
             <DetailRow label="Date" value={order.order_date} />
           </section>
 
+          {/* Invoice */}
+          <section>
+            <h3 className="font-semibold mb-2 text-sm uppercase tracking-wide text-muted-foreground">Invoice</h3>
+            <div className="flex gap-2">
+              {invoiceId ? (
+                <Button variant="outline" size="sm" onClick={handleDownloadInvoice} disabled={downloadLoading}>
+                  {downloadLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileDown className="h-4 w-4 mr-1" />}
+                  Download Invoice
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" onClick={handleGenerateInvoice} disabled={invoiceLoading}>
+                  {invoiceLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileText className="h-4 w-4 mr-1" />}
+                  Generate Invoice
+                </Button>
+              )}
+            </div>
+          </section>
+
           {/* Editable fields */}
           <section className="space-y-4">
             <h3 className="font-semibold mb-2 text-sm uppercase tracking-wide text-muted-foreground">Actions</h3>

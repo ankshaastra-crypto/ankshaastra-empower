@@ -220,8 +220,9 @@ export default async function handler(req, res) {
     const redirectUrl = `https://${host}/payment-status${redirectParams.toString() ? '?' + redirectParams.toString() : ''}`;
 
     // 1. Build the Payment Payload (Razorpay order creation)
+    const amountValue = typeof amount === 'string' ? Number(amount) : amount;
     const payload = {
-      amount: amount * 100, // Amount in Paise
+      amount: Math.round(amountValue * 100), // Amount in Paise
       currency: "INR",
       receipt: orderId,
       payment_capture: 1, // Auto capture
@@ -251,6 +252,14 @@ export default async function handler(req, res) {
     }
 
     const result = await response.json();
+    if (!result || typeof result.id !== 'string' || !result.id.trim()) {
+      console.error('Invalid Razorpay order response:', result);
+      return res.status(500).json({
+        success: false,
+        error: 'Invalid Razorpay order response',
+        message: 'Payment gateway returned an unexpected response. Please try again later.',
+      });
+    }
 
     // Wrap response with success flag for frontend
     return res.status(200).json({ 

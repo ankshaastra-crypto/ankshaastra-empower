@@ -13,6 +13,79 @@ import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { trackInitiateCheckout } from "@/lib/metaPixel";
 import { getPackagePrice, formatPrice } from "@/lib/packagePricing";
 
+interface RazorpayPaymentResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+  error?: {
+    description?: string;
+  };
+}
+
+interface RazorpayCheckoutOptions {
+  key: string;
+  order_id: string;
+  handler: (response: RazorpayPaymentResponse) => void;
+  prefill: {
+    name: string;
+    email: string;
+    contact: string;
+  };
+  theme: {
+    color: string;
+  };
+}
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: RazorpayCheckoutOptions) => {
+      on: (event: string, listener: (response: RazorpayPaymentResponse) => void) => void;
+      open: () => void;
+    };
+  }
+}
+
+interface OrderPayload {
+  orderId: string;
+  email: string;
+  mobile: string;
+  name: string;
+  dob?: string;
+  gender?: string;
+  packageType: string;
+  city?: string;
+  pinCode?: string;
+  person1Name?: string;
+  person1FirstName?: string;
+  person1MiddleName?: string;
+  person1SurName?: string;
+  person1Dob?: string;
+  person1Gender?: string;
+  person1MiddleNameType?: string;
+  person2Name?: string;
+  person2FirstName?: string;
+  person2MiddleName?: string;
+  person2SurName?: string;
+  person2Dob?: string;
+  person2Gender?: string;
+  person2MiddleNameType?: string;
+  person3Name?: string;
+  person3FirstName?: string;
+  person3MiddleName?: string;
+  person3SurName?: string;
+  person3Dob?: string;
+  person3Gender?: string;
+  person3MiddleNameType?: string;
+  fatherFirstName?: string;
+  fatherMiddleName?: string;
+  fatherMiddleNameType?: string;
+  fatherLastName?: string;
+  fatherFirstNameAsMiddleName?: string;
+  childDob?: string;
+  timeOfBirth?: string;
+  placeOfBirth?: string;
+}
+
 // Name Check pricing configuration
 const NAME_CHECK_PRICING = {
   1: { price: 293, originalPrice: 293, savings: 0 },
@@ -390,35 +463,62 @@ const OrderFormSection = () => {
     const price = getPrice();
     const orderId = "ORD" + Date.now() + "-" + Math.random().toString(36).substring(2, 8);
 
-    let orderPayload: Record<string, unknown>;
+    let orderPayload: OrderPayload;
 
     if (packageType === "single" || packageType === "premium") {
       const fatherFullName = [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ").trim();
       orderPayload = {
-        orderId, email: babyFormData.email, mobile: babyFormData.whatsapp, name: fatherFullName,
-        dob: babyFormData.childDob, gender: babyFormData.gender,
-        person1Name: fatherFullName, person1Dob: babyFormData.childDob, person1Gender: babyFormData.gender,
-        fatherFirstName: babyFormData.fatherFirstName, fatherMiddleName: babyFormData.fatherMiddleName || "", fatherMiddleNameType: babyFormData.fatherMiddleNameType || "", fatherFirstNameAsMiddleName: babyFormData.fatherFirstNameAsMiddleName || "", fatherLastName: babyFormData.fatherLastName,
-        childDob: babyFormData.childDob, timeOfBirth: normalizeTimeInput(babyFormData.timeOfBirth),
-        placeOfBirth: babyFormData.placeOfBirth, pinCode: babyFormData.pinCode, packageType,
+        orderId,
+        email: babyFormData.email,
+        mobile: babyFormData.whatsapp,
+        name: fatherFullName,
+        dob: babyFormData.childDob,
+        gender: babyFormData.gender,
+        person1Name: fatherFullName,
+        person1Dob: babyFormData.childDob,
+        person1Gender: babyFormData.gender,
+        fatherFirstName: babyFormData.fatherFirstName,
+        fatherMiddleName: babyFormData.fatherMiddleName || "",
+        fatherMiddleNameType: babyFormData.fatherMiddleNameType || "",
+        fatherFirstNameAsMiddleName: babyFormData.fatherFirstNameAsMiddleName || "",
+        fatherLastName: babyFormData.fatherLastName,
+        childDob: babyFormData.childDob,
+        timeOfBirth: normalizeTimeInput(babyFormData.timeOfBirth),
+        placeOfBirth: babyFormData.placeOfBirth,
+        pinCode: babyFormData.pinCode,
+        packageType,
       };
     } else {
       orderPayload = {
-        orderId, email: formData.email, mobile: formData.mobile, city: formData.city, pinCode: formData.pinCode || "",
+        orderId,
+        email: formData.email,
+        mobile: formData.mobile,
+        city: formData.city,
+        pinCode: formData.pinCode || "",
         name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
-        dob: formData.person1Dob || "", gender: formData.person1Gender || "",
+        dob: formData.person1Dob || "",
+        gender: formData.person1Gender || "",
         packageType: `namecheck-${nameCheckCount}`,
         person1Name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
-        person1FirstName: formData.person1FirstName || "", person1MiddleName: formData.person1MiddleName || "", person1SurName: formData.person1SurName || "",
-        person1Dob: formData.person1Dob || "", person1Gender: formData.person1Gender || "",
+        person1FirstName: formData.person1FirstName || "",
+        person1MiddleName: formData.person1MiddleName || "",
+        person1SurName: formData.person1SurName || "",
+        person1Dob: formData.person1Dob || "",
+        person1Gender: formData.person1Gender || "",
         person1MiddleNameType: formData.person1MiddleNameType || "",
         person2Name: getFullName(formData.person2FirstName, formData.person2MiddleName, formData.person2SurName),
-        person2FirstName: formData.person2FirstName || "", person2MiddleName: formData.person2MiddleName || "", person2SurName: formData.person2SurName || "",
-        person2Dob: formData.person2Dob || "", person2Gender: formData.person2Gender || "",
+        person2FirstName: formData.person2FirstName || "",
+        person2MiddleName: formData.person2MiddleName || "",
+        person2SurName: formData.person2SurName || "",
+        person2Dob: formData.person2Dob || "",
+        person2Gender: formData.person2Gender || "",
         person2MiddleNameType: formData.person2MiddleNameType || "",
         person3Name: getFullName(formData.person3FirstName, formData.person3MiddleName, formData.person3SurName),
-        person3FirstName: formData.person3FirstName || "", person3MiddleName: formData.person3MiddleName || "", person3SurName: formData.person3SurName || "",
-        person3Dob: formData.person3Dob || "", person3Gender: formData.person3Gender || "",
+        person3FirstName: formData.person3FirstName || "",
+        person3MiddleName: formData.person3MiddleName || "",
+        person3SurName: formData.person3SurName || "",
+        person3Dob: formData.person3Dob || "",
+        person3Gender: formData.person3Gender || "",
         person3MiddleNameType: formData.person3MiddleNameType || "",
       };
     }
@@ -437,7 +537,14 @@ const OrderFormSection = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: price, ...orderPayload }),
       });
-      const result = await response.json();
+      const result = await response.json() as {
+        success: boolean;
+        orderId: string;
+        razorpayOrderId: string;
+        encryptedData?: string;
+        error?: string;
+        message?: string;
+      };
       if (!response.ok || !result.success) {
         toast({ title: "Payment Error", description: result.error || result.message || "Payment failed to start.", variant: "destructive" });
         setIsSubmitting(false);
@@ -456,12 +563,13 @@ const OrderFormSection = () => {
           return;
         }
 
-        const options = {
+        const options: RazorpayCheckoutOptions = {
           key: razorpayKeyId,
-          order_id: result.orderId,
-          handler: (response: any) => {
-            // Payment successful - redirect to payment status page
-            window.location.href = `/payment-status?orderId=${result.orderId}&razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`;
+          order_id: result.razorpayOrderId,
+          handler: (response: RazorpayPaymentResponse) => {
+            // Payment successful - redirect to payment status page with internal order ID and encrypted data
+            const dataParam = result.encryptedData ? `&data=${encodeURIComponent(result.encryptedData)}` : "";
+            window.location.href = `/payment-status?orderId=${result.orderId}${dataParam}&razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`;
           },
           prefill: {
             name: orderPayload.name || "",
@@ -473,11 +581,18 @@ const OrderFormSection = () => {
           },
         };
         
-        const rzp = new (window as any).Razorpay(options);
-        rzp.on("payment.failed", (response: any) => {
+        const Razorpay = window.Razorpay;
+        if (!Razorpay) {
+          toast({ title: "Error", description: "Razorpay checkout failed to load. Please refresh and try again.", variant: "destructive" });
+          setIsSubmitting(false);
+          return;
+        }
+
+        const rzp = new Razorpay(options);
+        rzp.on("payment.failed", (response: RazorpayPaymentResponse) => {
           toast({ 
             title: "Payment Failed", 
-            description: response.error.description || "Your payment could not be processed. Please try again.", 
+            description: response.error?.description || "Your payment could not be processed. Please try again.", 
             variant: "destructive" 
           });
           setIsSubmitting(false);

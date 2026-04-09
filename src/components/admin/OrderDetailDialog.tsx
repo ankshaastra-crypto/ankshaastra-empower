@@ -41,8 +41,50 @@ const OrderDetailDialog = ({ order, onClose, onUpdated }: Props) => {
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(order?.tags || []);
   const [saving, setSaving] = useState(false);
+  const [invoiceId, setInvoiceId] = useState<string | null>(null);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [downloadLoading, setDownloadLoading] = useState(false);
+
+  useEffect(() => {
+    if (order?.order_id) {
+      getInvoiceForOrder(order.order_id).then((inv) => {
+        setInvoiceId(inv?.id || null);
+      });
+    }
+  }, [order?.order_id]);
 
   if (!order) return null;
+
+  const handleGenerateInvoice = async () => {
+    setInvoiceLoading(true);
+    try {
+      const result = await generateInvoice(order.order_id);
+      if (result.success) {
+        setInvoiceId(result.invoiceId);
+        toast({ title: "Invoice generated successfully" });
+      } else {
+        throw new Error(result.error || "Generation failed");
+      }
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setInvoiceLoading(false);
+    }
+  };
+
+  const handleDownloadInvoice = async () => {
+    if (!invoiceId) return;
+    setDownloadLoading(true);
+    try {
+      const url = await getInvoiceDownloadUrl(invoiceId);
+      if (url) window.open(url, "_blank");
+      else throw new Error("No URL returned");
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setDownloadLoading(false);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);

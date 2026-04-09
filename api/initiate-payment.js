@@ -255,8 +255,10 @@ export default async function handler(req, res) {
     // Wrap response with success flag for frontend
     return res.status(200).json({ 
       success: true,
+      orderId,
+      razorpayOrderId: result.id,
+      encryptedData,
       data: result,
-      orderId: result.id  // Include order ID for Razorpay Checkout
     });
 
   } catch (error) {

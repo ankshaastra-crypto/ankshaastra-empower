@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { FileDown, Loader2, FileText } from "lucide-react";
+import { generateInvoice, getInvoiceDownloadUrl, getInvoiceForOrder } from "@/lib/invoiceService";
 import type { FirestoreOrder } from "@/types/admin";
 
 interface Props {

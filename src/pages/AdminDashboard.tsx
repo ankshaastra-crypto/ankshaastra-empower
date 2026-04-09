@@ -24,12 +24,29 @@ const PAGE_SIZE = 50;
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user } = useFirebaseAuth();
+  const { toast } = useToast();
   const [allOrders, setAllOrders] = useState<FirestoreOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [selectedOrder, setSelectedOrder] = useState<FirestoreOrder | null>(null);
   const [page, setPage] = useState(1);
+
+  const handleBackfill = async () => {
+    setBackfilling(true);
+    try {
+      const result = await backfillInvoices();
+      toast({
+        title: "Backfill complete",
+        description: `Processed: ${result.processed}, Success: ${result.success}, Failed: ${result.failed}`,
+      });
+    } catch (err: any) {
+      toast({ title: "Backfill error", description: err.message, variant: "destructive" });
+    } finally {
+      setBackfilling(false);
+    }
+  };
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);

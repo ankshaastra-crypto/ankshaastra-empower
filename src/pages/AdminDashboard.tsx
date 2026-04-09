@@ -5,7 +5,9 @@ import { collection, getDocs, query, orderBy, limit, startAfter, DocumentSnapsho
 import { auth, db } from "@/lib/firebase";
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth";
 import { Button } from "@/components/ui/button";
-import { Loader2, LogOut, RefreshCw, Download, ShoppingBag } from "lucide-react";
+import { Loader2, LogOut, RefreshCw, Download, ShoppingBag, FileText } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { backfillInvoices } from "@/lib/invoiceService";
 import MetricsCards from "@/components/admin/MetricsCards";
 import OrderFilters, { type Filters } from "@/components/admin/OrderFilters";
 import OrdersTable from "@/components/admin/OrdersTable";

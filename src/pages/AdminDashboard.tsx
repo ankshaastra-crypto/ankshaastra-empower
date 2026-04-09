@@ -5,7 +5,9 @@ import { collection, getDocs, query, orderBy, limit, startAfter, DocumentSnapsho
 import { auth, db } from "@/lib/firebase";
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth";
 import { Button } from "@/components/ui/button";
-import { Loader2, LogOut, RefreshCw, Download, ShoppingBag } from "lucide-react";
+import { Loader2, LogOut, RefreshCw, Download, ShoppingBag, FileText } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { backfillInvoices } from "@/lib/invoiceService";
 import MetricsCards from "@/components/admin/MetricsCards";
 import OrderFilters, { type Filters } from "@/components/admin/OrderFilters";
 import OrdersTable from "@/components/admin/OrdersTable";
@@ -22,12 +24,29 @@ const PAGE_SIZE = 50;
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user } = useFirebaseAuth();
+  const { toast } = useToast();
   const [allOrders, setAllOrders] = useState<FirestoreOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [selectedOrder, setSelectedOrder] = useState<FirestoreOrder | null>(null);
   const [page, setPage] = useState(1);
+
+  const handleBackfill = async () => {
+    setBackfilling(true);
+    try {
+      const result = await backfillInvoices();
+      toast({
+        title: "Backfill complete",
+        description: `Processed: ${result.processed}, Success: ${result.success}, Failed: ${result.failed}`,
+      });
+    } catch (err: any) {
+      toast({ title: "Backfill error", description: err.message, variant: "destructive" });
+    } finally {
+      setBackfilling(false);
+    }
+  };
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -107,6 +126,10 @@ const AdminDashboard = () => {
             <Button variant="outline" size="sm" onClick={triggerSync} disabled={syncing}>
               <RefreshCw className={`h-4 w-4 mr-1 ${syncing ? "animate-spin" : ""}`} />
               Sync
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleBackfill} disabled={backfilling}>
+              <FileText className={`h-4 w-4 mr-1 ${backfilling ? "animate-spin" : ""}`} />
+              {backfilling ? "Backfilling..." : "Backfill Invoices"}
             </Button>
             <Button variant="outline" size="sm" onClick={() => exportOrdersCsv(filtered)}>
               <Download className="h-4 w-4 mr-1" /> CSV

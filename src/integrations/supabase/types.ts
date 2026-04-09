@@ -52,6 +52,7 @@ export type Database = {
           package_type: string
           sgst_amount: number
           sgst_rate: number
+          storage_url: string | null
           subtotal: number
           total_amount: number
           transaction_id: string | null
@@ -78,6 +79,7 @@ export type Database = {
           package_type?: string
           sgst_amount?: number
           sgst_rate?: number
+          storage_url?: string | null
           subtotal?: number
           total_amount?: number
           transaction_id?: string | null
@@ -104,6 +106,7 @@ export type Database = {
           package_type?: string
           sgst_amount?: number
           sgst_rate?: number
+          storage_url?: string | null
           subtotal?: number
           total_amount?: number
           transaction_id?: string | null

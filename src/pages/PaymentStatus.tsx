@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { CheckCircle2, XCircle, Loader2, Download, MessageCircle, User, CreditCard, Package, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -73,6 +73,14 @@ interface InvoiceTemplateData {
   terms?: string[];
 }
 
+const packageNames: Record<string, string> = {
+  namecheck: "Name Check",
+  single: "Single Report",
+  family: "Family Package (3 Reports)",
+  baby: "Perfect Baby Name Report",
+  babyname: "Perfect Baby Name Report",
+};
+
 const PaymentStatus = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -89,14 +97,21 @@ const PaymentStatus = () => {
       // Razorpay may redirect with different parameter names
       // Check multiple possible parameter names that Razorpay might use
       // Also check for orderId which we include in our redirect URL
-      const orderId =
-        searchParams.get("order_id") ||
+      const internalOrderId =
         searchParams.get("orderId") ||
+        searchParams.get("order_id") ||
         searchParams.get("merchantTransactionId") ||
         searchParams.get("txnId") ||
         searchParams.get("transactionId") ||
-        searchParams.get("transaction_id") ||
-        searchParams.get("orderId"); // Use orderId as fallback since we include it in redirect URL
+        searchParams.get("transaction_id");
+
+      const razorpayOrderId =
+        searchParams.get("razorpay_order_id") ||
+        searchParams.get("razorpayOrderId");
+
+      const razorpayPaymentId =
+        searchParams.get("razorpay_payment_id") ||
+        searchParams.get("razorpayPaymentId");
 
       const email = searchParams.get("email");
       const name = searchParams.get("name");
@@ -104,13 +119,13 @@ const PaymentStatus = () => {
 
       // Try to retrieve order data from localStorage (backup if Razorpay stripped query params)
       let storedOrderData = null;
-      if (orderId) {
+      if (internalOrderId) {
         try {
-          const stored = localStorage.getItem(`order_${orderId}`);
+          const stored = localStorage.getItem(`order_${internalOrderId}`);
           if (stored) {
             storedOrderData = JSON.parse(stored);
             // Clean up localStorage after retrieving
-            localStorage.removeItem(`order_${orderId}`);
+            localStorage.removeItem(`order_${internalOrderId}`);
           }
         } catch (e) {
           // Silent fail
@@ -127,9 +142,9 @@ const PaymentStatus = () => {
       // Store fallback data for invoice/display (ensures email never shows N/A)
       setOrderFallback(finalEmail || finalName || finalMobile ? { email: finalEmail, name: finalName, mobile: finalMobile } : null);
 
-      if (!orderId) {
+      if (!internalOrderId) {
         console.error(
-          "No transaction ID found in URL parameters. Available params:",
+          "No internal order ID found in URL parameters. Available params:",
           Object.fromEntries(searchParams.entries())
         );
         setStatus("failed");
@@ -139,11 +154,13 @@ const PaymentStatus = () => {
       try {
         // Build query parameters - include stored order data if available
         const params = new URLSearchParams({
-          orderId,
+          orderId: internalOrderId,
           email: finalEmail,
           name: finalName,
           package: finalPackageType,
         });
+        if (razorpayOrderId) params.append("razorpay_order_id", razorpayOrderId);
+        if (razorpayPaymentId) params.append("razorpay_payment_id", razorpayPaymentId);
 
         // Add person details if available from stored data
         if (storedOrderData) {
@@ -216,7 +233,7 @@ const PaymentStatus = () => {
         // Preserve all query parameters for navigation (build before API call)
         const currentParams = new URLSearchParams(searchParams.toString());
         const dataParam = currentParams.get("data");
-        const orderIdParam = currentParams.get("orderId") || orderId;
+        const orderIdParam = currentParams.get("orderId") || internalOrderId;
 
         // Pass encrypted data to API for decryption (ensures email/details are available)
         if (dataParam) params.append("data", dataParam);
@@ -228,6 +245,12 @@ const PaymentStatus = () => {
         }
         if (dataParam) {
           newParams.append("data", dataParam);
+        }
+        if (razorpayOrderId) {
+          newParams.append("razorpay_order_id", razorpayOrderId);
+        }
+        if (razorpayPaymentId) {
+          newParams.append("razorpay_payment_id", razorpayPaymentId);
         }
 
         // Call our API to check payment status
@@ -260,7 +283,7 @@ const PaymentStatus = () => {
 
           // Track purchase event with Meta Pixel
           const amount = result.amount || 0;
-          const paymentOrderId = result.orderId || orderId;
+          const paymentOrderId = result.orderId || internalOrderId;
           const pkgType = packageType || "single";
 
           if (amount > 0) {
@@ -297,11 +320,19 @@ const PaymentStatus = () => {
           searchParams.get("txnId") ||
           searchParams.get("transactionId");
         const dataParam = searchParams.get("data");
+        const razorpayOrderIdParam = searchParams.get("razorpay_order_id") || searchParams.get("razorpayOrderId");
+        const razorpayPaymentIdParam = searchParams.get("razorpay_payment_id") || searchParams.get("razorpayPaymentId");
         if (!location.pathname.includes("/failed") && orderIdParam) {
           const newParams = new URLSearchParams();
           newParams.append("orderId", orderIdParam);
           if (dataParam) {
             newParams.append("data", dataParam);
+          }
+          if (razorpayOrderIdParam) {
+            newParams.append("razorpay_order_id", razorpayOrderIdParam);
+          }
+          if (razorpayPaymentIdParam) {
+            newParams.append("razorpay_payment_id", razorpayPaymentIdParam);
           }
           const failedUrl = `/payment/failed${newParams.toString() ? '?' + newParams.toString() : ''}`;
           navigate(failedUrl, { replace: true });
@@ -312,15 +343,7 @@ const PaymentStatus = () => {
     checkPaymentStatus();
   }, [searchParams, location.pathname, navigate]);
 
-  const packageNames: Record<string, string> = {
-    namecheck: "Name Check",
-    single: "Single Report",
-    family: "Family Package (3 Reports)",
-    baby: "Perfect Baby Name Report",
-    babyname: "Perfect Baby Name Report",
-  };
-
-  const buildWhatsAppUrl = (d: PaymentData, fb: typeof orderFallback) => {
+  const buildWhatsAppUrl = useCallback((d: PaymentData, fb: typeof orderFallback) => {
     const pkg = packageNames[d.packageType || "single"] || d.packageType;
     const isBaby = d.packageType === 'baby' || d.packageType === 'babyname';
     
@@ -366,7 +389,7 @@ const PaymentStatus = () => {
       `\n\nPlease process my report. Thank you! 🙏`
     );
     return `https://wa.me/919667305577?text=${msg}`;
-  };
+  }, []);
 
   // Auto-trigger WhatsApp on successful payment
   useEffect(() => {

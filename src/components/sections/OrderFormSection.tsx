@@ -540,13 +540,22 @@ const OrderFormSection = () => {
       const result = await response.json() as {
         success: boolean;
         orderId: string;
-        razorpayOrderId: string;
+        razorpayOrderId?: string;
         encryptedData?: string;
+        data?: { id?: string };
         error?: string;
         message?: string;
       };
       if (!response.ok || !result.success) {
         toast({ title: "Payment Error", description: result.error || result.message || "Payment failed to start.", variant: "destructive" });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const razorpayOrderId = result.razorpayOrderId || result.data?.id;
+      if (!razorpayOrderId) {
+        toast({ title: "Payment Error", description: "Payment gateway returned an invalid order reference. Please try again.", variant: "destructive" });
+        console.error('Missing Razorpay order ID in initiate-payment response:', result);
         setIsSubmitting(false);
         return;
       }
@@ -565,7 +574,7 @@ const OrderFormSection = () => {
 
         const options: RazorpayCheckoutOptions = {
           key: razorpayKeyId,
-          order_id: result.razorpayOrderId,
+          order_id: razorpayOrderId,
           handler: (response: RazorpayPaymentResponse) => {
             // Payment successful - redirect to payment status page with internal order ID and encrypted data
             const dataParam = result.encryptedData ? `&data=${encodeURIComponent(result.encryptedData)}` : "";

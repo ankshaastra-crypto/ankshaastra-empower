@@ -127,6 +127,10 @@ const AdminDashboard = () => {
               <RefreshCw className={`h-4 w-4 mr-1 ${syncing ? "animate-spin" : ""}`} />
               Sync
             </Button>
+            <Button variant="outline" size="sm" onClick={handleBackfill} disabled={backfilling}>
+              <FileText className={`h-4 w-4 mr-1 ${backfilling ? "animate-spin" : ""}`} />
+              {backfilling ? "Backfilling..." : "Backfill Invoices"}
+            </Button>
             <Button variant="outline" size="sm" onClick={() => exportOrdersCsv(filtered)}>
               <Download className="h-4 w-4 mr-1" /> CSV
             </Button>

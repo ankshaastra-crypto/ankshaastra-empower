@@ -57,35 +57,38 @@ const HeroSection = () => {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-3xl mx-auto text-center animate-fade-in-up">
-          <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="flex items-center justify-center gap-3 mb-6">
             <div className="h-px w-16 gold-divider-right" />
             <span className="text-accent">✦</span>
             <div className="h-px w-16 gold-divider-left" />
           </div>
 
-          <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 leading-tight text-foreground">
-            Your Baby's{" "}
-            <span className="text-accent">Lucky Name</span>
-            <br className="hidden sm:block" />
-            {" "}in 24 Hours
+          <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight text-foreground">
+            Because a Name Is the{" "}
+            <span className="text-accent">First Gift You Give Your Child</span>
           </h1>
 
-          <p className="text-base md:text-lg mb-2 max-w-xl mx-auto leading-relaxed text-muted-foreground">
-            Personalised Numerology Baby Name Report by{" "}
-            <span className="font-semibold text-foreground">Himansshu Agarwal Ji</span>
+          <p className="text-base md:text-lg mb-3 max-w-xl mx-auto leading-relaxed text-muted-foreground">
+            Personalised Baby Name Report by{" "}
+            <span className="font-semibold text-foreground">Himansshu Agarwal Ji</span>{" "}
+            — based on Numerology & Vedic principles, aligned to your child's birth energy.
           </p>
 
-          <div className="my-5 md:my-7">
+          <div className="my-8 md:my-10">
             <Button
               onClick={scrollToForm}
               size="default"
-              className="w-auto font-bold text-base md:text-xl shadow-xl hover:scale-105 transition-transform animate-pulse-glow animate-blinker border-none px-8 py-4 md:px-10 md:py-5 bg-gold-cta text-accent-foreground"
+              className="w-auto font-bold text-sm md:text-lg shadow-xl hover:scale-105 transition-transform animate-pulse-glow animate-blinker border-none px-6 py-3 md:px-8 md:py-4 bg-gold-cta text-accent-foreground"
             >
-              Get Name Report @ Just ₹293
+              Get Name Check @ ₹293
             </Button>
-            <p className="mt-2 text-xs text-accent font-semibold tracking-wide">
-              ⚡ 10+ Aligned Names · Delivered on WhatsApp
-            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 mt-4 text-xs text-muted-foreground">
+              <span>✦ 10+ Numerologically Aligned Names</span>
+              <span className="hidden sm:inline">·</span>
+              <span>✦ Delivered within 24–48 Hours</span>
+              <span className="hidden sm:inline">·</span>
+              <span>✦ First Name, Full Name & Compound Number Analysis</span>
+            </div>
           </div>
 
           <div className="flex flex-wrap justify-center gap-6 sm:gap-10">

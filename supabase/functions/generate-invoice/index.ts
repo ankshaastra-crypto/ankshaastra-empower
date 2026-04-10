@@ -1,15 +1,21 @@
-import { createClient } from "npm:@supabase/supabase-js@2.98.0";
-import { corsHeaders } from "npm:@supabase/supabase-js@2.98.0/cors";
-import { PDFDocument, rgb, StandardFonts } from "npm:pdf-lib@1.17.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.98.0";
+import { PDFDocument, rgb, StandardFonts } from "https://esm.sh/pdf-lib@1.17.1";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Company details
+// Invoice data - loaded from public/invoice-data.json values
 const COMPANY = {
   name: "Ankshaastra",
   description: "Empower Your Name",
-  address: "Unit No. O-622, Block-E, Eye of Noida, Sector 140A, Noida-201305",
+  address:
+    "Unit No. O-622, Block-E, Eye of Noida, Sector 140A, Noida-201305",
   phone: "9667305577",
   email: "social@ankshaastra.com",
   gstin: "09AAFFE7583B1ZD",
@@ -22,6 +28,10 @@ const BANK = {
   ifsc: "UTIB0001837",
   holder: "Ankshaastra Occult Experts LLP",
   branch: "Agra Road",
+};
+
+const UPI = {
+  upiId: "razorpay.me/@ankshaastraoccultexpertsllp",
 };
 
 const PACKAGE_NAMES: Record<string, string> = {
@@ -91,58 +101,97 @@ async function generateInvoicePDF(data: {
   const black = rgb(0, 0, 0);
   const gray = rgb(0.4, 0.4, 0.4);
   const lightGray = rgb(0.95, 0.95, 0.95);
+  const white = rgb(1, 1, 1);
 
   let y = height - 40;
   const leftMargin = 40;
   const rightMargin = width - 40;
 
   // ── Header ──
-  page.drawText(COMPANY.name, { x: leftMargin, y, size: 22, font: fontBold, color: purple });
-  page.drawText("INVOICE", { x: rightMargin - font.widthOfTextAtSize("INVOICE", 22), y, size: 22, font: fontBold, color: black });
+  page.drawText(COMPANY.name, {
+    x: leftMargin, y, size: 22, font: fontBold, color: purple,
+  });
+  page.drawText("INVOICE", {
+    x: rightMargin - font.widthOfTextAtSize("INVOICE", 22),
+    y, size: 22, font: fontBold, color: black,
+  });
   y -= 18;
-  page.drawText(COMPANY.description, { x: leftMargin, y, size: 10, font, color: gray });
+  page.drawText(COMPANY.description, {
+    x: leftMargin, y, size: 10, font, color: gray,
+  });
   y -= 14;
-  page.drawText(COMPANY.address, { x: leftMargin, y, size: 8, font, color: gray });
+  page.drawText(COMPANY.address, {
+    x: leftMargin, y, size: 8, font, color: gray,
+  });
 
   // Invoice details right-aligned
   const invNoText = `Invoice No: ${data.invoiceNumber}`;
   const invDateText = `Date: ${data.invoiceDate}`;
-  page.drawText(invNoText, { x: rightMargin - font.widthOfTextAtSize(invNoText, 9), y: height - 62, size: 9, font, color: gray });
-  page.drawText(invDateText, { x: rightMargin - font.widthOfTextAtSize(invDateText, 9), y: height - 74, size: 9, font, color: gray });
+  page.drawText(invNoText, {
+    x: rightMargin - font.widthOfTextAtSize(invNoText, 9),
+    y: height - 62, size: 9, font, color: gray,
+  });
+  page.drawText(invDateText, {
+    x: rightMargin - font.widthOfTextAtSize(invDateText, 9),
+    y: height - 74, size: 9, font, color: gray,
+  });
 
   y -= 14;
-  page.drawText(`Phone: ${COMPANY.phone}  |  Email: ${COMPANY.email}`, { x: leftMargin, y, size: 8, font, color: gray });
+  page.drawText(`Phone: ${COMPANY.phone}  |  Email: ${COMPANY.email}`, {
+    x: leftMargin, y, size: 8, font, color: gray,
+  });
   y -= 14;
-  page.drawText(`GSTIN: ${COMPANY.gstin}`, { x: leftMargin, y, size: 8, font, color: gray });
+  page.drawText(`GSTIN: ${COMPANY.gstin}`, {
+    x: leftMargin, y, size: 8, font, color: gray,
+  });
 
   // Divider
   y -= 10;
-  page.drawLine({ start: { x: leftMargin, y }, end: { x: rightMargin, y }, thickness: 2, color: purple });
+  page.drawLine({
+    start: { x: leftMargin, y },
+    end: { x: rightMargin, y },
+    thickness: 2, color: purple,
+  });
 
   // ── Bill To ──
   y -= 25;
-  page.drawText("Bill To", { x: leftMargin, y, size: 14, font: fontBold, color: purple });
+  page.drawText("Bill To", {
+    x: leftMargin, y, size: 14, font: fontBold, color: purple,
+  });
   y -= 18;
-  page.drawText(`Name: ${data.customerName}`, { x: leftMargin, y, size: 10, font, color: black });
-  page.drawText(`Phone: ${data.customerMobile}`, { x: 320, y, size: 10, font, color: black });
+  page.drawText(`Name: ${data.customerName}`, {
+    x: leftMargin, y, size: 10, font, color: black,
+  });
+  page.drawText(`Phone: ${data.customerMobile}`, {
+    x: 320, y, size: 10, font, color: black,
+  });
   y -= 15;
-  page.drawText(`Email: ${data.customerEmail}`, { x: leftMargin, y, size: 10, font, color: black });
+  page.drawText(`Email: ${data.customerEmail}`, {
+    x: leftMargin, y, size: 10, font, color: black,
+  });
   if (data.transactionId) {
-    page.drawText(`Transaction ID: ${data.transactionId}`, { x: 320, y, size: 10, font, color: black });
+    page.drawText(`Transaction ID: ${data.transactionId}`, {
+      x: 320, y, size: 10, font, color: black,
+    });
   }
 
   // ── Items Table ──
   y -= 30;
-  page.drawText("Items", { x: leftMargin, y, size: 14, font: fontBold, color: purple });
+  page.drawText("Items", {
+    x: leftMargin, y, size: 14, font: fontBold, color: purple,
+  });
   y -= 20;
 
   // Table header
-  page.drawRectangle({ x: leftMargin, y: y - 5, width: rightMargin - leftMargin, height: 22, color: purple });
-  page.drawText("Description", { x: leftMargin + 10, y: y, size: 10, font: fontBold, color: rgb(1, 1, 1) });
-  page.drawText("HSN/SAC", { x: 250, y: y, size: 10, font: fontBold, color: rgb(1, 1, 1) });
-  page.drawText("Qty", { x: 340, y: y, size: 10, font: fontBold, color: rgb(1, 1, 1) });
-  page.drawText("Unit Price", { x: 400, y: y, size: 10, font: fontBold, color: rgb(1, 1, 1) });
-  page.drawText("Total", { x: 490, y: y, size: 10, font: fontBold, color: rgb(1, 1, 1) });
+  page.drawRectangle({
+    x: leftMargin, y: y - 5,
+    width: rightMargin - leftMargin, height: 22, color: purple,
+  });
+  page.drawText("Description", { x: leftMargin + 10, y, size: 10, font: fontBold, color: white });
+  page.drawText("HSN/SAC", { x: 250, y, size: 10, font: fontBold, color: white });
+  page.drawText("Qty", { x: 340, y, size: 10, font: fontBold, color: white });
+  page.drawText("Unit Price", { x: 400, y, size: 10, font: fontBold, color: white });
+  page.drawText("Total", { x: 490, y, size: 10, font: fontBold, color: white });
 
   // Table row
   y -= 25;
@@ -150,40 +199,58 @@ async function generateInvoicePDF(data: {
   page.drawText(packageName, { x: leftMargin + 10, y, size: 9, font, color: black });
   page.drawText(COMPANY.hsnSac, { x: 250, y, size: 9, font, color: black });
   page.drawText("1", { x: 340, y, size: 9, font, color: black });
-  page.drawText(`₹${data.gst.subtotal.toLocaleString("en-IN")}`, { x: 400, y, size: 9, font, color: black });
-  page.drawText(`₹${data.gst.subtotal.toLocaleString("en-IN")}`, { x: 490, y, size: 9, font, color: black });
+  page.drawText(`Rs.${data.gst.subtotal.toLocaleString("en-IN")}`, { x: 400, y, size: 9, font, color: black });
+  page.drawText(`Rs.${data.gst.subtotal.toLocaleString("en-IN")}`, { x: 490, y, size: 9, font, color: black });
 
   // ── GST Breakdown ──
   y -= 35;
-  page.drawLine({ start: { x: 350, y: y + 10 }, end: { x: rightMargin, y: y + 10 }, thickness: 0.5, color: gray });
+  page.drawLine({
+    start: { x: 350, y: y + 10 },
+    end: { x: rightMargin, y: y + 10 },
+    thickness: 0.5, color: gray,
+  });
 
   const drawTotalRow = (label: string, value: string, yPos: number, isBold = false) => {
     const f = isBold ? fontBold : font;
     const sz = isBold ? 12 : 10;
     page.drawText(label, { x: 350, y: yPos, size: sz, font: f, color: black });
-    page.drawText(value, { x: rightMargin - f.widthOfTextAtSize(value, sz) - 5, y: yPos, size: sz, font: f, color: purple });
+    page.drawText(value, {
+      x: rightMargin - f.widthOfTextAtSize(value, sz) - 5,
+      y: yPos, size: sz, font: f, color: purple,
+    });
   };
 
-  drawTotalRow("Subtotal:", `₹${data.gst.subtotal.toLocaleString("en-IN")}`, y);
+  drawTotalRow("Subtotal:", `Rs.${data.gst.subtotal.toLocaleString("en-IN")}`, y);
   y -= 18;
 
   if (data.gst.isIntraState) {
-    drawTotalRow(`CGST (${data.gst.cgstRate}%):`, `₹${data.gst.cgstAmount.toLocaleString("en-IN")}`, y);
+    drawTotalRow(`CGST (${data.gst.cgstRate}%):`, `Rs.${data.gst.cgstAmount.toLocaleString("en-IN")}`, y);
     y -= 18;
-    drawTotalRow(`SGST (${data.gst.sgstRate}%):`, `₹${data.gst.sgstAmount.toLocaleString("en-IN")}`, y);
+    drawTotalRow(`SGST (${data.gst.sgstRate}%):`, `Rs.${data.gst.sgstAmount.toLocaleString("en-IN")}`, y);
     y -= 18;
   } else {
-    drawTotalRow(`IGST (${data.gst.igstRate}%):`, `₹${data.gst.igstAmount.toLocaleString("en-IN")}`, y);
+    drawTotalRow(`IGST (${data.gst.igstRate}%):`, `Rs.${data.gst.igstAmount.toLocaleString("en-IN")}`, y);
     y -= 18;
   }
 
-  page.drawLine({ start: { x: 350, y: y + 10 }, end: { x: rightMargin, y: y + 10 }, thickness: 2, color: purple });
-  drawTotalRow("Total Amount:", `₹${data.gst.totalAmount.toLocaleString("en-IN")}`, y, true);
+  page.drawLine({
+    start: { x: 350, y: y + 10 },
+    end: { x: rightMargin, y: y + 10 },
+    thickness: 2, color: purple,
+  });
+  drawTotalRow("Total Amount:", `Rs.${data.gst.totalAmount.toLocaleString("en-IN")}`, y, true);
 
-  // ── Bank Details ──
+  // ── Payment Details Section ──
   y -= 40;
-  page.drawRectangle({ x: leftMargin, y: y - 60, width: 240, height: 75, color: lightGray });
-  page.drawText("Bank Details", { x: leftMargin + 10, y: y, size: 11, font: fontBold, color: purple });
+  
+  // Bank Details Box
+  page.drawRectangle({
+    x: leftMargin, y: y - 70,
+    width: 240, height: 85, color: lightGray,
+  });
+  page.drawText("Bank Details", {
+    x: leftMargin + 10, y, size: 11, font: fontBold, color: purple,
+  });
   y -= 14;
   page.drawText(`Bank: ${BANK.name}`, { x: leftMargin + 10, y, size: 8, font, color: gray });
   y -= 12;
@@ -192,26 +259,84 @@ async function generateInvoicePDF(data: {
   page.drawText(`IFSC: ${BANK.ifsc}`, { x: leftMargin + 10, y, size: 8, font, color: gray });
   y -= 12;
   page.drawText(`Holder: ${BANK.holder}`, { x: leftMargin + 10, y, size: 8, font, color: gray });
+  y -= 12;
+  page.drawText(`Branch: ${BANK.branch}`, { x: leftMargin + 10, y, size: 8, font, color: gray });
+
+  // UPI Details Box (right side)
+  const upiBoxY = y + 62;
+  page.drawRectangle({
+    x: 310, y: upiBoxY - 40,
+    width: 240, height: 55, color: lightGray,
+  });
+  page.drawText("UPI Payment", {
+    x: 320, y: upiBoxY, size: 11, font: fontBold, color: purple,
+  });
+  page.drawText(`UPI ID: ${UPI.upiId}`, {
+    x: 320, y: upiBoxY - 16, size: 8, font, color: gray,
+  });
+
+  // ── Notes ──
+  y -= 25;
+  page.drawRectangle({
+    x: leftMargin, y: y - 30,
+    width: rightMargin - leftMargin, height: 42, color: rgb(1, 0.973, 0.882),
+  });
+  // Yellow left border
+  page.drawRectangle({
+    x: leftMargin, y: y - 30,
+    width: 3, height: 42, color: rgb(1, 0.757, 0.027),
+  });
+  page.drawText("Notes", {
+    x: leftMargin + 10, y, size: 11, font: fontBold, color: purple,
+  });
+  y -= 13;
+  page.drawText("Your personalized numerology report will be delivered within 24-48 hours.", {
+    x: leftMargin + 10, y, size: 8, font, color: gray,
+  });
+  y -= 11;
+  page.drawText("Report will be sent to your registered whatsapp number / email address.", {
+    x: leftMargin + 10, y, size: 8, font, color: gray,
+  });
 
   // ── Terms ──
-  y -= 30;
-  page.drawText("Terms & Conditions", { x: leftMargin, y, size: 11, font: fontBold, color: purple });
-  y -= 14;
+  y -= 25;
+  page.drawRectangle({
+    x: leftMargin, y: y - 45,
+    width: rightMargin - leftMargin, height: 58, color: lightGray,
+  });
+  page.drawText("Terms & Conditions", {
+    x: leftMargin + 10, y, size: 11, font: fontBold, color: purple,
+  });
+  y -= 13;
   const terms = [
     "Items are non-refundable once the order is confirmed.",
     "All prices are inclusive of taxes unless otherwise stated.",
-    `For queries, contact ${COMPANY.email} or +91-${COMPANY.phone}.`,
+    "Payment must be made within the due date mentioned above.",
+    `For any queries, please contact us at ${COMPANY.email} or +91-${COMPANY.phone}.`,
   ];
   for (const t of terms) {
-    page.drawText(`• ${t}`, { x: leftMargin, y, size: 7, font, color: gray });
+    page.drawText(`• ${t}`, { x: leftMargin + 10, y, size: 7, font, color: gray });
     y -= 11;
   }
 
   // ── Footer ──
   y -= 15;
-  page.drawLine({ start: { x: leftMargin, y: y + 5 }, end: { x: rightMargin, y: y + 5 }, thickness: 0.5, color: lightGray });
+  page.drawLine({
+    start: { x: leftMargin, y: y + 5 },
+    end: { x: rightMargin, y: y + 5 },
+    thickness: 0.5, color: lightGray,
+  });
+  const thankYou = "Thank you for your business!";
+  page.drawText(thankYou, {
+    x: (width - font.widthOfTextAtSize(thankYou, 9)) / 2,
+    y, size: 9, font: fontBold, color: gray,
+  });
+  y -= 12;
   const footerText = "This is a computer-generated invoice and does not require a signature.";
-  page.drawText(footerText, { x: (width - font.widthOfTextAtSize(footerText, 8)) / 2, y, size: 8, font, color: gray });
+  page.drawText(footerText, {
+    x: (width - font.widthOfTextAtSize(footerText, 8)) / 2,
+    y, size: 8, font, color: gray,
+  });
 
   return await pdfDoc.save();
 }
@@ -220,7 +345,6 @@ async function generateInvoicePDF(data: {
 async function uploadToStorage(
   supabase: ReturnType<typeof createClient>,
   pdfBytes: Uint8Array,
-  orderId: string,
   customerEmail: string,
   invoiceId: string,
   createdAt: string,
@@ -263,14 +387,13 @@ Deno.serve(async (req: Request) => {
     const { action } = body;
 
     if (action === "generate") {
-      // Generate single invoice for an order
       const { orderId } = body;
       if (!orderId) {
         return new Response(JSON.stringify({ error: "orderId required" }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-
       const result = await generateForOrder(supabase, orderId);
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -278,7 +401,6 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "backfill") {
-      // Backfill invoices for all orders missing invoices
       const result = await backfillInvoices(supabase);
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -286,11 +408,11 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "download") {
-      // Get signed URL for an invoice
       const { invoiceId } = body;
       if (!invoiceId) {
         return new Response(JSON.stringify({ error: "invoiceId required" }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
@@ -302,7 +424,8 @@ Deno.serve(async (req: Request) => {
 
       if (!invoice?.storage_url) {
         return new Response(JSON.stringify({ error: "Invoice not found" }), {
-          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
@@ -310,18 +433,21 @@ Deno.serve(async (req: Request) => {
         .from("invoices")
         .createSignedUrl(invoice.storage_url, 3600);
 
-      return new Response(JSON.stringify({ url: signedUrl?.signedUrl }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ url: signedUrl?.signedUrl }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
-    return new Response(JSON.stringify({ error: "Invalid action. Use: generate, backfill, download" }), {
-      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: "Invalid action. Use: generate, backfill, download" }),
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (err) {
     console.error("Invoice generation error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return new Response(JSON.stringify({ error: (err as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
@@ -355,7 +481,7 @@ async function generateForOrder(
       return { success: false, error: `Order not found: ${orderId}` };
     }
 
-    // Determine pincode
+    // Determine pincode for GST
     const pincode = order.child_pincode || null;
 
     // Calculate GST
@@ -364,9 +490,10 @@ async function generateForOrder(
     // Get invoice number
     const orderDate = new Date(order.created_at);
     const fy = getFinancialYear(orderDate);
-    const { data: seqData, error: seqErr } = await supabase.rpc("get_next_invoice_number", {
-      p_financial_year: fy,
-    });
+    const { data: seqData, error: seqErr } = await supabase.rpc(
+      "get_next_invoice_number",
+      { p_financial_year: fy },
+    );
 
     if (seqErr || !seqData?.[0]) {
       throw new Error(`Invoice sequence error: ${seqErr?.message}`);
@@ -374,7 +501,9 @@ async function generateForOrder(
 
     const { invoice_number, sequence_num } = seqData[0];
     const invoiceDate = orderDate.toLocaleDateString("en-IN", {
-      day: "2-digit", month: "short", year: "numeric",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
     });
 
     // Generate PDF
@@ -391,52 +520,58 @@ async function generateForOrder(
 
     // Upload to storage
     const storagePath = await uploadToStorage(
-      supabase, pdfBytes, orderId, order.customer_email,
-      invoice_number.replace(/\//g, "-"), order.created_at,
+      supabase,
+      pdfBytes,
+      order.customer_email,
+      invoice_number.replace(/\//g, "-"),
+      order.created_at,
     );
 
     // Save to DB
-    const { data: inv, error: invErr } = await supabase.from("invoices").insert({
-      order_id: orderId,
-      invoice_number,
-      invoice_sequence: sequence_num,
-      financial_year: fy,
-      customer_name: order.customer_name,
-      customer_email: order.customer_email,
-      customer_mobile: order.customer_mobile,
-      customer_city: order.customer_city,
-      package_type: order.package_type,
-      subtotal: gst.subtotal,
-      cgst_rate: gst.cgstRate,
-      cgst_amount: gst.cgstAmount,
-      sgst_rate: gst.sgstRate,
-      sgst_amount: gst.sgstAmount,
-      igst_rate: gst.igstRate,
-      igst_amount: gst.igstAmount,
-      total_amount: gst.totalAmount,
-      is_intra_state: gst.isIntraState,
-      hsn_sac_code: COMPANY.hsnSac,
-      transaction_id: order.transaction_id,
-      storage_url: storagePath,
-    }).select("id").single();
+    const { data: inv, error: invErr } = await supabase
+      .from("invoices")
+      .insert({
+        order_id: orderId,
+        invoice_number,
+        invoice_sequence: sequence_num,
+        financial_year: fy,
+        customer_name: order.customer_name,
+        customer_email: order.customer_email,
+        customer_mobile: order.customer_mobile,
+        customer_city: order.customer_city,
+        package_type: order.package_type,
+        subtotal: gst.subtotal,
+        cgst_rate: gst.cgstRate,
+        cgst_amount: gst.cgstAmount,
+        sgst_rate: gst.sgstRate,
+        sgst_amount: gst.sgstAmount,
+        igst_rate: gst.igstRate,
+        igst_amount: gst.igstAmount,
+        total_amount: gst.totalAmount,
+        is_intra_state: gst.isIntraState,
+        hsn_sac_code: COMPANY.hsnSac,
+        transaction_id: order.transaction_id,
+        storage_url: storagePath,
+      })
+      .select("id")
+      .single();
 
     if (invErr) throw new Error(`DB insert error: ${invErr.message}`);
 
     return { success: true, invoiceId: inv!.id };
   } catch (err) {
     if (retryCount < 2) {
-      console.warn(`Retry ${retryCount + 1} for order ${orderId}:`, err.message);
+      console.warn(`Retry ${retryCount + 1} for order ${orderId}:`, (err as Error).message);
       await new Promise((r) => setTimeout(r, 1000 * (retryCount + 1)));
       return generateForOrder(supabase, orderId, retryCount + 1);
     }
     console.error(`Failed after retries for order ${orderId}:`, err);
-    return { success: false, error: err.message };
+    return { success: false, error: (err as Error).message };
   }
 }
 
 // ─── BACKFILL ───
 async function backfillInvoices(supabase: ReturnType<typeof createClient>) {
-  // Get all orders that don't have invoices yet
   const { data: orders, error } = await supabase
     .from("orders")
     .select("order_id")
@@ -445,13 +580,12 @@ async function backfillInvoices(supabase: ReturnType<typeof createClient>) {
   if (error) throw new Error(`Fetch orders error: ${error.message}`);
   if (!orders?.length) return { processed: 0, success: 0, failed: 0, results: [] };
 
-  // Get existing invoice order_ids
   const { data: existingInvoices } = await supabase
     .from("invoices")
     .select("order_id");
 
-  const existingSet = new Set((existingInvoices || []).map((i) => i.order_id));
-  const toProcess = orders.filter((o) => !existingSet.has(o.order_id));
+  const existingSet = new Set((existingInvoices || []).map((i: { order_id: string }) => i.order_id));
+  const toProcess = orders.filter((o: { order_id: string }) => !existingSet.has(o.order_id));
 
   const results: Array<{ orderId: string; success: boolean; error?: string }> = [];
   let success = 0;
@@ -461,7 +595,7 @@ async function backfillInvoices(supabase: ReturnType<typeof createClient>) {
   for (let i = 0; i < toProcess.length; i += 5) {
     const batch = toProcess.slice(i, i + 5);
     const batchResults = await Promise.allSettled(
-      batch.map((o) => generateForOrder(supabase, o.order_id)),
+      batch.map((o: { order_id: string }) => generateForOrder(supabase, o.order_id)),
     );
 
     for (let j = 0; j < batchResults.length; j++) {
@@ -472,12 +606,14 @@ async function backfillInvoices(supabase: ReturnType<typeof createClient>) {
         results.push({ orderId, success: true });
       } else {
         failed++;
-        const err = r.status === "fulfilled" ? r.value.error : (r.reason as Error).message;
+        const err =
+          r.status === "fulfilled"
+            ? r.value.error
+            : (r.reason as Error).message;
         results.push({ orderId, success: false, error: err });
       }
     }
 
-    // Small delay between batches
     if (i + 5 < toProcess.length) {
       await new Promise((r) => setTimeout(r, 500));
     }

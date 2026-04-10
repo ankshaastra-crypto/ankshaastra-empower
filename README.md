@@ -121,6 +121,53 @@ The following dependencies have been removed as they were only used for invoice 
 - `@tanstack/react-query` - Data fetching (not used in the app)
 - `recharts` - Chart library (not used in the app)
 
+## Invoice Generation (Supabase)
+
+Invoices are generated as PDF files via a Supabase Edge Function (`generate-invoice`) and stored in a Supabase Storage bucket.
+
+### Supabase Storage Bucket Setup
+
+1. Go to **Supabase Dashboard → Storage** and create a bucket named `invoices` (private).
+2. Add storage policies:
+   - **Service role uploads**: Allow `INSERT` for service_role.
+   - **Signed URL downloads**: Allow `SELECT` for authenticated/anon users (signed URLs handle access control).
+
+### Supabase Environment Variables (for Vercel)
+
+These are automatically available in the Supabase Edge Function runtime. For the frontend, add to Vercel:
+
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your_anon_key
+VITE_SUPABASE_PROJECT_ID=your_project_ref
+```
+
+### Invoice Data Configuration
+
+Company details, bank details, UPI info, notes, and terms are defined in:
+- **Edge Function**: `supabase/functions/generate-invoice/index.ts` (for PDF generation)
+- **Frontend template**: `public/invoice-data.json` (for client-side print preview)
+
+**Important:** Keep both files in sync when updating company/bank details.
+
+### GST Logic
+
+- **Intrastate** (Pincode 200000–289999): CGST 9% + SGST 9%
+- **Interstate** (all other pincodes): IGST 18%
+- HSN/SAC Code: 998399
+
+### Invoice Actions
+
+- **Generate single**: `POST /generate-invoice` with `{ "action": "generate", "orderId": "..." }`
+- **Backfill all**: `POST /generate-invoice` with `{ "action": "backfill" }`
+- **Download (signed URL)**: `POST /generate-invoice` with `{ "action": "download", "invoiceId": "..." }`
+
+### File Structure in Storage
+
+```
+/invoices/{year}/{month}/{customer_email}_{invoice_number}.pdf
+```
+
 ## Production Deployment
 
 ### Vercel (Recommended)
@@ -138,6 +185,7 @@ The following dependencies have been removed as they were only used for invoice 
 
    - Add all environment variables in Vercel Dashboard
    - Set `REDIS_URL` to Upstash Redis URL (if using Redis)
+   - Set `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`
    - **Optional:** Set `NODE_OPTIONS=--no-deprecation` to suppress DEP0169 warnings from dependencies
 
 3. **Create `vercel.json`:**

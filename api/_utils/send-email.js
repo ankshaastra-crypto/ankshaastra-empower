@@ -668,6 +668,8 @@ export async function sendPaymentEmail({
               ` : ''}
             </div>
           </div>
+
+          ${status === 'SUCCESS' ? invoiceHtml : ''}
         </div>
       </div>
     </body>

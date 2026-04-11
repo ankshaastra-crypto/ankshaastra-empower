@@ -483,7 +483,8 @@ const PaymentStatus = () => {
     const packageName =
       packageNames[data.packageType || "single"] || "Single Report";
     const amount = data.amount || 0;
-    const subtotal = amount;
+    // GST-inclusive: back-calculate subtotal
+    const subtotal = +(amount / 1.18).toFixed(2);
     const total = amount;
 
     // Get company data from JSON or use defaults

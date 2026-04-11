@@ -101,6 +101,13 @@ export default async function handler(req, res) {
     const finalPerson3Dob = (metadata.person3Dob && metadata.person3Dob.trim()) || person3Dob || '';
     const finalPerson3Gender = (metadata.person3Gender && metadata.person3Gender.trim()) || person3Gender || '';
 
+    // Baby name specific fields
+    const finalFatherFullName = (metadata.fatherFullName && metadata.fatherFullName.trim()) || '';
+    const finalChildMiddleName = (metadata.childMiddleName && metadata.childMiddleName.trim()) || '';
+    const finalChildLastName = (metadata.childLastName && metadata.childLastName.trim()) || '';
+    const finalFatherFirstNameAsMiddleName = (metadata.fatherFirstNameAsMiddleName && metadata.fatherFirstNameAsMiddleName.trim()) || '';
+    const finalNameOptions = (metadata.nameOptions && metadata.nameOptions.trim()) || '';
+
     // Validate required fields before sending email
     if (!finalCustomerEmail || !orderId) {
       console.error("Missing required fields for email");
@@ -146,29 +153,34 @@ export default async function handler(req, res) {
       person1SurName: finalPerson1SurName,
       person1Dob: finalPerson1Dob,
       person1Gender: finalPerson1Gender,
-      person1MiddleNameType: (metadata.person1MiddleNameType && metadata.person1MiddleNameType.trim()) || person1MiddleNameType || '',
+      person1MiddleNameType: (metadata.person1MiddleNameType && metadata.person1MiddleNameType.trim()) || '',
       person2Name: finalPerson2Name,
       person2FirstName: finalPerson2FirstName,
       person2MiddleName: finalPerson2MiddleName,
       person2SurName: finalPerson2SurName,
       person2Dob: finalPerson2Dob,
       person2Gender: finalPerson2Gender,
-      person2MiddleNameType: (metadata.person2MiddleNameType && metadata.person2MiddleNameType.trim()) || person2MiddleNameType || '',
+      person2MiddleNameType: (metadata.person2MiddleNameType && metadata.person2MiddleNameType.trim()) || '',
       person3Name: finalPerson3Name,
       person3FirstName: finalPerson3FirstName,
       person3MiddleName: finalPerson3MiddleName,
       person3SurName: finalPerson3SurName,
       person3Dob: finalPerson3Dob,
       person3Gender: finalPerson3Gender,
-      person3MiddleNameType: (metadata.person3MiddleNameType && metadata.person3MiddleNameType.trim()) || person3MiddleNameType || '',
-      fatherFirstName: (metadata.fatherFirstName && metadata.fatherFirstName.trim()) || fatherFirstName || '',
-      fatherMiddleName: (metadata.fatherMiddleName && metadata.fatherMiddleName.trim()) || fatherMiddleName || '',
-      fatherMiddleNameType: (metadata.fatherMiddleNameType && metadata.fatherMiddleNameType.trim()) || fatherMiddleNameType || '',
-      fatherLastName: (metadata.fatherLastName && metadata.fatherLastName.trim()) || fatherLastName || '',
-      childDob: (metadata.childDob && metadata.childDob.trim()) || childDob || '',
-      timeOfBirth: (metadata.timeOfBirth && metadata.timeOfBirth.trim()) || timeOfBirth || '',
-      placeOfBirth: (metadata.placeOfBirth && metadata.placeOfBirth.trim()) || placeOfBirth || '',
-      pinCode: (metadata.pinCode && metadata.pinCode.trim()) || pinCode || '',
+      person3MiddleNameType: (metadata.person3MiddleNameType && metadata.person3MiddleNameType.trim()) || '',
+      fatherFirstName: (metadata.fatherFirstName && metadata.fatherFirstName.trim()) || '',
+      fatherMiddleName: (metadata.fatherMiddleName && metadata.fatherMiddleName.trim()) || '',
+      fatherMiddleNameType: (metadata.fatherMiddleNameType && metadata.fatherMiddleNameType.trim()) || '',
+      fatherLastName: (metadata.fatherLastName && metadata.fatherLastName.trim()) || '',
+      fatherFullName: finalFatherFullName,
+      childMiddleName: finalChildMiddleName,
+      childLastName: finalChildLastName,
+      fatherFirstNameAsMiddleName: finalFatherFirstNameAsMiddleName,
+      nameOptions: finalNameOptions,
+      childDob: (metadata.childDob && metadata.childDob.trim()) || '',
+      timeOfBirth: (metadata.timeOfBirth && metadata.timeOfBirth.trim()) || '',
+      placeOfBirth: (metadata.placeOfBirth && metadata.placeOfBirth.trim()) || '',
+      pinCode: (metadata.pinCode && metadata.pinCode.trim()) || '',
       orderId,
       amount: paymentAmount,
       packageType: finalPackageType,

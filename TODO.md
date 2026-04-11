@@ -23,7 +23,15 @@
 - [ ] 4.3 Test full flow
 - [ ] 4.4 Deploy Vercel
 
-**Current Progress:** Phase 1 ✅ - PDF/Email ready (creds needed). Phase 2 next.
+**Current Progress:** Phase 1.5 ✅ Backend fixed. 
+
+**Phase 2**: Baby/premium form fields (fatherFullName/childLastName/fatherFirstNameAsMiddleName/childMiddleName/childDob/timeOfBirth/placeOfBirth/nameOptions/childMiddleName) not in WhatsApp/email.
+
+**Fixes:**
+1. db.customer_details schema + new fields
+2. initiate-payment mapping
+3. WhatsApp/email templates use new fields
+4. New Phase 2.1: send-whatsapp.js
 - [ ] 2.1 Create api/_utils/send-whatsapp.js (WhatsApp Business Cloud API)
 - [ ] 2.2 Call from webhook/status on SUCCESS
 

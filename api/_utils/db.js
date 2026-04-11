@@ -81,7 +81,12 @@ CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}.customer_details (
   father_last_name VARCHAR(100),
   child_dob VARCHAR(50),
   time_of_birth VARCHAR(50),
-  place_of_birth VARCHAR(255),
+place_of_birth VARCHAR(255),
+  father_full_name VARCHAR(255),
+  child_last_name VARCHAR(255),
+  father_first_as_middle VARCHAR(50),
+  child_middle_name VARCHAR(255),
+  name_options TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(order_id)
 );
@@ -229,8 +234,9 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
         person1_name, person1_first_name, person1_middle_name, person1_middle_name_type, person1_sur_name, person1_dob, person1_gender,
         person2_name, person2_first_name, person2_middle_name, person2_middle_name_type, person2_sur_name, person2_dob, person2_gender,
         person3_name, person3_first_name, person3_middle_name, person3_middle_name_type, person3_sur_name, person3_dob, person3_gender,
-        father_first_name, father_middle_name, father_middle_name_type, father_last_name, child_dob, time_of_birth, place_of_birth
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36)
+        father_first_name, father_middle_name, father_middle_name_type, father_last_name, child_dob, time_of_birth, place_of_birth,
+        father_full_name, child_last_name, father_first_as_middle, child_middle_name, name_options
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)
       ON CONFLICT (order_id) DO UPDATE SET
         email = EXCLUDED.email, name = EXCLUDED.name, mobile = EXCLUDED.mobile, dob = EXCLUDED.dob, gender = EXCLUDED.gender,
         city = EXCLUDED.city, pin_code = EXCLUDED.pin_code,
@@ -372,7 +378,8 @@ export async function getOrders() {
         c.person1_name, c.person1_first_name, c.person1_middle_name, c.person1_sur_name, c.person1_dob, c.person1_gender,
         c.person2_name, c.person2_first_name, c.person2_middle_name, c.person2_sur_name, c.person2_dob, c.person2_gender,
         c.person3_name, c.person3_first_name, c.person3_middle_name, c.person3_sur_name, c.person3_dob, c.person3_gender,
-        c.father_first_name, c.father_middle_name, c.father_last_name, c.child_dob, c.time_of_birth, c.place_of_birth,
+father_last_name, c.child_dob, c.time_of_birth, c.place_of_birth,
+  c.father_full_name, c.child_last_name, c.father_first_as_middle, c.child_middle_name, c.name_options,
         p.id as payment_id, p.transaction_id, p.amount_paise, p.status as payment_status, p.created_at as payment_created_at
       FROM ${ord} o
       LEFT JOIN ${cust} c ON o.order_id = c.order_id

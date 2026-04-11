@@ -304,25 +304,24 @@ npm start
 
 ### POST `/api/initiate-payment`
 
-Initiates payment with PhonePe.
+Initiates payment with Razorpay.
 
 **Request:**
 
 ```json
 {
-  "amount": 1997,
+  "amount": 2447,
   "mobile": "9876543210",
   "email": "customer@example.com",
   "name": "Customer Name",
-  "dob": "01-01-1990",
-  "orderId": "ORD1234567890-abc123",
-  "packageType": "single"
+  "packageType": "single",
+  "orderId": "ORD1234567890-abc123"
 }
 ```
 
 ### GET `/api/payment-status`
 
-Checks payment status after PhonePe redirect.
+Checks payment status after Razorpay redirect.
 
 **Response:**
 
@@ -331,14 +330,14 @@ Checks payment status after PhonePe redirect.
   "success": true,
   "status": "SUCCESS",
   "orderId": "ORD1234567890-abc123",
-  "transactionId": "TXN1234567890",
-  "amount": 1997
+  "transactionId": "pay_xxx",
+  "amount": 244700
 }
 ```
 
 ### POST `/api/payment-webhook`
 
-PhonePe webhook endpoint.
+Razorpay webhook endpoint (signature verified via `X-Razorpay-Signature`).
 
 ## Project Structure
 

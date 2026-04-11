@@ -1,5 +1,5 @@
-// Suppress DEP0169 deprecation warning from dependencies
-import './_utils/suppress-deprecation.js';
+// api/payment-webhook.js
+import './suppress-deprecation.js';
 
 import crypto from 'crypto';
 import { sendPaymentEmail } from './_utils/send-email.js';
@@ -7,206 +7,322 @@ import { getOrderFull } from './_utils/db.js';
 import { generateInvoicePDF } from './_utils/supabase-server.js';
 import { rateLimiter } from './_utils/rate-limiter.js';
 
-
 export default async function handler(req, res) {
   // Apply rate limiting
   await rateLimiter(req, res, () => {});
-  if (res.headersSent) return; // Rate limit exceeded
-  // Only allow POST requests
+  if (res.headersSent) return;
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   try {
-    // For Razorpay webhooks, the body is direct JSON
     const event = req.body.event;
     const paymentEntity = req.body.data?.payment || req.body.data?.order;
 
     if (!paymentEntity) {
-      console.error("Invalid Razorpay webhook payload");
-      return res.status(400).json({ error: "Invalid payload" });
+      console.error('Invalid Razorpay webhook payload');
+      return res.status(400).json({ error: 'Invalid payload' });
     }
 
-    // Get Razorpay webhook secret for verification
+    // Verify webhook secret
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
-
     if (!webhookSecret) {
-      console.error("Missing Razorpay webhook secret");
-      return res.status(500).json({ error: "Server configuration error" });
+      console.error('Missing Razorpay webhook secret');
+      return res.status(500).json({ error: 'Server configuration error' });
     }
 
-    // Verify the webhook signature (Razorpay sends X-Razorpay-Signature header)
     const xRazorpaySignature = req.headers['x-razorpay-signature'];
     if (!xRazorpaySignature) {
-      console.error("Missing X-Razorpay-Signature header");
-      return res.status(400).json({ error: "Invalid webhook signature" });
+      console.error('Missing X-Razorpay-Signature header');
+      return res.status(400).json({ error: 'Invalid webhook signature' });
     }
 
-    // Get raw body for signature verification
     const rawBody = JSON.stringify(req.body);
-
-    // Verify signature
-    const expectedSignature = crypto.createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
+    const expectedSignature = crypto
+      .createHmac('sha256', webhookSecret)
+      .update(rawBody)
+      .digest('hex');
 
     if (xRazorpaySignature !== expectedSignature) {
-      console.error("Invalid webhook signature");
-      return res.status(400).json({ error: "Invalid webhook signature" });
+      console.error('Invalid webhook signature');
+      return res.status(400).json({ error: 'Invalid webhook signature' });
     }
 
     // Extract payment details
     const orderId = paymentEntity.order_id || paymentEntity.id;
     const transactionId = paymentEntity.id;
-    const status = (event === 'payment.captured' || paymentEntity.status === 'paid') ? 'SUCCESS' : 'FAILED';
+    const status =
+      event === 'payment.captured' || paymentEntity.status === 'paid'
+        ? 'SUCCESS'
+        : 'FAILED';
     const paymentAmount = paymentEntity.amount || 0;
 
-    // Razorpay doesn't have metaInfo, so fetch from Redis
+    // Fetch customer metadata from Redis cache
     let metadata = {};
     if (orderId) {
       try {
-        const { getRedisCache } = await import('./redis-cache.js');
+        const { getRedisCache } = await import('./_utils/redis-cache.js');
         const cache = getRedisCache();
         const storedOrder = await cache.get(`order:${orderId}`);
         if (storedOrder && typeof storedOrder === 'object') {
           metadata = storedOrder;
         }
       } catch {
-        // Non-fatal: fall back to empty
+        console.warn('Redis cache miss for order:', orderId);
       }
     }
-    
-    // Use metadata for customer data
-    const finalCustomerEmail = (metadata.email && metadata.email.trim()) || '';
-    const finalCustomerName = (metadata.name && metadata.name.trim()) || 'Customer';
-    const finalCustomerMobile = (metadata.mobile && metadata.mobile.trim()) || '';
-    const finalCustomerDob = (metadata.dob && metadata.dob.trim()) || '';
-    const finalCustomerGender = (metadata.gender && metadata.gender.trim()) || '';
-    const finalCustomerCity = (metadata.city && metadata.city.trim()) || customerCity || '';
-    const finalPackageType = (metadata.packageType && metadata.packageType.trim()) || packageType || 'single';
-    const finalPerson1Name = (metadata.person1Name && metadata.person1Name.trim()) || person1Name || finalCustomerName;
-    const finalPerson1FirstName = (metadata.person1FirstName && metadata.person1FirstName.trim()) || (person1FirstName && person1FirstName.trim()) || '';
-    const finalPerson1MiddleName = (metadata.person1MiddleName && metadata.person1MiddleName.trim()) || (person1MiddleName && person1MiddleName.trim()) || '';
-    const finalPerson1SurName = (metadata.person1SurName && metadata.person1SurName.trim()) || (person1SurName && person1SurName.trim()) || '';
-    const finalPerson1Dob = (metadata.person1Dob && metadata.person1Dob.trim()) || person1Dob || finalCustomerDob;
-    const finalPerson1Gender = (metadata.person1Gender && metadata.person1Gender.trim()) || person1Gender || finalCustomerGender;
-    const finalPerson2Name = (metadata.person2Name && metadata.person2Name.trim()) || person2Name || '';
-    const finalPerson2FirstName = (metadata.person2FirstName && metadata.person2FirstName.trim()) || (person2FirstName && person2FirstName.trim()) || '';
-    const finalPerson2MiddleName = (metadata.person2MiddleName && metadata.person2MiddleName.trim()) || (person2MiddleName && person2MiddleName.trim()) || '';
-    const finalPerson2SurName = (metadata.person2SurName && metadata.person2SurName.trim()) || (person2SurName && person2SurName.trim()) || '';
-    const finalPerson2Dob = (metadata.person2Dob && metadata.person2Dob.trim()) || person2Dob || '';
-    const finalPerson2Gender = (metadata.person2Gender && metadata.person2Gender.trim()) || person2Gender || '';
-    const finalPerson3Name = (metadata.person3Name && metadata.person3Name.trim()) || person3Name || '';
-    const finalPerson3FirstName = (metadata.person3FirstName && metadata.person3FirstName.trim()) || (person3FirstName && person3FirstName.trim()) || '';
-    const finalPerson3MiddleName = (metadata.person3MiddleName && metadata.person3MiddleName.trim()) || (person3MiddleName && person3MiddleName.trim()) || '';
-    const finalPerson3SurName = (metadata.person3SurName && metadata.person3SurName.trim()) || (person3SurName && person3SurName.trim()) || '';
-    const finalPerson3Dob = (metadata.person3Dob && metadata.person3Dob.trim()) || person3Dob || '';
-    const finalPerson3Gender = (metadata.person3Gender && metadata.person3Gender.trim()) || person3Gender || '';
 
-    // Baby name specific fields
-    const finalFatherFullName = (metadata.fatherFullName && metadata.fatherFullName.trim()) || '';
-    const finalChildMiddleName = (metadata.childMiddleName && metadata.childMiddleName.trim()) || '';
-    const finalChildLastName = (metadata.childLastName && metadata.childLastName.trim()) || '';
-    const finalFatherFirstNameAsMiddleName = (metadata.fatherFirstNameAsMiddleName && metadata.fatherFirstNameAsMiddleName.trim()) || '';
-    const finalNameOptions = (metadata.nameOptions && metadata.nameOptions.trim()) || '';
+    // Resolve all customer fields from metadata (safe .trim() helper)
+    const str = (v) => (v && v.toString().trim()) || '';
 
-    // Validate required fields before sending email
+    const finalCustomerEmail   = str(metadata.email);
+    const finalCustomerName    = str(metadata.name) || 'Customer';
+    const finalCustomerMobile  = str(metadata.mobile);
+    const finalCustomerDob     = str(metadata.dob);
+    const finalCustomerGender  = str(metadata.gender);
+    const finalCustomerCity    = str(metadata.city);
+    const finalPackageType     = str(metadata.packageType) || 'single';
+    const finalPinCode         = str(metadata.pinCode);
+
+    // Person fields
+    const finalPerson1Name           = str(metadata.person1Name) || finalCustomerName;
+    const finalPerson1FirstName      = str(metadata.person1FirstName);
+    const finalPerson1MiddleName     = str(metadata.person1MiddleName);
+    const finalPerson1SurName        = str(metadata.person1SurName);
+    const finalPerson1Dob            = str(metadata.person1Dob) || finalCustomerDob;
+    const finalPerson1Gender         = str(metadata.person1Gender) || finalCustomerGender;
+    const finalPerson1MiddleNameType = str(metadata.person1MiddleNameType);
+
+    const finalPerson2Name           = str(metadata.person2Name);
+    const finalPerson2FirstName      = str(metadata.person2FirstName);
+    const finalPerson2MiddleName     = str(metadata.person2MiddleName);
+    const finalPerson2SurName        = str(metadata.person2SurName);
+    const finalPerson2Dob            = str(metadata.person2Dob);
+    const finalPerson2Gender         = str(metadata.person2Gender);
+    const finalPerson2MiddleNameType = str(metadata.person2MiddleNameType);
+
+    const finalPerson3Name           = str(metadata.person3Name);
+    const finalPerson3FirstName      = str(metadata.person3FirstName);
+    const finalPerson3MiddleName     = str(metadata.person3MiddleName);
+    const finalPerson3SurName        = str(metadata.person3SurName);
+    const finalPerson3Dob            = str(metadata.person3Dob);
+    const finalPerson3Gender         = str(metadata.person3Gender);
+    const finalPerson3MiddleNameType = str(metadata.person3MiddleNameType);
+
+    // Baby name fields
+    const finalFatherFirstName            = str(metadata.fatherFirstName);
+    const finalFatherMiddleName           = str(metadata.fatherMiddleName);
+    const finalFatherMiddleNameType       = str(metadata.fatherMiddleNameType);
+    const finalFatherLastName             = str(metadata.fatherLastName);
+    const finalFatherFullName             = str(metadata.fatherFullName);
+    const finalChildMiddleName            = str(metadata.childMiddleName);
+    const finalChildLastName              = str(metadata.childLastName);
+    const finalFatherFirstNameAsMiddleName = str(metadata.fatherFirstNameAsMiddleName);
+    const finalNameOptions                = str(metadata.nameOptions);
+    const finalChildDob                   = str(metadata.childDob);
+    const finalTimeOfBirth                = str(metadata.timeOfBirth);
+    const finalPlaceOfBirth               = str(metadata.placeOfBirth);
+
+    // Validate required fields
     if (!finalCustomerEmail || !orderId) {
-      console.error("Missing required fields for email");
-      return res.status(400).json({ error: "Missing required fields" });
+      console.error('Missing required fields for email — email:', finalCustomerEmail, 'orderId:', orderId);
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
-// Save payment to PostgreSQL
+    // Save payment to PostgreSQL
     try {
-      const { savePayment } = await import('./db.js');
+      const { savePayment } = await import('./_utils/db.js');
       await savePayment(orderId, transactionId, paymentAmount, status);
+      console.log(`✅ Payment saved to DB — order: ${orderId}, status: ${status}`);
     } catch (dbError) {
       console.error('DB save payment error:', dbError?.message || dbError);
       // Non-fatal: continue with email flow
     }
 
-    // Generate PDF + send emails on SUCCESS only
+    // Generate PDF (SUCCESS only) — store on Supabase, attach to email
     let invoicePdfBuffer = null;
     if (status === 'SUCCESS') {
       try {
+        // Ensure order exists in DB before generating invoice
         const orderData = await getOrderFull(orderId);
         if (orderData) {
+          console.log(`📄 Generating invoice PDF for order: ${orderId}`);
           invoicePdfBuffer = await generateInvoicePDF(orderId);
-          console.log(`✅ Generated invoice PDF for ${orderId}`);
+          console.log(`✅ Invoice PDF generated — ${invoicePdfBuffer?.length} bytes`);
+        } else {
+          console.warn(`⚠️  Order ${orderId} not found in DB — skipping PDF generation`);
         }
       } catch (pdfError) {
         console.error(`❌ PDF generation failed for ${orderId}:`, pdfError.message);
-        // Non-fatal: continue without PDF
+        // Non-fatal: emails still send, just without attachment
       }
     }
 
-    // Send payment confirmation emails (customer and admin)
-    console.log(`🔥 Webhook: Sending emails for order ${orderId} status ${status} customer ${finalCustomerEmail}`);
+    // Send confirmation emails (customer + admin)
+    console.log(`📧 Sending emails for order ${orderId} — status: ${status}, customer: ${finalCustomerEmail}`);
     const emailResult = await sendPaymentEmail({
       to: finalCustomerEmail,
-      customerEmail: finalCustomerEmail,
-      customerName: finalCustomerName,
-      customerMobile: finalCustomerMobile,
-      customerDob: finalCustomerDob,
-      customerGender: finalCustomerGender,
-      customerCity: finalCustomerCity,
-      person1Name: finalPerson1Name,
-      person1FirstName: finalPerson1FirstName,
-      person1MiddleName: finalPerson1MiddleName,
-      person1SurName: finalPerson1SurName,
-      person1Dob: finalPerson1Dob,
-      person1Gender: finalPerson1Gender,
-      person1MiddleNameType: (metadata.person1MiddleNameType && metadata.person1MiddleNameType.trim()) || '',
-      person2Name: finalPerson2Name,
-      person2FirstName: finalPerson2FirstName,
-      person2MiddleName: finalPerson2MiddleName,
-      person2SurName: finalPerson2SurName,
-      person2Dob: finalPerson2Dob,
-      person2Gender: finalPerson2Gender,
-      person2MiddleNameType: (metadata.person2MiddleNameType && metadata.person2MiddleNameType.trim()) || '',
-      person3Name: finalPerson3Name,
-      person3FirstName: finalPerson3FirstName,
-      person3MiddleName: finalPerson3MiddleName,
-      person3SurName: finalPerson3SurName,
-      person3Dob: finalPerson3Dob,
-      person3Gender: finalPerson3Gender,
-      person3MiddleNameType: (metadata.person3MiddleNameType && metadata.person3MiddleNameType.trim()) || '',
-      fatherFirstName: (metadata.fatherFirstName && metadata.fatherFirstName.trim()) || '',
-      fatherMiddleName: (metadata.fatherMiddleName && metadata.fatherMiddleName.trim()) || '',
-      fatherMiddleNameType: (metadata.fatherMiddleNameType && metadata.fatherMiddleNameType.trim()) || '',
-      fatherLastName: (metadata.fatherLastName && metadata.fatherLastName.trim()) || '',
-      fatherFullName: finalFatherFullName,
-      childMiddleName: finalChildMiddleName,
-      childLastName: finalChildLastName,
+      customerEmail:   finalCustomerEmail,
+      customerName:    finalCustomerName,
+      customerMobile:  finalCustomerMobile,
+      customerDob:     finalCustomerDob,
+      customerGender:  finalCustomerGender,
+      customerCity:    finalCustomerCity,
+      person1Name:           finalPerson1Name,
+      person1FirstName:      finalPerson1FirstName,
+      person1MiddleName:     finalPerson1MiddleName,
+      person1SurName:        finalPerson1SurName,
+      person1Dob:            finalPerson1Dob,
+      person1Gender:         finalPerson1Gender,
+      person1MiddleNameType: finalPerson1MiddleNameType,
+      person2Name:           finalPerson2Name,
+      person2FirstName:      finalPerson2FirstName,
+      person2MiddleName:     finalPerson2MiddleName,
+      person2SurName:        finalPerson2SurName,
+      person2Dob:            finalPerson2Dob,
+      person2Gender:         finalPerson2Gender,
+      person2MiddleNameType: finalPerson2MiddleNameType,
+      person3Name:           finalPerson3Name,
+      person3FirstName:      finalPerson3FirstName,
+      person3MiddleName:     finalPerson3MiddleName,
+      person3SurName:        finalPerson3SurName,
+      person3Dob:            finalPerson3Dob,
+      person3Gender:         finalPerson3Gender,
+      person3MiddleNameType: finalPerson3MiddleNameType,
+      fatherFirstName:            finalFatherFirstName,
+      fatherMiddleName:           finalFatherMiddleName,
+      fatherMiddleNameType:       finalFatherMiddleNameType,
+      fatherLastName:             finalFatherLastName,
+      fatherFullName:             finalFatherFullName,
+      childMiddleName:            finalChildMiddleName,
+      childLastName:              finalChildLastName,
       fatherFirstNameAsMiddleName: finalFatherFirstNameAsMiddleName,
-      nameOptions: finalNameOptions,
-      childDob: (metadata.childDob && metadata.childDob.trim()) || '',
-      timeOfBirth: (metadata.timeOfBirth && metadata.timeOfBirth.trim()) || '',
-      placeOfBirth: (metadata.placeOfBirth && metadata.placeOfBirth.trim()) || '',
-      pinCode: (metadata.pinCode && metadata.pinCode.trim()) || '',
+      nameOptions:                finalNameOptions,
+      childDob:                   finalChildDob,
+      timeOfBirth:                finalTimeOfBirth,
+      placeOfBirth:               finalPlaceOfBirth,
+      pinCode:                    finalPinCode,
       orderId,
-      amount: paymentAmount,
-      packageType: finalPackageType,
+      amount:        paymentAmount,
+      packageType:   finalPackageType,
       status,
       transactionId: transactionId || '',
       invoicePdfBuffer,
     });
 
-
-    if (!emailResult.success) {
-      console.error("Failed to send confirmation emails:", emailResult.error);
+    // Also send WhatsApp notification
+    try {
+      await sendWhatsAppNotification({
+        customerName:   finalCustomerName,
+        customerMobile: finalCustomerMobile,
+        orderId,
+        packageType:    finalPackageType,
+        amount:         paymentAmount,
+        transactionId:  transactionId || '',
+        status,
+      });
+    } catch (waError) {
+      console.error('❌ WhatsApp notification failed:', waError.message);
+      // Non-fatal
     }
 
-    // Return success response to Razorpay
-    return res.status(200).json({ 
+    if (!emailResult.success) {
+      console.error('Failed to send confirmation emails:', emailResult.error);
+    }
+
+    return res.status(200).json({
       success: true,
       message: 'Webhook processed successfully',
-      emailSent: emailResult.success 
+      emailSent: emailResult.success,
     });
-
   } catch (error) {
-    console.error("Webhook Error");
-    return res.status(500).json({ 
-      error: "Internal Server Error",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    console.error('Webhook Error:', error.message);
+    return res.status(500).json({
+      error: 'Internal Server Error',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
+  }
+}
+
+// ─── WhatsApp Notification via WhatsApp Business Cloud API ───────────────────
+
+async function sendWhatsAppNotification({ customerName, customerMobile, orderId, packageType, amount, transactionId, status }) {
+  const token     = process.env.WHATSAPP_TOKEN;
+  const phoneId   = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const adminNum  = process.env.WHATSAPP_ADMIN_NUMBER; // e.g. 919667305577
+
+  if (!token || !phoneId) {
+    console.log('WhatsApp env not configured — skipping notification');
+    return;
+  }
+
+  const amountInRupees = amount && amount > 0 ? (amount / 100).toLocaleString('en-IN') : '0';
+  const packageNames = {
+    single:    'Single Name Report',
+    premium:   'Premium Report',
+    namecheck: 'Name Check',
+    namecheck1: 'Name Check (1 Person)',
+    namecheck2: 'Name Check (2 Persons)',
+    namecheck3: 'Name Check (3 Persons)',
+    baby_name: 'Baby Name Report',
+  };
+  const packageName = packageNames[packageType] || packageType || 'Numerology Report';
+
+  const emoji  = status === 'SUCCESS' ? '✅' : '❌';
+  const title  = status === 'SUCCESS' ? 'Payment Received' : 'Payment Failed';
+
+  // Build the message text
+  const customerMsg = status === 'SUCCESS'
+    ? `🙏 *Namaste ${customerName}!*\n\nThank you for ordering from *Ankshaastra*.\n\n📦 *Package:* ${packageName}\n💰 *Amount Paid:* ₹${amountInRupees}\n🔖 *Order ID:* ${orderId}\n\nYour personalized numerology report will be delivered within *24-48 hours* to your registered email/WhatsApp.\n\nFor any queries, call us: *+91-9667305577*\n\n🌟 _Ankshaastra — Empower Your Name_`
+    : `Dear ${customerName},\n\nWe could not process your payment for *${packageName}*.\n\n🔖 *Order ID:* ${orderId}\n\nPlease try again or contact us at *+91-9667305577*.\n\n_Ankshaastra — Empower Your Name_`;
+
+  const adminMsg = `${emoji} *${title}*\n\n👤 *Customer:* ${customerName}\n📱 *Mobile:* ${customerMobile || 'N/A'}\n📦 *Package:* ${packageName}\n💰 *Amount:* ₹${amountInRupees}\n🔖 *Order ID:* ${orderId}\n🧾 *Transaction ID:* ${transactionId || 'N/A'}\n📅 *Time:* ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
+
+  const sendMessage = async (to, text) => {
+    if (!to) return;
+    // Normalize number — strip leading + or spaces
+    const normalized = to.replace(/\D/g, '');
+    const response = await fetch(
+      `https://graph.facebook.com/v19.0/${phoneId}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          to: normalized,
+          type: 'text',
+          text: { body: text },
+        }),
+      }
+    );
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(`WhatsApp API error: ${JSON.stringify(result)}`);
+    }
+    return result;
+  };
+
+  // Send to customer (if mobile provided)
+  if (customerMobile) {
+    try {
+      await sendMessage(customerMobile, customerMsg);
+      console.log(`✅ WhatsApp sent to customer: ${customerMobile}`);
+    } catch (e) {
+      console.error('WhatsApp customer send failed:', e.message);
+    }
+  }
+
+  // Send to admin
+  if (adminNum) {
+    try {
+      await sendMessage(adminNum, adminMsg);
+      console.log(`✅ WhatsApp sent to admin: ${adminNum}`);
+    } catch (e) {
+      console.error('WhatsApp admin send failed:', e.message);
+    }
   }
 }

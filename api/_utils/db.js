@@ -418,7 +418,7 @@ export async function getOrderFull(orderId) {
         o.amount,
         o.package_type,
         o.created_at,
-        c.customer_name as name,
+        c.name as customer_name,
         c.email as customer_email,
         c.mobile as customer_mobile, 
         c.city as customer_city,
@@ -455,4 +455,3 @@ export async function getOrderFull(orderId) {
     throw error;
   }
 }
-

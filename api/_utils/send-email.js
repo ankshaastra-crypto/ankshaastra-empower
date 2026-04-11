@@ -98,6 +98,7 @@ export async function sendPaymentEmail({
   packageType, 
   status, 
   transactionId,
+  invoicePdfBuffer = null,
 }) {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@ankshaastra.com';
   const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';
@@ -220,6 +221,30 @@ export async function sendPaymentEmail({
     : `Payment Failed - Order ${orderId}`;
 
 
+  // GST calculation based on pincode (Intrastate: 200000-289999 → CGST 9% + SGST 9%, Interstate: IGST 18%)
+  const pin = parseInt(finalPinCode || '0', 10);
+  const isIntraState = pin >= 200000 && pin <= 289999;
+  const subtotal = amountInRupees;
+  const cgstRate = isIntraState ? 9 : 0;
+  const sgstRate = isIntraState ? 9 : 0;
+  const igstRate = isIntraState ? 0 : 18;
+  const cgstAmount = isIntraState ? +(subtotal * 0.09).toFixed(2) : 0;
+  const sgstAmount = isIntraState ? +(subtotal * 0.09).toFixed(2) : 0;
+  const igstAmount = isIntraState ? 0 : +(subtotal * 0.18).toFixed(2);
+  const totalWithGst = +(subtotal + cgstAmount + sgstAmount + igstAmount).toFixed(2);
+  const subtotalFormatted = `₹${subtotal.toLocaleString('en-IN')}`;
+  const totalWithGstFormatted = `₹${totalWithGst.toLocaleString('en-IN')}`;
+
+  // GST breakdown rows for invoice
+  const gstBreakdownHtml = isIntraState
+    ? `
+      <tr><td style="padding: 5px 10px; font-size: 12px; text-align: right;" colspan="3">CGST (${cgstRate}%):</td><td style="padding: 5px 10px; font-size: 12px; text-align: right;">₹${cgstAmount.toLocaleString('en-IN')}</td></tr>
+      <tr><td style="padding: 5px 10px; font-size: 12px; text-align: right;" colspan="3">SGST (${sgstRate}%):</td><td style="padding: 5px 10px; font-size: 12px; text-align: right;">₹${sgstAmount.toLocaleString('en-IN')}</td></tr>
+    `
+    : `
+      <tr><td style="padding: 5px 10px; font-size: 12px; text-align: right;" colspan="3">IGST (${igstRate}%):</td><td style="padding: 5px 10px; font-size: 12px; text-align: right;">₹${igstAmount.toLocaleString('en-IN')}</td></tr>
+    `;
+
   // Build invoice HTML section for customer success email
   const invoiceHtml = `
     <div style="margin-top: 30px; border-top: 2px solid #C9A84C; padding-top: 20px;">
@@ -234,7 +259,7 @@ export async function sendPaymentEmail({
             <span style="font-size: 11px; color: #666;">Unit No. O-622, Block-E, Eye of Noida,<br/>Sector 140A, Noida-201305</span><br/>
             <span style="font-size: 11px; color: #666;">Phone: 9667305577</span><br/>
             <span style="font-size: 11px; color: #666;">Email: social@ankshaastra.com</span><br/>
-            <span style="font-size: 11px; color: #666;">GSTIN: APPLIED FOR</span>
+            <span style="font-size: 11px; color: #666;">GSTIN: 09AAFFE7583B1ZD</span>
           </td>
           <td style="padding: 8px 0; vertical-align: top; width: 50%; text-align: right;">
             <strong style="color: #2E1A47;">Bill To:</strong><br/>
@@ -269,24 +294,21 @@ export async function sendPaymentEmail({
             <td style="padding: 10px; font-size: 12px;">${packageName}<br/><small style="color: #666;">Numerology Report</small></td>
             <td style="padding: 10px; text-align: center; font-size: 12px;">998399</td>
             <td style="padding: 10px; text-align: center; font-size: 12px;">1</td>
-            <td style="padding: 10px; text-align: right; font-size: 12px;">${amountFormatted}</td>
+            <td style="padding: 10px; text-align: right; font-size: 12px;">${subtotalFormatted}</td>
           </tr>
         </tbody>
-      </table>
-
-      <table style="width: 100%; margin-top: 10px;">
-        <tr>
-          <td style="text-align: right; padding: 5px 0;">
-            <strong style="font-size: 14px; color: #2E1A47;">Total Amount: ${amountFormatted}</strong>
-          </td>
-        </tr>
+        <tfoot>
+          <tr><td style="padding: 5px 10px; font-size: 12px; text-align: right; border-top: 1px solid #eee;" colspan="3"><strong>Subtotal:</strong></td><td style="padding: 5px 10px; font-size: 12px; text-align: right; border-top: 1px solid #eee;">${subtotalFormatted}</td></tr>
+          ${gstBreakdownHtml}
+          <tr style="background: #f5f0ff;"><td style="padding: 8px 10px; font-size: 14px; text-align: right; border-top: 2px solid #2E1A47;" colspan="3"><strong style="color: #2E1A47;">Total Amount:</strong></td><td style="padding: 8px 10px; font-size: 14px; text-align: right; border-top: 2px solid #2E1A47; color: #2E1A47;"><strong>${totalWithGstFormatted}</strong></td></tr>
+        </tfoot>
       </table>
 
       <div style="margin-top: 20px; padding: 12px; background: #f9f9f9; border-radius: 6px;">
         <p style="font-size: 11px; color: #666; margin: 0;">
-          <strong>Bank Details:</strong> UCO Bank | A/C: 01200110039892 | IFSC: UCBA0000120 | Ankshaastra Occult Experts LLP
+          <strong>Bank Details:</strong> Axis Bank | A/C: 925020055368236 | IFSC: UTIB0001837 | Ankshaastra Occult Experts LLP | Branch: Agra Road
         </p>
-        <p style="font-size: 11px; color: #666; margin: 4px 0 0 0;"><strong>UPI:</strong> ankshaastra@paytm</p>
+        <p style="font-size: 11px; color: #666; margin: 4px 0 0 0;"><strong>UPI:</strong> razorpay.me/@ankshaastraoccultexpertsllp</p>
       </div>
 
       <p style="font-size: 10px; color: #999; margin-top: 15px; text-align: center;">
@@ -691,6 +713,15 @@ export async function sendPaymentEmail({
         html: customerHtml,
       };
 
+      // Attach invoice PDF if available
+      if (invoicePdfBuffer && status === 'SUCCESS') {
+        customerMailOptions.attachments = [{
+          filename: `Invoice_${orderId}.pdf`,
+          content: invoicePdfBuffer,
+          contentType: 'application/pdf',
+        }];
+      }
+
       customerEmailResult = await transporter.sendMail(customerMailOptions);
       
       // Validate that we got a valid response
@@ -724,12 +755,23 @@ export async function sendPaymentEmail({
     let adminSuccess = false;
     
     try {
-      adminEmailResult = await transporter.sendMail({
+      const adminMailOptions = {
         from: fromEmail,
         to: adminEmail,
         subject: adminSubject,
         html: adminHtml,
-      });
+      };
+
+      // Attach invoice PDF to admin email as well
+      if (invoicePdfBuffer && status === 'SUCCESS') {
+        adminMailOptions.attachments = [{
+          filename: `Invoice_${orderId}.pdf`,
+          content: invoicePdfBuffer,
+          contentType: 'application/pdf',
+        }];
+      }
+
+      adminEmailResult = await transporter.sendMail(adminMailOptions);
       
       // Validate that we got a valid response
       if (adminEmailResult && adminEmailResult.messageId) {

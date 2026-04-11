@@ -27,9 +27,9 @@ npm run dev
 **Required:**
 
 ```bash
-PHONEPE_MERCHANT_ID=your_merchant_id
-PHONEPE_SALT_KEY=your_salt_key
-PHONEPE_SALT_INDEX=1
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret
 
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
@@ -126,18 +126,39 @@ Vercel Hobby plan allows max 12 serverless functions. Utility files are in `api/
 
 ## Invoice Generation (Supabase)
 
-Invoices are generated as PDF files via a Supabase Edge Function (`generate-invoice`) and stored in a Supabase Storage bucket.
+Invoices are generated as PDF files via a Supabase Edge Function (`generate-invoice`) and stored in a Supabase Storage bucket. Invoice PDFs are also attached to customer and admin emails on successful payment.
 
 ### Supabase Storage Bucket Setup
 
-1. Go to **Supabase Dashboard → Storage** and create a bucket named `invoices` (private).
-2. Add storage policies:
-   - **Service role uploads**: Allow `INSERT` for service_role.
-   - **Signed URL downloads**: Allow `SELECT` for authenticated/anon users (signed URLs handle access control).
+1. Go to **Supabase Dashboard → Storage** and create a bucket named `invoices`.
+   - **Public access:** No (private bucket)
+   - Bucket is used to store generated PDF invoices.
+
+2. Add the following **Storage Policies** (SQL via Supabase SQL Editor):
+
+```sql
+-- Allow service_role to upload invoices
+CREATE POLICY "Service role can upload invoices"
+ON storage.objects FOR INSERT
+TO service_role
+WITH CHECK (bucket_id = 'invoices');
+
+-- Allow service_role to update/overwrite invoices
+CREATE POLICY "Service role can update invoices"
+ON storage.objects FOR UPDATE
+TO service_role
+USING (bucket_id = 'invoices');
+
+-- Allow signed URL downloads (for authenticated/anon users via signed URLs)
+CREATE POLICY "Allow signed URL reads for invoices"
+ON storage.objects FOR SELECT
+TO authenticated, anon
+USING (bucket_id = 'invoices');
+```
 
 ### Supabase Environment Variables (for Vercel)
 
-These are automatically available in the Supabase Edge Function runtime. For the frontend, add to Vercel:
+These are automatically available in the Supabase Edge Function runtime. For the **frontend**, add to Vercel:
 
 ```bash
 VITE_SUPABASE_URL=https://your-project.supabase.co
@@ -145,13 +166,30 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your_anon_key
 VITE_SUPABASE_PROJECT_ID=your_project_ref
 ```
 
+For the **Vercel serverless functions** (api/ folder), add these to Vercel Environment Variables so `api/_utils/supabase-server.js` can connect:
+
+```bash
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
+
+### Invoice Email Delivery
+
+On successful payment, the system:
+1. Generates a GST-compliant PDF invoice via Supabase Edge Function
+2. Stores the PDF in the `invoices` storage bucket (`/year/month/email_invoiceNumber.pdf`)
+3. Attaches the PDF to the **customer email** (sent to the customer's email)
+4. Attaches the PDF to the **admin email** (sent to `social@ankshaastra.com`)
+5. Both emails are sent from `no-reply@ankshaastra.com` (configured via `FROM_EMAIL` env var)
+
 ### Invoice Data Configuration
 
 Company details, bank details, UPI info, notes, and terms are defined in:
 - **Edge Function**: `supabase/functions/generate-invoice/index.ts` (for PDF generation)
+- **Email template**: `api/_utils/send-email.js` (inline invoice in email body)
 - **Frontend template**: `public/invoice-data.json` (for client-side print preview)
 
-**Important:** Keep both files in sync when updating company/bank details.
+**Important:** Keep all three files in sync when updating company/bank details.
 
 ### GST Logic
 

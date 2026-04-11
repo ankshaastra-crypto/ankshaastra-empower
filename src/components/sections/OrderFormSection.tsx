@@ -942,14 +942,16 @@ const OrderFormSection = () => {
     if (packageType === "single" || packageType === "premium") {
       items.push(
         { label: "Package", value: packageType === "premium" ? "Premium Report + Live Session" : "Perfect Baby Name Report" },
-        { label: "Father's Name", value: [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ") },
-        ...(babyFormData.fatherMiddleNameType ? [{ label: "Father's Middle Name is Grandfather's", value: babyFormData.fatherMiddleNameType === "yes" ? "Yes" : "No" }] : []),
-        ...(babyFormData.fatherFirstNameAsMiddleName ? [{ label: "Father's First Name as Child's Middle Name", value: babyFormData.fatherFirstNameAsMiddleName === "yes" ? "Yes" : "No" }] : []),
         { label: "Child's DOB", value: babyFormData.childDob ? format(parse(babyFormData.childDob, "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" },
         { label: "Time of Birth", value: babyFormData.timeOfBirth },
-        { label: "Place of Birth", value: babyFormData.placeOfBirth },
+        { label: "Birth City", value: babyFormData.placeOfBirth },
         { label: "Pin Code", value: babyFormData.pinCode },
         { label: "Gender", value: babyFormData.gender },
+        { label: "Father's Full Name", value: babyFormData.fatherFullName },
+        ...(babyFormData.childMiddleName ? [{ label: "Child's Middle Name", value: babyFormData.childMiddleName }] : []),
+        { label: "Child's Last Name", value: babyFormData.childLastName },
+        ...(babyFormData.fatherFirstNameAsMiddleName ? [{ label: "Child's Middle Name = Father's First Name", value: babyFormData.fatherFirstNameAsMiddleName === "yes" ? "Yes" : "No" }] : []),
+        ...(babyFormData.nameOptions ? [{ label: "Name Options", value: babyFormData.nameOptions }] : []),
         { label: "Email", value: babyFormData.email },
         { label: "WhatsApp", value: babyFormData.whatsapp },
       );

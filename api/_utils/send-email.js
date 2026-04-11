@@ -89,6 +89,11 @@ export async function sendPaymentEmail({
   fatherMiddleName = '',
   fatherMiddleNameType = '',
   fatherLastName = '',
+  fatherFullName = '',
+  childMiddleName = '',
+  childLastName = '',
+  fatherFirstNameAsMiddleName = '',
+  nameOptions = '',
   childDob = '',
   timeOfBirth = '',
   placeOfBirth = '',
@@ -136,6 +141,11 @@ export async function sendPaymentEmail({
   const finalFatherMiddleName = (fatherMiddleName && fatherMiddleName.toString().trim()) || '';
   const finalFatherMiddleNameType = (fatherMiddleNameType && fatherMiddleNameType.toString().trim()) || '';
   const finalFatherLastName = (fatherLastName && fatherLastName.toString().trim()) || '';
+  const finalFatherFullName = (fatherFullName && fatherFullName.toString().trim()) || '';
+  const finalChildMiddleName = (childMiddleName && childMiddleName.toString().trim()) || '';
+  const finalChildLastName = (childLastName && childLastName.toString().trim()) || '';
+  const finalFatherFirstNameAsMiddleName = (fatherFirstNameAsMiddleName && fatherFirstNameAsMiddleName.toString().trim()) || '';
+  const finalNameOptions = (nameOptions && nameOptions.toString().trim()) || '';
   const finalChildDob = (childDob && childDob.toString().trim()) || '';
   const finalTimeOfBirth = (timeOfBirth && timeOfBirth.toString().trim()) || '';
   const finalPlaceOfBirth = (placeOfBirth && placeOfBirth.toString().trim()) || '';
@@ -503,29 +513,31 @@ export async function sendPaymentEmail({
         </div>
       `)
       .join('');
-  } else if (packageType === 'single') {
-    // Baby Name Report - show baby-specific details
+   } else if (packageType === 'single' || packageType === 'premium' || packageType === 'baby_name') {
+    // Baby Name Report / Premium - show baby-specific details
     customerDetailsHtml = `
       <div class="detail-row">
-        <strong>Father's First Name:</strong>
-        <span>${hasValue(finalFatherFirstName) ? finalFatherFirstName : 'Not provided'}</span>
+        <strong>Father's Full Name:</strong>
+        <span>${hasValue(finalFatherFullName) ? finalFatherFullName : (hasValue(finalFatherFirstName) ? finalFatherFirstName : 'Not provided')}</span>
       </div>
-      ${hasValue(finalFatherMiddleName) ? `
+      ${hasValue(finalChildMiddleName) ? `
       <div class="detail-row">
-        <strong>Father's Middle Name:</strong>
-        <span>${finalFatherMiddleName}</span>
+        <strong>Child's Middle Name:</strong>
+        <span>${finalChildMiddleName}</span>
       </div>
       ` : ''}
-      ${hasValue(finalFatherMiddleNameType) ? `
+      ${hasValue(finalChildLastName) ? `
       <div class="detail-row">
-        <strong>Father's Middle Name is Grandfather's:</strong>
-        <span>${finalFatherMiddleNameType === 'yes' ? 'Yes' : 'No'}</span>
+        <strong>Child's Last Name:</strong>
+        <span>${finalChildLastName}</span>
       </div>
       ` : ''}
+      ${hasValue(finalFatherFirstNameAsMiddleName) ? `
       <div class="detail-row">
-        <strong>Father's Last Name:</strong>
-        <span>${hasValue(finalFatherLastName) ? finalFatherLastName : 'Not provided'}</span>
+        <strong>Child's Middle Name = Father's First Name:</strong>
+        <span>${finalFatherFirstNameAsMiddleName === 'yes' ? 'Yes' : 'No'}</span>
       </div>
+      ` : ''}
       <div class="detail-row">
         <strong>Child's Date of Birth:</strong>
         <span>${hasValue(finalChildDob) ? formatDob(finalChildDob) : formatDob(finalPerson1Dob)}</span>
@@ -552,6 +564,12 @@ export async function sendPaymentEmail({
         <strong>Gender:</strong>
         <span>${hasValue(finalPerson1Gender) ? finalPerson1Gender : (hasValue(finalCustomerGender) ? finalCustomerGender : 'Not provided')}</span>
       </div>
+      ${hasValue(finalNameOptions) ? `
+      <div class="detail-row">
+        <strong>Name Options:</strong>
+        <span>${finalNameOptions}</span>
+      </div>
+      ` : ''}
     `;
   } else {
     // Single person Name Check - show First, Middle, Last Name separately when available

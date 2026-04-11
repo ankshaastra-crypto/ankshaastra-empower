@@ -225,6 +225,42 @@ Company details, bank details, UPI info, notes, and terms are defined in:
 
 ## Production Deployment
 
+### Vercel Environment Variables (Complete List)
+
+```bash
+# ── Razorpay ──
+RAZORPAY_KEY_ID=rzp_live_xxxx
+RAZORPAY_KEY_SECRET=your_key_secret
+RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
+VITE_RAZORPAY_KEY_ID=rzp_live_xxxx          # Frontend uses this
+
+# ── SMTP (Email) ──
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASSWORD=your_app_password
+SMTP_SECURE=false
+FROM_EMAIL=Ankshaastra <noreply@ankshaastra.com>
+
+# ── Supabase (Backend for invoices) ──
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your_anon_key
+VITE_SUPABASE_PROJECT_ID=your_project_ref
+
+# ── PostgreSQL (Order storage) ──
+DATABASE_URL=postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
+
+# ── Security ──
+ENCRYPTION_KEY=your_32_character_key
+
+# ── Optional ──
+REDIS_URL=redis://localhost:6379
+NODE_ENV=production
+NODE_OPTIONS=--no-deprecation
+```
+
 ### Vercel (Recommended)
 
 1. **Set Up Upstash Redis:**
@@ -238,24 +274,9 @@ Company details, bank details, UPI info, notes, and terms are defined in:
    vercel link
    ```
 
-   - Add all environment variables in Vercel Dashboard
-   - Set `REDIS_URL` to Upstash Redis URL (if using Redis)
-   - Set `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_PROJECT_ID`
-   - **Optional:** Set `NODE_OPTIONS=--no-deprecation` to suppress DEP0169 warnings from dependencies
+   - Add all environment variables listed above in Vercel Dashboard
 
-3. **Create `vercel.json`:**
-
-   ```json
-   {
-     "functions": {
-       "api/**/*.js": {
-         "maxDuration": 60
-       }
-     }
-   }
-   ```
-
-4. **Deploy:**
+3. **Deploy:**
    ```bash
    vercel --prod
    ```
@@ -283,25 +304,24 @@ npm start
 
 ### POST `/api/initiate-payment`
 
-Initiates payment with PhonePe.
+Initiates payment with Razorpay.
 
 **Request:**
 
 ```json
 {
-  "amount": 1997,
+  "amount": 2447,
   "mobile": "9876543210",
   "email": "customer@example.com",
   "name": "Customer Name",
-  "dob": "01-01-1990",
-  "orderId": "ORD1234567890-abc123",
-  "packageType": "single"
+  "packageType": "single",
+  "orderId": "ORD1234567890-abc123"
 }
 ```
 
 ### GET `/api/payment-status`
 
-Checks payment status after PhonePe redirect.
+Checks payment status after Razorpay redirect.
 
 **Response:**
 
@@ -310,14 +330,14 @@ Checks payment status after PhonePe redirect.
   "success": true,
   "status": "SUCCESS",
   "orderId": "ORD1234567890-abc123",
-  "transactionId": "TXN1234567890",
-  "amount": 1997
+  "transactionId": "pay_xxx",
+  "amount": 244700
 }
 ```
 
 ### POST `/api/payment-webhook`
 
-PhonePe webhook endpoint.
+Razorpay webhook endpoint (signature verified via `X-Razorpay-Signature`).
 
 ## Project Structure
 
@@ -376,12 +396,14 @@ PhonePe webhook endpoint.
 
 ## Production Checklist
 
-- [ ] All environment variables set
-- [ ] PhonePe credentials configured
+- [ ] All environment variables set (see complete list above)
+- [ ] Razorpay credentials configured (Key ID, Secret, Webhook Secret)
 - [ ] SMTP credentials configured
 - [ ] Encryption key generated (32+ chars)
-- [ ] PostgreSQL database created (Supabase/Neon)
+- [ ] PostgreSQL database created (Supabase)
 - [ ] `DATABASE_URL` set in Vercel (tables auto-create on first use)
+- [ ] Supabase Storage bucket `invoices` created (private, PDF only)
+- [ ] `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` set in Vercel
 - [ ] Redis URL set (if using Redis)
 - [ ] `.env` not committed to git
 - [ ] Rate limits tested

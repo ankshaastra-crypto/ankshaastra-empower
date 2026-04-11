@@ -396,12 +396,14 @@ Razorpay webhook endpoint (signature verified via `X-Razorpay-Signature`).
 
 ## Production Checklist
 
-- [ ] All environment variables set
-- [ ] PhonePe credentials configured
+- [ ] All environment variables set (see complete list above)
+- [ ] Razorpay credentials configured (Key ID, Secret, Webhook Secret)
 - [ ] SMTP credentials configured
 - [ ] Encryption key generated (32+ chars)
-- [ ] PostgreSQL database created (Supabase/Neon)
+- [ ] PostgreSQL database created (Supabase)
 - [ ] `DATABASE_URL` set in Vercel (tables auto-create on first use)
+- [ ] Supabase Storage bucket `invoices` created (private, PDF only)
+- [ ] `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` set in Vercel
 - [ ] Redis URL set (if using Redis)
 - [ ] `.env` not committed to git
 - [ ] Rate limits tested

@@ -27,9 +27,9 @@ npm run dev
 **Required:**
 
 ```bash
-PHONEPE_MERCHANT_ID=your_merchant_id
-PHONEPE_SALT_KEY=your_salt_key
-PHONEPE_SALT_INDEX=1
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+RAZORPAY_WEBHOOK_SECRET=your_razorpay_webhook_secret
 
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587

@@ -76,14 +76,18 @@ interface OrderPayload {
   person3Dob?: string;
   person3Gender?: string;
   person3MiddleNameType?: string;
+  fatherFullName?: string;
   fatherFirstName?: string;
   fatherMiddleName?: string;
   fatherMiddleNameType?: string;
   fatherLastName?: string;
   fatherFirstNameAsMiddleName?: string;
+  childMiddleName?: string;
+  childLastName?: string;
   childDob?: string;
   timeOfBirth?: string;
   placeOfBirth?: string;
+  nameOptions?: string;
 }
 
 // Name Check pricing configuration
@@ -135,10 +139,9 @@ const OrderFormSection = () => {
 
   // Baby Name Report form data
   const [babyFormData, setBabyFormData] = useState({
-    fatherFirstName: "",
-    fatherMiddleName: "",
-    fatherMiddleNameType: "",
-    fatherLastName: "",
+    fatherFullName: "",
+    childMiddleName: "",
+    childLastName: "",
     fatherFirstNameAsMiddleName: "",
     childDob: "",
     timeOfBirth: "",
@@ -147,6 +150,7 @@ const OrderFormSection = () => {
     gender: "",
     email: "",
     whatsapp: "",
+    nameOptions: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -243,11 +247,13 @@ const OrderFormSection = () => {
       const val = babyFormData[fieldName as keyof typeof babyFormData];
       if (!val || (typeof val === "string" && !val.trim())) return false;
       switch (fieldName) {
-        case "fatherFirstName":
-        case "fatherLastName":
+        case "fatherFullName":
+        case "childLastName":
           return validateName(val, true);
-        case "fatherMiddleName":
+        case "childMiddleName":
           return val.trim().length > 0 ? validateName(val, false) : false;
+        case "fatherFirstNameAsMiddleName":
+          return val === "yes" || val === "no";
         case "childDob":
           return validateDob(val);
         case "timeOfBirth":
@@ -377,14 +383,12 @@ const OrderFormSection = () => {
   const validateStep2 = (): Record<string, string> => {
     const newErrors: Record<string, string> = {};
     if (packageType === "single" || packageType === "premium") {
-      if (!babyFormData.fatherFirstName || !validateName(babyFormData.fatherFirstName, true))
-        newErrors.fatherFirstName = "Father's first name is required";
-      if (!babyFormData.fatherLastName || !validateName(babyFormData.fatherLastName, true))
-        newErrors.fatherLastName = "Father's last name is required";
-      if (babyFormData.fatherMiddleName && babyFormData.fatherMiddleName.trim() !== "" && (!babyFormData.fatherMiddleNameType || babyFormData.fatherMiddleNameType.trim() === ""))
-        newErrors.fatherMiddleNameType = "Please specify if father's middle name is grandfather's name";
+      if (!babyFormData.fatherFullName || !validateName(babyFormData.fatherFullName, true))
+        newErrors.fatherFullName = "Father's full name is required";
+      if (!babyFormData.childLastName || !validateName(babyFormData.childLastName, true))
+        newErrors.childLastName = "Child's last name is required";
       if (!babyFormData.fatherFirstNameAsMiddleName || babyFormData.fatherFirstNameAsMiddleName.trim() === "")
-        newErrors.fatherFirstNameAsMiddleName = "Please specify if father's first name is used as child's middle name";
+        newErrors.fatherFirstNameAsMiddleName = "Please specify if child's middle name is father's first name";
       if (!babyFormData.childDob || !validateDob(babyFormData.childDob))
         newErrors.childDob = !babyFormData.childDob ? "Child's date of birth is required" : "Date of birth must be a valid date in the past";
       if (!babyFormData.timeOfBirth || !validateTime(babyFormData.timeOfBirth))
@@ -466,26 +470,25 @@ const OrderFormSection = () => {
     let orderPayload: OrderPayload;
 
     if (packageType === "single" || packageType === "premium") {
-      const fatherFullName = [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ").trim();
       orderPayload = {
         orderId,
         email: babyFormData.email,
         mobile: babyFormData.whatsapp,
-        name: fatherFullName,
+        name: babyFormData.fatherFullName,
         dob: babyFormData.childDob,
         gender: babyFormData.gender,
-        person1Name: fatherFullName,
+        person1Name: babyFormData.fatherFullName,
         person1Dob: babyFormData.childDob,
         person1Gender: babyFormData.gender,
-        fatherFirstName: babyFormData.fatherFirstName,
-        fatherMiddleName: babyFormData.fatherMiddleName || "",
-        fatherMiddleNameType: babyFormData.fatherMiddleNameType || "",
+        fatherFullName: babyFormData.fatherFullName,
         fatherFirstNameAsMiddleName: babyFormData.fatherFirstNameAsMiddleName || "",
-        fatherLastName: babyFormData.fatherLastName,
+        childMiddleName: babyFormData.childMiddleName || "",
+        childLastName: babyFormData.childLastName,
         childDob: babyFormData.childDob,
         timeOfBirth: normalizeTimeInput(babyFormData.timeOfBirth),
         placeOfBirth: babyFormData.placeOfBirth,
         pinCode: babyFormData.pinCode,
+        nameOptions: babyFormData.nameOptions || "",
         packageType,
       };
     } else {
@@ -751,78 +754,7 @@ const OrderFormSection = () => {
 
   const renderBabyNameFields = () => (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[
-          { id: "fatherFirstName", label: "Father's First Name *", placeholder: "First name", required: true },
-          { id: "fatherMiddleName", label: "Father's Middle Name", placeholder: "Middle name (optional)", required: false },
-          { id: "fatherLastName", label: "Father's Last Name *", placeholder: "Last name", required: true },
-        ].map((f) => (
-          <div key={f.id}>
-            <Label htmlFor={f.id}>{f.label}</Label>
-            <div className="relative">
-              <Input id={f.id} name={f.id}
-                value={babyFormData[f.id as keyof typeof babyFormData]}
-                onChange={(e) => {
-                  handleInputChange(e);
-                  if (f.id === "fatherMiddleName" && !e.target.value.trim()) {
-                    setBabyFormData((prev) => ({ ...prev, fatherMiddleNameType: "" }));
-                    setErrors((prev) => { const n = { ...prev }; delete n.fatherMiddleNameType; return n; });
-                  }
-                }}
-                placeholder={f.placeholder} required={f.required}
-                className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors[f.id] ? "border-destructive" : isFieldValid(f.id) ? "border-success" : ""}`} />
-              <ValidIcon field={f.id} />
-            </div>
-            {errors[f.id] && <p className="text-destructive text-sm mt-1">{errors[f.id]}</p>}
-          </div>
-        ))}
-      </div>
-      {babyFormData.fatherMiddleName?.trim() && (
-        <div>
-          <Label>Is the father's middle name grandfather's name? *</Label>
-          <RadioGroup
-            value={babyFormData.fatherMiddleNameType}
-            onValueChange={(value) => {
-              setBabyFormData((prev) => ({ ...prev, fatherMiddleNameType: value }));
-              if (errors.fatherMiddleNameType) setErrors((prev) => { const n = { ...prev }; delete n.fatherMiddleNameType; return n; });
-            }}
-            className={`flex gap-4 mt-2 ${errors.fatherMiddleNameType ? "text-destructive" : ""}`}
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="yes" id="fatherMiddleNameTypeYes" />
-              <Label htmlFor="fatherMiddleNameTypeYes" className="cursor-pointer font-normal">Yes</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="no" id="fatherMiddleNameTypeNo" />
-              <Label htmlFor="fatherMiddleNameTypeNo" className="cursor-pointer font-normal">No</Label>
-            </div>
-          </RadioGroup>
-          {errors.fatherMiddleNameType && <p className="text-destructive text-sm mt-1">{errors.fatherMiddleNameType}</p>}
-        </div>
-      )}
-
-      <div>
-        <Label>Is the father's first name used as the child's middle name? *</Label>
-        <RadioGroup
-          value={babyFormData.fatherFirstNameAsMiddleName}
-          onValueChange={(value) => {
-            setBabyFormData((prev) => ({ ...prev, fatherFirstNameAsMiddleName: value }));
-            if (errors.fatherFirstNameAsMiddleName) setErrors((prev) => { const n = { ...prev }; delete n.fatherFirstNameAsMiddleName; return n; });
-          }}
-          className={`flex gap-4 mt-2 ${errors.fatherFirstNameAsMiddleName ? "text-destructive" : ""}`}
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="yes" id="fatherFirstNameAsMiddleNameYes" />
-            <Label htmlFor="fatherFirstNameAsMiddleNameYes" className="cursor-pointer font-normal">Yes</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="no" id="fatherFirstNameAsMiddleNameNo" />
-            <Label htmlFor="fatherFirstNameAsMiddleNameNo" className="cursor-pointer font-normal">No</Label>
-          </div>
-        </RadioGroup>
-        {errors.fatherFirstNameAsMiddleName && <p className="text-destructive text-sm mt-1">{errors.fatherFirstNameAsMiddleName}</p>}
-      </div>
-
+      {/* Child's Date of Birth & Time of Birth */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label>Child's Date of Birth (DD/MM/YYYY) *</Label>
@@ -854,10 +786,10 @@ const OrderFormSection = () => {
           {errors.childDob && <p className="text-destructive text-sm mt-1">{errors.childDob}</p>}
         </div>
         <div>
-          <Label htmlFor="timeOfBirth">Time of Birth (HH:MM:SS AM/PM) *</Label>
+          <Label htmlFor="timeOfBirth">Exact Time of Birth (HH:MM AM/PM) *</Label>
           <div className="relative">
             <Input id="timeOfBirth" name="timeOfBirth" value={babyFormData.timeOfBirth} onChange={handleInputChange}
-              placeholder="e.g., 10:30:00 AM" required
+              placeholder="e.g., 10:30 AM" required
               className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.timeOfBirth ? "border-destructive" : isFieldValid("timeOfBirth") ? "border-success" : ""}`} />
             <ValidIcon field="timeOfBirth" />
           </div>
@@ -865,7 +797,18 @@ const OrderFormSection = () => {
         </div>
       </div>
 
+      {/* Birth City & Pin Code */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="placeOfBirth">Birth City *</Label>
+          <div className="relative">
+            <Input id="placeOfBirth" name="placeOfBirth" value={babyFormData.placeOfBirth} onChange={handleInputChange}
+              placeholder={cityLoading ? "Fetching city..." : "Enter birth city"} required
+              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.placeOfBirth ? "border-destructive" : isFieldValid("placeOfBirth") ? "border-success" : ""}`} />
+            <ValidIcon field="placeOfBirth" />
+          </div>
+          {errors.placeOfBirth && <p className="text-destructive text-sm mt-1">{errors.placeOfBirth}</p>}
+        </div>
         <div>
           <Label htmlFor="pinCode">Pin Code *</Label>
           <div className="relative">
@@ -876,18 +819,9 @@ const OrderFormSection = () => {
           </div>
           {errors.pinCode && <p className="text-destructive text-sm mt-1">{errors.pinCode}</p>}
         </div>
-        <div>
-          <Label htmlFor="placeOfBirth">Place of Birth *</Label>
-          <div className="relative">
-            <Input id="placeOfBirth" name="placeOfBirth" value={babyFormData.placeOfBirth} onChange={handleInputChange}
-              placeholder={cityLoading ? "Fetching city..." : "Enter place of birth"} required
-              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.placeOfBirth ? "border-destructive" : isFieldValid("placeOfBirth") ? "border-success" : ""}`} />
-            <ValidIcon field="placeOfBirth" />
-          </div>
-          {errors.placeOfBirth && <p className="text-destructive text-sm mt-1">{errors.placeOfBirth}</p>}
-        </div>
       </div>
 
+      {/* Gender */}
       <div>
         <Label>Gender *</Label>
         <RadioGroup value={babyFormData.gender}
@@ -907,6 +841,80 @@ const OrderFormSection = () => {
         {errors.gender && <p className="text-destructive text-sm mt-1">{errors.gender}</p>}
       </div>
 
+      {/* Father's Full Name */}
+      <div>
+        <Label htmlFor="fatherFullName">Father's Full Name *</Label>
+        <div className="relative">
+          <Input id="fatherFullName" name="fatherFullName"
+            value={babyFormData.fatherFullName} onChange={handleInputChange}
+            placeholder="Enter father's full name" required
+            className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.fatherFullName ? "border-destructive" : isFieldValid("fatherFullName") ? "border-success" : ""}`} />
+          <ValidIcon field="fatherFullName" />
+        </div>
+        {errors.fatherFullName && <p className="text-destructive text-sm mt-1">{errors.fatherFullName}</p>}
+      </div>
+
+      {/* Child's Middle Name & Last Name */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="childMiddleName">Child's Middle Name</Label>
+          <div className="relative">
+            <Input id="childMiddleName" name="childMiddleName"
+              value={babyFormData.childMiddleName} onChange={handleInputChange}
+              placeholder="Middle name (if any)"
+              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card`} />
+            <ValidIcon field="childMiddleName" />
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="childLastName">Child's Last Name *</Label>
+          <div className="relative">
+            <Input id="childLastName" name="childLastName"
+              value={babyFormData.childLastName} onChange={handleInputChange}
+              placeholder="Enter child's last name" required
+              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.childLastName ? "border-destructive" : isFieldValid("childLastName") ? "border-success" : ""}`} />
+            <ValidIcon field="childLastName" />
+          </div>
+          {errors.childLastName && <p className="text-destructive text-sm mt-1">{errors.childLastName}</p>}
+        </div>
+      </div>
+
+      {/* Is Child's Middle Name = Father's First Name */}
+      <div>
+        <Label>Is the father's first name used as the child's middle name? *</Label>
+        <RadioGroup
+          value={babyFormData.fatherFirstNameAsMiddleName}
+          onValueChange={(value) => {
+            setBabyFormData((prev) => ({ ...prev, fatherFirstNameAsMiddleName: value }));
+            if (errors.fatherFirstNameAsMiddleName) setErrors((prev) => { const n = { ...prev }; delete n.fatherFirstNameAsMiddleName; return n; });
+          }}
+          className={`flex gap-4 mt-2 ${errors.fatherFirstNameAsMiddleName ? "text-destructive" : ""}`}
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="yes" id="fatherFirstNameAsMiddleNameYes" />
+            <Label htmlFor="fatherFirstNameAsMiddleNameYes" className="cursor-pointer font-normal">Yes</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="no" id="fatherFirstNameAsMiddleNameNo" />
+            <Label htmlFor="fatherFirstNameAsMiddleNameNo" className="cursor-pointer font-normal">No</Label>
+          </div>
+        </RadioGroup>
+        {errors.fatherFirstNameAsMiddleName && <p className="text-destructive text-sm mt-1">{errors.fatherFirstNameAsMiddleName}</p>}
+      </div>
+
+      {/* Name Options */}
+      <div>
+        <Label htmlFor="nameOptions">Name Options (if any)</Label>
+        <div className="relative">
+          <Input id="nameOptions" name="nameOptions"
+            value={babyFormData.nameOptions} onChange={handleInputChange}
+            placeholder="Enter preferred name options, separated by commas"
+            className="mt-1.5 transition-all duration-300 focus:shadow-card" />
+        </div>
+        <p className="text-xs text-muted-foreground mt-1">Optional: Share any name ideas you have in mind</p>
+      </div>
+
+      {/* Contact Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
           { id: "email", label: "Email Address *", type: "email", placeholder: "Enter email address", maxLen: undefined },
@@ -934,14 +942,16 @@ const OrderFormSection = () => {
     if (packageType === "single" || packageType === "premium") {
       items.push(
         { label: "Package", value: packageType === "premium" ? "Premium Report + Live Session" : "Perfect Baby Name Report" },
-        { label: "Father's Name", value: [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ") },
-        ...(babyFormData.fatherMiddleNameType ? [{ label: "Father's Middle Name is Grandfather's", value: babyFormData.fatherMiddleNameType === "yes" ? "Yes" : "No" }] : []),
-        ...(babyFormData.fatherFirstNameAsMiddleName ? [{ label: "Father's First Name as Child's Middle Name", value: babyFormData.fatherFirstNameAsMiddleName === "yes" ? "Yes" : "No" }] : []),
         { label: "Child's DOB", value: babyFormData.childDob ? format(parse(babyFormData.childDob, "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" },
         { label: "Time of Birth", value: babyFormData.timeOfBirth },
-        { label: "Place of Birth", value: babyFormData.placeOfBirth },
+        { label: "Birth City", value: babyFormData.placeOfBirth },
         { label: "Pin Code", value: babyFormData.pinCode },
         { label: "Gender", value: babyFormData.gender },
+        { label: "Father's Full Name", value: babyFormData.fatherFullName },
+        ...(babyFormData.childMiddleName ? [{ label: "Child's Middle Name", value: babyFormData.childMiddleName }] : []),
+        { label: "Child's Last Name", value: babyFormData.childLastName },
+        ...(babyFormData.fatherFirstNameAsMiddleName ? [{ label: "Child's Middle Name = Father's First Name", value: babyFormData.fatherFirstNameAsMiddleName === "yes" ? "Yes" : "No" }] : []),
+        ...(babyFormData.nameOptions ? [{ label: "Name Options", value: babyFormData.nameOptions }] : []),
         { label: "Email", value: babyFormData.email },
         { label: "WhatsApp", value: babyFormData.whatsapp },
       );

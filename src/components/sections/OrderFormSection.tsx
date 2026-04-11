@@ -902,90 +902,19 @@ const OrderFormSection = () => {
         {errors.fatherFirstNameAsMiddleName && <p className="text-destructive text-sm mt-1">{errors.fatherFirstNameAsMiddleName}</p>}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label>Child's Date of Birth (DD/MM/YYYY) *</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button id="childDob" variant="outline"
-                className={cn("w-full mt-1.5 justify-start text-left font-normal h-10",
-                  !babyFormData.childDob && "text-muted-foreground",
-                  errors.childDob ? "border-destructive" : isFieldValid("childDob") ? "border-success" : ""
-                )}>
-                <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
-                {babyFormData.childDob ? format(parse(babyFormData.childDob, "yyyy-MM-dd", new Date()), "dd/MM/yyyy") : "Pick child's date of birth"}
-                {isFieldValid("childDob") && <CheckCircle2 className="w-4 h-4 text-success ml-auto" />}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single"
-                selected={babyFormData.childDob ? parse(babyFormData.childDob, "yyyy-MM-dd", new Date()) : undefined}
-                onSelect={(date) => {
-                  if (date) {
-                    setBabyFormData((prev) => ({ ...prev, childDob: formatDateToLocal(date) }));
-                    if (errors.childDob) setErrors((prev) => { const n = { ...prev }; delete n.childDob; return n; });
-                  }
-                }}
-                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                initialFocus captionLayout="dropdown-buttons" fromYear={2000} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
-            </PopoverContent>
-          </Popover>
-          {errors.childDob && <p className="text-destructive text-sm mt-1">{errors.childDob}</p>}
-        </div>
-        <div>
-          <Label htmlFor="timeOfBirth">Time of Birth (HH:MM:SS AM/PM) *</Label>
-          <div className="relative">
-            <Input id="timeOfBirth" name="timeOfBirth" value={babyFormData.timeOfBirth} onChange={handleInputChange}
-              placeholder="e.g., 10:30:00 AM" required
-              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.timeOfBirth ? "border-destructive" : isFieldValid("timeOfBirth") ? "border-success" : ""}`} />
-            <ValidIcon field="timeOfBirth" />
-          </div>
-          {errors.timeOfBirth && <p className="text-destructive text-sm mt-1">{errors.timeOfBirth}</p>}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="pinCode">Pin Code *</Label>
-          <div className="relative">
-            <Input id="pinCode" name="pinCode" value={babyFormData.pinCode} onChange={handleInputChange}
-              placeholder="Enter the 6-digit PIN Code of child's birthplace" required maxLength={6}
-              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.pinCode ? "border-destructive" : isFieldValid("pinCode") ? "border-success" : ""}`} />
-            {cityLoading ? <Loader2 className="w-4 h-4 animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" /> : <ValidIcon field="pinCode" />}
-          </div>
-          {errors.pinCode && <p className="text-destructive text-sm mt-1">{errors.pinCode}</p>}
-        </div>
-        <div>
-          <Label htmlFor="placeOfBirth">Place of Birth *</Label>
-          <div className="relative">
-            <Input id="placeOfBirth" name="placeOfBirth" value={babyFormData.placeOfBirth} onChange={handleInputChange}
-              placeholder={cityLoading ? "Fetching city..." : "Enter place of birth"} required
-              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.placeOfBirth ? "border-destructive" : isFieldValid("placeOfBirth") ? "border-success" : ""}`} />
-            <ValidIcon field="placeOfBirth" />
-          </div>
-          {errors.placeOfBirth && <p className="text-destructive text-sm mt-1">{errors.placeOfBirth}</p>}
-        </div>
-      </div>
-
+      {/* Name Options */}
       <div>
-        <Label>Gender *</Label>
-        <RadioGroup value={babyFormData.gender}
-          onValueChange={(value) => {
-            setBabyFormData((prev) => ({ ...prev, gender: value }));
-            if (errors.gender) setErrors((prev) => { const n = { ...prev }; delete n.gender; return n; });
-          }}
-          className={`flex gap-4 mt-2.5 ${errors.gender ? "text-destructive" : ""}`}>
-          {[{ value: "Male", label: "Male" }, { value: "Female", label: "Female" }, { value: "Other", label: "Other" }].map((g) => (
-            <div key={g.value} className="flex items-center space-x-2">
-              <RadioGroupItem value={g.value} id={`babyGender${g.value}`} />
-              <Label htmlFor={`babyGender${g.value}`} className="cursor-pointer font-normal">{g.label}</Label>
-            </div>
-          ))}
-        </RadioGroup>
-        {isFieldValid("gender") && <CheckCircle2 className="w-4 h-4 text-success inline ml-2" />}
-        {errors.gender && <p className="text-destructive text-sm mt-1">{errors.gender}</p>}
+        <Label htmlFor="nameOptions">Name Options (if any)</Label>
+        <div className="relative">
+          <Input id="nameOptions" name="nameOptions"
+            value={babyFormData.nameOptions} onChange={handleInputChange}
+            placeholder="Enter preferred name options, separated by commas"
+            className="mt-1.5 transition-all duration-300 focus:shadow-card" />
+        </div>
+        <p className="text-xs text-muted-foreground mt-1">Optional: Share any name ideas you have in mind</p>
       </div>
 
+      {/* Contact Details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
           { id: "email", label: "Email Address *", type: "email", placeholder: "Enter email address", maxLen: undefined },

@@ -724,7 +724,7 @@ const OrderFormSection = () => {
                   }
                 }}
                 disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                initialFocus captionLayout="dropdown-buttons" fromYear={1920} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
+                initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
             </PopoverContent>
           </Popover>
           {errors[`person${personNum}Dob`] && <p className="text-destructive text-sm mt-1">{errors[`person${personNum}Dob`]}</p>}
@@ -780,7 +780,7 @@ const OrderFormSection = () => {
                   }
                 }}
                 disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                initialFocus captionLayout="dropdown-buttons" fromYear={2000} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
+                initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
             </PopoverContent>
           </Popover>
           {errors.childDob && <p className="text-destructive text-sm mt-1">{errors.childDob}</p>}

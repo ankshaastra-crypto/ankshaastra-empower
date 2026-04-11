@@ -593,6 +593,28 @@ export async function sendPaymentEmail({
     `;
   }
   
+  // Build WhatsApp-style full summary for admin email
+  const buildAdminSummary = () => {
+    const isBaby = packageType === 'single' || packageType === 'premium';
+    let details = '';
+    if (isBaby) {
+      const fatherName = finalFatherFullName || [finalFatherFirstName, finalFatherMiddleName, finalFatherLastName].filter(Boolean).join(' ') || '';
+      const childDobVal = finalChildDob || finalCustomerDob || '';
+      const genderVal = finalCustomerGender || finalPerson1Gender || '';
+      details += fatherName ? `<p><strong>Father's Full Name:</strong> ${fatherName}</p>` : '<p><strong>Father\'s Full Name:</strong> N/A</p>';
+      details += `<p><strong>Child's DOB:</strong> ${childDobVal || 'N/A'}</p>`;
+      details += `<p><strong>Time of Birth:</strong> ${finalTimeOfBirth || 'N/A'}</p>`;
+      details += `<p><strong>Birth City:</strong> ${finalPlaceOfBirth || 'N/A'}</p>`;
+      details += `<p><strong>Pin Code:</strong> ${finalPinCode || 'N/A'}</p>`;
+      details += `<p><strong>Child's Gender:</strong> ${genderVal || 'N/A'}</p>`;
+      details += finalChildMiddleName ? `<p><strong>Child's Middle Name:</strong> ${finalChildMiddleName}</p>` : '';
+      details += finalChildLastName ? `<p><strong>Child's Last Name:</strong> ${finalChildLastName}</p>` : '';
+      details += finalFatherFirstNameAsMiddleName ? `<p><strong>Father's First Name as Middle Name:</strong> ${finalFatherFirstNameAsMiddleName === 'yes' ? 'Yes' : 'No'}</p>` : '';
+      details += finalNameOptions ? `<p><strong>Preferred Name Options:</strong> ${finalNameOptions}</p>` : '';
+    }
+    return details;
+  };
+
   const adminHtml = `
     <!DOCTYPE html>
     <html>
@@ -609,7 +631,8 @@ export async function sendPaymentEmail({
         .detail-row strong { color: #2E1A47; font-weight: 600; }
         .person-section { margin-top: 15px; padding-top: 15px; border-top: 2px solid #f0f0f0; }
         .contact-info { background: #e8f5e9; padding: 15px; border-radius: 5px; margin-top: 15px; }
-        .contact-info strong { color: #2E1A47; }
+        .wa-summary { background: #f0f7ff; border-left: 4px solid #2E1A47; padding: 15px; border-radius: 5px; margin: 15px 0; font-size: 13px; }
+        .wa-summary p { margin: 4px 0; }
       </style>
     </head>
     <body>
@@ -619,53 +642,33 @@ export async function sendPaymentEmail({
         </div>
         <div class="content">
           <div class="status-badge">${status === 'SUCCESS' ? '✓ Payment Confirmed' : '✗ Payment Failed'}</div>
-          
+
           <div class="details">
             <h2 style="color: #2E1A47; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #2E1A47; padding-bottom: 10px;">Order Information</h2>
-            <div class="detail-row">
-              <strong>Order ID:</strong>
-              <span>${orderId}</span>
-            </div>
-            <div class="detail-row">
-              <strong>Package:</strong>
-              <span>${packageName}</span>
-            </div>
-            <div class="detail-row">
-              <strong>Amount:</strong>
-              <span>${amountFormatted}</span>
-            </div>
-            <div class="detail-row">
-              <strong>Transaction ID:</strong>
-              <span>${transactionId || 'Pending'}</span>
-            </div>
-            <div class="detail-row">
-              <strong>Status:</strong>
-              <span style="color: ${status === 'SUCCESS' ? '#10b981' : '#dc2626'}; font-weight: bold;">${status}</span>
+            <div class="detail-row"><strong>Order ID:</strong><span>${orderId}</span></div>
+            <div class="detail-row"><strong>Package:</strong><span>${packageName}</span></div>
+            <div class="detail-row"><strong>Amount:</strong><span>${amountFormatted}</span></div>
+            <div class="detail-row"><strong>Transaction ID:</strong><span>${transactionId || 'Pending'}</span></div>
+            <div class="detail-row"><strong>Status:</strong><span style="color: ${status === 'SUCCESS' ? '#10b981' : '#dc2626'}; font-weight: bold;">${status}</span></div>
+          </div>
+
+          <div class="details">
+            <h2 style="color: #2E1A47; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #2E1A47; padding-bottom: 10px;">Customer Contact</h2>
+            <div class="contact-info">
+              <div class="detail-row"><strong>Name:</strong><span>${customerName || 'N/A'}</span></div>
+              <div class="detail-row"><strong>Email:</strong><span><a href="mailto:${customerEmail}" style="color: #2E1A47;">${customerEmail || 'N/A'}</a></span></div>
+              <div class="detail-row"><strong>Mobile:</strong><span><a href="tel:${finalCustomerMobile || ''}" style="color: #2E1A47;">${finalCustomerMobile || 'N/A'}</a></span></div>
+              <div class="detail-row"><strong>City:</strong><span>${finalCustomerCity || 'N/A'}</span></div>
+              ${finalPinCode ? `<div class="detail-row"><strong>Pin Code:</strong><span>${finalPinCode}</span></div>` : ''}
             </div>
           </div>
 
           <div class="details">
-            <h2 style="color: #2E1A47; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #2E1A47; padding-bottom: 10px;">Customer Details</h2>
+            <h2 style="color: #2E1A47; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #2E1A47; padding-bottom: 10px;">Order Details (Form Filled)</h2>
             ${customerDetailsHtml}
-            <div class="contact-info">
-              <div class="detail-row">
-                <strong>Email ID:</strong>
-                <span><a href="mailto:${customerEmail}" style="color: #2E1A47;">${customerEmail}</a></span>
-              </div>
-              <div class="detail-row">
-                <strong>Mobile Number:</strong>
-                <span><a href="tel:${hasValue(finalCustomerMobile) ? finalCustomerMobile : ''}" style="color: #2E1A47;">${hasValue(finalCustomerMobile) ? finalCustomerMobile : 'Not provided'}</a></span>
-              </div>
-              <div class="detail-row">
-                <strong>City:</strong>
-                <span>${hasValue(finalCustomerCity) ? finalCustomerCity : 'Not provided'}</span>
-              </div>
-              ${hasValue(finalPinCode) ? `
-              <div class="detail-row">
-                <strong>Pin Code:</strong>
-                <span>${finalPinCode}</span>
-              </div>
-              ` : ''}
+            <div class="wa-summary">
+              <h3 style="color: #2E1A47; margin: 0 0 10px 0; font-size: 14px;">📋 Baby/Child Report Details</h3>
+              ${buildAdminSummary()}
             </div>
           </div>
 

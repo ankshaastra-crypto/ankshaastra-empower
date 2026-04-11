@@ -1,109 +1,134 @@
 // api/_utils/supabase-server.js
-// Server-side Supabase client with service_role key (bypasses RLS)
+// PDF generation (local pdf-lib) + optional Supabase Storage upload
 
-import { createClient } from '@supabase/supabase-js';
+import { generateInvoicePDFLocal } from './generate-invoice-pdf.js';
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-// Export null-safe client — callers must check before use
-export const supabaseServer =
-  supabaseUrl && supabaseServiceKey
-    ? createClient(supabaseUrl, supabaseServiceKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      })
-    : null;
-
-if (!supabaseServer) {
-  console.warn('⚠️  SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY missing — PDF storage disabled');
+// ── Supabase client (optional — only used for storage upload) ─────────────────
+let supabaseServer = null;
+try {
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (supabaseUrl && supabaseServiceKey) {
+    const { createClient } = await import('@supabase/supabase-js');
+    supabaseServer = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+  } else {
+    console.warn('⚠️  Supabase env missing — PDF will be generated locally only (no cloud storage)');
+  }
+} catch {
+  console.warn('⚠️  Supabase client init failed — PDF will be generated locally only');
 }
 
-// ─── Upload PDF to storage ────────────────────────────────────────────────────
+export { supabaseServer };
 
-/**
- * Upload a PDF buffer to Supabase Storage bucket "invoices".
- * Returns the storage path.
- */
+// ── Upload to Supabase Storage (optional) ─────────────────────────────────────
 export async function uploadInvoicePDF(storagePath, pdfBuffer) {
   if (!supabaseServer) throw new Error('Supabase not configured');
-
   const { error } = await supabaseServer.storage
     .from('invoices')
-    .upload(storagePath, pdfBuffer, {
-      contentType: 'application/pdf',
-      upsert: true,
-    });
-
+    .upload(storagePath, pdfBuffer, { contentType: 'application/pdf', upsert: true });
   if (error) throw new Error(`Storage upload failed: ${error.message}`);
   return storagePath;
 }
 
-/**
- * Get a short-lived signed URL for a stored invoice PDF.
- */
 export async function getInvoiceSignedUrl(storagePath, expiresIn = 3600) {
   if (!supabaseServer) throw new Error('Supabase not configured');
-
   const { data, error } = await supabaseServer.storage
     .from('invoices')
     .createSignedUrl(storagePath, expiresIn);
-
   if (error) throw new Error(`Signed URL error: ${error.message}`);
   return data.signedUrl;
 }
 
-// ─── Main entry: generate PDF via Edge Function, store, return buffer ─────────
-
+// ── Main: generate PDF locally, optionally upload to Supabase ─────────────────
 /**
- * Invoke the Supabase Edge Function `generate-invoice` to:
- *   1. Build the PDF
- *   2. Upload it to storage
- *   3. Return a signed download URL
- * Then fetch the PDF bytes and return them as a Buffer for email attachment.
+ * Generate invoice PDF for an order.
+ * 1. Fetch order from DB
+ * 2. Generate PDF using pdf-lib (local, no external service)
+ * 3. If Supabase is configured, upload for archival
+ * 4. Return Buffer for email attachment
  *
  * @param {string} orderId
- * @returns {Promise<Buffer>} PDF bytes
+ * @param {object} [fallbackData] - customer data if DB lookup fails
+ * @returns {Promise<Buffer|null>}
  */
-export async function generateInvoicePDF(orderId) {
+export async function generateInvoicePDF(orderId, fallbackData = null) {
   if (!orderId) throw new Error('orderId required');
-  if (!supabaseServer) throw new Error('Supabase not configured — cannot generate invoice PDF');
 
-  // Step 1: Invoke Edge Function to generate + store the PDF
-  const { data: genResult, error: genError } = await supabaseServer.functions.invoke(
-    'generate-invoice',
-    { body: { action: 'generate', orderId } }
-  );
+  // Build invoice data — try DB first, fall back to passed data
+  let invoiceData = null;
 
-  if (genError) {
-    throw new Error(`Edge function error: ${genError.message}`);
-  }
-  if (!genResult?.success || !genResult.invoiceId) {
-    throw new Error(
-      `Invoice generation failed: ${genResult?.error || 'No invoiceId returned'}`
-    );
-  }
-
-  const invoiceId = genResult.invoiceId;
-
-  // Step 2: Get signed download URL
-  const { data: downloadResult, error: downloadError } = await supabaseServer.functions.invoke(
-    'generate-invoice',
-    { body: { action: 'download', invoiceId } }
-  );
-
-  if (downloadError || !downloadResult?.url) {
-    throw new Error(
-      `Signed URL failed: ${downloadError?.message || 'No URL returned'}`
-    );
+  try {
+    const { getOrderFull } = await import('./db.js');
+    const order = await getOrderFull(orderId);
+    if (order) {
+      const invoiceDate = new Date(order.created_at || Date.now()).toLocaleDateString('en-IN', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+      });
+      invoiceData = {
+        orderId,
+        invoiceNumber: null, // will use orderId as fallback
+        invoiceDate,
+        customerName: order.customer_name || fallbackData?.customerName || 'Customer',
+        customerEmail: order.customer_email || fallbackData?.customerEmail || '',
+        customerMobile: order.customer_mobile || fallbackData?.customerMobile || '',
+        customerCity: order.customer_city || fallbackData?.customerCity || '',
+        pinCode: order.child_pincode || fallbackData?.pinCode || '',
+        packageType: order.package_type || fallbackData?.packageType || 'single',
+        transactionId: order.transaction_id || fallbackData?.transactionId || '',
+        amount: parseFloat(order.amount) || fallbackData?.amount || 0,
+      };
+    }
+  } catch (dbErr) {
+    console.warn('DB lookup failed for PDF, using fallback data:', dbErr.message);
   }
 
-  // Step 3: Fetch PDF bytes
-  const pdfResponse = await fetch(downloadResult.url);
-  if (!pdfResponse.ok) {
-    throw new Error(`PDF fetch failed with status ${pdfResponse.status}`);
+  // If DB failed, use fallback data passed in directly
+  if (!invoiceData && fallbackData) {
+    const invoiceDate = new Date().toLocaleDateString('en-IN', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+    });
+    invoiceData = {
+      orderId,
+      invoiceNumber: null,
+      invoiceDate,
+      customerName: fallbackData.customerName || 'Customer',
+      customerEmail: fallbackData.customerEmail || '',
+      customerMobile: fallbackData.customerMobile || '',
+      customerCity: fallbackData.customerCity || '',
+      pinCode: fallbackData.pinCode || '',
+      packageType: fallbackData.packageType || 'single',
+      transactionId: fallbackData.transactionId || '',
+      amount: fallbackData.amount || 0,
+    };
   }
 
-  const pdfBuffer = Buffer.from(await pdfResponse.arrayBuffer());
-  console.log(`✅ Invoice PDF fetched for order ${orderId} — ${pdfBuffer.length} bytes`);
+  if (!invoiceData) {
+    throw new Error(`No data found for order ${orderId} and no fallback provided`);
+  }
+
+  // Generate PDF locally
+  const pdfBuffer = await generateInvoicePDFLocal(invoiceData);
+  if (!pdfBuffer) throw new Error('PDF generation returned null');
+
+  console.log(`✅ Invoice PDF generated locally for order ${orderId} — ${pdfBuffer.length} bytes`);
+
+  // Optional: upload to Supabase Storage for archival
+  if (supabaseServer) {
+    try {
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const safeEmail = (invoiceData.customerEmail || 'unknown').replace(/[^a-zA-Z0-9@._-]/g, '_');
+      const storagePath = `${year}/${month}/${safeEmail}_${orderId}.pdf`;
+      await uploadInvoicePDF(storagePath, pdfBuffer);
+      console.log(`✅ Invoice uploaded to Supabase: ${storagePath}`);
+    } catch (uploadErr) {
+      console.warn('⚠️  Supabase upload failed (non-fatal):', uploadErr.message);
+      // Don't throw — PDF buffer is still valid for email attachment
+    }
+  }
+
   return pdfBuffer;
 }

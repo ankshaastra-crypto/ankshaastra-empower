@@ -58,26 +58,54 @@ export default async function handler(req, res) {
     // Check payment status with Razorpay
     const auth = Buffer.from(`${razorpayKeyId}:${razorpayKeySecret}`).toString('base64');
 
-    const statusResponse = await fetch(`https://api.razorpay.com/v1/orders/${razorpayOrderId}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!statusResponse.ok) {
-      console.error("Razorpay API Error:", statusResponse.status, statusResponse.statusText);
-      return res.status(500).json({
-        error: "Failed to fetch payment status from Razorpay",
-        details: `Razorpay API returned ${statusResponse.status}: ${statusResponse.statusText}`
+    // Fast polling: Razorpay sometimes takes a moment to mark order as 'paid'
+    // Poll up to 4 times with 1s between attempts (total max ~4s)
+    let statusResult = null;
+    let isSuccess = false;
+    const maxAttempts = 4;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const statusResponse = await fetch(`https://api.razorpay.com/v1/orders/${razorpayOrderId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${auth}`,
+          'Content-Type': 'application/json',
+        },
       });
+
+      if (!statusResponse.ok) {
+        console.error(`Razorpay API Error (attempt ${attempt}):`, statusResponse.status, statusResponse.statusText);
+        if (attempt === maxAttempts) {
+          return res.status(500).json({
+            error: "Failed to fetch payment status from Razorpay",
+            details: `Razorpay API returned ${statusResponse.status}: ${statusResponse.statusText}`
+          });
+        }
+        await new Promise(r => setTimeout(r, 1000));
+        continue;
+      }
+
+      statusResult = await statusResponse.json();
+      isSuccess = statusResult.status === 'paid';
+
+      // If paid, break immediately — no need to wait
+      if (isSuccess) {
+        console.log(`✅ Razorpay order paid on attempt ${attempt}`);
+        break;
+      }
+
+      // If still pending and not last attempt, wait 1s then retry
+      if (attempt < maxAttempts) {
+        console.log(`⏳ Order not paid yet (attempt ${attempt}/${maxAttempts}), retrying in 1s...`);
+        await new Promise(r => setTimeout(r, 1000));
+      }
     }
 
-    const statusResult = await statusResponse.json();
+    if (!statusResult) {
+      return res.status(500).json({ error: "Failed to fetch payment status from Razorpay" });
+    }
 
     // Check success from Razorpay order status
-    const isSuccess = statusResult.status === 'paid';
+    // isSuccess already set above
 
     const paymentStatus = isSuccess ? 'SUCCESS' : 'FAILED';
 
@@ -227,11 +255,25 @@ export default async function handler(req, res) {
       getQueryParam('fatherMiddleNameType') || (metadata.fatherMiddleNameType && metadata.fatherMiddleNameType.trim()) || '';
     const fatherLastName = (decryptedData.fatherLastName && decryptedData.fatherLastName.trim()) ||
       getQueryParam('fatherLastName') || (metadata.fatherLastName && metadata.fatherLastName.trim()) || '';
-    const childDob = (decryptedData.childDob && decryptedData.childDob.trim()) || '';
-    const timeOfBirth = (decryptedData.timeOfBirth && decryptedData.timeOfBirth.trim()) || '';
-    const placeOfBirth = (decryptedData.placeOfBirth && decryptedData.placeOfBirth.trim()) || '';
+    const childDob = (decryptedData.childDob && decryptedData.childDob.trim()) ||
+      getQueryParam('childDob') || (metadata.childDob && metadata.childDob.trim()) || '';
+    const timeOfBirth = (decryptedData.timeOfBirth && decryptedData.timeOfBirth.trim()) ||
+      getQueryParam('timeOfBirth') || (metadata.timeOfBirth && metadata.timeOfBirth.trim()) || '';
+    const placeOfBirth = (decryptedData.placeOfBirth && decryptedData.placeOfBirth.trim()) ||
+      getQueryParam('placeOfBirth') || (metadata.placeOfBirth && metadata.placeOfBirth.trim()) || '';
     const pinCode = (decryptedData.pinCode && decryptedData.pinCode.trim()) ||
       getQueryParam('pinCode') || (metadata.pinCode && metadata.pinCode.trim()) || '';
+    // Baby report extra fields
+    const fatherFullName = (decryptedData.fatherFullName && decryptedData.fatherFullName.trim()) ||
+      getQueryParam('fatherFullName') || (metadata.fatherFullName && metadata.fatherFullName.trim()) || '';
+    const childLastName = (decryptedData.childLastName && decryptedData.childLastName.trim()) ||
+      getQueryParam('childLastName') || (metadata.childLastName && metadata.childLastName.trim()) || '';
+    const childMiddleName = (decryptedData.childMiddleName && decryptedData.childMiddleName.trim()) ||
+      getQueryParam('childMiddleName') || (metadata.childMiddleName && metadata.childMiddleName.trim()) || '';
+    const fatherFirstNameAsMiddleName = (decryptedData.fatherFirstNameAsMiddleName && decryptedData.fatherFirstNameAsMiddleName.trim()) ||
+      getQueryParam('fatherFirstNameAsMiddleName') || (metadata.fatherFirstNameAsMiddleName && metadata.fatherFirstNameAsMiddleName.trim()) || '';
+    const nameOptions = (decryptedData.nameOptions && decryptedData.nameOptions.trim()) ||
+      getQueryParam('nameOptions') || (metadata.nameOptions && metadata.nameOptions.trim()) || '';
 
 // Persist order + payment (browser redirect flow — do not rely on webhook alone)
     try {
@@ -245,11 +287,17 @@ export default async function handler(req, res) {
     let invoicePdfBuffer = null;
     if (paymentStatus === 'SUCCESS' && customerEmail && customerEmail.trim() !== '') {
       try {
-        const orderData = await getOrderFull(internalOrderId);
-        if (orderData) {
-          invoicePdfBuffer = await generateInvoicePDF(internalOrderId);
-          console.log(`✅ Generated invoice PDF for ${internalOrderId}`);
-        }
+        invoicePdfBuffer = await generateInvoicePDF(internalOrderId, {
+          customerName,
+          customerEmail,
+          customerMobile,
+          customerCity,
+          pinCode,
+          packageType,
+          transactionId,
+          amount,
+        });
+        console.log(`✅ Generated invoice PDF for ${internalOrderId}`);
       } catch (pdfError) {
         console.error(`❌ PDF generation failed for ${internalOrderId}:`, pdfError.message);
         // Non-fatal: continue without PDF
@@ -289,7 +337,12 @@ export default async function handler(req, res) {
           fatherMiddleName: fatherMiddleName,
           fatherMiddleNameType: fatherMiddleNameType,
           fatherLastName: fatherLastName,
+          fatherFullName: fatherFullName,
           childDob: childDob,
+          childLastName: childLastName,
+          childMiddleName: childMiddleName,
+          fatherFirstNameAsMiddleName: fatherFirstNameAsMiddleName,
+          nameOptions: nameOptions,
           timeOfBirth: timeOfBirth,
           placeOfBirth: placeOfBirth,
           pinCode: pinCode,
@@ -349,7 +402,13 @@ export default async function handler(req, res) {
       fatherMiddleName,
       fatherMiddleNameType,
       fatherLastName,
+      fatherFullName,
       childDob,
+      childLastName,
+      childMiddleName,
+      fatherFirstNameAsMiddleName,
+      nameOptions,
+      gender: customerGender,
       timeOfBirth,
       placeOfBirth,
       pinCode,
@@ -364,4 +423,3 @@ export default async function handler(req, res) {
     });
   }
 }
-

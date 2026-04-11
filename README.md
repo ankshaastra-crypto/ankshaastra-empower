@@ -259,6 +259,9 @@ ENCRYPTION_KEY=your_32_character_key
 REDIS_URL=redis://localhost:6379
 NODE_ENV=production
 NODE_OPTIONS=--no-deprecation
+
+# ── PDF Generation Env ──
+   ADMIN_VERIFY_TOKEN = your-secret-value-here # Create new Secret!!
 ```
 
 ### Vercel (Recommended)

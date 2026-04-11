@@ -148,7 +148,16 @@ export default async function handler(req, res) {
         const orderData = await getOrderFull(orderId);
         if (orderData) {
           console.log(`📄 Generating invoice PDF for order: ${orderId}`);
-          invoicePdfBuffer = await generateInvoicePDF(orderId);
+          invoicePdfBuffer = await generateInvoicePDF(orderId, {
+            customerName: finalCustomerName,
+            customerEmail: finalCustomerEmail,
+            customerMobile: finalCustomerMobile,
+            customerCity: finalCustomerCity,
+            pinCode: finalPinCode,
+            packageType: finalPackageType,
+            transactionId,
+            amount: paymentAmount / 100,
+          });
           console.log(`✅ Invoice PDF generated — ${invoicePdfBuffer?.length} bytes`);
         } else {
           console.warn(`⚠️  Order ${orderId} not found in DB — skipping PDF generation`);

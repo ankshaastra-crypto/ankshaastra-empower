@@ -141,6 +141,11 @@ export async function sendPaymentEmail({
   const finalFatherMiddleName = (fatherMiddleName && fatherMiddleName.toString().trim()) || '';
   const finalFatherMiddleNameType = (fatherMiddleNameType && fatherMiddleNameType.toString().trim()) || '';
   const finalFatherLastName = (fatherLastName && fatherLastName.toString().trim()) || '';
+  const finalFatherFullName = (fatherFullName && fatherFullName.toString().trim()) || '';
+  const finalChildMiddleName = (childMiddleName && childMiddleName.toString().trim()) || '';
+  const finalChildLastName = (childLastName && childLastName.toString().trim()) || '';
+  const finalFatherFirstNameAsMiddleName = (fatherFirstNameAsMiddleName && fatherFirstNameAsMiddleName.toString().trim()) || '';
+  const finalNameOptions = (nameOptions && nameOptions.toString().trim()) || '';
   const finalChildDob = (childDob && childDob.toString().trim()) || '';
   const finalTimeOfBirth = (timeOfBirth && timeOfBirth.toString().trim()) || '';
   const finalPlaceOfBirth = (placeOfBirth && placeOfBirth.toString().trim()) || '';

@@ -98,6 +98,7 @@ export async function sendPaymentEmail({
   packageType, 
   status, 
   transactionId,
+  invoicePdfBuffer = null,
 }) {
   const adminEmail = process.env.ADMIN_EMAIL || 'admin@ankshaastra.com';
   const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';

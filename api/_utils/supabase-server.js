@@ -8,7 +8,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
   throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
 }
 
-export const supabaseServer = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+export const supabaseServer = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false

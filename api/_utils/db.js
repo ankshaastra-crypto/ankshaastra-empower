@@ -389,3 +389,63 @@ export async function getOrders() {
     throw error;
   }
 }
+
+/**
+ * Get full order details for invoice generation (Edge function format)
+ * @param orderId - The merchant order ID
+ */
+export async function getOrderFull(orderId) {
+  const p = getPool();
+  if (!p || !orderId) return null;
+
+  await ensureSchemaOnce();
+
+  const ord = `${DB_SCHEMA}.orders`;
+  const cust = `${DB_SCHEMA}.customer_details`;
+  const pay = `${DB_SCHEMA}.payment`;
+
+  try {
+    const result = await p.query(`
+      SELECT 
+        o.order_id,
+        o.amount,
+        o.package_type,
+        o.created_at,
+        c.customer_name as name,
+        c.email as customer_email,
+        c.mobile as customer_mobile, 
+        c.city as customer_city,
+        c.pin_code as child_pincode,
+        p.transaction_id,
+        o.status
+      FROM ${ord} o
+      LEFT JOIN ${cust} c ON o.order_id = c.order_id
+      LEFT JOIN LATERAL (
+        SELECT transaction_id FROM ${pay} 
+        WHERE order_id = $1 
+        ORDER BY created_at DESC LIMIT 1
+      ) p ON true
+      WHERE o.order_id = $1
+    `, [orderId]);
+
+    if (result.rows.length === 0) return null;
+
+    const row = result.rows[0];
+    return {
+      order_id: row.order_id,
+      amount: parseFloat(row.amount),
+      package_type: row.package_type,
+      transaction_id: row.transaction_id || null,
+      customer_name: row.name || 'Customer',
+      customer_email: row.email || '',
+      customer_mobile: row.mobile || '',
+      customer_city: row.city || '',
+      created_at: row.created_at.toISOString(),
+      child_pincode: row.child_pincode || null
+    };
+  } catch (error) {
+    console.error('getOrderFull error:', error.message);
+    throw error;
+  }
+}
+

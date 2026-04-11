@@ -128,35 +128,49 @@ Vercel Hobby plan allows max 12 serverless functions. Utility files are in `api/
 
 Invoices are generated as PDF files via a Supabase Edge Function (`generate-invoice`) and stored in a Supabase Storage bucket. Invoice PDFs are also attached to customer and admin emails on successful payment.
 
-### Supabase Storage Bucket Setup
+### Supabase Storage Bucket Setup ✅
 
-1. Go to **Supabase Dashboard → Storage** and create a bucket named `invoices`.
-   - **Public access:** No (private bucket)
-   - Bucket is used to store generated PDF invoices.
+**Bucket `invoices` (private) required for PDF invoices.**
 
-2. Add the following **Storage Policies** (SQL via Supabase SQL Editor):
+1. **Supabase Dashboard → Storage → New Bucket**:
+   - Name: `invoices` 
+   - **Public Bucket**: `false` (private)
+   - File Size Limit: Default
+   - Allowed MIME Types: `application/pdf`
+
+2. **Add RLS Policies** (Dashboard → Storage → `invoices` → Policies → New Policy or SQL Editor):
 
 ```sql
--- Allow service_role to upload invoices
-CREATE POLICY "Service role can upload invoices"
-ON storage.objects FOR INSERT
-TO service_role
-WITH CHECK (bucket_id = 'invoices');
+-- Service role uploads (Edge fn + Vercel)
+CREATE POLICY "Service role upload invoices" ON storage.objects FOR INSERT 
+TO service_role WITH CHECK (bucket_id = 'invoices');
 
--- Allow service_role to update/overwrite invoices
-CREATE POLICY "Service role can update invoices"
-ON storage.objects FOR UPDATE
-TO service_role
-USING (bucket_id = 'invoices');
+CREATE POLICY "Service role update invoices" ON storage.objects FOR UPDATE 
+TO service_role USING (bucket_id = 'invoices');
 
--- Allow signed URL downloads (for authenticated/anon users via signed URLs)
-CREATE POLICY "Allow signed URL reads for invoices"
-ON storage.objects FOR SELECT
-TO authenticated, anon
-USING (bucket_id = 'invoices');
+-- Signed URL downloads (Vercel fetches PDF → email attach)
+CREATE POLICY "Public signed URL reads" ON storage.objects FOR SELECT 
+TO anon, authenticated USING (bucket_id = 'invoices');
 ```
 
-### Supabase Environment Variables (for Vercel)
+3. **Vercel Env Vars** (already set per your confirmation):
+```
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
+
+**Test Bucket**:
+```
+curl -X POST "https://your-project.supabase.co/storage/v1/object/invoices/test.pdf" \
+  -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"
+```
+
+**Path**: `/invoices/{year}/{month}/{safe_email}_{invoice_number}.pdf`
+
+**Usage**: Auto-triggered on payment SUCCESS (webhook/status → Edge fn → Vercel attach → email).
+
+
+
 
 These are automatically available in the Supabase Edge Function runtime. For the **frontend**, add to Vercel:
 

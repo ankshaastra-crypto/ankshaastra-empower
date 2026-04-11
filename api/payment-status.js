@@ -4,7 +4,10 @@ import './_utils/suppress-deprecation.js';
 import crypto from 'crypto';
 import { sendPaymentEmail } from './_utils/send-email.js';
 import { decryptCustomerData } from './_utils/encryption.js';
+import { getOrderFull } from './_utils/db.js';
+import { generateInvoicePDF } from './_utils/supabase-server.js';
 import { rateLimiter } from './_utils/rate-limiter.js';
+
 
 export default async function handler(req, res) {
   // Apply rate limiting
@@ -230,7 +233,7 @@ export default async function handler(req, res) {
     const pinCode = (decryptedData.pinCode && decryptedData.pinCode.trim()) ||
       getQueryParam('pinCode') || (metadata.pinCode && metadata.pinCode.trim()) || '';
 
-    // Persist order + payment (browser redirect flow — do not rely on webhook alone)
+// Persist order + payment (browser redirect flow — do not rely on webhook alone)
     try {
       const { savePayment } = await import('./db.js');
       await savePayment(internalOrderId, transactionId, amountInPaise, paymentStatus);
@@ -238,8 +241,20 @@ export default async function handler(req, res) {
       console.error('DB save order error:', dbError?.message || dbError);
     }
 
-    // Send payment confirmation emails (customer and admin)
-    if (customerEmail && customerEmail.trim() !== '') {
+    // Generate PDF + send emails on SUCCESS only
+    let invoicePdfBuffer = null;
+    if (paymentStatus === 'SUCCESS' && customerEmail && customerEmail.trim() !== '') {
+      try {
+        const orderData = await getOrderFull(internalOrderId);
+        if (orderData) {
+          invoicePdfBuffer = await generateInvoicePDF(internalOrderId);
+          console.log(`✅ Generated invoice PDF for ${internalOrderId}`);
+        }
+      } catch (pdfError) {
+        console.error(`❌ PDF generation failed for ${internalOrderId}:`, pdfError.message);
+        // Non-fatal: continue without PDF
+      }
+
       try {
         const emailResult = await sendPaymentEmail({
           to: customerEmail,
@@ -283,6 +298,7 @@ export default async function handler(req, res) {
           packageType: packageType || 'single',
           status: paymentStatus,
           transactionId: transactionId || '',
+          invoicePdfBuffer,
         });
 
         if (!emailResult?.success) {
@@ -292,6 +308,7 @@ export default async function handler(req, res) {
         console.error("❌ Email sending error:", emailError.message);
       }
     }
+
 
     // Return payment status with all form details
     return res.status(200).json({

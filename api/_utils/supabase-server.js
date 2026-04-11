@@ -52,3 +52,50 @@ export async function uploadInvoicePDF(year, filename, pdfBuffer) {
   if (error) throw error;
   return supabaseServer.storage.from('invoices').getPublicUrl(`${year}/${filename}`).data.publicUrl;
 }
+
+/**
+ * Generate invoice PDF buffer for order (via Edge function)
+ * @param orderId - Order ID from PG orders table
+ * @returns PDF Buffer or null if failed
+ */
+export async function generateInvoicePDF(orderId) {
+  if (!orderId) throw new Error('orderId required');
+
+  try {
+    // 1. Invoke Edge function to generate invoice
+    const { data: genResult, error: genError } = await supabaseServer.functions.invoke('generate-invoice', {
+      body: { action: 'generate', orderId }
+    });
+
+    if (genError || !genResult?.success || !genResult.invoiceId) {
+      throw new Error(`Edge generation failed: ${genError?.message || 'No invoiceId returned'}`);
+    }
+
+    const invoiceId = genResult.invoiceId;
+
+    // 2. Get signed download URL
+    const { data: signedResult, error: signedError } = await supabaseServer.functions.invoke('generate-invoice', {
+      body: { action: 'download', invoiceId }
+    });
+
+    if (signedError || !signedResult?.url) {
+      throw new Error(`Signed URL failed: ${signedError?.message || 'No URL returned'}`);
+    }
+
+    const signedUrl = signedResult.url;
+
+    // 3. Fetch PDF buffer
+    const pdfResponse = await fetch(signedUrl);
+    if (!pdfResponse.ok || !pdfResponse.body) {
+      throw new Error(`PDF fetch failed: ${pdfResponse.status}`);
+    }
+
+    const pdfBuffer = Buffer.from(await pdfResponse.arrayBuffer());
+
+    return pdfBuffer;
+  } catch (error) {
+    console.error('generateInvoicePDF error:', error);
+    throw new Error(`Invoice PDF generation failed: ${error.message}`);
+  }
+}
+

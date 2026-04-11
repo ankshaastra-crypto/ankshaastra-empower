@@ -3,7 +3,10 @@ import './_utils/suppress-deprecation.js';
 
 import crypto from 'crypto';
 import { sendPaymentEmail } from './_utils/send-email.js';
+import { getOrderFull } from './_utils/db.js';
+import { generateInvoicePDF } from './_utils/supabase-server.js';
 import { rateLimiter } from './_utils/rate-limiter.js';
+
 
 export default async function handler(req, res) {
   // Apply rate limiting
@@ -104,13 +107,28 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // Save payment to PostgreSQL
+// Save payment to PostgreSQL
     try {
       const { savePayment } = await import('./db.js');
       await savePayment(orderId, transactionId, paymentAmount, status);
     } catch (dbError) {
       console.error('DB save payment error:', dbError?.message || dbError);
       // Non-fatal: continue with email flow
+    }
+
+    // Generate PDF + send emails on SUCCESS only
+    let invoicePdfBuffer = null;
+    if (status === 'SUCCESS') {
+      try {
+        const orderData = await getOrderFull(orderId);
+        if (orderData) {
+          invoicePdfBuffer = await generateInvoicePDF(orderId);
+          console.log(`✅ Generated invoice PDF for ${orderId}`);
+        }
+      } catch (pdfError) {
+        console.error(`❌ PDF generation failed for ${orderId}:`, pdfError.message);
+        // Non-fatal: continue without PDF
+      }
     }
 
     // Send payment confirmation emails (customer and admin)
@@ -156,7 +174,9 @@ export default async function handler(req, res) {
       packageType: finalPackageType,
       status,
       transactionId: transactionId || '',
+      invoicePdfBuffer,
     });
+
 
     if (!emailResult.success) {
       console.error("Failed to send confirmation emails:", emailResult.error);

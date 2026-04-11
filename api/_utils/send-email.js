@@ -100,8 +100,9 @@ export async function sendPaymentEmail({
   transactionId,
   invoicePdfBuffer = null,
 }) {
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@ankshaastra.com';
+  const adminEmail = 'social@ankshaastra.com';
   const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';
+
   
   // Normalize values
   const finalCustomerMobile = (customerMobile && customerMobile.toString().trim()) || '';

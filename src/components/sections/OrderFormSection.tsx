@@ -247,11 +247,13 @@ const OrderFormSection = () => {
       const val = babyFormData[fieldName as keyof typeof babyFormData];
       if (!val || (typeof val === "string" && !val.trim())) return false;
       switch (fieldName) {
-        case "fatherFirstName":
-        case "fatherLastName":
+        case "fatherFullName":
+        case "childLastName":
           return validateName(val, true);
-        case "fatherMiddleName":
+        case "childMiddleName":
           return val.trim().length > 0 ? validateName(val, false) : false;
+        case "fatherFirstNameAsMiddleName":
+          return val === "yes" || val === "no";
         case "childDob":
           return validateDob(val);
         case "timeOfBirth":

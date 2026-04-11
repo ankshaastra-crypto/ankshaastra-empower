@@ -383,14 +383,12 @@ const OrderFormSection = () => {
   const validateStep2 = (): Record<string, string> => {
     const newErrors: Record<string, string> = {};
     if (packageType === "single" || packageType === "premium") {
-      if (!babyFormData.fatherFirstName || !validateName(babyFormData.fatherFirstName, true))
-        newErrors.fatherFirstName = "Father's first name is required";
-      if (!babyFormData.fatherLastName || !validateName(babyFormData.fatherLastName, true))
-        newErrors.fatherLastName = "Father's last name is required";
-      if (babyFormData.fatherMiddleName && babyFormData.fatherMiddleName.trim() !== "" && (!babyFormData.fatherMiddleNameType || babyFormData.fatherMiddleNameType.trim() === ""))
-        newErrors.fatherMiddleNameType = "Please specify if father's middle name is grandfather's name";
+      if (!babyFormData.fatherFullName || !validateName(babyFormData.fatherFullName, true))
+        newErrors.fatherFullName = "Father's full name is required";
+      if (!babyFormData.childLastName || !validateName(babyFormData.childLastName, true))
+        newErrors.childLastName = "Child's last name is required";
       if (!babyFormData.fatherFirstNameAsMiddleName || babyFormData.fatherFirstNameAsMiddleName.trim() === "")
-        newErrors.fatherFirstNameAsMiddleName = "Please specify if father's first name is used as child's middle name";
+        newErrors.fatherFirstNameAsMiddleName = "Please specify if child's middle name is father's first name";
       if (!babyFormData.childDob || !validateDob(babyFormData.childDob))
         newErrors.childDob = !babyFormData.childDob ? "Child's date of birth is required" : "Date of birth must be a valid date in the past";
       if (!babyFormData.timeOfBirth || !validateTime(babyFormData.timeOfBirth))
@@ -472,26 +470,25 @@ const OrderFormSection = () => {
     let orderPayload: OrderPayload;
 
     if (packageType === "single" || packageType === "premium") {
-      const fatherFullName = [babyFormData.fatherFirstName, babyFormData.fatherMiddleName, babyFormData.fatherLastName].filter(Boolean).join(" ").trim();
       orderPayload = {
         orderId,
         email: babyFormData.email,
         mobile: babyFormData.whatsapp,
-        name: fatherFullName,
+        name: babyFormData.fatherFullName,
         dob: babyFormData.childDob,
         gender: babyFormData.gender,
-        person1Name: fatherFullName,
+        person1Name: babyFormData.fatherFullName,
         person1Dob: babyFormData.childDob,
         person1Gender: babyFormData.gender,
-        fatherFirstName: babyFormData.fatherFirstName,
-        fatherMiddleName: babyFormData.fatherMiddleName || "",
-        fatherMiddleNameType: babyFormData.fatherMiddleNameType || "",
+        fatherFullName: babyFormData.fatherFullName,
         fatherFirstNameAsMiddleName: babyFormData.fatherFirstNameAsMiddleName || "",
-        fatherLastName: babyFormData.fatherLastName,
+        childMiddleName: babyFormData.childMiddleName || "",
+        childLastName: babyFormData.childLastName,
         childDob: babyFormData.childDob,
         timeOfBirth: normalizeTimeInput(babyFormData.timeOfBirth),
         placeOfBirth: babyFormData.placeOfBirth,
         pinCode: babyFormData.pinCode,
+        nameOptions: babyFormData.nameOptions || "",
         packageType,
       };
     } else {
@@ -757,56 +754,132 @@ const OrderFormSection = () => {
 
   const renderBabyNameFields = () => (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[
-          { id: "fatherFirstName", label: "Father's First Name *", placeholder: "First name", required: true },
-          { id: "fatherMiddleName", label: "Father's Middle Name", placeholder: "Middle name (optional)", required: false },
-          { id: "fatherLastName", label: "Father's Last Name *", placeholder: "Last name", required: true },
-        ].map((f) => (
-          <div key={f.id}>
-            <Label htmlFor={f.id}>{f.label}</Label>
-            <div className="relative">
-              <Input id={f.id} name={f.id}
-                value={babyFormData[f.id as keyof typeof babyFormData]}
-                onChange={(e) => {
-                  handleInputChange(e);
-                  if (f.id === "fatherMiddleName" && !e.target.value.trim()) {
-                    setBabyFormData((prev) => ({ ...prev, fatherMiddleNameType: "" }));
-                    setErrors((prev) => { const n = { ...prev }; delete n.fatherMiddleNameType; return n; });
+      {/* Child's Date of Birth & Time of Birth */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label>Child's Date of Birth (DD/MM/YYYY) *</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button id="childDob" variant="outline"
+                className={cn("w-full mt-1.5 justify-start text-left font-normal h-10",
+                  !babyFormData.childDob && "text-muted-foreground",
+                  errors.childDob ? "border-destructive" : isFieldValid("childDob") ? "border-success" : ""
+                )}>
+                <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
+                {babyFormData.childDob ? format(parse(babyFormData.childDob, "yyyy-MM-dd", new Date()), "dd/MM/yyyy") : "Pick child's date of birth"}
+                {isFieldValid("childDob") && <CheckCircle2 className="w-4 h-4 text-success ml-auto" />}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar mode="single"
+                selected={babyFormData.childDob ? parse(babyFormData.childDob, "yyyy-MM-dd", new Date()) : undefined}
+                onSelect={(date) => {
+                  if (date) {
+                    setBabyFormData((prev) => ({ ...prev, childDob: formatDateToLocal(date) }));
+                    if (errors.childDob) setErrors((prev) => { const n = { ...prev }; delete n.childDob; return n; });
                   }
                 }}
-                placeholder={f.placeholder} required={f.required}
-                className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors[f.id] ? "border-destructive" : isFieldValid(f.id) ? "border-success" : ""}`} />
-              <ValidIcon field={f.id} />
-            </div>
-            {errors[f.id] && <p className="text-destructive text-sm mt-1">{errors[f.id]}</p>}
-          </div>
-        ))}
-      </div>
-      {babyFormData.fatherMiddleName?.trim() && (
-        <div>
-          <Label>Is the father's middle name grandfather's name? *</Label>
-          <RadioGroup
-            value={babyFormData.fatherMiddleNameType}
-            onValueChange={(value) => {
-              setBabyFormData((prev) => ({ ...prev, fatherMiddleNameType: value }));
-              if (errors.fatherMiddleNameType) setErrors((prev) => { const n = { ...prev }; delete n.fatherMiddleNameType; return n; });
-            }}
-            className={`flex gap-4 mt-2 ${errors.fatherMiddleNameType ? "text-destructive" : ""}`}
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="yes" id="fatherMiddleNameTypeYes" />
-              <Label htmlFor="fatherMiddleNameTypeYes" className="cursor-pointer font-normal">Yes</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="no" id="fatherMiddleNameTypeNo" />
-              <Label htmlFor="fatherMiddleNameTypeNo" className="cursor-pointer font-normal">No</Label>
-            </div>
-          </RadioGroup>
-          {errors.fatherMiddleNameType && <p className="text-destructive text-sm mt-1">{errors.fatherMiddleNameType}</p>}
+                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                initialFocus captionLayout="dropdown-buttons" fromYear={2000} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
+            </PopoverContent>
+          </Popover>
+          {errors.childDob && <p className="text-destructive text-sm mt-1">{errors.childDob}</p>}
         </div>
-      )}
+        <div>
+          <Label htmlFor="timeOfBirth">Exact Time of Birth (HH:MM AM/PM) *</Label>
+          <div className="relative">
+            <Input id="timeOfBirth" name="timeOfBirth" value={babyFormData.timeOfBirth} onChange={handleInputChange}
+              placeholder="e.g., 10:30 AM" required
+              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.timeOfBirth ? "border-destructive" : isFieldValid("timeOfBirth") ? "border-success" : ""}`} />
+            <ValidIcon field="timeOfBirth" />
+          </div>
+          {errors.timeOfBirth && <p className="text-destructive text-sm mt-1">{errors.timeOfBirth}</p>}
+        </div>
+      </div>
 
+      {/* Birth City & Pin Code */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="placeOfBirth">Birth City *</Label>
+          <div className="relative">
+            <Input id="placeOfBirth" name="placeOfBirth" value={babyFormData.placeOfBirth} onChange={handleInputChange}
+              placeholder={cityLoading ? "Fetching city..." : "Enter birth city"} required
+              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.placeOfBirth ? "border-destructive" : isFieldValid("placeOfBirth") ? "border-success" : ""}`} />
+            <ValidIcon field="placeOfBirth" />
+          </div>
+          {errors.placeOfBirth && <p className="text-destructive text-sm mt-1">{errors.placeOfBirth}</p>}
+        </div>
+        <div>
+          <Label htmlFor="pinCode">Pin Code *</Label>
+          <div className="relative">
+            <Input id="pinCode" name="pinCode" value={babyFormData.pinCode} onChange={handleInputChange}
+              placeholder="Enter the 6-digit PIN Code of child's birthplace" required maxLength={6}
+              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.pinCode ? "border-destructive" : isFieldValid("pinCode") ? "border-success" : ""}`} />
+            {cityLoading ? <Loader2 className="w-4 h-4 animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" /> : <ValidIcon field="pinCode" />}
+          </div>
+          {errors.pinCode && <p className="text-destructive text-sm mt-1">{errors.pinCode}</p>}
+        </div>
+      </div>
+
+      {/* Gender */}
+      <div>
+        <Label>Gender *</Label>
+        <RadioGroup value={babyFormData.gender}
+          onValueChange={(value) => {
+            setBabyFormData((prev) => ({ ...prev, gender: value }));
+            if (errors.gender) setErrors((prev) => { const n = { ...prev }; delete n.gender; return n; });
+          }}
+          className={`flex gap-4 mt-2.5 ${errors.gender ? "text-destructive" : ""}`}>
+          {[{ value: "Male", label: "Male" }, { value: "Female", label: "Female" }, { value: "Other", label: "Other" }].map((g) => (
+            <div key={g.value} className="flex items-center space-x-2">
+              <RadioGroupItem value={g.value} id={`babyGender${g.value}`} />
+              <Label htmlFor={`babyGender${g.value}`} className="cursor-pointer font-normal">{g.label}</Label>
+            </div>
+          ))}
+        </RadioGroup>
+        {isFieldValid("gender") && <CheckCircle2 className="w-4 h-4 text-success inline ml-2" />}
+        {errors.gender && <p className="text-destructive text-sm mt-1">{errors.gender}</p>}
+      </div>
+
+      {/* Father's Full Name */}
+      <div>
+        <Label htmlFor="fatherFullName">Father's Full Name *</Label>
+        <div className="relative">
+          <Input id="fatherFullName" name="fatherFullName"
+            value={babyFormData.fatherFullName} onChange={handleInputChange}
+            placeholder="Enter father's full name" required
+            className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.fatherFullName ? "border-destructive" : isFieldValid("fatherFullName") ? "border-success" : ""}`} />
+          <ValidIcon field="fatherFullName" />
+        </div>
+        {errors.fatherFullName && <p className="text-destructive text-sm mt-1">{errors.fatherFullName}</p>}
+      </div>
+
+      {/* Child's Middle Name & Last Name */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="childMiddleName">Child's Middle Name</Label>
+          <div className="relative">
+            <Input id="childMiddleName" name="childMiddleName"
+              value={babyFormData.childMiddleName} onChange={handleInputChange}
+              placeholder="Middle name (if any)"
+              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card`} />
+            <ValidIcon field="childMiddleName" />
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="childLastName">Child's Last Name *</Label>
+          <div className="relative">
+            <Input id="childLastName" name="childLastName"
+              value={babyFormData.childLastName} onChange={handleInputChange}
+              placeholder="Enter child's last name" required
+              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.childLastName ? "border-destructive" : isFieldValid("childLastName") ? "border-success" : ""}`} />
+            <ValidIcon field="childLastName" />
+          </div>
+          {errors.childLastName && <p className="text-destructive text-sm mt-1">{errors.childLastName}</p>}
+        </div>
+      </div>
+
+      {/* Is Child's Middle Name = Father's First Name */}
       <div>
         <Label>Is the father's first name used as the child's middle name? *</Label>
         <RadioGroup

@@ -76,14 +76,18 @@ interface OrderPayload {
   person3Dob?: string;
   person3Gender?: string;
   person3MiddleNameType?: string;
+  fatherFullName?: string;
   fatherFirstName?: string;
   fatherMiddleName?: string;
   fatherMiddleNameType?: string;
   fatherLastName?: string;
   fatherFirstNameAsMiddleName?: string;
+  childMiddleName?: string;
+  childLastName?: string;
   childDob?: string;
   timeOfBirth?: string;
   placeOfBirth?: string;
+  nameOptions?: string;
 }
 
 // Name Check pricing configuration
@@ -135,10 +139,9 @@ const OrderFormSection = () => {
 
   // Baby Name Report form data
   const [babyFormData, setBabyFormData] = useState({
-    fatherFirstName: "",
-    fatherMiddleName: "",
-    fatherMiddleNameType: "",
-    fatherLastName: "",
+    fatherFullName: "",
+    childMiddleName: "",
+    childLastName: "",
     fatherFirstNameAsMiddleName: "",
     childDob: "",
     timeOfBirth: "",
@@ -147,6 +150,7 @@ const OrderFormSection = () => {
     gender: "",
     email: "",
     whatsapp: "",
+    nameOptions: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});

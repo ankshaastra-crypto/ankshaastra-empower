@@ -6,12 +6,15 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { trackPurchase } from "@/lib/metaPixel";
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 interface PaymentData {
   success: boolean;
   status: "SUCCESS" | "FAILED";
   orderId: string;
   transactionId?: string;
   amount?: number;
+  // Customer contact
   customerEmail?: string;
   customerName?: string;
   customerMobile?: string;
@@ -19,6 +22,7 @@ interface PaymentData {
   customerGender?: string;
   customerCity?: string;
   packageType?: string;
+  // Name Check — Person 1
   person1Name?: string;
   person1FirstName?: string;
   person1MiddleName?: string;
@@ -26,6 +30,7 @@ interface PaymentData {
   person1Dob?: string;
   person1Gender?: string;
   person1MiddleNameType?: string;
+  // Name Check — Person 2
   person2Name?: string;
   person2FirstName?: string;
   person2MiddleName?: string;
@@ -33,6 +38,7 @@ interface PaymentData {
   person2Dob?: string;
   person2Gender?: string;
   person2MiddleNameType?: string;
+  // Name Check — Person 3
   person3Name?: string;
   person3FirstName?: string;
   person3MiddleName?: string;
@@ -40,18 +46,24 @@ interface PaymentData {
   person3Dob?: string;
   person3Gender?: string;
   person3MiddleNameType?: string;
+  // Baby Name / Single / Premium report fields
   fatherFirstName?: string;
   fatherMiddleName?: string;
   fatherMiddleNameType?: string;
   fatherLastName?: string;
+  fatherFullName?: string;
   childDob?: string;
+  childMiddleName?: string;
+  childLastName?: string;
+  fatherFirstNameAsMiddleName?: string;
+  nameOptions?: string;
+  gender?: string;
   timeOfBirth?: string;
   placeOfBirth?: string;
   pinCode?: string;
   data?: unknown;
 }
 
-/** Loaded from `public/invoice-data.json` for PDF/print template placeholders */
 interface InvoiceTemplateData {
   company?: {
     name?: string;
@@ -73,30 +85,37 @@ interface InvoiceTemplateData {
   terms?: string[];
 }
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
 const packageNames: Record<string, string> = {
   namecheck: "Name Check",
-  single: "Single Report",
+  "namecheck-1": "Name Check (1 Person)",
+  "namecheck-2": "Name Check (2 Persons)",
+  "namecheck-3": "Name Check (3 Persons)",
+  single: "Perfect Baby Name Report",
+  premium: "Premium Report + Live Session",
   family: "Family Package (3 Reports)",
   baby: "Perfect Baby Name Report",
   babyname: "Perfect Baby Name Report",
 };
 
+// ─── Component ────────────────────────────────────────────────────────────────
+
 const PaymentStatus = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [status, setStatus] = useState<"loading" | "success" | "failed">(
-    "loading"
-  );
+  const [status, setStatus] = useState<"loading" | "success" | "failed">("loading");
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
-  // Store order data from localStorage/params as fallback for email, name, mobile (ensures never N/A)
-  const [orderFallback, setOrderFallback] = useState<{ email?: string; name?: string; mobile?: string } | null>(null);
+  const [orderFallback, setOrderFallback] = useState<{
+    email?: string;
+    name?: string;
+    mobile?: string;
+  } | null>(null);
 
+  // ── Fetch & verify payment status ──────────────────────────────────────────
   useEffect(() => {
     const checkPaymentStatus = async () => {
-      // Razorpay may redirect with different parameter names
-      // Check multiple possible parameter names that Razorpay might use
-      // Also check for orderId which we include in our redirect URL
       const internalOrderId =
         searchParams.get("orderId") ||
         searchParams.get("order_id") ||
@@ -113,229 +132,157 @@ const PaymentStatus = () => {
         searchParams.get("razorpay_payment_id") ||
         searchParams.get("razorpayPaymentId");
 
-      const email = searchParams.get("email");
-      const name = searchParams.get("name");
-      const packageType = searchParams.get("package");
+      const emailParam = searchParams.get("email");
+      const nameParam = searchParams.get("name");
+      const packageTypeParam = searchParams.get("package");
 
-      // Try to retrieve order data from localStorage (backup if Razorpay stripped query params)
-      let storedOrderData = null;
+      // Load order details stored in localStorage before Razorpay redirect
+      let storedOrderData: Record<string, string> | null = null;
       if (internalOrderId) {
         try {
           const stored = localStorage.getItem(`order_${internalOrderId}`);
           if (stored) {
             storedOrderData = JSON.parse(stored);
-            // Clean up localStorage after retrieving
             localStorage.removeItem(`order_${internalOrderId}`);
           }
-        } catch (e) {
-          // Silent fail
+        } catch {
+          // silent fail
         }
       }
 
-      // Use stored data if available, otherwise use URL params
-      const finalEmail = storedOrderData?.email || email || "";
-      const finalName = storedOrderData?.name || name || "";
-      const finalMobile = storedOrderData?.mobile || searchParams.get("mobile") || "";
+      const finalEmail = storedOrderData?.email || emailParam || "";
+      const finalName = storedOrderData?.name || nameParam || "";
+      const finalMobile =
+        storedOrderData?.mobile || searchParams.get("mobile") || "";
       const finalPackageType =
-        storedOrderData?.packageType || packageType || "single";
+        storedOrderData?.packageType || packageTypeParam || "single";
 
-      // Store fallback data for invoice/display (ensures email never shows N/A)
-      setOrderFallback(finalEmail || finalName || finalMobile ? { email: finalEmail, name: finalName, mobile: finalMobile } : null);
+      setOrderFallback(
+        finalEmail || finalName || finalMobile
+          ? { email: finalEmail, name: finalName, mobile: finalMobile }
+          : null
+      );
 
       if (!internalOrderId) {
-        console.error(
-          "No internal order ID found in URL parameters. Available params:",
-          Object.fromEntries(searchParams.entries())
-        );
+        console.error("No internal order ID found in URL parameters.");
         setStatus("failed");
         return;
       }
 
       try {
-        // Build query parameters - include stored order data if available
+        // Build API params — include ALL stored fields
         const params = new URLSearchParams({
           orderId: internalOrderId,
           email: finalEmail,
           name: finalName,
           package: finalPackageType,
         });
+
         if (razorpayOrderId) params.append("razorpay_order_id", razorpayOrderId);
         if (razorpayPaymentId) params.append("razorpay_payment_id", razorpayPaymentId);
 
-        // Add person details if available from stored data
         if (storedOrderData) {
-          if (storedOrderData.person1Name)
-            params.append("person1Name", storedOrderData.person1Name);
-          if (storedOrderData.person1Dob)
-            params.append("person1Dob", storedOrderData.person1Dob);
-          if (storedOrderData.person2Name)
-            params.append("person2Name", storedOrderData.person2Name);
-          if (storedOrderData.person2Dob)
-            params.append("person2Dob", storedOrderData.person2Dob);
-          if (storedOrderData.person3Name)
-            params.append("person3Name", storedOrderData.person3Name);
-          if (storedOrderData.person3Dob)
-            params.append("person3Dob", storedOrderData.person3Dob);
-          if (storedOrderData.mobile)
-            params.append("mobile", storedOrderData.mobile);
-          if (storedOrderData.dob) params.append("dob", storedOrderData.dob);
-          // Baby report fields
-          if (storedOrderData.person1FirstName)
-            params.append("person1FirstName", storedOrderData.person1FirstName);
-          if (storedOrderData.person1MiddleName)
-            params.append("person1MiddleName", storedOrderData.person1MiddleName);
-          if (storedOrderData.person1SurName)
-            params.append("person1SurName", storedOrderData.person1SurName);
-          if (storedOrderData.person2FirstName)
-            params.append("person2FirstName", storedOrderData.person2FirstName);
-          if (storedOrderData.person2MiddleName)
-            params.append("person2MiddleName", storedOrderData.person2MiddleName);
-          if (storedOrderData.person2SurName)
-            params.append("person2SurName", storedOrderData.person2SurName);
-          if (storedOrderData.person3FirstName)
-            params.append("person3FirstName", storedOrderData.person3FirstName);
-          if (storedOrderData.person3MiddleName)
-            params.append("person3MiddleName", storedOrderData.person3MiddleName);
-          if (storedOrderData.person3SurName)
-            params.append("person3SurName", storedOrderData.person3SurName);
-          if (storedOrderData.person1MiddleNameType)
-            params.append("person1MiddleNameType", storedOrderData.person1MiddleNameType);
-          if (storedOrderData.person2MiddleNameType)
-            params.append("person2MiddleNameType", storedOrderData.person2MiddleNameType);
-          if (storedOrderData.person3MiddleNameType)
-            params.append("person3MiddleNameType", storedOrderData.person3MiddleNameType);
-          if (storedOrderData.person1Gender)
-            params.append("person1Gender", storedOrderData.person1Gender);
-          if (storedOrderData.person2Gender)
-            params.append("person2Gender", storedOrderData.person2Gender);
-          if (storedOrderData.person3Gender)
-            params.append("person3Gender", storedOrderData.person3Gender);
-          if (storedOrderData.fatherFirstName)
-            params.append("fatherFirstName", storedOrderData.fatherFirstName);
-          if (storedOrderData.fatherMiddleName)
-            params.append("fatherMiddleName", storedOrderData.fatherMiddleName);
-          if (storedOrderData.fatherMiddleNameType)
-            params.append("fatherMiddleNameType", storedOrderData.fatherMiddleNameType);
-          if (storedOrderData.fatherLastName)
-            params.append("fatherLastName", storedOrderData.fatherLastName);
-          if (storedOrderData.childDob)
-            params.append("childDob", storedOrderData.childDob);
-          if (storedOrderData.timeOfBirth)
-            params.append("timeOfBirth", storedOrderData.timeOfBirth);
-          if (storedOrderData.placeOfBirth)
-            params.append("placeOfBirth", storedOrderData.placeOfBirth);
-          if (storedOrderData.pinCode)
-            params.append("pinCode", storedOrderData.pinCode);
-          if (storedOrderData.gender)
-            params.append("gender", storedOrderData.gender);
+          const fields = [
+            // Name Check persons
+            "person1Name", "person1FirstName", "person1MiddleName", "person1SurName",
+            "person1Dob", "person1Gender", "person1MiddleNameType",
+            "person2Name", "person2FirstName", "person2MiddleName", "person2SurName",
+            "person2Dob", "person2Gender", "person2MiddleNameType",
+            "person3Name", "person3FirstName", "person3MiddleName", "person3SurName",
+            "person3Dob", "person3Gender", "person3MiddleNameType",
+            // Baby / Single / Premium fields
+            "fatherFirstName", "fatherMiddleName", "fatherMiddleNameType", "fatherLastName",
+            "fatherFullName", "childDob", "childMiddleName", "childLastName",
+            "fatherFirstNameAsMiddleName", "nameOptions", "gender",
+            "timeOfBirth", "placeOfBirth", "pinCode",
+            // misc
+            "mobile", "dob", "city",
+          ];
+          for (const field of fields) {
+            if (storedOrderData[field]) params.append(field, storedOrderData[field]);
+          }
         }
 
-        // Preserve all query parameters for navigation (build before API call)
         const currentParams = new URLSearchParams(searchParams.toString());
         const dataParam = currentParams.get("data");
         const orderIdParam = currentParams.get("orderId") || internalOrderId;
-
-        // Pass encrypted data to API for decryption (ensures email/details are available)
         if (dataParam) params.append("data", dataParam);
-        
-        // Build new params object with orderId and data
-        const newParams = new URLSearchParams();
-        if (orderIdParam) {
-          newParams.append("orderId", orderIdParam);
-        }
-        if (dataParam) {
-          newParams.append("data", dataParam);
-        }
-        if (razorpayOrderId) {
-          newParams.append("razorpay_order_id", razorpayOrderId);
-        }
-        if (razorpayPaymentId) {
-          newParams.append("razorpay_payment_id", razorpayPaymentId);
-        }
 
-        // Call our API to check payment status
-        const response = await fetch(
-          `/api/payment-status?${params.toString()}`
-        );
+        // Minimal URL params for navigation only
+        const newParams = new URLSearchParams();
+        if (orderIdParam) newParams.append("orderId", orderIdParam);
+        if (dataParam) newParams.append("data", dataParam);
+        if (razorpayOrderId) newParams.append("razorpay_order_id", razorpayOrderId);
+        if (razorpayPaymentId) newParams.append("razorpay_payment_id", razorpayPaymentId);
+
+        const response = await fetch(`/api/payment-status?${params.toString()}`);
 
         if (!response.ok) {
           console.error("API Error:", response.status, response.statusText);
           setStatus("failed");
-          // Navigate to failed URL if not already there and we have params
           if (!location.pathname.includes("/failed") && orderIdParam) {
-            const failedUrl = `/payment/failed${newParams.toString() ? '?' + newParams.toString() : ''}`;
-            navigate(failedUrl, { replace: true });
+            navigate(`/payment/failed?${newParams.toString()}`, { replace: true });
           }
           return;
         }
 
         const result = await response.json();
 
+        // Merge ALL stored order data into paymentData so WhatsApp message is complete
+        const mergedData: PaymentData = {
+          ...(storedOrderData || {}),
+          ...result,
+          customerEmail: result.customerEmail || storedOrderData?.email || finalEmail,
+          customerName: result.customerName || storedOrderData?.name || finalName,
+          customerMobile: result.customerMobile || storedOrderData?.mobile || finalMobile,
+        };
+
         if (result.success && result.status === "SUCCESS") {
           setStatus("success");
-          // Merge fallback data so email/name/mobile never show N/A
-          setPaymentData({
-            ...result,
-            customerEmail: result.customerEmail || finalEmail,
-            customerName: result.customerName || finalName,
-            customerMobile: result.customerMobile || finalMobile,
-          });
+          setPaymentData(mergedData);
 
-          // Track purchase event with Meta Pixel
           const amount = result.amount || 0;
-          const paymentOrderId = result.orderId || internalOrderId;
-          const pkgType = packageType || "single";
-
           if (amount > 0) {
-            trackPurchase(amount, "INR", paymentOrderId, pkgType);
+            trackPurchase(
+              amount,
+              "INR",
+              result.orderId || internalOrderId,
+              packageTypeParam || "single"
+            );
           }
 
-          // Navigate to success URL if not already there
           if (!location.pathname.includes("/success")) {
-            const successUrl = `/payment/success${newParams.toString() ? '?' + newParams.toString() : ''}`;
-            navigate(successUrl, { replace: true });
+            navigate(`/payment/success?${newParams.toString()}`, { replace: true });
           }
         } else {
           console.warn("Payment marked as failed");
           setStatus("failed");
-          setPaymentData({
-            ...result,
-            customerEmail: result.customerEmail || finalEmail,
-            customerName: result.customerName || finalName,
-            customerMobile: result.customerMobile || finalMobile,
-          });
+          setPaymentData(mergedData);
 
-          // Navigate to failed URL if not already there
           if (!location.pathname.includes("/failed")) {
-            const failedUrl = `/payment/failed${newParams.toString() ? '?' + newParams.toString() : ''}`;
-            navigate(failedUrl, { replace: true });
+            navigate(`/payment/failed?${newParams.toString()}`, { replace: true });
           }
         }
       } catch (error) {
         console.error("Error checking payment status:", error);
         setStatus("failed");
-        // Navigate to failed URL if not already there and we have params
-        const orderIdParam = searchParams.get("orderId") || 
+
+        const oid =
+          searchParams.get("orderId") ||
           searchParams.get("merchantTransactionId") ||
           searchParams.get("txnId") ||
           searchParams.get("transactionId");
-        const dataParam = searchParams.get("data");
-        const razorpayOrderIdParam = searchParams.get("razorpay_order_id") || searchParams.get("razorpayOrderId");
-        const razorpayPaymentIdParam = searchParams.get("razorpay_payment_id") || searchParams.get("razorpayPaymentId");
-        if (!location.pathname.includes("/failed") && orderIdParam) {
-          const newParams = new URLSearchParams();
-          newParams.append("orderId", orderIdParam);
-          if (dataParam) {
-            newParams.append("data", dataParam);
-          }
-          if (razorpayOrderIdParam) {
-            newParams.append("razorpay_order_id", razorpayOrderIdParam);
-          }
-          if (razorpayPaymentIdParam) {
-            newParams.append("razorpay_payment_id", razorpayPaymentIdParam);
-          }
-          const failedUrl = `/payment/failed${newParams.toString() ? '?' + newParams.toString() : ''}`;
-          navigate(failedUrl, { replace: true });
+        const dp = searchParams.get("data");
+        const rzo = searchParams.get("razorpay_order_id") || searchParams.get("razorpayOrderId");
+        const rzp = searchParams.get("razorpay_payment_id") || searchParams.get("razorpayPaymentId");
+
+        if (!location.pathname.includes("/failed") && oid) {
+          const ep = new URLSearchParams();
+          ep.append("orderId", oid);
+          if (dp) ep.append("data", dp);
+          if (rzo) ep.append("razorpay_order_id", rzo);
+          if (rzp) ep.append("razorpay_payment_id", rzp);
+          navigate(`/payment/failed?${ep.toString()}`, { replace: true });
         }
       }
     };
@@ -343,59 +290,116 @@ const PaymentStatus = () => {
     checkPaymentStatus();
   }, [searchParams, location.pathname, navigate]);
 
-  const buildWhatsAppUrl = useCallback((d: PaymentData, fb: typeof orderFallback) => {
-    const pkg = packageNames[d.packageType || "single"] || d.packageType;
-    const isBaby = d.packageType === 'baby' || d.packageType === 'babyname';
-    
-    let personDetails = '';
-    
-    if (isBaby) {
-      const fatherName = [d.fatherFirstName, d.fatherMiddleName, d.fatherLastName].filter(Boolean).join(' ');
-      personDetails = 
-        (fatherName ? `\nFather's Name: ${fatherName}` : '') +
-        (d.childDob ? `\nChild's DOB: ${d.childDob}` : '') +
-        (d.timeOfBirth ? `\nTime of Birth: ${d.timeOfBirth}` : '') +
-        (d.placeOfBirth ? `\nPlace of Birth: ${d.placeOfBirth}` : '') +
-        (d.pinCode ? `\nPin Code: ${d.pinCode}` : '') +
-        (d.customerGender || d.person1Gender ? `\nGender: ${d.customerGender || d.person1Gender}` : '');
-    } else {
-      const buildPersonBlock = (label: string, name?: string, firstName?: string, middleName?: string, surName?: string, dob?: string, gender?: string, middleNameType?: string) => {
-        const fullName = name || [firstName, middleName, surName].filter(Boolean).join(' ');
-        if (!fullName) return '';
-        let block = `\n\n*${label}:*\nName: ${fullName}`;
-        if (dob) block += `\nDOB: ${dob}`;
-        if (gender) block += `\nGender: ${gender}`;
-        if (middleName && middleNameType) block += `\nMiddle Name (${middleNameType})`;
-        return block;
-      };
-      
-      personDetails = buildPersonBlock('Person 1', d.person1Name, d.person1FirstName, d.person1MiddleName, d.person1SurName, d.person1Dob, d.person1Gender, d.person1MiddleNameType);
-      personDetails += buildPersonBlock('Person 2', d.person2Name, d.person2FirstName, d.person2MiddleName, d.person2SurName, d.person2Dob, d.person2Gender, d.person2MiddleNameType);
-      personDetails += buildPersonBlock('Person 3', d.person3Name, d.person3FirstName, d.person3MiddleName, d.person3SurName, d.person3Dob, d.person3Gender, d.person3MiddleNameType);
-    }
-    
-    const msg = encodeURIComponent(
-      `✅ *Payment Confirmed*\n\n` +
-      `*Order Details:*\n` +
-      `Order ID: ${d.orderId}\n` +
-      `Amount: ₹${d.amount?.toLocaleString() || "—"}\n` +
-      `Package: ${pkg}\n\n` +
-      `*Customer Details:*\n` +
-      `Name: ${d.customerName || fb?.name || "—"}\n` +
-      `Email: ${d.customerEmail || fb?.email || "—"}\n` +
-      `Mobile: ${d.customerMobile || fb?.mobile || "—"}` +
-      (d.customerCity ? `\nCity: ${d.customerCity}` : '') +
-      personDetails +
-      `\n\nPlease process my report. Thank you! 🙏`
-    );
-    return `https://wa.me/919667305577?text=${msg}`;
-  }, []);
+  // ── Build WhatsApp message URL ─────────────────────────────────────────────
+  const buildWhatsAppUrl = useCallback(
+    (d: PaymentData, fb: typeof orderFallback) => {
+      const pkg =
+        packageNames[d.packageType || "single"] ||
+        d.packageType ||
+        "Numerology Report";
 
-  // Auto-trigger WhatsApp on successful payment
+      // single / premium / baby / babyname = Baby Name report
+      const isBabyReport =
+        d.packageType === "single" ||
+        d.packageType === "premium" ||
+        d.packageType === "baby" ||
+        d.packageType === "babyname";
+
+      let personDetails = "";
+
+      if (isBabyReport) {
+        const fatherName =
+          d.fatherFullName ||
+          [d.fatherFirstName, d.fatherMiddleName, d.fatherLastName]
+            .filter(Boolean)
+            .join(" ") ||
+          "";
+        const childDob = d.childDob || d.customerDob || "";
+        const gender = d.gender || d.customerGender || d.person1Gender || "";
+
+        personDetails =
+          `\n\n*Child & Report Details:*` +
+          (fatherName ? `\nFather's Full Name: ${fatherName}` : "") +
+          (childDob ? `\nChild's Date of Birth: ${childDob}` : "") +
+          (d.timeOfBirth ? `\nTime of Birth: ${d.timeOfBirth}` : "") +
+          (d.placeOfBirth ? `\nBirth City: ${d.placeOfBirth}` : "") +
+          (d.pinCode ? `\nPin Code: ${d.pinCode}` : "") +
+          (gender ? `\nChild's Gender: ${gender}` : "") +
+          (d.childMiddleName ? `\nChild's Middle Name: ${d.childMiddleName}` : "") +
+          (d.childLastName ? `\nChild's Last Name: ${d.childLastName}` : "") +
+          (d.fatherFirstNameAsMiddleName
+            ? `\nFather's First Name as Child's Middle Name: ${
+                d.fatherFirstNameAsMiddleName === "yes" ? "Yes" : "No"
+              }`
+            : "") +
+          (d.nameOptions ? `\nPreferred Name Options: ${d.nameOptions}` : "");
+      } else {
+        // Name Check — one block per person
+        const buildPersonBlock = (
+          label: string,
+          name?: string,
+          firstName?: string,
+          middleName?: string,
+          surName?: string,
+          dob?: string,
+          gender?: string,
+          middleNameType?: string
+        ) => {
+          const fullName =
+            name || [firstName, middleName, surName].filter(Boolean).join(" ");
+          if (!fullName) return "";
+          let block = `\n\n*${label}:*\nName: ${fullName}`;
+          if (dob) block += `\nDOB: ${dob}`;
+          if (gender) block += `\nGender: ${gender}`;
+          if (middleName && middleNameType)
+            block += `\nMiddle Name is ${
+              middleNameType === "yes" ? "Father's/Husband's" : "Not Father/Husband's"
+            } name`;
+          return block;
+        };
+
+        personDetails = buildPersonBlock(
+          "Person 1",
+          d.person1Name, d.person1FirstName, d.person1MiddleName, d.person1SurName,
+          d.person1Dob, d.person1Gender, d.person1MiddleNameType
+        );
+        personDetails += buildPersonBlock(
+          "Person 2",
+          d.person2Name, d.person2FirstName, d.person2MiddleName, d.person2SurName,
+          d.person2Dob, d.person2Gender, d.person2MiddleNameType
+        );
+        personDetails += buildPersonBlock(
+          "Person 3",
+          d.person3Name, d.person3FirstName, d.person3MiddleName, d.person3SurName,
+          d.person3Dob, d.person3Gender, d.person3MiddleNameType
+        );
+        if (d.customerCity) personDetails += `\n\nCity: ${d.customerCity}`;
+        if (d.pinCode) personDetails += `\nPin Code: ${d.pinCode}`;
+      }
+
+      const msg = encodeURIComponent(
+        `✅ *Payment Confirmed*\n\n` +
+          `*Order Details:*\n` +
+          `Order ID: ${d.orderId}\n` +
+          `Amount: ₹${d.amount?.toLocaleString("en-IN") || "—"}\n` +
+          `Package: ${pkg}\n\n` +
+          `*Customer Details:*\n` +
+          `Name: ${d.customerName || fb?.name || "—"}\n` +
+          `Email: ${d.customerEmail || fb?.email || "—"}\n` +
+          `WhatsApp: ${d.customerMobile || fb?.mobile || "—"}` +
+          personDetails +
+          `\n\nPlease process my report. Thank you! 🙏`
+      );
+
+      return `https://wa.me/919667305577?text=${msg}`;
+    },
+    []
+  );
+
+  // Auto-open WhatsApp after successful payment
   useEffect(() => {
     if (status === "success" && paymentData) {
       const url = buildWhatsAppUrl(paymentData, orderFallback);
-      // Small delay to let the success page render first
       const timer = setTimeout(() => {
         window.location.href = url;
       }, 1500);
@@ -403,41 +407,25 @@ const PaymentStatus = () => {
     }
   }, [status, paymentData, orderFallback, buildWhatsAppUrl]);
 
+  // ── Invoice download ────────────────────────────────────────────────────────
   const handleDownloadInvoice = async () => {
     if (!paymentData) return;
 
     let invoiceHtml = "";
-    let invoiceData = null;
+    let invoiceData: InvoiceTemplateData | null = null;
 
     try {
-      // Fetch invoice data configuration
       const invoiceDataResponse = await fetch("/invoice-data.json");
-      if (invoiceDataResponse.ok) {
-        invoiceData = await invoiceDataResponse.json();
-      }
+      if (invoiceDataResponse.ok) invoiceData = await invoiceDataResponse.json();
 
-      // Fetch the invoice template
       const templateResponse = await fetch("/templates/invoice.html");
-      if (templateResponse.ok) {
-        invoiceHtml = await templateResponse.text();
-      } else {
-        invoiceHtml = getEmbeddedInvoiceTemplate();
-      }
-    } catch (error) {
-      console.error("Error loading invoice template:", error);
-      // Fallback: try to fetch invoice data
-      try {
-        const invoiceDataResponse = await fetch("/invoice-data.json");
-        if (invoiceDataResponse.ok) {
-          invoiceData = await invoiceDataResponse.json();
-        }
-      } catch (e) {
-        // Ignore error, use defaults
-      }
+      invoiceHtml = templateResponse.ok
+        ? await templateResponse.text()
+        : getEmbeddedInvoiceTemplate();
+    } catch {
       invoiceHtml = getEmbeddedInvoiceTemplate();
     }
 
-    // Replace placeholders with actual data (orderFallback ensures email never N/A)
     invoiceHtml = populateInvoiceTemplate(
       invoiceHtml,
       paymentData,
@@ -445,22 +433,14 @@ const PaymentStatus = () => {
       orderFallback || undefined
     );
 
-    // Create a new window with the invoice HTML
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
       alert("Please allow popups to download the invoice");
       return;
     }
-
     printWindow.document.write(invoiceHtml);
     printWindow.document.close();
-
-    // Wait for content to load, then trigger print dialog
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print();
-      }, 250);
-    };
+    printWindow.onload = () => setTimeout(() => printWindow.print(), 250);
   };
 
   const populateInvoiceTemplate = (
@@ -474,73 +454,78 @@ const PaymentStatus = () => {
       month: "short",
       year: "numeric",
     });
-    const dueDate = new Date().toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
 
     const packageName =
-      packageNames[data.packageType || "single"] || "Single Report";
+      packageNames[data.packageType || "single"] || "Numerology Report";
     const amount = data.amount || 0;
-    // GST-inclusive: back-calculate subtotal
     const subtotal = +(amount / 1.18).toFixed(2);
-    const total = amount;
 
-    // Get company data from JSON or use defaults
     const company = invoiceData?.company || {
       name: "Ankshaastra",
-      description: "Your Numerology Partner",
-      address: "",
+      description: "Empower Your Name",
+      address: "Unit No. O-622, Block-E, Eye of Noida, Sector 140A, Noida-201305",
       phone: "9667305577",
-      email: "info@ankshaastra.com",
-      gstin: "",
+      email: "social@ankshaastra.com",
+      gstin: "09AAFFE7583B1ZD",
     };
 
     const bankDetails = invoiceData?.bankDetails || {
-      name: "",
-      accountNumber: "",
-      ifsc: "",
-      accountHolder: "",
-      branch: "",
+      name: "Axis Bank",
+      accountNumber: "925020055368236",
+      ifsc: "UTIB0001837",
+      accountHolder: "Ankshaastra Occult Experts LLP",
+      branch: "Agra Road",
     };
 
     const upiDetails = invoiceData?.upiDetails || {
-      upiId: "",
+      upiId: "razorpay.me/@ankshaastraoccultexpertsllp",
     };
 
-    const notes = invoiceData?.notes || [];
-    const terms = invoiceData?.terms || [];
+    const notes = invoiceData?.notes || [
+      "Your personalized numerology report will be delivered within 24-48 hours.",
+      "Report will be sent to your registered WhatsApp number / email address.",
+    ];
 
-    // Replace placeholders
+    const terms = invoiceData?.terms || [
+      "Items are non-refundable once the order is confirmed.",
+      "All prices are inclusive of taxes unless otherwise stated.",
+      `For queries, contact us at ${company.email} or +91-${company.phone}.`,
+    ];
+
     return template
-      .replace(/\{\{COMPANY_NAME\}\}/g, company.name)
-      .replace(/\{\{COMPANY_DESCRIPTION\}\}/g, company.description)
+      .replace(/\{\{COMPANY_NAME\}\}/g, company.name || "Ankshaastra")
+      .replace(/\{\{COMPANY_DESCRIPTION\}\}/g, company.description || "")
       .replace(/\{\{COMPANY_ADDRESS\}\}/g, company.address || "")
-      .replace(/\{\{COMPANY_PHONE\}\}/g, company.phone)
-      .replace(/\{\{COMPANY_EMAIL\}\}/g, company.email)
+      .replace(/\{\{COMPANY_PHONE\}\}/g, company.phone || "")
+      .replace(/\{\{COMPANY_EMAIL\}\}/g, company.email || "")
       .replace(
         /\{\{COMPANY_GSTIN_SECTION\}\}/g,
         company.gstin ? `<p>GSTIN: ${company.gstin}</p>` : ""
       )
       .replace(/\{\{INVOICE_NUMBER\}\}/g, data.orderId)
       .replace(/\{\{INVOICE_DATE\}\}/g, invoiceDate)
-      .replace(/\{\{DUE_DATE\}\}/g, dueDate)
-      .replace(/\{\{CUSTOMER_NAME\}\}/g, data.customerName || fallback?.name || "Customer")
-      .replace(/\{\{CUSTOMER_EMAIL\}\}/g, data.customerEmail || fallback?.email || "Not provided")
-      .replace(/\{\{CUSTOMER_PHONE\}\}/g, data.customerMobile || fallback?.mobile || "Not provided")
+      .replace(/\{\{DUE_DATE\}\}/g, invoiceDate)
+      .replace(
+        /\{\{CUSTOMER_NAME\}\}/g,
+        data.customerName || fallback?.name || "Customer"
+      )
+      .replace(
+        /\{\{CUSTOMER_EMAIL\}\}/g,
+        data.customerEmail || fallback?.email || "Not provided"
+      )
+      .replace(
+        /\{\{CUSTOMER_PHONE\}\}/g,
+        data.customerMobile || fallback?.mobile || "Not provided"
+      )
       .replace(
         /\{\{TRANSACTION_ID_SECTION\}\}/g,
         data.transactionId
-          ? `<div class="info-item">
-            <strong>Transaction ID:</strong>
-            <span>${data.transactionId}</span>
-          </div>`
+          ? `<div class="info-item"><strong>Transaction ID:</strong><span>${data.transactionId}</span></div>`
           : ""
       )
       .replace(/\{\{PACKAGE_NAME\}\}/g, packageName)
       .replace(/\{\{SUBTOTAL\}\}/g, subtotal.toLocaleString("en-IN"))
-      .replace(/\{\{TOTAL\}\}/g, total.toLocaleString("en-IN"))
+      .replace(/\{\{TOTAL\}\}/g, amount.toLocaleString("en-IN"))
       .replace(/\{\{BANK_NAME\}\}/g, bankDetails.name || "")
       .replace(/\{\{BANK_ACCOUNT\}\}/g, bankDetails.accountNumber || "")
       .replace(/\{\{BANK_IFSC\}\}/g, bankDetails.ifsc || "")
@@ -560,419 +545,154 @@ const PaymentStatus = () => {
       .replace(
         /\{\{NOTES_SECTION\}\}/g,
         notes.length > 0
-          ? `<div class="notes-section">
-              <h4>Notes</h4>
-              ${notes.map((note: string) => `<p>${note}</p>`).join("")}
-            </div>`
+          ? `<div class="notes-section"><h4>Notes</h4>${notes
+              .map((n: string) => `<p>${n}</p>`)
+              .join("")}</div>`
           : ""
       )
       .replace(
         /\{\{TERMS_SECTION\}\}/g,
         terms.length > 0
-          ? terms.map((term: string) => `<p>${term}</p>`).join("")
+          ? terms.map((t: string) => `<p>${t}</p>`).join("")
           : ""
       );
   };
 
-  const getEmbeddedInvoiceTemplate = (): string => {
-    return `<!DOCTYPE html>
+  const getEmbeddedInvoiceTemplate = (): string => `<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice {{INVOICE_NUMBER}}</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Arial', sans-serif;
-            background: white;
-            padding: 20px;
-        }
-        
-        .invoice-container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            position: relative;
-        }
-        
-        .watermark {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            opacity: 0.05;
-            font-size: 80px;
-            font-weight: bold;
-            color: #000;
-            z-index: 0;
-            pointer-events: none;
-        }
-        
-        .content {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #8B5CF6;
-            padding-bottom: 20px;
-        }
-        
-        .company-info h1 {
-            color: #8B5CF6;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        
-        .company-info p {
-            color: #666;
-            font-size: 12px;
-            line-height: 1.6;
-            margin: 4px 0;
-        }
-        
-        .invoice-details {
-            text-align: right;
-        }
-        
-        .invoice-details h2 {
-            color: #333;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        
-        .invoice-details p {
-            color: #666;
-            font-size: 12px;
-            margin: 4px 0;
-        }
-        
-        .customer-section {
-            margin-bottom: 20px;
-        }
-        
-        .customer-section h3 {
-            color: #8B5CF6;
-            font-size: 16px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 5px;
-        }
-        
-        .customer-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        
-        .info-item {
-            margin-bottom: 8px;
-        }
-        
-        .info-item strong {
-            color: #333;
-            display: block;
-            margin-bottom: 4px;
-            font-size: 12px;
-        }
-        
-        .info-item span {
-            color: #666;
-            font-size: 12px;
-        }
-        
-        .items-section {
-            margin: 20px 0;
-        }
-        
-        .items-section h3 {
-            color: #8B5CF6;
-            font-size: 16px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 5px;
-        }
-        
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        
-        .items-table th {
-            background: #8B5CF6;
-            color: white;
-            padding: 10px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 12px;
-        }
-        
-        .items-table td {
-            padding: 10px;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 12px;
-        }
-        
-        .text-right {
-            text-align: right;
-        }
-        
-        .total-section {
-            margin-top: 20px;
-            text-align: right;
-        }
-        
-        .total-row {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 8px;
-        }
-        
-        .total-label {
-            width: 150px;
-            text-align: right;
-            padding-right: 20px;
-            font-weight: 600;
-            color: #333;
-            font-size: 12px;
-        }
-        
-        .total-value {
-            width: 120px;
-            text-align: right;
-            color: #8B5CF6;
-            font-weight: bold;
-            font-size: 14px;
-        }
-        
-        .grand-total {
-            border-top: 2px solid #8B5CF6;
-            padding-top: 10px;
-            margin-top: 10px;
-        }
-        
-        .grand-total .total-value {
-            font-size: 18px;
-            color: #8B5CF6;
-        }
-        
-        .payment-section {
-            margin-top: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        
-        .bank-details, .upi-section {
-            background: #f9f9f9;
-            padding: 12px;
-            border-radius: 6px;
-        }
-        
-        .bank-details h4, .upi-section h4 {
-            color: #8B5CF6;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-        
-        .bank-details p, .upi-section p {
-            color: #666;
-            font-size: 11px;
-            margin: 4px 0;
-            line-height: 1.4;
-        }
-        
-        .notes-section {
-            margin-top: 20px;
-            padding: 12px;
-            background: #fff8e1;
-            border-left: 3px solid #ffc107;
-        }
-        
-        .notes-section h4 {
-            color: #8B5CF6;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-        
-        .notes-section p {
-            color: #666;
-            font-size: 11px;
-            line-height: 1.4;
-            margin: 4px 0;
-        }
-        
-        .terms-section {
-            margin-top: 20px;
-            padding: 12px;
-            background: #f5f5f5;
-            border-radius: 6px;
-        }
-        
-        .terms-section h4 {
-            color: #8B5CF6;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-        
-        .terms-section p {
-            color: #666;
-            font-size: 10px;
-            line-height: 1.4;
-            margin: 3px 0;
-        }
-        
-        .footer {
-            margin-top: 30px;
-            text-align: center;
-            color: #999;
-            font-size: 10px;
-            border-top: 1px solid #f0f0f0;
-            padding-top: 15px;
-        }
-        
-        @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-            
-            .invoice-container {
-                box-shadow: none;
-            }
-            
-            @page {
-                margin: 0.5cm;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Invoice {{INVOICE_NUMBER}}</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Arial,sans-serif;background:#fff;padding:20px}
+    .invoice-container{max-width:800px;margin:0 auto;padding:30px;position:relative}
+    .watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-45deg);opacity:.05;font-size:80px;font-weight:700;color:#000;z-index:0;pointer-events:none}
+    .content{position:relative;z-index:1}
+    .header{display:flex;justify-content:space-between;margin-bottom:30px;border-bottom:2px solid #8B5CF6;padding-bottom:20px}
+    .company-info h1{color:#8B5CF6;font-size:24px;margin-bottom:10px}
+    .company-info p,.invoice-details p{color:#666;font-size:12px;line-height:1.6;margin:4px 0}
+    .invoice-details{text-align:right}
+    .invoice-details h2{color:#333;font-size:24px;margin-bottom:10px}
+    .customer-section{margin-bottom:20px}
+    .customer-section h3{color:#8B5CF6;font-size:16px;margin-bottom:10px;border-bottom:1px solid #f0f0f0;padding-bottom:5px}
+    .customer-info{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+    .info-item{margin-bottom:8px}
+    .info-item strong{color:#333;display:block;margin-bottom:4px;font-size:12px}
+    .info-item span{color:#666;font-size:12px}
+    .items-section{margin:20px 0}
+    .items-section h3{color:#8B5CF6;font-size:16px;margin-bottom:10px;border-bottom:1px solid #f0f0f0;padding-bottom:5px}
+    .items-table{width:100%;border-collapse:collapse;margin-bottom:20px}
+    .items-table th{background:#8B5CF6;color:#fff;padding:10px;text-align:left;font-weight:600;font-size:12px}
+    .items-table td{padding:10px;border-bottom:1px solid #f0f0f0;font-size:12px}
+    .text-right{text-align:right}
+    .total-section{margin-top:20px;text-align:right}
+    .total-row{display:flex;justify-content:flex-end;margin-bottom:8px}
+    .total-label{width:150px;text-align:right;padding-right:20px;font-weight:600;color:#333;font-size:12px}
+    .total-value{width:120px;text-align:right;color:#8B5CF6;font-weight:700;font-size:14px}
+    .grand-total{border-top:2px solid #8B5CF6;padding-top:10px;margin-top:10px}
+    .grand-total .total-value{font-size:18px}
+    .payment-section{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:15px}
+    .bank-details,.upi-section{background:#f9f9f9;padding:12px;border-radius:6px}
+    .bank-details h4,.upi-section h4{color:#8B5CF6;margin-bottom:8px;font-size:13px}
+    .bank-details p,.upi-section p{color:#666;font-size:11px;margin:4px 0;line-height:1.4}
+    .notes-section{margin-top:20px;padding:12px;background:#fff8e1;border-left:3px solid #ffc107}
+    .notes-section h4{color:#8B5CF6;margin-bottom:8px;font-size:13px}
+    .notes-section p{color:#666;font-size:11px;line-height:1.4;margin:4px 0}
+    .terms-section{margin-top:20px;padding:12px;background:#f5f5f5;border-radius:6px}
+    .terms-section h4{color:#8B5CF6;margin-bottom:8px;font-size:13px}
+    .terms-section p{color:#666;font-size:10px;line-height:1.4;margin:3px 0}
+    .footer{margin-top:30px;text-align:center;color:#999;font-size:10px;border-top:1px solid #f0f0f0;padding-top:15px}
+    @media print{body{padding:0}.invoice-container{box-shadow:none}@page{margin:.5cm}}
+  </style>
 </head>
 <body>
-    <div class="invoice-container">
-        <div class="watermark">{{COMPANY_NAME}}</div>
-        
-        <div class="content">
-            <div class="header">
-                <div class="company-info">
-                    <h1>{{COMPANY_NAME}}</h1>
-                    <p>{{COMPANY_DESCRIPTION}}</p>
-                    <p>{{COMPANY_ADDRESS}}</p>
-                    <p>Phone: {{COMPANY_PHONE}}</p>
-                    <p>Email: {{COMPANY_EMAIL}}</p>
-                    {{COMPANY_GSTIN_SECTION}}
-                </div>
-                
-                <div class="invoice-details">
-                    <h2>INVOICE</h2>
-                    <p><strong>Invoice No:</strong> {{INVOICE_NUMBER}}</p>
-                    <p><strong>Date:</strong> {{INVOICE_DATE}}</p>
-                    <p><strong>Due Date:</strong> {{DUE_DATE}}</p>
-                </div>
-            </div>
-            
-            <div class="customer-section">
-                <h3>Bill To</h3>
-                <div class="customer-info">
-                    <div>
-                        <div class="info-item">
-                            <strong>Name:</strong>
-                            <span>{{CUSTOMER_NAME}}</span>
-                        </div>
-                        <div class="info-item">
-                            <strong>Email:</strong>
-                            <span>{{CUSTOMER_EMAIL}}</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="info-item">
-                            <strong>Phone:</strong>
-                            <span>{{CUSTOMER_PHONE}}</span>
-                        </div>
-                        {{TRANSACTION_ID_SECTION}}
-                    </div>
-                </div>
-            </div>
-            
-            <div class="items-section">
-                <h3>Items</h3>
-                <table class="items-table">
-                    <thead>
-                        <tr>
-                            <th>Description</th>
-                            <th class="text-right">Quantity</th>
-                            <th class="text-right">Unit Price</th>
-                            <th class="text-right">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <strong>{{PACKAGE_NAME}}</strong>
-                                <br><small style="color: #666;">Numerology Report</small>
-                            </td>
-                            <td class="text-right">1</td>
-                            <td class="text-right">₹{{SUBTOTAL}}</td>
-                            <td class="text-right">₹{{SUBTOTAL}}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="total-section">
-                <div class="total-row">
-                    <div class="total-label">Subtotal:</div>
-                    <div class="total-value">₹{{SUBTOTAL}}</div>
-                </div>
-                <div class="total-row grand-total">
-                    <div class="total-label">Total Amount:</div>
-                    <div class="total-value">₹{{TOTAL}}</div>
-                </div>
-            </div>
-            
-            <div class="payment-section">
-                <div class="bank-details">
-                    <h4>Bank Details</h4>
-                    <p><strong>Bank Name:</strong> {{BANK_NAME}}</p>
-                    <p><strong>Account Number:</strong> {{BANK_ACCOUNT}}</p>
-                    <p><strong>IFSC Code:</strong> {{BANK_IFSC}}</p>
-                    <p><strong>Account Holder:</strong> {{BANK_HOLDER}}</p>
-                    {{BANK_BRANCH_SECTION}}
-                </div>
-                
-                <div class="upi-section">
-                    <h4>UPI Payment</h4>
-                    {{UPI_ID_SECTION}}
-                </div>
-            </div>
-            
-            {{NOTES_SECTION}}
-            
-            <div class="terms-section">
-                <h4>Terms & Conditions</h4>
-                {{TERMS_SECTION}}
-            </div>
-            
-            <div class="footer">
-                <p>Thank you for your business!</p>
-                <p>This is a computer-generated invoice and does not require a signature.</p>
-            </div>
+  <div class="invoice-container">
+    <div class="watermark">{{COMPANY_NAME}}</div>
+    <div class="content">
+      <div class="header">
+        <div class="company-info">
+          <h1>{{COMPANY_NAME}}</h1>
+          <p>{{COMPANY_DESCRIPTION}}</p>
+          <p>{{COMPANY_ADDRESS}}</p>
+          <p>Phone: {{COMPANY_PHONE}}</p>
+          <p>Email: {{COMPANY_EMAIL}}</p>
+          {{COMPANY_GSTIN_SECTION}}
         </div>
+        <div class="invoice-details">
+          <h2>INVOICE</h2>
+          <p><strong>Invoice No:</strong> {{INVOICE_NUMBER}}</p>
+          <p><strong>Date:</strong> {{INVOICE_DATE}}</p>
+          <p><strong>Due Date:</strong> {{DUE_DATE}}</p>
+        </div>
+      </div>
+      <div class="customer-section">
+        <h3>Bill To</h3>
+        <div class="customer-info">
+          <div>
+            <div class="info-item"><strong>Name:</strong><span>{{CUSTOMER_NAME}}</span></div>
+            <div class="info-item"><strong>Email:</strong><span>{{CUSTOMER_EMAIL}}</span></div>
+          </div>
+          <div>
+            <div class="info-item"><strong>Phone:</strong><span>{{CUSTOMER_PHONE}}</span></div>
+            {{TRANSACTION_ID_SECTION}}
+          </div>
+        </div>
+      </div>
+      <div class="items-section">
+        <h3>Items</h3>
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th class="text-right">Qty</th>
+              <th class="text-right">Unit Price</th>
+              <th class="text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>{{PACKAGE_NAME}}</strong><br /><small style="color:#666">Numerology Report</small></td>
+              <td class="text-right">1</td>
+              <td class="text-right">&#8377;{{SUBTOTAL}}</td>
+              <td class="text-right">&#8377;{{SUBTOTAL}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="total-section">
+        <div class="total-row"><div class="total-label">Subtotal:</div><div class="total-value">&#8377;{{SUBTOTAL}}</div></div>
+        <div class="total-row grand-total"><div class="total-label">Total Amount:</div><div class="total-value">&#8377;{{TOTAL}}</div></div>
+      </div>
+      <div class="payment-section">
+        <div class="bank-details">
+          <h4>Bank Details</h4>
+          <p><strong>Bank:</strong> {{BANK_NAME}}</p>
+          <p><strong>A/C:</strong> {{BANK_ACCOUNT}}</p>
+          <p><strong>IFSC:</strong> {{BANK_IFSC}}</p>
+          <p><strong>Holder:</strong> {{BANK_HOLDER}}</p>
+          {{BANK_BRANCH_SECTION}}
+        </div>
+        <div class="upi-section">
+          <h4>UPI Payment</h4>
+          {{UPI_ID_SECTION}}
+        </div>
+      </div>
+      {{NOTES_SECTION}}
+      <div class="terms-section">
+        <h4>Terms &amp; Conditions</h4>
+        {{TERMS_SECTION}}
+      </div>
+      <div class="footer">
+        <p>Thank you for your business!</p>
+        <p>This is a computer-generated invoice and does not require a signature.</p>
+      </div>
     </div>
+  </div>
 </body>
 </html>`;
-  };
 
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -980,10 +700,12 @@ const PaymentStatus = () => {
         <section className="section-padding bg-background">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto">
+
+              {/* Loading */}
               {status === "loading" && (
                 <div className="text-center py-20">
                   <Loader2 className="w-16 h-16 animate-spin text-accent mx-auto mb-4" />
-                  <h2 className="text-2xl font-heading font-bold text-ink-black mb-2">
+                  <h2 className="text-2xl font-heading font-bold text-foreground mb-2">
                     Checking Payment Status...
                   </h2>
                   <p className="text-muted-foreground mb-4">
@@ -1000,13 +722,14 @@ const PaymentStatus = () => {
                 </div>
               )}
 
+              {/* Success */}
               {status === "success" && (
                 <div className="bg-card rounded-2xl p-8 shadow-card">
                   <div className="text-center mb-6">
                     <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <CheckCircle2 className="w-12 h-12 text-green-600" />
                     </div>
-                    <h1 className="text-3xl font-heading font-bold text-ink-black mb-2">
+                    <h1 className="text-3xl font-heading font-bold text-foreground mb-2">
                       Payment Successful!
                     </h1>
                     <p className="text-muted-foreground">
@@ -1014,10 +737,9 @@ const PaymentStatus = () => {
                     </p>
                   </div>
 
-                  {/* Order Summary Card */}
                   {paymentData && (
                     <div className="bg-muted/50 rounded-xl p-6 mb-6">
-                      <h3 className="font-heading font-bold text-lg text-ink-black mb-4 flex items-center gap-2">
+                      <h3 className="font-heading font-bold text-lg text-foreground mb-4 flex items-center gap-2">
                         <Package className="w-5 h-5 text-accent" />
                         Order Summary
                       </h3>
@@ -1026,7 +748,7 @@ const PaymentStatus = () => {
                           <span className="text-muted-foreground text-sm flex items-center gap-2">
                             <CreditCard className="w-4 h-4" /> Order ID
                           </span>
-                          <span className="font-semibold text-ink-black text-sm break-all sm:text-right">
+                          <span className="font-semibold text-foreground text-sm break-all sm:text-right">
                             {paymentData.orderId}
                           </span>
                         </div>
@@ -1035,7 +757,7 @@ const PaymentStatus = () => {
                             <span className="text-muted-foreground text-sm flex items-center gap-2">
                               <CreditCard className="w-4 h-4" /> Transaction ID
                             </span>
-                            <span className="font-semibold text-ink-black text-sm break-all sm:text-right">
+                            <span className="font-semibold text-foreground text-sm break-all sm:text-right">
                               {paymentData.transactionId}
                             </span>
                           </div>
@@ -1045,7 +767,7 @@ const PaymentStatus = () => {
                             <span className="text-muted-foreground text-sm flex items-center gap-2">
                               <Package className="w-4 h-4" /> Package
                             </span>
-                            <span className="font-semibold text-ink-black text-sm sm:text-right">
+                            <span className="font-semibold text-foreground text-sm sm:text-right">
                               {packageNames[paymentData.packageType] || paymentData.packageType}
                             </span>
                           </div>
@@ -1055,7 +777,7 @@ const PaymentStatus = () => {
                             <span className="text-muted-foreground text-sm flex items-center gap-2">
                               <User className="w-4 h-4" /> Name
                             </span>
-                            <span className="font-semibold text-ink-black text-sm sm:text-right">
+                            <span className="font-semibold text-foreground text-sm sm:text-right">
                               {paymentData.customerName}
                             </span>
                           </div>
@@ -1065,7 +787,7 @@ const PaymentStatus = () => {
                             <span className="text-muted-foreground text-sm flex items-center gap-2">
                               <Mail className="w-4 h-4" /> Email
                             </span>
-                            <span className="font-semibold text-ink-black text-sm sm:text-right">
+                            <span className="font-semibold text-foreground text-sm sm:text-right">
                               {paymentData.customerEmail}
                             </span>
                           </div>
@@ -1073,20 +795,20 @@ const PaymentStatus = () => {
                         {paymentData.customerMobile && (
                           <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                             <span className="text-muted-foreground text-sm flex items-center gap-2">
-                              <Phone className="w-4 h-4" /> Mobile
+                              <Phone className="w-4 h-4" /> WhatsApp
                             </span>
-                            <span className="font-semibold text-ink-black text-sm sm:text-right">
+                            <span className="font-semibold text-foreground text-sm sm:text-right">
                               {paymentData.customerMobile}
                             </span>
                           </div>
                         )}
-                        {paymentData.amount && (
+                        {paymentData.amount !== undefined && (
                           <div className="flex justify-between items-center pt-3 border-t border-border">
                             <span className="text-muted-foreground text-sm font-medium">
                               Amount Paid
                             </span>
                             <span className="font-bold text-accent text-xl">
-                              ₹{paymentData.amount.toLocaleString()}
+                              ₹{paymentData.amount.toLocaleString("en-IN")}
                             </span>
                           </div>
                         )}
@@ -1095,25 +817,21 @@ const PaymentStatus = () => {
                   )}
 
                   <div className="bg-accent/10 border border-accent/30 rounded-xl p-6 mb-6">
-                    <p className="text-ink-black mb-2">
+                    <p className="text-foreground mb-2">
                       <strong>What's Next?</strong>
                     </p>
                     <ul className="text-muted-foreground text-sm space-y-2 list-disc list-inside">
                       <li>
-                        <strong>Confirm on WhatsApp:</strong> Share your order details on WhatsApp for faster processing.
+                        <strong>Confirm on WhatsApp:</strong> Your order details are being sent to WhatsApp for faster processing.
                       </li>
                       <li>
-                        <strong>Download Invoice:</strong> Click the button
-                        below to download your invoice in PDF format.
+                        <strong>Download Invoice:</strong> Click below to download your invoice.
                       </li>
                       <li>
-                        <strong>Your Report:</strong> Your personalized
-                        numerology report will be delivered via email within
-                        24-48 hours.
+                        <strong>Your Report:</strong> Your personalized numerology report will be delivered via email within 24–48 hours.
                       </li>
                       <li>
-                        <strong>Check Spam:</strong> Please check your spam/junk
-                        folder if you don't see the emails.
+                        <strong>Check Spam:</strong> Please check your spam/junk folder if you don't see the email.
                       </li>
                     </ul>
                   </div>
@@ -1146,13 +864,14 @@ const PaymentStatus = () => {
                 </div>
               )}
 
+              {/* Failed */}
               {status === "failed" && (
                 <div className="bg-card rounded-2xl p-8 shadow-card text-center">
                   <div className="mb-6">
                     <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <XCircle className="w-12 h-12 text-red-600" />
                     </div>
-                    <h1 className="text-3xl font-heading font-bold text-ink-black mb-2">
+                    <h1 className="text-3xl font-heading font-bold text-foreground mb-2">
                       Payment Failed
                     </h1>
                     <p className="text-muted-foreground">
@@ -1164,7 +883,7 @@ const PaymentStatus = () => {
                     <div className="bg-muted/50 rounded-xl p-6 mb-6 text-left">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Order ID:</span>
-                        <span className="font-semibold text-ink-black">
+                        <span className="font-semibold text-foreground">
                           {paymentData.orderId}
                         </span>
                       </div>
@@ -1177,10 +896,7 @@ const PaymentStatus = () => {
                     </p>
                     <p className="text-red-700 text-sm">
                       Please try again or contact us at{" "}
-                      <a
-                        href="tel:9667305577"
-                        className="underline font-semibold"
-                      >
+                      <a href="tel:9667305577" className="underline font-semibold">
                         9667305577
                       </a>{" "}
                       for assistance.
@@ -1188,10 +904,7 @@ const PaymentStatus = () => {
                   </div>
 
                   <div className="flex gap-4 justify-center">
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate("/#order-form")}
-                    >
+                    <Button variant="outline" onClick={() => navigate("/#order-form")}>
                       Try Again
                     </Button>
                     <Button variant="hero" onClick={() => navigate("/")}>
@@ -1200,6 +913,7 @@ const PaymentStatus = () => {
                   </div>
                 </div>
               )}
+
             </div>
           </div>
         </section>

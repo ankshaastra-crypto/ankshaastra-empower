@@ -1,13 +1,14 @@
 # Ankshaastra Payment System
 
-Production-ready payment processing system with PhonePe integration and email notifications. Optimized for serverless deployment on Vercel
+Production-ready payment processing system with Razorpay integration and email notifications. Optimized for serverless deployment on Vercel.
 
 ## Features
 
-- PhonePe Payment Integration
+- Razorpay Payment Integration
 - Email Notifications (Customer & Admin)
 - PostgreSQL Database (`ankshaastra` schema: orders, customer_details, payment, emailDelivery)
 - Redis Caching & Rate Limiting
+- GST-compliant Invoice Generation (Supabase Edge Functions)
 - Production-Ready & Serverless-Friendly
 
 ## Quick Start
@@ -75,7 +76,7 @@ openssl rand -hex 32
 
 ### Database Setup (PostgreSQL / Supabase)
 
-All app tables live in the **`ankshaastra`** schema: `orders`, `customer_details`, `payment`, and `emailDelivery` (for future email tracking). The API (`api/db.js`) creates them automatically.
+All app tables live in the **`ankshaastra`** schema: `orders`, `customer_details`, `payment`, and `emailDelivery` (for future email tracking). The API (`api/_utils/db.js`) creates them automatically.
 
 **IPv6 note:** Supabase **direct** DB host (`db.*.supabase.co:5432`) is **IPv6-only** by default. Use the **Session** or **Transaction pooler** URI from the dashboard (usually `*.pooler.supabase.com`, port **6543**) so local dev and Vercel can connect on IPv4.
 
@@ -110,16 +111,18 @@ npm run build            # Build for production
 
 **Note:** The `DEP0169` deprecation warning about `url.parse()` comes from dependencies (nodemailer, ioredis, etc.) and is automatically suppressed. This is safe as it's not from our code.
 
-## Removed Dependencies
+## Project Structure
 
-The following dependencies have been removed as they were only used for invoice generation:
+### API Folder (`api/`)
 
-- `bullmq` - Queue system (was used for invoice queue)
-- `puppeteer` & `puppeteer-cluster` - PDF generation (was used for invoice PDFs)
-- `@sparticuz/chromium` - Serverless Chromium (was used for invoice PDFs)
-- `ejs` - Template engine (was used for invoice templates)
-- `@tanstack/react-query` - Data fetching (not used in the app)
-- `recharts` - Chart library (not used in the app)
+Vercel Hobby plan allows max 12 serverless functions. Utility files are in `api/_utils/` (underscore prefix = ignored by Vercel):
+
+- `api/initiate-payment.js` — Razorpay payment initiation endpoint
+- `api/payment-status.js` — Payment status callback endpoint
+- `api/payment-webhook.js` — Razorpay webhook endpoint
+- `api/admin/init-db.js` — DB schema initialization endpoint
+- `api/admin/order.js` — Admin orders endpoint
+- `api/_utils/` — Shared utilities (db, encryption, rate-limiter, redis-cache, send-email, supabase-server, suppress-deprecation)
 
 ## Invoice Generation (Supabase)
 

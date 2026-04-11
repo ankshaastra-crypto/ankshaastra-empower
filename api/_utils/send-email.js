@@ -713,6 +713,15 @@ export async function sendPaymentEmail({
         html: customerHtml,
       };
 
+      // Attach invoice PDF if available
+      if (invoicePdfBuffer && status === 'SUCCESS') {
+        customerMailOptions.attachments = [{
+          filename: `Invoice_${orderId}.pdf`,
+          content: invoicePdfBuffer,
+          contentType: 'application/pdf',
+        }];
+      }
+
       customerEmailResult = await transporter.sendMail(customerMailOptions);
       
       // Validate that we got a valid response

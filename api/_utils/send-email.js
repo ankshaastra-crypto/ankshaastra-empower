@@ -430,12 +430,13 @@ export async function sendPaymentEmail({
             
             <div class="footer">
               <p>Thank you for your interest in Ankshaastra!</p>
-            </div>
+            ${invoiceHtml}
           </div>
         </div>
-      </body>
-      </html>
-    `;
+      </div>
+    </body>
+  </html>
+  `;
 
   // Admin email template
   const adminSubject = `Payment ${status === 'SUCCESS' ? 'Success' : 'Failed'} - Order ${orderId}`;
@@ -768,7 +769,7 @@ export async function sendPaymentEmail({
     }
 
     // Send email to admin
-    console.log(`📧 Sending admin email to: ${adminEmail}`);
+console.log(`📧 Admin email prepared for orderId: ${orderId}, to: ${adminEmail}`);
     let adminEmailResult = null;
     let adminError = null;
     let adminSuccess = false;

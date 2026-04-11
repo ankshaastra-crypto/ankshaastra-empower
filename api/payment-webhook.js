@@ -139,6 +139,7 @@ export default async function handler(req, res) {
     }
 
     // Send payment confirmation emails (customer and admin)
+    console.log(`🔥 Webhook: Sending emails for order ${orderId} status ${status} customer ${finalCustomerEmail}`);
     const emailResult = await sendPaymentEmail({
       to: finalCustomerEmail,
       customerEmail: finalCustomerEmail,

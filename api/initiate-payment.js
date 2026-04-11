@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { amount, mobile, orderId, email, name, dob, gender, packageType, city, person1Name, person1FirstName, person1MiddleName, person1SurName, person1Dob, person1Gender, person2Name, person2FirstName, person2MiddleName, person2SurName, person2Dob, person2Gender, person3Name, person3FirstName, person3MiddleName, person3SurName, person3Dob, person3Gender, person1MiddleNameType, person2MiddleNameType, person3MiddleNameType, fatherFirstName, fatherMiddleName, fatherMiddleNameType, fatherLastName, childDob, timeOfBirth, placeOfBirth, pinCode } = req.body;
+    const { amount, mobile, orderId, email, name, dob, gender, packageType, city, person1Name, person1FirstName, person1MiddleName, person1SurName, person1Dob, person1Gender, person2Name, person2FirstName, person2MiddleName, person2SurName, person2Dob, person2Gender, person3Name, person3FirstName, person3MiddleName, person3SurName, person3Dob, person3Gender, person1MiddleNameType, person2MiddleNameType, person3MiddleNameType, fatherFirstName, fatherMiddleName, fatherMiddleNameType, fatherLastName, childDob, timeOfBirth, placeOfBirth, pinCode, fatherFullName, childLastName, fatherFirstNameAsMiddleName, childMiddleName, nameOptions } = req.body;
 
     // Validate amount
     if (!amount || isNaN(amount) || amount <= 0) {
@@ -161,6 +161,7 @@ const customerData = {
   fatherFirstNameAsMiddleName: (fatherFirstNameAsMiddleName && fatherFirstNameAsMiddleName.trim()) || '',
   childMiddleName: (childMiddleName && childMiddleName.trim()) || '',
   nameOptions: (nameOptions && nameOptions.trim()) || '',
+
 };
 
     // Store order and customer details in PostgreSQL

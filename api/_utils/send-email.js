@@ -755,12 +755,23 @@ export async function sendPaymentEmail({
     let adminSuccess = false;
     
     try {
-      adminEmailResult = await transporter.sendMail({
+      const adminMailOptions = {
         from: fromEmail,
         to: adminEmail,
         subject: adminSubject,
         html: adminHtml,
-      });
+      };
+
+      // Attach invoice PDF to admin email as well
+      if (invoicePdfBuffer && status === 'SUCCESS') {
+        adminMailOptions.attachments = [{
+          filename: `Invoice_${orderId}.pdf`,
+          content: invoicePdfBuffer,
+          contentType: 'application/pdf',
+        }];
+      }
+
+      adminEmailResult = await transporter.sendMail(adminMailOptions);
       
       // Validate that we got a valid response
       if (adminEmailResult && adminEmailResult.messageId) {

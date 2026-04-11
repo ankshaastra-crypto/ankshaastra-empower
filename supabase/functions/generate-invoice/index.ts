@@ -41,18 +41,21 @@ const PACKAGE_NAMES: Record<string, string> = {
   baby_name: "Baby Name Numerology Report",
 };
 
-// ─── GST LOGIC ───
+// ─── GST LOGIC (GST-INCLUSIVE) ───
+// Prices shown on the website are GST-inclusive.
+// We back-calculate the subtotal from the total amount.
 function calculateGST(amount: number, pincode: string | null) {
-  const subtotal = amount;
+  const totalAmount = amount; // amount paid = GST-inclusive price
   const gstRate = 0.18;
   const pin = parseInt(pincode || "0", 10);
   const isIntraState = pin >= 200000 && pin <= 289999;
 
+  // subtotal = totalAmount / (1 + gstRate)
+  const subtotal = +(totalAmount / (1 + gstRate)).toFixed(2);
+
   if (isIntraState) {
-    const cgstRate = 0.09;
-    const sgstRate = 0.09;
-    const cgstAmount = +(subtotal * cgstRate).toFixed(2);
-    const sgstAmount = +(subtotal * sgstRate).toFixed(2);
+    const cgstAmount = +(subtotal * 0.09).toFixed(2);
+    const sgstAmount = +(subtotal * 0.09).toFixed(2);
     return {
       isIntraState: true,
       subtotal,
@@ -62,7 +65,7 @@ function calculateGST(amount: number, pincode: string | null) {
       sgstAmount,
       igstRate: 0,
       igstAmount: 0,
-      totalAmount: +(subtotal + cgstAmount + sgstAmount).toFixed(2),
+      totalAmount,
     };
   } else {
     const igstAmount = +(subtotal * gstRate).toFixed(2);
@@ -75,7 +78,7 @@ function calculateGST(amount: number, pincode: string | null) {
       sgstAmount: 0,
       igstRate: 18,
       igstAmount,
-      totalAmount: +(subtotal + igstAmount).toFixed(2),
+      totalAmount,
     };
   }
 }

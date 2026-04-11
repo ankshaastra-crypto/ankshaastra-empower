@@ -1,6 +1,5 @@
-// api/supabase-server.js - Server-side Supabase client with service_role key (bypass RLS)
+// api/_utils/supabase-server.js - Server-side Supabase client with service_role key (bypass RLS)
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from '../../src/integrations/supabase/types';
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

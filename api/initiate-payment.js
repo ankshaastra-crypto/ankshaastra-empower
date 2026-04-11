@@ -1,10 +1,10 @@
 // Suppress DEP0169 deprecation warning from dependencies
-import './suppress-deprecation.js';
+import './_utils/suppress-deprecation.js';
 
 // Use 'import' instead of 'require'
 import crypto from 'crypto';
-import { encryptCustomerData } from './encryption.js';
-import { rateLimiter } from './rate-limiter.js';
+import { encryptCustomerData } from './_utils/encryption.js';
+import { rateLimiter } from './_utils/rate-limiter.js';
 
 export default async function handler(req, res) {
   // Apply rate limiting

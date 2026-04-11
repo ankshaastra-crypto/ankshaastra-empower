@@ -1,5 +1,5 @@
 // Suppress DEP0169 deprecation warning from dependencies
-import './suppress-deprecation.js';
+import './suppress-deprecation.js'; // already in _utils
 
 // Load .env for local development (Vercel injects env in production)
 import 'dotenv/config';

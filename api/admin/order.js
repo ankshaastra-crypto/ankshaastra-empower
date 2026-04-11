@@ -1,8 +1,8 @@
 // Suppress DEP0169 deprecation warning from dependencies
-import '../suppress-deprecation.js';
+import '../_utils/suppress-deprecation.js';
 
-import { getOrders } from '../db.js';
-import { rateLimiter } from '../rate-limiter.js';
+import { getOrders } from '../_utils/db.js';
+import { rateLimiter } from '../_utils/rate-limiter.js';
 
 export default async function handler(req, res) {
   await rateLimiter(req, res, () => {});

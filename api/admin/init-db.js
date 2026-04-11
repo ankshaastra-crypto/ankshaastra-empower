@@ -1,7 +1,7 @@
 // Suppress DEP0169 deprecation warning from dependencies
-import '../suppress-deprecation.js';
+import '../_utils/suppress-deprecation.js';
 
-import { getPool, ensureSchemaOnce } from '../db.js';
+import { getPool, ensureSchemaOnce } from '../_utils/db.js';
 
 /** Success text returned by HTTP API and echoed by CLI */
 export const INIT_DB_MESSAGE =

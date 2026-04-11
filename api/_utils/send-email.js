@@ -221,17 +221,17 @@ export async function sendPaymentEmail({
     : `Payment Failed - Order ${orderId}`;
 
 
-  // GST calculation based on pincode (Intrastate: 200000-289999 → CGST 9% + SGST 9%, Interstate: IGST 18%)
+  // GST calculation - prices are GST-INCLUSIVE, back-calculate subtotal
   const pin = parseInt(finalPinCode || '0', 10);
   const isIntraState = pin >= 200000 && pin <= 289999;
-  const subtotal = amountInRupees;
+  const totalWithGst = amountInRupees; // amount paid = GST-inclusive
+  const subtotal = +(totalWithGst / 1.18).toFixed(2);
   const cgstRate = isIntraState ? 9 : 0;
   const sgstRate = isIntraState ? 9 : 0;
   const igstRate = isIntraState ? 0 : 18;
   const cgstAmount = isIntraState ? +(subtotal * 0.09).toFixed(2) : 0;
   const sgstAmount = isIntraState ? +(subtotal * 0.09).toFixed(2) : 0;
   const igstAmount = isIntraState ? 0 : +(subtotal * 0.18).toFixed(2);
-  const totalWithGst = +(subtotal + cgstAmount + sgstAmount + igstAmount).toFixed(2);
   const subtotalFormatted = `₹${subtotal.toLocaleString('en-IN')}`;
   const totalWithGstFormatted = `₹${totalWithGst.toLocaleString('en-IN')}`;
 

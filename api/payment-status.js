@@ -1,5 +1,5 @@
 // api/payment-status.js
-import './suppress-deprecation.js';
+import './_utils/suppress-deprecation.js'; // ✅ correct — file is in api/_utils/
 
 import crypto from 'crypto';
 import { decryptCustomerData } from './_utils/encryption.js';

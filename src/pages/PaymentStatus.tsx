@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
-import { CheckCircle2, XCircle, Loader2, Download, MessageCircle, User, CreditCard, Package, Mail, Phone } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, MessageCircle, User, CreditCard, Package, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -436,65 +436,6 @@ const PaymentStatus = () => {
     }
   }, [status, paymentData, orderFallback, buildWhatsAppUrl]);
 
-  const handleDownloadInvoice = async () => {
-    if (!paymentData) return;
-
-    let invoiceHtml = "";
-    let invoiceData = null;
-
-    try {
-      // Fetch invoice data configuration
-      const invoiceDataResponse = await fetch("/invoice-data.json");
-      if (invoiceDataResponse.ok) {
-        invoiceData = await invoiceDataResponse.json();
-      }
-
-      // Fetch the invoice template
-      const templateResponse = await fetch("/templates/invoice.html");
-      if (templateResponse.ok) {
-        invoiceHtml = await templateResponse.text();
-      } else {
-        invoiceHtml = getEmbeddedInvoiceTemplate();
-      }
-    } catch (error) {
-      console.error("Error loading invoice template:", error);
-      // Fallback: try to fetch invoice data
-      try {
-        const invoiceDataResponse = await fetch("/invoice-data.json");
-        if (invoiceDataResponse.ok) {
-          invoiceData = await invoiceDataResponse.json();
-        }
-      } catch (e) {
-        // Ignore error, use defaults
-      }
-      invoiceHtml = getEmbeddedInvoiceTemplate();
-    }
-
-    // Replace placeholders with actual data (orderFallback ensures email never N/A)
-    invoiceHtml = populateInvoiceTemplate(
-      invoiceHtml,
-      paymentData,
-      invoiceData,
-      orderFallback || undefined
-    );
-
-    // Create a new window with the invoice HTML
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) {
-      alert("Please allow popups to download the invoice");
-      return;
-    }
-
-    printWindow.document.write(invoiceHtml);
-    printWindow.document.close();
-
-    // Wait for content to load, then trigger print dialog
-    printWindow.onload = () => {
-      setTimeout(() => {
-        printWindow.print();
-      }, 250);
-    };
-  };
 
   const populateInvoiceTemplate = (
     template: string,
@@ -1133,11 +1074,10 @@ const PaymentStatus = () => {
                     </p>
                     <ul className="text-muted-foreground text-sm space-y-2 list-disc list-inside">
                       <li>
-                        <strong>Confirm on WhatsApp:</strong> Share your order details on WhatsApp for faster processing.
+                        <strong>Confirm on WhatsApp:</strong> Your order details are being sent to WhatsApp for faster processing.
                       </li>
                       <li>
-                        <strong>Download Invoice:</strong> Click the button
-                        below to download your invoice in PDF format.
+                        <strong>Invoice:</strong> Your invoice PDF has been emailed to you. Please check your inbox (and spam folder).
                       </li>
                       <li>
                         <strong>Your Report:</strong> Your personalized
@@ -1164,14 +1104,7 @@ const PaymentStatus = () => {
                       <MessageCircle className="w-5 h-5" />
                       Resend on WhatsApp
                     </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleDownloadInvoice}
-                      className="flex items-center gap-2"
-                    >
-                      <Download className="w-5 h-5" />
-                      Download Invoice
-                    </Button>
+
                     <Button variant="outline" onClick={() => navigate("/")}>
                       Return to Home
                     </Button>

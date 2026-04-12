@@ -43,7 +43,7 @@ const OrderDetailDialog = ({ order, onClose, onUpdated }: Props) => {
   const [saving, setSaving] = useState(false);
   const [invoiceId, setInvoiceId] = useState<string | null>(null);
   const [invoiceLoading, setInvoiceLoading] = useState(false);
-  const [downloadLoading, setDownloadLoading] = useState(false);
+  
 
   useEffect(() => {
     if (order?.order_id) {
@@ -135,10 +135,7 @@ const OrderDetailDialog = ({ order, onClose, onUpdated }: Props) => {
             <h3 className="font-semibold mb-2 text-sm uppercase tracking-wide text-muted-foreground">Invoice</h3>
             <div className="flex gap-2">
               {invoiceId ? (
-                <Button variant="outline" size="sm" onClick={handleDownloadInvoice} disabled={downloadLoading}>
-                  {downloadLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileDown className="h-4 w-4 mr-1" />}
-                  Download Invoice
-                </Button>
+                <Badge variant="outline">Invoice Generated</Badge>
               ) : (
                 <Button variant="outline" size="sm" onClick={handleGenerateInvoice} disabled={invoiceLoading}>
                   {invoiceLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileText className="h-4 w-4 mr-1" />}

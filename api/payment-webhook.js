@@ -17,13 +17,27 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Debug: Log webhook structure
+    console.log('Webhook received - event:', req.body.event);
+    console.log('Webhook payload keys:', Object.keys(req.body));
+    if (req.body.payload) {
+      console.log('Payload.payment exists:', !!req.body.payload?.payment);
+    }
+
     const event = req.body.event;
-    const paymentEntity = req.body.data?.payment || req.body.data?.order;
+    const paymentEntity = req.body.payload?.payment;
 
     if (!paymentEntity) {
-      console.error('Invalid Razorpay webhook payload');
-      return res.status(400).json({ error: 'Invalid payload' });
+      console.error('Invalid Razorpay webhook payload structure:', {
+        hasPayload: !!req.body.payload,
+        hasPayment: !!req.body.payload?.payment,
+        bodyKeys: Object.keys(req.body),
+        event: req.body.event
+      });
+      return res.status(400).json({ error: 'Invalid payload structure' });
     }
+
+    console.log(`✅ Payment entity found: ${paymentEntity.id}, order: ${paymentEntity.order_id}, status: ${paymentEntity.status}`);
 
     // Verify webhook secret
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
@@ -53,9 +67,11 @@ export default async function handler(req, res) {
     const orderId = paymentEntity.order_id || paymentEntity.id;
     const transactionId = paymentEntity.id;
     const status =
-      event === 'payment.captured' || paymentEntity.status === 'paid'
+      (event === 'payment.captured' || paymentEntity.status === 'captured' || paymentEntity.status === 'paid')
         ? 'SUCCESS'
         : 'FAILED';
+
+    console.log(`Payment status determined: ${status} (event: ${event}, entity.status: ${paymentEntity.status})`);
     const paymentAmount = paymentEntity.amount || 0;
 
     // Fetch customer metadata from Redis cache

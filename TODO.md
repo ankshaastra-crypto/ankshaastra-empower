@@ -1,2 +1,25 @@
-# 🎉 Deployment Errors Fixed!\n\n**Phase 1 ✅** suppress-deprecation imports (6 files)\n**Phase 2 ✅** 500 errors\n  - `api/initiate-payment.js` → Static imports\n  - `api/payment-status.js` → Removed git merge conflicts\n\n**Deploy:**\n```\nvercel --prod\n```\n\n**Test:** Submit order form → should create Razorpay order without 500.\n\n**Check Vercel logs** for confirmation.\n\nAll syntax/module errors resolved.
+# Fix Razorpay Webhook Payload Issue
+
+## Status: 🔄 In Progress
+
+### Step 1: [✅] Analysis Complete
+- Identified root cause: Wrong payload path `req.body.data?.payment` → should be `req.body.payload?.payment`
+- Plan reviewed and approved
+
+### Step 2: [✅] Create TODO.md
+- Track progress
+
+### Step 3: [✅] Fix api/payment-webhook.js
+- Updated payload extraction to `req.body.payload?.payment`
+- Added debug logging (payload structure, keys)
+- Improved status logic (`captured`/`paid`)
+- Enhanced error diagnostics
+
+### Step 4: [⏳] Deploy & Verify Production Logs
+- Deploy to Vercel 
+- Monitor for "Invalid payload" resolution
+- Check next webhook call logs
+
+### Step 5: [⏳] Test End-to-End
+- Live payment → webhook → DB/email/PDF/WhatsApp
 

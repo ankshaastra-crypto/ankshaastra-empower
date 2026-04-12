@@ -1,6 +1,6 @@
 # Ankshaastra Payment System
 
-Production-ready payment processing system with Razorpay integration and email notifications. Optimized for serverless deployment on Vercel.
+Production-ready payment processing system with Razorpay integration and email notifications. Optimized for serverless deployment on Vercel
 
 ## Features
 
@@ -90,6 +90,7 @@ All app tables live in the **`ankshaastra`** schema: `orders`, `customer_details
 4. **Deploy** your app.
 
 **Tables are created automatically** on first use (first order, first `/admin/orders` load, or first payment).
+Update
 
 
 

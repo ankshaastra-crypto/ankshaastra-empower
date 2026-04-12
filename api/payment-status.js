@@ -2,10 +2,7 @@
 import './_utils/suppress-deprecation.js';
 
 import crypto from 'crypto';
-import { sendPaymentEmail } from './_utils/send-email.js';
 import { decryptCustomerData } from './_utils/encryption.js';
-import { getOrderFull } from './_utils/db.js';
-import { generateInvoicePDF } from './_utils/supabase-server.js';
 import { rateLimiter } from './_utils/rate-limiter.js';
 
 
@@ -58,11 +55,11 @@ export default async function handler(req, res) {
     // Check payment status with Razorpay
     const auth = Buffer.from(`${razorpayKeyId}:${razorpayKeySecret}`).toString('base64');
 
-    // Fast polling: Razorpay sometimes takes a moment to mark order as 'paid'
-    // Poll up to 4 times with 1s between attempts (total max ~4s)
+    // Fast polling: Razorpay usually marks order as 'paid' by the time redirect happens
+    // Poll up to 2 times with 500ms between attempts (total max ~1s)
     let statusResult = null;
     let isSuccess = false;
-    const maxAttempts = 4;
+    const maxAttempts = 2;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const statusResponse = await fetch(`https://api.razorpay.com/v1/orders/${razorpayOrderId}`, {
         method: 'GET',
@@ -80,23 +77,21 @@ export default async function handler(req, res) {
             details: `Razorpay API returned ${statusResponse.status}: ${statusResponse.statusText}`
           });
         }
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 500));
         continue;
       }
 
       statusResult = await statusResponse.json();
       isSuccess = statusResult.status === 'paid';
 
-      // If paid, break immediately — no need to wait
       if (isSuccess) {
         console.log(`✅ Razorpay order paid on attempt ${attempt}`);
         break;
       }
 
-      // If still pending and not last attempt, wait 1s then retry
       if (attempt < maxAttempts) {
-        console.log(`⏳ Order not paid yet (attempt ${attempt}/${maxAttempts}), retrying in 1s...`);
-        await new Promise(r => setTimeout(r, 1000));
+        console.log(`⏳ Order not paid yet (attempt ${attempt}/${maxAttempts}), retrying in 500ms...`);
+        await new Promise(r => setTimeout(r, 500));
       }
     }
 
@@ -275,94 +270,9 @@ export default async function handler(req, res) {
     const nameOptions = (decryptedData.nameOptions && decryptedData.nameOptions.trim()) ||
       getQueryParam('nameOptions') || (metadata.nameOptions && metadata.nameOptions.trim()) || '';
 
-// Persist order + payment (browser redirect flow — do not rely on webhook alone)
-    try {
-      const { savePayment } = await import('./db.js');
-      await savePayment(internalOrderId, transactionId, amountInPaise, paymentStatus);
-    } catch (dbError) {
-      console.error('DB save order error:', dbError?.message || dbError);
-    }
-
-    // Generate PDF + send emails on SUCCESS only
-    let invoicePdfBuffer = null;
-    if (paymentStatus === 'SUCCESS' && customerEmail && customerEmail.trim() !== '') {
-      try {
-        invoicePdfBuffer = await generateInvoicePDF(internalOrderId, {
-          customerName,
-          customerEmail,
-          customerMobile,
-          customerCity,
-          pinCode,
-          packageType,
-          transactionId,
-          amount,
-        });
-        console.log(`✅ Generated invoice PDF for ${internalOrderId}`);
-      } catch (pdfError) {
-        console.error(`❌ PDF generation failed for ${internalOrderId}:`, pdfError.message);
-        // Non-fatal: continue without PDF
-      }
-
-      try {
-        const emailResult = await sendPaymentEmail({
-          to: customerEmail,
-          customerEmail,
-          customerName: customerName || 'Customer',
-          customerMobile: customerMobile,
-          customerDob: customerDob,
-          customerGender: customerGender,
-          customerCity: customerCity,
-          person1Name: person1Name,
-          person1FirstName: person1FirstName,
-          person1MiddleName: person1MiddleName,
-          person1SurName: person1SurName,
-          person1Dob: person1Dob,
-          person1Gender: person1Gender,
-          person1MiddleNameType: person1MiddleNameType,
-          person2Name: person2Name,
-          person2FirstName: person2FirstName,
-          person2MiddleName: person2MiddleName,
-          person2SurName: person2SurName,
-          person2Dob: person2Dob,
-          person2Gender: person2Gender,
-          person2MiddleNameType: person2MiddleNameType,
-          person3Name: person3Name,
-          person3FirstName: person3FirstName,
-          person3MiddleName: person3MiddleName,
-          person3SurName: person3SurName,
-          person3Dob: person3Dob,
-          person3Gender: person3Gender,
-          person3MiddleNameType: person3MiddleNameType,
-          fatherFirstName: fatherFirstName,
-          fatherMiddleName: fatherMiddleName,
-          fatherMiddleNameType: fatherMiddleNameType,
-          fatherLastName: fatherLastName,
-          fatherFullName: fatherFullName,
-          childDob: childDob,
-          childLastName: childLastName,
-          childMiddleName: childMiddleName,
-          fatherFirstNameAsMiddleName: fatherFirstNameAsMiddleName,
-          nameOptions: nameOptions,
-          timeOfBirth: timeOfBirth,
-          placeOfBirth: placeOfBirth,
-          pinCode: pinCode,
-          orderId: internalOrderId,
-          amount: amountInPaise,
-          packageType: packageType || 'single',
-          status: paymentStatus,
-          transactionId: transactionId || '',
-          invoicePdfBuffer,
-        });
-
-        if (!emailResult?.success) {
-          console.error(`❌ Email sending failed for ${customerEmail}:`, emailResult?.error || 'Unknown error');
-        }
-      } catch (emailError) {
-        console.error("❌ Email sending error:", emailError.message);
-      }
-    }
-
-
+    // NOTE: PDF generation and email sending are handled by the Razorpay webhook
+    // (api/payment-webhook.js) to avoid blocking the user-facing redirect.
+    // This endpoint only checks payment status and returns immediately.
     // Return payment status with all form details
     return res.status(200).json({
       success: true,

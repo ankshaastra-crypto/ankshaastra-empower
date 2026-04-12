@@ -1,5 +1,5 @@
 // Suppress DEP0169 deprecation warning from dependencies
-
+import './suppress-deprecation.js';
 
 import nodemailer from 'nodemailer';
 import { recordEmailDelivery } from './db.js';

@@ -786,7 +786,7 @@ console.log(`📧 Admin email prepared for orderId: ${orderId}, to: ${adminEmail
         html: adminHtml,
       };
 
-      // Attach invoice PDF to admin email as well
+      // Attach invoice PDF if available
       if (invoicePdfBuffer && status === 'SUCCESS') {
         adminMailOptions.attachments = [{
           filename: `Invoice_${orderId}.pdf`,

@@ -273,94 +273,9 @@ export default async function handler(req, res) {
     const nameOptions = (decryptedData.nameOptions && decryptedData.nameOptions.trim()) ||
       getQueryParam('nameOptions') || (metadata.nameOptions && metadata.nameOptions.trim()) || '';
 
-// Persist order + payment (browser redirect flow — do not rely on webhook alone)
-    try {
-      const { savePayment } = await import('./db.js');
-      await savePayment(internalOrderId, transactionId, amountInPaise, paymentStatus);
-    } catch (dbError) {
-      console.error('DB save order error:', dbError?.message || dbError);
-    }
-
-    // Generate PDF + send emails on SUCCESS only
-    let invoicePdfBuffer = null;
-    if (paymentStatus === 'SUCCESS' && customerEmail && customerEmail.trim() !== '') {
-      try {
-        invoicePdfBuffer = await generateInvoicePDF(internalOrderId, {
-          customerName,
-          customerEmail,
-          customerMobile,
-          customerCity,
-          pinCode,
-          packageType,
-          transactionId,
-          amount,
-        });
-        console.log(`✅ Generated invoice PDF for ${internalOrderId}`);
-      } catch (pdfError) {
-        console.error(`❌ PDF generation failed for ${internalOrderId}:`, pdfError.message);
-        // Non-fatal: continue without PDF
-      }
-
-      try {
-        const emailResult = await sendPaymentEmail({
-          to: customerEmail,
-          customerEmail,
-          customerName: customerName || 'Customer',
-          customerMobile: customerMobile,
-          customerDob: customerDob,
-          customerGender: customerGender,
-          customerCity: customerCity,
-          person1Name: person1Name,
-          person1FirstName: person1FirstName,
-          person1MiddleName: person1MiddleName,
-          person1SurName: person1SurName,
-          person1Dob: person1Dob,
-          person1Gender: person1Gender,
-          person1MiddleNameType: person1MiddleNameType,
-          person2Name: person2Name,
-          person2FirstName: person2FirstName,
-          person2MiddleName: person2MiddleName,
-          person2SurName: person2SurName,
-          person2Dob: person2Dob,
-          person2Gender: person2Gender,
-          person2MiddleNameType: person2MiddleNameType,
-          person3Name: person3Name,
-          person3FirstName: person3FirstName,
-          person3MiddleName: person3MiddleName,
-          person3SurName: person3SurName,
-          person3Dob: person3Dob,
-          person3Gender: person3Gender,
-          person3MiddleNameType: person3MiddleNameType,
-          fatherFirstName: fatherFirstName,
-          fatherMiddleName: fatherMiddleName,
-          fatherMiddleNameType: fatherMiddleNameType,
-          fatherLastName: fatherLastName,
-          fatherFullName: fatherFullName,
-          childDob: childDob,
-          childLastName: childLastName,
-          childMiddleName: childMiddleName,
-          fatherFirstNameAsMiddleName: fatherFirstNameAsMiddleName,
-          nameOptions: nameOptions,
-          timeOfBirth: timeOfBirth,
-          placeOfBirth: placeOfBirth,
-          pinCode: pinCode,
-          orderId: internalOrderId,
-          amount: amountInPaise,
-          packageType: packageType || 'single',
-          status: paymentStatus,
-          transactionId: transactionId || '',
-          invoicePdfBuffer,
-        });
-
-        if (!emailResult?.success) {
-          console.error(`❌ Email sending failed for ${customerEmail}:`, emailResult?.error || 'Unknown error');
-        }
-      } catch (emailError) {
-        console.error("❌ Email sending error:", emailError.message);
-      }
-    }
-
-
+    // NOTE: PDF generation and email sending are handled by the Razorpay webhook
+    // (api/payment-webhook.js) to avoid blocking the user-facing redirect.
+    // This endpoint only checks payment status and returns immediately.
     // Return payment status with all form details
     return res.status(200).json({
       success: true,

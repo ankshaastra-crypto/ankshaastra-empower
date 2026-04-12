@@ -2,10 +2,7 @@
 import './_utils/suppress-deprecation.js';
 
 import crypto from 'crypto';
-import { sendPaymentEmail } from './_utils/send-email.js';
 import { decryptCustomerData } from './_utils/encryption.js';
-import { getOrderFull } from './_utils/db.js';
-import { generateInvoicePDF } from './_utils/supabase-server.js';
 import { rateLimiter } from './_utils/rate-limiter.js';
 
 

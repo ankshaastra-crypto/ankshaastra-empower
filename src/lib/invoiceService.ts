@@ -8,14 +8,6 @@ export async function generateInvoice(orderId: string) {
   return data;
 }
 
-export async function getInvoiceDownloadUrl(invoiceId: string) {
-  const { data, error } = await supabase.functions.invoke("generate-invoice", {
-    body: { action: "download", invoiceId },
-  });
-  if (error) throw new Error(error.message);
-  return data?.url as string;
-}
-
 export async function backfillInvoices() {
   const { data, error } = await supabase.functions.invoke("generate-invoice", {
     body: { action: "backfill" },
@@ -27,7 +19,7 @@ export async function backfillInvoices() {
 export async function getInvoiceForOrder(orderId: string) {
   const { data } = await supabase
     .from("invoices")
-    .select("id, invoice_number, storage_url, total_amount, created_at")
+    .select("id, invoice_number, total_amount, created_at")
     .eq("order_id", orderId)
     .maybeSingle();
   return data;

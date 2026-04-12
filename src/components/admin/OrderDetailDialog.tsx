@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { FileDown, Loader2, FileText } from "lucide-react";
-import { generateInvoice, getInvoiceDownloadUrl, getInvoiceForOrder } from "@/lib/invoiceService";
+import { generateInvoice, getInvoiceForOrder } from "@/lib/invoiceService";
 import type { FirestoreOrder } from "@/types/admin";
 
 interface Props {
@@ -43,7 +43,7 @@ const OrderDetailDialog = ({ order, onClose, onUpdated }: Props) => {
   const [saving, setSaving] = useState(false);
   const [invoiceId, setInvoiceId] = useState<string | null>(null);
   const [invoiceLoading, setInvoiceLoading] = useState(false);
-  const [downloadLoading, setDownloadLoading] = useState(false);
+  
 
   useEffect(() => {
     if (order?.order_id) {
@@ -72,19 +72,7 @@ const OrderDetailDialog = ({ order, onClose, onUpdated }: Props) => {
     }
   };
 
-  const handleDownloadInvoice = async () => {
-    if (!invoiceId) return;
-    setDownloadLoading(true);
-    try {
-      const url = await getInvoiceDownloadUrl(invoiceId);
-      if (url) window.open(url, "_blank");
-      else throw new Error("No URL returned");
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally {
-      setDownloadLoading(false);
-    }
-  };
+  // Download removed — storage bucket no longer used
 
   const handleSave = async () => {
     setSaving(true);
@@ -147,10 +135,7 @@ const OrderDetailDialog = ({ order, onClose, onUpdated }: Props) => {
             <h3 className="font-semibold mb-2 text-sm uppercase tracking-wide text-muted-foreground">Invoice</h3>
             <div className="flex gap-2">
               {invoiceId ? (
-                <Button variant="outline" size="sm" onClick={handleDownloadInvoice} disabled={downloadLoading}>
-                  {downloadLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileDown className="h-4 w-4 mr-1" />}
-                  Download Invoice
-                </Button>
+                <Badge variant="outline">Invoice Generated</Badge>
               ) : (
                 <Button variant="outline" size="sm" onClick={handleGenerateInvoice} disabled={invoiceLoading}>
                   {invoiceLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <FileText className="h-4 w-4 mr-1" />}

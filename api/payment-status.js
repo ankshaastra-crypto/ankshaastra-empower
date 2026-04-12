@@ -1,7 +1,7 @@
 // api/payment-status.js
-// Handles Razorpay redirect after payment — fast poll, decrypt, send email+PDF, return status
-
 import './suppress-deprecation.js';
+
+import crypto from 'crypto';
 import { decryptCustomerData } from './_utils/encryption.js';
 import { rateLimiter } from './_utils/rate-limiter.js';
 import { savePayment } from './_utils/db.js';
@@ -17,13 +17,18 @@ export default async function handler(req, res) {
   }
 
   try {
+    // ── Extract all Razorpay params from redirect URL ─────────────────────────
     const internalOrderId =
-      req.query.orderId || req.query.order_id ||
-      req.query.merchantTransactionId || req.query.txnId ||
-      req.query.transactionId || req.query.transaction_id;
+      req.query.orderId               ||
+      req.query.order_id              ||
+      req.query.merchantTransactionId ||
+      req.query.txnId                 ||
+      req.query.transactionId         ||
+      req.query.transaction_id;
 
-    const razorpayOrderId =
-      req.query.razorpay_order_id || req.query.razorpayOrderId;
+    const razorpayOrderId   = req.query.razorpay_order_id   || req.query.razorpayOrderId;
+    const razorpayPaymentId = req.query.razorpay_payment_id || req.query.razorpayPaymentId;
+    const razorpaySignature = req.query.razorpay_signature  || req.query.razorpaySignature;
 
     const razorpayKeyId     = process.env.RAZORPAY_KEY_ID;
     const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
@@ -31,64 +36,124 @@ export default async function handler(req, res) {
     if (!razorpayKeyId || !razorpayKeySecret) {
       return res.status(500).json({ error: 'Server configuration error' });
     }
-    if (!internalOrderId || !razorpayOrderId) {
-      return res.status(400).json({ error: 'Missing order ID or Razorpay order ID' });
+    if (!internalOrderId) {
+      return res.status(400).json({ error: 'Missing order ID' });
     }
 
-    // ── Poll Razorpay (max 4 attempts × 1s — fast path usually returns on attempt 1) ──
-    const auth = Buffer.from(`${razorpayKeyId}:${razorpayKeySecret}`).toString('base64');
-    let statusResult = null;
-    let isSuccess    = false;
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 1: Verify Razorpay signature — INSTANT cryptographic proof of success
+    //
+    // Razorpay sends razorpay_order_id + razorpay_payment_id + razorpay_signature
+    // in the redirect URL after a successful payment.
+    // Signature = HMAC-SHA256(razorpay_order_id + "|" + razorpay_payment_id, secret)
+    //
+    // This is the CORRECT and FAST way — no API call needed, no timing issues.
+    // ─────────────────────────────────────────────────────────────────────────
+    let isSuccess           = false;
+    let verifiedBySignature = false;
 
-    for (let attempt = 1; attempt <= 4; attempt++) {
+    if (razorpayOrderId && razorpayPaymentId && razorpaySignature) {
+      try {
+        const expectedSig = crypto
+          .createHmac('sha256', razorpayKeySecret)
+          .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+          .digest('hex');
+
+        if (expectedSig === razorpaySignature) {
+          isSuccess           = true;
+          verifiedBySignature = true;
+          console.log(`✅ Payment verified by signature — order: ${internalOrderId}`);
+        } else {
+          console.warn('⚠️  Signature mismatch — will fall back to API poll');
+        }
+      } catch (sigErr) {
+        console.error('Signature verification error:', sigErr.message);
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 2: Fallback — poll Razorpay order API if no signature params present
+    // (handles direct URL access, retries, or missing params edge cases)
+    // ─────────────────────────────────────────────────────────────────────────
+    let statusResult = null;
+    const auth = Buffer.from(`${razorpayKeyId}:${razorpayKeySecret}`).toString('base64');
+
+    if (!verifiedBySignature && razorpayOrderId) {
+      console.log('📡 No signature — polling Razorpay order API...');
+      for (let attempt = 1; attempt <= 4; attempt++) {
+        try {
+          const resp = await fetch(`https://api.razorpay.com/v1/orders/${razorpayOrderId}`, {
+            headers: { Authorization: `Basic ${auth}` },
+          });
+          if (resp.ok) {
+            statusResult = await resp.json();
+            if (statusResult.status === 'paid') {
+              isSuccess = true;
+              console.log(`✅ Order paid confirmed by API poll (attempt ${attempt})`);
+              break;
+            }
+          }
+        } catch (fetchErr) {
+          console.warn(`API poll attempt ${attempt} failed:`, fetchErr.message);
+        }
+        if (attempt < 4) await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 3: Fetch order details for amount (if not already fetched)
+    // ─────────────────────────────────────────────────────────────────────────
+    if (!statusResult && razorpayOrderId) {
       try {
         const resp = await fetch(`https://api.razorpay.com/v1/orders/${razorpayOrderId}`, {
           headers: { Authorization: `Basic ${auth}` },
         });
-        if (resp.ok) {
-          statusResult = await resp.json();
-          isSuccess    = statusResult.status === 'paid';
-          if (isSuccess) {
-            console.log(`✅ Razorpay order paid on attempt ${attempt}`);
-            break;
-          }
-        }
-      } catch (fetchErr) {
-        console.warn(`Razorpay fetch attempt ${attempt} failed:`, fetchErr.message);
+        if (resp.ok) statusResult = await resp.json();
+      } catch {
+        // non-fatal — amount will default to 0
       }
-      if (attempt < 4) await new Promise(r => setTimeout(r, 1000));
     }
 
     const paymentStatus  = isSuccess ? 'SUCCESS' : 'FAILED';
-    const transactionId  = statusResult?.id;
+    const transactionId  = razorpayPaymentId || statusResult?.id;
     const amountInPaise  = statusResult?.amount || 0;
     const amountInRupees = amountInPaise / 100;
 
-    // ── Save payment to DB (non-fatal) ────────────────────────────────────────
+    console.log(`📊 ${paymentStatus} — order: ${internalOrderId}, tx: ${transactionId}, ₹${amountInRupees}`);
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 4: Save payment to DB
+    // ─────────────────────────────────────────────────────────────────────────
     try {
       await savePayment(internalOrderId, transactionId, amountInPaise, paymentStatus);
+      console.log('✅ Payment saved to DB');
     } catch (dbErr) {
-      console.error('DB save payment error:', dbErr.message);
+      console.error('DB save error (non-fatal):', dbErr.message);
     }
 
-    // ── Decrypt customer data from URL param ─────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 5: Decrypt customer data from encrypted URL param
+    // ─────────────────────────────────────────────────────────────────────────
     let customerData = {};
     const encryptedData = req.query.data || '';
     if (encryptedData) {
       try {
         customerData = decryptCustomerData(encryptedData) || {};
+        console.log('✅ Customer data decrypted');
       } catch (decErr) {
-        console.error('Decryption failed:', decErr.message);
+        console.error('Decryption failed (non-fatal):', decErr.message);
       }
     }
 
-    // Helper: decrypt → query param → empty string
+    // Helper: decrypted → query param → empty string
     const get = (field) =>
       (customerData[field] && customerData[field].toString().trim()) ||
-      (req.query[field] && req.query[field].toString().trim()) ||
+      (req.query[field]    && req.query[field].toString().trim())    ||
       '';
 
-    // ── Extract ALL customer fields ──────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 6: Extract ALL customer fields
+    // ─────────────────────────────────────────────────────────────────────────
     const customerEmail  = get('email');
     const customerName   = get('name') || 'Customer';
     const customerMobile = get('mobile');
@@ -121,24 +186,27 @@ export default async function handler(req, res) {
     const person3Gender         = get('person3Gender');
     const person3MiddleNameType = get('person3MiddleNameType');
 
-    // Baby / Single / Premium fields
-    const fatherFirstName            = get('fatherFirstName');
-    const fatherMiddleName           = get('fatherMiddleName');
-    const fatherMiddleNameType       = get('fatherMiddleNameType');
-    const fatherLastName             = get('fatherLastName');
-    const fatherFullName             = get('fatherFullName');
-    const childDob                   = get('childDob');
-    const childMiddleName            = get('childMiddleName');
-    const childLastName              = get('childLastName');
+    // Baby / Single / Premium report fields
+    const fatherFirstName             = get('fatherFirstName');
+    const fatherMiddleName            = get('fatherMiddleName');
+    const fatherMiddleNameType        = get('fatherMiddleNameType');
+    const fatherLastName              = get('fatherLastName');
+    const fatherFullName              = get('fatherFullName');
+    const childDob                    = get('childDob');
+    const childMiddleName             = get('childMiddleName');
+    const childLastName               = get('childLastName');
     const fatherFirstNameAsMiddleName = get('fatherFirstNameAsMiddleName');
-    const nameOptions                = get('nameOptions');
-    const timeOfBirth                = get('timeOfBirth');
-    const placeOfBirth               = get('placeOfBirth');
+    const nameOptions                 = get('nameOptions');
+    const timeOfBirth                 = get('timeOfBirth');
+    const placeOfBirth                = get('placeOfBirth');
 
-    // ── Generate PDF + send email on SUCCESS ─────────────────────────────────
-    let invoicePdfBuffer = null;
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 7: Generate PDF + send emails on SUCCESS
+    // ─────────────────────────────────────────────────────────────────────────
     if (paymentStatus === 'SUCCESS' && customerEmail) {
-      // Generate PDF (non-fatal)
+
+      // Generate PDF (non-fatal if fails)
+      let invoicePdfBuffer = null;
       try {
         invoicePdfBuffer = await generateInvoicePDF(internalOrderId, {
           customerName,
@@ -150,55 +218,62 @@ export default async function handler(req, res) {
           transactionId,
           amount: amountInRupees,
         });
-        console.log(`✅ PDF generated for ${internalOrderId} — ${invoicePdfBuffer?.length} bytes`);
+        if (invoicePdfBuffer) {
+          console.log(`✅ PDF generated — ${invoicePdfBuffer.length} bytes`);
+        }
       } catch (pdfErr) {
-        console.error('❌ PDF generation failed:', pdfErr.message);
+        console.error('❌ PDF generation failed (non-fatal):', pdfErr.message);
       }
 
-      // Send email (non-fatal)
+      // Send emails to customer + admin (non-fatal if fails)
       try {
         const emailResult = await sendPaymentEmail({
-          to: customerEmail,
+          to:            customerEmail,
           customerEmail,
           customerName,
           customerMobile,
           customerDob,
           customerGender,
           customerCity,
-          person1Name, person1FirstName, person1MiddleName, person1SurName,
-          person1Dob, person1Gender, person1MiddleNameType,
-          person2Name, person2FirstName, person2MiddleName, person2SurName,
-          person2Dob, person2Gender, person2MiddleNameType,
-          person3Name, person3FirstName, person3MiddleName, person3SurName,
-          person3Dob, person3Gender, person3MiddleNameType,
-          fatherFirstName, fatherMiddleName, fatherMiddleNameType, fatherLastName,
-          fatherFullName, childDob, childMiddleName, childLastName,
-          fatherFirstNameAsMiddleName, nameOptions,
-          timeOfBirth, placeOfBirth, pinCode,
-          orderId: internalOrderId,
-          amount: amountInPaise,
+          person1Name,     person1FirstName,  person1MiddleName,  person1SurName,
+          person1Dob,      person1Gender,     person1MiddleNameType,
+          person2Name,     person2FirstName,  person2MiddleName,  person2SurName,
+          person2Dob,      person2Gender,     person2MiddleNameType,
+          person3Name,     person3FirstName,  person3MiddleName,  person3SurName,
+          person3Dob,      person3Gender,     person3MiddleNameType,
+          fatherFirstName, fatherMiddleName,  fatherMiddleNameType, fatherLastName,
+          fatherFullName,  childDob,          childMiddleName,    childLastName,
+          fatherFirstNameAsMiddleName,        nameOptions,
+          timeOfBirth,     placeOfBirth,      pinCode,
+          orderId:         internalOrderId,
+          amount:          amountInPaise,
           packageType,
-          status: paymentStatus,
-          transactionId: transactionId || '',
+          status:          paymentStatus,
+          transactionId:   transactionId || '',
           invoicePdfBuffer,
         });
-        if (!emailResult?.success) {
-          console.error('❌ Email failed:', emailResult?.error);
+
+        if (emailResult?.success) {
+          console.log('✅ Emails sent to customer + admin');
         } else {
-          console.log('✅ Emails sent successfully');
+          console.error('❌ Email failed:', emailResult?.error);
         }
       } catch (emailErr) {
-        console.error('❌ Email sending error:', emailErr.message);
+        console.error('❌ Email error (non-fatal):', emailErr.message);
       }
     }
 
-    // ── Return full data to frontend ─────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 8: Return full response to frontend
+    // ─────────────────────────────────────────────────────────────────────────
     return res.status(200).json({
-      success:         true,
-      status:          paymentStatus,
-      orderId:         internalOrderId,
+      success:        true,
+      status:         paymentStatus,
+      verifiedBy:     verifiedBySignature ? 'signature' : 'api_poll',
+      orderId:        internalOrderId,
       transactionId,
-      amount:          amountInRupees,
+      amount:         amountInRupees,
+      // Customer contact
       customerEmail,
       customerName,
       customerMobile,
@@ -207,21 +282,22 @@ export default async function handler(req, res) {
       customerCity,
       packageType,
       // Name Check persons
-      person1Name, person1FirstName, person1MiddleName, person1SurName,
-      person1Dob, person1Gender, person1MiddleNameType,
-      person2Name, person2FirstName, person2MiddleName, person2SurName,
-      person2Dob, person2Gender, person2MiddleNameType,
-      person3Name, person3FirstName, person3MiddleName, person3SurName,
-      person3Dob, person3Gender, person3MiddleNameType,
+      person1Name,     person1FirstName,  person1MiddleName,  person1SurName,
+      person1Dob,      person1Gender,     person1MiddleNameType,
+      person2Name,     person2FirstName,  person2MiddleName,  person2SurName,
+      person2Dob,      person2Gender,     person2MiddleNameType,
+      person3Name,     person3FirstName,  person3MiddleName,  person3SurName,
+      person3Dob,      person3Gender,     person3MiddleNameType,
       // Baby / Single / Premium
-      fatherFirstName, fatherMiddleName, fatherMiddleNameType, fatherLastName,
-      fatherFullName, childDob, childMiddleName, childLastName,
-      fatherFirstNameAsMiddleName, nameOptions, gender: customerGender,
-      timeOfBirth, placeOfBirth, pinCode,
+      fatherFirstName, fatherMiddleName,  fatherMiddleNameType, fatherLastName,
+      fatherFullName,  childDob,          childMiddleName,    childLastName,
+      fatherFirstNameAsMiddleName,        nameOptions,
+      gender:          customerGender,
+      timeOfBirth,     placeOfBirth,      pinCode,
     });
 
   } catch (error) {
-    console.error('Payment Status Error:', error.message);
+    console.error('Payment Status Error:', error.message, error.stack);
     return res.status(500).json({
       error:   'Internal Server Error',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined,

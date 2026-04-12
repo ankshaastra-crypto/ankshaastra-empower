@@ -60,8 +60,7 @@ export async function generateInvoicePDF(orderId, fallbackData = null) {
   let invoiceData = null;
 
   try {
-    const { getOrderFull } = await import('./db.js');
-    const order = await getOrderFull(orderId);
+    const { getOrderFull } = await import('./_utils/db.js');
     if (order) {
       const invoiceDate = new Date(order.created_at || Date.now()).toLocaleDateString('en-IN', {
         day: '2-digit', month: '2-digit', year: 'numeric',

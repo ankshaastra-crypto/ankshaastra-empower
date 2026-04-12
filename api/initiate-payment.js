@@ -165,9 +165,7 @@ const customerData = {
 };
 
     // Store order and customer details in PostgreSQL
-    try {
-      const { saveOrderAndCustomer } = await import('./db.js');
-      await saveOrderAndCustomer(orderId, amount, packageType || 'single', customerData);
+  try {\n      const { saveOrderAndCustomer } = await import('./_utils/db.js');\n      await saveOrderAndCustomer(orderId, amount, packageType || 'single', customerData);
     } catch (dbError) {
       console.error('DB save order error:', dbError?.message || dbError);
       // Non-fatal: continue with payment flow

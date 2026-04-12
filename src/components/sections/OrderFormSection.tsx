@@ -1018,7 +1018,7 @@ const OrderFormSection = () => {
 
   // ===================== MAIN RENDER =====================
   return (
-    <section className="section-padding" id="order-form" ref={ref} style={{ backgroundColor: 'hsl(var(--background))' }}>
+    <section className="section-padding bg-background" id="order-form" ref={ref}>
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="heading-lg text-foreground mb-1.5 md:mb-2 text-center">

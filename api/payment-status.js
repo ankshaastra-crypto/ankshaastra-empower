@@ -275,12 +275,21 @@ export default async function handler(req, res) {
     const nameOptions = (decryptedData.nameOptions && decryptedData.nameOptions.trim()) ||
       getQueryParam('nameOptions') || (metadata.nameOptions && metadata.nameOptions.trim()) || '';
 
-// Persist order + payment (browser redirect flow — do not rely on webhook alone)
+    // Persist order + payment details to DB (idempotent for browser redirect flow)
     try {
-      const { savePayment } = await import('./db.js');
-      await savePayment(internalOrderId, transactionId, amountInPaise, paymentStatus);
+      const { savePayment } = await import('./_utils/db.js');
+      await savePayment(internalOrderId, {
+        paymentStatus,
+        transactionId,
+        amount: amountInPaise,
+        razorpayOrderId,
+        customerEmail,
+        packageType: packageType || 'single'
+      });
+      console.log(`✅ Saved payment ${paymentStatus} for order ${internalOrderId}`);
     } catch (dbError) {
-      console.error('DB save order error:', dbError?.message || dbError);
+      console.error('DB save payment error:', dbError.message);
+      // Non-fatal - webhook will retry, continue with email
     }
 
     // Generate PDF + send emails on SUCCESS only
@@ -361,7 +370,6 @@ export default async function handler(req, res) {
         console.error("❌ Email sending error:", emailError.message);
       }
     }
-
 
     // Return payment status with all form details
     return res.status(200).json({

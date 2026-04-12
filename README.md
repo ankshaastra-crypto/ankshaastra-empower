@@ -82,12 +82,18 @@ All app tables live in the **`ankshaastra`** schema: `orders`, `customer_details
 
 **For Supabase + Vercel (recommended):**
 
+
+
 1. Create a project at [supabase.com](https://supabase.com) → **New Project**.
 2. **Project Settings** → **Database** → **Connection string** → copy the **pooler** URI (not the direct host if you hit connection timeouts).
 3. In Vercel: **Environment Variables** → set `DATABASE_URL` (encode `@` in password as `%40` if you build the URL by hand).
 4. **Deploy** your app.
 
 **Tables are created automatically** on first use (first order, first `/admin/orders` load, or first payment).
+
+
+
+
 
 **Manual setup (optional):** same code path as the HTTP init endpoint.
 
@@ -98,6 +104,8 @@ npm run db:setup
 Requires `DATABASE_URL` in `.env`. Same as `GET /api/admin/init-db?secret=...` — both use `initDatabaseSchema` in `api/admin/init-db.js` (CLI wrapper: `scripts/db-setup.mjs`).
 
 **HTTP:** `GET /api/admin/init-db?secret=YOUR_INIT_DB_SECRET` — set `INIT_DB_SECRET` in Vercel.
+
+
 
 ## Development
 
@@ -278,6 +286,8 @@ NODE_OPTIONS=--no-deprecation
    ```
 
    - Add all environment variables listed above in Vercel Dashboard
+
+
 
 3. **Deploy:**
    ```bash

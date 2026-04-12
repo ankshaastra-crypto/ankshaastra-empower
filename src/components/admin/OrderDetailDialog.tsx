@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { FileDown, Loader2, FileText } from "lucide-react";
-import { generateInvoice, getInvoiceDownloadUrl, getInvoiceForOrder } from "@/lib/invoiceService";
+import { generateInvoice, getInvoiceForOrder } from "@/lib/invoiceService";
 import type { FirestoreOrder } from "@/types/admin";
 
 interface Props {
@@ -72,19 +72,7 @@ const OrderDetailDialog = ({ order, onClose, onUpdated }: Props) => {
     }
   };
 
-  const handleDownloadInvoice = async () => {
-    if (!invoiceId) return;
-    setDownloadLoading(true);
-    try {
-      const url = await getInvoiceDownloadUrl(invoiceId);
-      if (url) window.open(url, "_blank");
-      else throw new Error("No URL returned");
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    } finally {
-      setDownloadLoading(false);
-    }
-  };
+  // Download removed — storage bucket no longer used
 
   const handleSave = async () => {
     setSaving(true);

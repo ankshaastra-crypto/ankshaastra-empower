@@ -2,10 +2,7 @@
 import './_utils/suppress-deprecation.js';
 
 import crypto from 'crypto';
-import { sendPaymentEmail } from './_utils/send-email.js';
 import { decryptCustomerData } from './_utils/encryption.js';
-import { getOrderFull } from './_utils/db.js';
-import { generateInvoicePDF } from './_utils/supabase-server.js';
 import { rateLimiter } from './_utils/rate-limiter.js';
 
 
@@ -58,11 +55,11 @@ export default async function handler(req, res) {
     // Check payment status with Razorpay
     const auth = Buffer.from(`${razorpayKeyId}:${razorpayKeySecret}`).toString('base64');
 
-    // Fast polling: Razorpay sometimes takes a moment to mark order as 'paid'
-    // Poll up to 4 times with 1s between attempts (total max ~4s)
+    // Fast polling: Razorpay usually marks order as 'paid' by the time redirect happens
+    // Poll up to 2 times with 500ms between attempts (total max ~1s)
     let statusResult = null;
     let isSuccess = false;
-    const maxAttempts = 4;
+    const maxAttempts = 2;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const statusResponse = await fetch(`https://api.razorpay.com/v1/orders/${razorpayOrderId}`, {
         method: 'GET',
@@ -80,23 +77,21 @@ export default async function handler(req, res) {
             details: `Razorpay API returned ${statusResponse.status}: ${statusResponse.statusText}`
           });
         }
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 500));
         continue;
       }
 
       statusResult = await statusResponse.json();
       isSuccess = statusResult.status === 'paid';
 
-      // If paid, break immediately — no need to wait
       if (isSuccess) {
         console.log(`✅ Razorpay order paid on attempt ${attempt}`);
         break;
       }
 
-      // If still pending and not last attempt, wait 1s then retry
       if (attempt < maxAttempts) {
-        console.log(`⏳ Order not paid yet (attempt ${attempt}/${maxAttempts}), retrying in 1s...`);
-        await new Promise(r => setTimeout(r, 1000));
+        console.log(`⏳ Order not paid yet (attempt ${attempt}/${maxAttempts}), retrying in 500ms...`);
+        await new Promise(r => setTimeout(r, 500));
       }
     }
 
@@ -275,6 +270,7 @@ export default async function handler(req, res) {
     const nameOptions = (decryptedData.nameOptions && decryptedData.nameOptions.trim()) ||
       getQueryParam('nameOptions') || (metadata.nameOptions && metadata.nameOptions.trim()) || '';
 
+<<<<<<< HEAD
     // Persist order + payment details to DB (idempotent for browser redirect flow)
     try {
       const { savePayment } = await import('./_utils/db.js');
@@ -371,6 +367,11 @@ export default async function handler(req, res) {
       }
     }
 
+=======
+    // NOTE: PDF generation and email sending are handled by the Razorpay webhook
+    // (api/payment-webhook.js) to avoid blocking the user-facing redirect.
+    // This endpoint only checks payment status and returns immediately.
+>>>>>>> 3245dc746227ebcfe8f2bbd3a8772a98706a03f0
     // Return payment status with all form details
     return res.status(200).json({
       success: true,

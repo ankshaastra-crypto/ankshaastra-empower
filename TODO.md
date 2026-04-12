@@ -1,23 +1,15 @@
-# Fix Linting Errors and Warnings
+# DB Module Resolution Fix - Vercel Deploy Error
+Status: 🔄 In Progress
 
-## Approved Plan Steps
+## Plan Steps (3 files → Static imports + Clean conflicts)
 
-### ✅ Step 0: Create this TODO.md [COMPLETE]
+✅ **Step 1**: Resolve Git conflict + Static import in `api/payment-status.js`  
+⏳ **Step 2**: Static import in `api/initiate-payment.js`  
+⏳ **Step 3**: Static import in `api/payment-webhook.js`  
+⏳ **Step 4**: Test `vercel dev` → `/api/initiate-payment`, `/api/payment-status`  
+⏳ **Step 5**: Deploy `vercel --prod`  
+⏳ **Step 6**: Verify build logs + end-to-end payment  
 
-### ✅ Step 1: Fix api/payment-status.js syntax errors at line 279 [COMPLETE]
-
-### ✅ Step 2: Remove inline styles from OrderFormSection.tsx [COMPLETE]
-- Line ~992: `style={{ backgroundColor: 'hsl(var(--background))' }}` → `className="section-padding bg-background"`
-
-### ✅ Step 3: Fix all README.md markdownlint warnings [COMPLETE]
-- Added blanks around lists/fences (Supabase setup, configure Vercel)
-- Fixed indentation issues
+**Next**: Edit `api/initiate-payment.js`
 
 
-### ✅ Step 4: Clean TODO.md extra blanks [COMPLETE]
-
-### ⏳ Step 5: Verify fixes + attempt_completion [PENDING]
-
-**Current Progress:** All linting errors fixed ✅
-
-**Final verification complete.**

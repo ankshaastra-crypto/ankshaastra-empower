@@ -10,12 +10,10 @@ const corsHeaders = {
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Invoice data - loaded from public/invoice-data.json values
 const COMPANY = {
   name: "Ankshaastra",
   description: "Empower Your Name",
-  address:
-    "Unit No. O-622, Block-E, Eye of Noida, Sector 140A, Noida-201305",
+  address: "Unit No. O-622, Block-E, Eye of Noida, Sector 140A, Noida-201305",
   phone: "9667305577",
   email: "social@ankshaastra.com",
   gstin: "09AAFFE7583B1ZD",
@@ -42,49 +40,25 @@ const PACKAGE_NAMES: Record<string, string> = {
 };
 
 // ─── GST LOGIC (GST-INCLUSIVE) ───
-// Prices shown on the website are GST-inclusive.
-// We back-calculate the subtotal from the total amount.
 function calculateGST(amount: number, pincode: string | null) {
-  const totalAmount = amount; // amount paid = GST-inclusive price
+  const totalAmount = amount;
   const gstRate = 0.18;
   const pin = parseInt(pincode || "0", 10);
   const isIntraState = pin >= 200000 && pin <= 289999;
-
-  // subtotal = totalAmount / (1 + gstRate)
   const subtotal = +(totalAmount / (1 + gstRate)).toFixed(2);
 
   if (isIntraState) {
     const cgstAmount = +(subtotal * 0.09).toFixed(2);
     const sgstAmount = +(subtotal * 0.09).toFixed(2);
-    return {
-      isIntraState: true,
-      subtotal,
-      cgstRate: 9,
-      cgstAmount,
-      sgstRate: 9,
-      sgstAmount,
-      igstRate: 0,
-      igstAmount: 0,
-      totalAmount,
-    };
+    return { isIntraState: true, subtotal, cgstRate: 9, cgstAmount, sgstRate: 9, sgstAmount, igstRate: 0, igstAmount: 0, totalAmount };
   } else {
     const igstAmount = +(subtotal * gstRate).toFixed(2);
-    return {
-      isIntraState: false,
-      subtotal,
-      cgstRate: 0,
-      cgstAmount: 0,
-      sgstRate: 0,
-      sgstAmount: 0,
-      igstRate: 18,
-      igstAmount,
-      totalAmount,
-    };
+    return { isIntraState: false, subtotal, cgstRate: 0, cgstAmount: 0, sgstRate: 0, sgstAmount: 0, igstRate: 18, igstAmount, totalAmount };
   }
 }
 
 // ─── PDF GENERATION ───
-async function generateInvoicePDF(data: {
+async function generateInvoicePDFBytes(data: {
   invoiceNumber: string;
   invoiceDate: string;
   customerName: string;
@@ -95,7 +69,7 @@ async function generateInvoicePDF(data: {
   gst: ReturnType<typeof calculateGST>;
 }) {
   const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([595, 842]); // A4
+  const page = pdfDoc.addPage([595, 842]);
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const { width, height } = page.getSize();
@@ -110,93 +84,50 @@ async function generateInvoicePDF(data: {
   const leftMargin = 40;
   const rightMargin = width - 40;
 
-  // ── Header ──
-  page.drawText(COMPANY.name, {
-    x: leftMargin, y, size: 22, font: fontBold, color: purple,
-  });
-  page.drawText("INVOICE", {
-    x: rightMargin - font.widthOfTextAtSize("INVOICE", 22),
-    y, size: 22, font: fontBold, color: black,
-  });
+  // Header
+  page.drawText(COMPANY.name, { x: leftMargin, y, size: 22, font: fontBold, color: purple });
+  page.drawText("INVOICE", { x: rightMargin - font.widthOfTextAtSize("INVOICE", 22), y, size: 22, font: fontBold, color: black });
   y -= 18;
-  page.drawText(COMPANY.description, {
-    x: leftMargin, y, size: 10, font, color: gray,
-  });
+  page.drawText(COMPANY.description, { x: leftMargin, y, size: 10, font, color: gray });
   y -= 14;
-  page.drawText(COMPANY.address, {
-    x: leftMargin, y, size: 8, font, color: gray,
-  });
+  page.drawText(COMPANY.address, { x: leftMargin, y, size: 8, font, color: gray });
 
-  // Invoice details right-aligned
   const invNoText = `Invoice No: ${data.invoiceNumber}`;
   const invDateText = `Date: ${data.invoiceDate}`;
-  page.drawText(invNoText, {
-    x: rightMargin - font.widthOfTextAtSize(invNoText, 9),
-    y: height - 62, size: 9, font, color: gray,
-  });
-  page.drawText(invDateText, {
-    x: rightMargin - font.widthOfTextAtSize(invDateText, 9),
-    y: height - 74, size: 9, font, color: gray,
-  });
+  page.drawText(invNoText, { x: rightMargin - font.widthOfTextAtSize(invNoText, 9), y: height - 62, size: 9, font, color: gray });
+  page.drawText(invDateText, { x: rightMargin - font.widthOfTextAtSize(invDateText, 9), y: height - 74, size: 9, font, color: gray });
 
   y -= 14;
-  page.drawText(`Phone: ${COMPANY.phone}  |  Email: ${COMPANY.email}`, {
-    x: leftMargin, y, size: 8, font, color: gray,
-  });
+  page.drawText(`Phone: ${COMPANY.phone}  |  Email: ${COMPANY.email}`, { x: leftMargin, y, size: 8, font, color: gray });
   y -= 14;
-  page.drawText(`GSTIN: ${COMPANY.gstin}`, {
-    x: leftMargin, y, size: 8, font, color: gray,
-  });
+  page.drawText(`GSTIN: ${COMPANY.gstin}`, { x: leftMargin, y, size: 8, font, color: gray });
 
-  // Divider
   y -= 10;
-  page.drawLine({
-    start: { x: leftMargin, y },
-    end: { x: rightMargin, y },
-    thickness: 2, color: purple,
-  });
+  page.drawLine({ start: { x: leftMargin, y }, end: { x: rightMargin, y }, thickness: 2, color: purple });
 
-  // ── Bill To ──
+  // Bill To
   y -= 25;
-  page.drawText("Bill To", {
-    x: leftMargin, y, size: 14, font: fontBold, color: purple,
-  });
+  page.drawText("Bill To", { x: leftMargin, y, size: 14, font: fontBold, color: purple });
   y -= 18;
-  page.drawText(`Name: ${data.customerName}`, {
-    x: leftMargin, y, size: 10, font, color: black,
-  });
-  page.drawText(`Phone: ${data.customerMobile}`, {
-    x: 320, y, size: 10, font, color: black,
-  });
+  page.drawText(`Name: ${data.customerName}`, { x: leftMargin, y, size: 10, font, color: black });
+  page.drawText(`Phone: ${data.customerMobile}`, { x: 320, y, size: 10, font, color: black });
   y -= 15;
-  page.drawText(`Email: ${data.customerEmail}`, {
-    x: leftMargin, y, size: 10, font, color: black,
-  });
+  page.drawText(`Email: ${data.customerEmail}`, { x: leftMargin, y, size: 10, font, color: black });
   if (data.transactionId) {
-    page.drawText(`Transaction ID: ${data.transactionId}`, {
-      x: 320, y, size: 10, font, color: black,
-    });
+    page.drawText(`Transaction ID: ${data.transactionId}`, { x: 320, y, size: 10, font, color: black });
   }
 
-  // ── Items Table ──
+  // Items Table
   y -= 30;
-  page.drawText("Items", {
-    x: leftMargin, y, size: 14, font: fontBold, color: purple,
-  });
+  page.drawText("Items", { x: leftMargin, y, size: 14, font: fontBold, color: purple });
   y -= 20;
-
-  // Table header
-  page.drawRectangle({
-    x: leftMargin, y: y - 5,
-    width: rightMargin - leftMargin, height: 22, color: purple,
-  });
+  page.drawRectangle({ x: leftMargin, y: y - 5, width: rightMargin - leftMargin, height: 22, color: purple });
   page.drawText("Description", { x: leftMargin + 10, y, size: 10, font: fontBold, color: white });
   page.drawText("HSN/SAC", { x: 250, y, size: 10, font: fontBold, color: white });
   page.drawText("Qty", { x: 340, y, size: 10, font: fontBold, color: white });
   page.drawText("Unit Price", { x: 400, y, size: 10, font: fontBold, color: white });
   page.drawText("Total", { x: 490, y, size: 10, font: fontBold, color: white });
 
-  // Table row
   y -= 25;
   const packageName = PACKAGE_NAMES[data.packageType] || "Numerology Report";
   page.drawText(packageName, { x: leftMargin + 10, y, size: 9, font, color: black });
@@ -205,22 +136,15 @@ async function generateInvoicePDF(data: {
   page.drawText(`Rs.${data.gst.subtotal.toLocaleString("en-IN")}`, { x: 400, y, size: 9, font, color: black });
   page.drawText(`Rs.${data.gst.subtotal.toLocaleString("en-IN")}`, { x: 490, y, size: 9, font, color: black });
 
-  // ── GST Breakdown ──
+  // GST Breakdown
   y -= 35;
-  page.drawLine({
-    start: { x: 350, y: y + 10 },
-    end: { x: rightMargin, y: y + 10 },
-    thickness: 0.5, color: gray,
-  });
+  page.drawLine({ start: { x: 350, y: y + 10 }, end: { x: rightMargin, y: y + 10 }, thickness: 0.5, color: gray });
 
   const drawTotalRow = (label: string, value: string, yPos: number, isBold = false) => {
     const f = isBold ? fontBold : font;
     const sz = isBold ? 12 : 10;
     page.drawText(label, { x: 350, y: yPos, size: sz, font: f, color: black });
-    page.drawText(value, {
-      x: rightMargin - f.widthOfTextAtSize(value, sz) - 5,
-      y: yPos, size: sz, font: f, color: purple,
-    });
+    page.drawText(value, { x: rightMargin - f.widthOfTextAtSize(value, sz) - 5, y: yPos, size: sz, font: f, color: purple });
   };
 
   drawTotalRow("Subtotal:", `Rs.${data.gst.subtotal.toLocaleString("en-IN")}`, y);
@@ -236,24 +160,13 @@ async function generateInvoicePDF(data: {
     y -= 18;
   }
 
-  page.drawLine({
-    start: { x: 350, y: y + 10 },
-    end: { x: rightMargin, y: y + 10 },
-    thickness: 2, color: purple,
-  });
+  page.drawLine({ start: { x: 350, y: y + 10 }, end: { x: rightMargin, y: y + 10 }, thickness: 2, color: purple });
   drawTotalRow("Total Amount:", `Rs.${data.gst.totalAmount.toLocaleString("en-IN")}`, y, true);
 
-  // ── Payment Details Section ──
+  // Payment Details
   y -= 40;
-  
-  // Bank Details Box
-  page.drawRectangle({
-    x: leftMargin, y: y - 70,
-    width: 240, height: 85, color: lightGray,
-  });
-  page.drawText("Bank Details", {
-    x: leftMargin + 10, y, size: 11, font: fontBold, color: purple,
-  });
+  page.drawRectangle({ x: leftMargin, y: y - 70, width: 240, height: 85, color: lightGray });
+  page.drawText("Bank Details", { x: leftMargin + 10, y, size: 11, font: fontBold, color: purple });
   y -= 14;
   page.drawText(`Bank: ${BANK.name}`, { x: leftMargin + 10, y, size: 8, font, color: gray });
   y -= 12;
@@ -265,51 +178,25 @@ async function generateInvoicePDF(data: {
   y -= 12;
   page.drawText(`Branch: ${BANK.branch}`, { x: leftMargin + 10, y, size: 8, font, color: gray });
 
-  // UPI Details Box (right side)
   const upiBoxY = y + 62;
-  page.drawRectangle({
-    x: 310, y: upiBoxY - 40,
-    width: 240, height: 55, color: lightGray,
-  });
-  page.drawText("UPI Payment", {
-    x: 320, y: upiBoxY, size: 11, font: fontBold, color: purple,
-  });
-  page.drawText(`UPI ID: ${UPI.upiId}`, {
-    x: 320, y: upiBoxY - 16, size: 8, font, color: gray,
-  });
+  page.drawRectangle({ x: 310, y: upiBoxY - 40, width: 240, height: 55, color: lightGray });
+  page.drawText("UPI Payment", { x: 320, y: upiBoxY, size: 11, font: fontBold, color: purple });
+  page.drawText(`UPI ID: ${UPI.upiId}`, { x: 320, y: upiBoxY - 16, size: 8, font, color: gray });
 
-  // ── Notes ──
+  // Notes
   y -= 25;
-  page.drawRectangle({
-    x: leftMargin, y: y - 30,
-    width: rightMargin - leftMargin, height: 42, color: rgb(1, 0.973, 0.882),
-  });
-  // Yellow left border
-  page.drawRectangle({
-    x: leftMargin, y: y - 30,
-    width: 3, height: 42, color: rgb(1, 0.757, 0.027),
-  });
-  page.drawText("Notes", {
-    x: leftMargin + 10, y, size: 11, font: fontBold, color: purple,
-  });
+  page.drawRectangle({ x: leftMargin, y: y - 30, width: rightMargin - leftMargin, height: 42, color: rgb(1, 0.973, 0.882) });
+  page.drawRectangle({ x: leftMargin, y: y - 30, width: 3, height: 42, color: rgb(1, 0.757, 0.027) });
+  page.drawText("Notes", { x: leftMargin + 10, y, size: 11, font: fontBold, color: purple });
   y -= 13;
-  page.drawText("Your personalized numerology report will be delivered within 24-48 hours.", {
-    x: leftMargin + 10, y, size: 8, font, color: gray,
-  });
+  page.drawText("Your personalized numerology report will be delivered within 24-48 hours.", { x: leftMargin + 10, y, size: 8, font, color: gray });
   y -= 11;
-  page.drawText("Report will be sent to your registered whatsapp number / email address.", {
-    x: leftMargin + 10, y, size: 8, font, color: gray,
-  });
+  page.drawText("Report will be sent to your registered whatsapp number / email address.", { x: leftMargin + 10, y, size: 8, font, color: gray });
 
-  // ── Terms ──
+  // Terms
   y -= 25;
-  page.drawRectangle({
-    x: leftMargin, y: y - 45,
-    width: rightMargin - leftMargin, height: 58, color: lightGray,
-  });
-  page.drawText("Terms & Conditions", {
-    x: leftMargin + 10, y, size: 11, font: fontBold, color: purple,
-  });
+  page.drawRectangle({ x: leftMargin, y: y - 45, width: rightMargin - leftMargin, height: 58, color: lightGray });
+  page.drawText("Terms & Conditions", { x: leftMargin + 10, y, size: 11, font: fontBold, color: purple });
   y -= 13;
   const terms = [
     "Items are non-refundable once the order is confirmed.",
@@ -322,51 +209,16 @@ async function generateInvoicePDF(data: {
     y -= 11;
   }
 
-  // ── Footer ──
+  // Footer
   y -= 15;
-  page.drawLine({
-    start: { x: leftMargin, y: y + 5 },
-    end: { x: rightMargin, y: y + 5 },
-    thickness: 0.5, color: lightGray,
-  });
+  page.drawLine({ start: { x: leftMargin, y: y + 5 }, end: { x: rightMargin, y: y + 5 }, thickness: 0.5, color: lightGray });
   const thankYou = "Thank you for your business!";
-  page.drawText(thankYou, {
-    x: (width - font.widthOfTextAtSize(thankYou, 9)) / 2,
-    y, size: 9, font: fontBold, color: gray,
-  });
+  page.drawText(thankYou, { x: (width - font.widthOfTextAtSize(thankYou, 9)) / 2, y, size: 9, font: fontBold, color: gray });
   y -= 12;
   const footerText = "This is a computer-generated invoice and does not require a signature.";
-  page.drawText(footerText, {
-    x: (width - font.widthOfTextAtSize(footerText, 8)) / 2,
-    y, size: 8, font, color: gray,
-  });
+  page.drawText(footerText, { x: (width - font.widthOfTextAtSize(footerText, 8)) / 2, y, size: 8, font, color: gray });
 
   return await pdfDoc.save();
-}
-
-// ─── UPLOAD TO STORAGE ───
-async function uploadToStorage(
-  supabase: ReturnType<typeof createClient>,
-  pdfBytes: Uint8Array,
-  customerEmail: string,
-  invoiceId: string,
-  createdAt: string,
-) {
-  const date = new Date(createdAt);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const safeEmail = customerEmail.replace(/[^a-zA-Z0-9@._-]/g, "_");
-  const path = `${year}/${month}/${safeEmail}_${invoiceId}.pdf`;
-
-  const { error } = await supabase.storage
-    .from("invoices")
-    .upload(path, pdfBytes, {
-      contentType: "application/pdf",
-      upsert: true,
-    });
-
-  if (error) throw new Error(`Storage upload failed: ${error.message}`);
-  return path;
 }
 
 // ─── GET FINANCIAL YEAR ───
@@ -397,53 +249,21 @@ Deno.serve(async (req: Request) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const result = await generateForOrder(supabase, orderId);
+      const result = await generateForOrder(supabase as any, orderId);
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (action === "backfill") {
-      const result = await backfillInvoices(supabase);
+      const result = await backfillInvoices(supabase as any);
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    if (action === "download") {
-      const { invoiceId } = body;
-      if (!invoiceId) {
-        return new Response(JSON.stringify({ error: "invoiceId required" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const { data: invoice } = await supabase
-        .from("invoices")
-        .select("storage_url")
-        .eq("id", invoiceId)
-        .single();
-
-      if (!invoice?.storage_url) {
-        return new Response(JSON.stringify({ error: "Invoice not found" }), {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const { data: signedUrl } = await supabase.storage
-        .from("invoices")
-        .createSignedUrl(invoice.storage_url, 3600);
-
-      return new Response(
-        JSON.stringify({ url: signedUrl?.signedUrl }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
     return new Response(
-      JSON.stringify({ error: "Invalid action. Use: generate, backfill, download" }),
+      JSON.stringify({ error: "Invalid action. Use: generate, backfill" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
@@ -456,13 +276,9 @@ Deno.serve(async (req: Request) => {
 });
 
 // ─── GENERATE FOR SINGLE ORDER ───
-async function generateForOrder(
-  supabase: ReturnType<typeof createClient>,
-  orderId: string,
-  retryCount = 0,
-): Promise<{ success: boolean; invoiceId?: string; error?: string }> {
+// deno-lint-ignore no-explicit-any
+async function generateForOrder(supabase: any, orderId: string, retryCount = 0): Promise<{ success: boolean; invoiceId?: string; error?: string }> {
   try {
-    // Check if invoice already exists
     const { data: existing } = await supabase
       .from("invoices")
       .select("id, invoice_number")
@@ -473,7 +289,6 @@ async function generateForOrder(
       return { success: true, invoiceId: existing.id };
     }
 
-    // Fetch order
     const { data: order, error: orderErr } = await supabase
       .from("orders")
       .select("*")
@@ -484,13 +299,9 @@ async function generateForOrder(
       return { success: false, error: `Order not found: ${orderId}` };
     }
 
-    // Determine pincode for GST
     const pincode = order.child_pincode || null;
-
-    // Calculate GST
     const gst = calculateGST(order.amount, pincode);
 
-    // Get invoice number
     const orderDate = new Date(order.created_at);
     const fy = getFinancialYear(orderDate);
     const { data: seqData, error: seqErr } = await supabase.rpc(
@@ -504,13 +315,11 @@ async function generateForOrder(
 
     const { invoice_number, sequence_num } = seqData[0];
     const invoiceDate = orderDate.toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
+      day: "2-digit", month: "short", year: "numeric",
     });
 
-    // Generate PDF
-    const pdfBytes = await generateInvoicePDF({
+    // Generate PDF (not stored, just for DB record)
+    await generateInvoicePDFBytes({
       invoiceNumber: invoice_number,
       invoiceDate,
       customerName: order.customer_name,
@@ -521,16 +330,7 @@ async function generateForOrder(
       gst,
     });
 
-    // Upload to storage
-    const storagePath = await uploadToStorage(
-      supabase,
-      pdfBytes,
-      order.customer_email,
-      invoice_number.replace(/\//g, "-"),
-      order.created_at,
-    );
-
-    // Save to DB
+    // Save invoice record to DB (no storage_url)
     const { data: inv, error: invErr } = await supabase
       .from("invoices")
       .insert({
@@ -554,7 +354,7 @@ async function generateForOrder(
         is_intra_state: gst.isIntraState,
         hsn_sac_code: COMPANY.hsnSac,
         transaction_id: order.transaction_id,
-        storage_url: storagePath,
+        storage_url: null,
       })
       .select("id")
       .single();
@@ -574,7 +374,8 @@ async function generateForOrder(
 }
 
 // ─── BACKFILL ───
-async function backfillInvoices(supabase: ReturnType<typeof createClient>) {
+// deno-lint-ignore no-explicit-any
+async function backfillInvoices(supabase: any) {
   const { data: orders, error } = await supabase
     .from("orders")
     .select("order_id")
@@ -594,7 +395,6 @@ async function backfillInvoices(supabase: ReturnType<typeof createClient>) {
   let success = 0;
   let failed = 0;
 
-  // Process in batches of 5
   for (let i = 0; i < toProcess.length; i += 5) {
     const batch = toProcess.slice(i, i + 5);
     const batchResults = await Promise.allSettled(
@@ -609,10 +409,7 @@ async function backfillInvoices(supabase: ReturnType<typeof createClient>) {
         results.push({ orderId, success: true });
       } else {
         failed++;
-        const err =
-          r.status === "fulfilled"
-            ? r.value.error
-            : (r.reason as Error).message;
+        const err = r.status === "fulfilled" ? r.value.error : (r.reason as Error).message;
         results.push({ orderId, success: false, error: err });
       }
     }

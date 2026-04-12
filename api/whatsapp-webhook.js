@@ -3,7 +3,7 @@
 // - GET  → verify webhook with Facebook challenge
 // - POST → receive incoming messages from customers
 
-import './suppress-deprecation.js';
+import './_utils/suppress-deprecation.js';
 import { rateLimiter } from './_utils/rate-limiter.js';
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'ankshaastra_webhook_verify';

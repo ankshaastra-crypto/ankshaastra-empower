@@ -3,7 +3,7 @@
 // GET /api/admin/verify-order?orderId=ORD123
 // GET /api/admin/verify-order?latest=10   (last N orders)
 
-import '../suppress-deprecation.js';
+import '../_utils/suppress-deprecation.js';
 import { getPool, DB_SCHEMA } from '../_utils/db.js';
 
 const ADMIN_TOKEN = process.env.ADMIN_VERIFY_TOKEN || 'ankshaastra-admin-verify';

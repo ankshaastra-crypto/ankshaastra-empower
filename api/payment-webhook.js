@@ -1,5 +1,5 @@
 // api/payment-webhook.js
-import './suppress-deprecation.js';
+import './_utils/suppress-deprecation.js';
 
 import crypto from 'crypto';
 import { sendPaymentEmail } from './_utils/send-email.js';

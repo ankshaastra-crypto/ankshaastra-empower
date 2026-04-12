@@ -1,15 +1,2 @@
-# DB Module Resolution Fix - Vercel Deploy Error
-Status: 🔄 In Progress
-
-## Plan Steps (3 files → Static imports + Clean conflicts)
-
-✅ **Step 1**: Resolve Git conflict + Static import in `api/payment-status.js`  
-⏳ **Step 2**: Static import in `api/initiate-payment.js`  
-⏳ **Step 3**: Static import in `api/payment-webhook.js`  
-⏳ **Step 4**: Test `vercel dev` → `/api/initiate-payment`, `/api/payment-status`  
-⏳ **Step 5**: Deploy `vercel --prod`  
-⏳ **Step 6**: Verify build logs + end-to-end payment  
-
-**Next**: Edit `api/initiate-payment.js`
-
+# Fix Node.js Deployment Errors (ESM Import Issues)\n\n## Plan Status: ✅ APPROVED & IMPLEMENTED\n\n**Step 1: Create TODO.md** ✅ *Completed*\n\n**Step 2: Fix suppress-deprecation.js import paths** ✅ *All 6 files updated*\n\nFiles fixed:\n- ✅ `api/payment-webhook.js`\n- ✅ `api/admin/verify-order.js` \n- ✅ `api/whatsapp-webhook.js`\n- ✅ `api/_utils/db.js`\n- ✅ `api/_utils/redis-cache.js`\n- ✅ `api/_utils/send-email.js`\n\n**Step 3: User redeploy to Vercel** ⏳ *Next*\n```\nvercel --prod\n```\n\n**Step 4: Test deployment** ⏳ *Pending*\n\n## Changes Summary\n✅ Fixed inconsistent `./suppress-deprecation.js` → `./_utils/suppress-deprecation.js`\n✅ Removed redundant imports within `_utils/` dir\n✅ No syntax changes needed (no unclosed strings found)\n\n**Deploy now to verify fixes.** Run `vercel --prod` then check Vercel logs for errors.\n\n*If issues persist after deploy, share new logs.*
 

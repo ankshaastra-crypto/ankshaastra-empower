@@ -1,7 +1,6 @@
 // Suppress DEP0169 deprecation warning from dependencies
+import './suppress-deprecation.js';
 
-
-// Load .env for local development (Vercel injects env in production)
 import pg from 'pg';
 
 const { Pool } = pg;
@@ -27,6 +26,34 @@ BEGIN
     WHERE table_schema = '${DB_SCHEMA}' AND table_name = 'orders' AND column_name = 'order_id'
   ) THEN
     EXECUTE 'DROP TABLE IF EXISTS ${DB_SCHEMA}.orders CASCADE';
+  END IF;
+END $$;
+`;
+
+// Migration: safely add columns that may be missing from existing tables
+// This runs every time but each ALTER TABLE is guarded with IF NOT EXISTS
+const MIGRATION_SQL = `
+DO $$
+BEGIN
+  -- Add missing baby report columns to customer_details (safe: IF NOT EXISTS)
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${DB_SCHEMA}' AND table_name = 'customer_details' AND column_name = 'father_full_name') THEN
+    ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN father_full_name VARCHAR(255);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${DB_SCHEMA}' AND table_name = 'customer_details' AND column_name = 'child_last_name') THEN
+    ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN child_last_name VARCHAR(255);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${DB_SCHEMA}' AND table_name = 'customer_details' AND column_name = 'father_first_as_middle') THEN
+    ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN father_first_as_middle VARCHAR(50);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${DB_SCHEMA}' AND table_name = 'customer_details' AND column_name = 'child_middle_name') THEN
+    ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN child_middle_name VARCHAR(255);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${DB_SCHEMA}' AND table_name = 'customer_details' AND column_name = 'name_options') THEN
+    ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN name_options TEXT;
+  END IF;
+  -- Ensure place_of_birth exists (may be missing from very old schemas)
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = '${DB_SCHEMA}' AND table_name = 'customer_details' AND column_name = 'place_of_birth') THEN
+    ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN place_of_birth VARCHAR(255);
   END IF;
 END $$;
 `;
@@ -147,6 +174,14 @@ export async function ensureSchemaOnce(force = false) {
   try {
     await p.query(LEGACY_MIGRATION_SQL);
 
+    // Run column migrations FIRST (before table creation, in case table exists)
+    try {
+      await p.query(MIGRATION_SQL);
+      console.log('DB migration applied (missing columns added if any)');
+    } catch (migErr) {
+      console.error('Migration error (non-fatal):', migErr.message);
+    }
+
     const statements = SCHEMA_SQL.split(';')
       .map((s) => s.trim())
       .filter(Boolean);
@@ -249,7 +284,10 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
         person3_dob = EXCLUDED.person3_dob, person3_gender = EXCLUDED.person3_gender,
         father_first_name = EXCLUDED.father_first_name, father_middle_name = EXCLUDED.father_middle_name,
         father_middle_name_type = EXCLUDED.father_middle_name_type, father_last_name = EXCLUDED.father_last_name,
-        child_dob = EXCLUDED.child_dob, time_of_birth = EXCLUDED.time_of_birth, place_of_birth = EXCLUDED.place_of_birth`,
+        child_dob = EXCLUDED.child_dob, time_of_birth = EXCLUDED.time_of_birth, place_of_birth = EXCLUDED.place_of_birth,
+        father_full_name = EXCLUDED.father_full_name, child_last_name = EXCLUDED.child_last_name,
+        father_first_as_middle = EXCLUDED.father_first_as_middle, child_middle_name = EXCLUDED.child_middle_name,
+        name_options = EXCLUDED.name_options`,
       [
         orderId,
         customerData.email || '',
@@ -287,6 +325,11 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
         customerData.childDob || null,
         customerData.timeOfBirth || null,
         customerData.placeOfBirth || null,
+        customerData.fatherFullName || null,
+        customerData.childLastName || null,
+        customerData.fatherFirstNameAsMiddleName || null,
+        customerData.childMiddleName || null,
+        customerData.nameOptions || null,
       ]
     );
 

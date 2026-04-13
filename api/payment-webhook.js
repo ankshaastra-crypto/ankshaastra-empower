@@ -17,61 +17,69 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Debug: Log webhook structure
-    console.log('Webhook received - event:', req.body.event);
-    console.log('Webhook payload keys:', Object.keys(req.body));
-    if (req.body.payload) {
-      console.log('Payload.payment exists:', !!req.body.payload?.payment);
+    // ── Read raw body BEFORE any parsing (critical for Razorpay signature) ────
+    // bodyParser is disabled via config export below so req is a raw stream.
+    const rawBody = await new Promise((resolve, reject) => {
+      let data = '';
+      req.on('data', chunk => { data += chunk; });
+      req.on('end', () => resolve(data));
+      req.on('error', reject);
+    });
+
+    // Parse JSON from raw string
+    let body;
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      console.error('Invalid JSON in webhook body');
+      return res.status(400).json({ error: 'Invalid JSON payload' });
     }
 
-    const event = req.body.event;
-    const paymentEntity = req.body.payload?.payment;
-
-    if (!paymentEntity) {
-      console.error('Invalid Razorpay webhook payload structure:', {
-        hasPayload: !!req.body.payload,
-        hasPayment: !!req.body.payload?.payment,
-        bodyKeys: Object.keys(req.body),
-        event: req.body.event
-      });
-      return res.status(400).json({ error: 'Invalid payload structure' });
-    }
-
-    console.log(`✅ Payment entity found: ${paymentEntity.id}, order: ${paymentEntity.order_id}, status: ${paymentEntity.status}`);
-
-    // Verify webhook secret
+    // ── Verify Razorpay signature using EXACT raw bytes ───────────────────────
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
     if (!webhookSecret) {
-      console.error('Missing Razorpay webhook secret');
+      console.error('Missing RAZORPAY_WEBHOOK_SECRET env var');
       return res.status(500).json({ error: 'Server configuration error' });
     }
 
     const xRazorpaySignature = req.headers['x-razorpay-signature'];
     if (!xRazorpaySignature) {
       console.error('Missing X-Razorpay-Signature header');
-      return res.status(400).json({ error: 'Invalid webhook signature' });
+      return res.status(400).json({ error: 'Missing webhook signature' });
     }
 
-    const rawBody = JSON.stringify(req.body);
     const expectedSignature = crypto
       .createHmac('sha256', webhookSecret)
-      .update(rawBody)
+      .update(rawBody)   // Use RAW string — not JSON.stringify(body)
       .digest('hex');
 
     if (xRazorpaySignature !== expectedSignature) {
-      console.error('Invalid webhook signature');
+      console.error('❌ Webhook signature mismatch — check RAZORPAY_WEBHOOK_SECRET matches Razorpay dashboard');
       return res.status(400).json({ error: 'Invalid webhook signature' });
+    }
+
+    console.log('✅ Webhook signature verified');
+
+    // ── Extract event + payment entity ────────────────────────────────────────
+    const event = body.event;
+    // Razorpay sends payload.payment.entity for payment events
+    const paymentEntity = body.payload?.payment?.entity || body.data?.payment || body.data?.order;
+
+    if (!paymentEntity) {
+      console.error('No payment entity in webhook payload — event:', event, 'keys:', Object.keys(body));
+      return res.status(400).json({ error: 'No payment entity in payload' });
     }
 
     // Extract payment details
     const orderId = paymentEntity.order_id || paymentEntity.id;
     const transactionId = paymentEntity.id;
     const status =
-      (event === 'payment.captured' || paymentEntity.status === 'captured' || paymentEntity.status === 'paid')
+      (event === 'payment.captured' || event === 'order.paid' ||
+       paymentEntity.status === 'captured' || paymentEntity.status === 'paid')
         ? 'SUCCESS'
         : 'FAILED';
 
-    console.log(`Payment status determined: ${status} (event: ${event}, entity.status: ${paymentEntity.status})`);
+    console.log(`📊 Webhook: ${status} | event: ${event} | order: ${orderId} | tx: ${transactionId}`);
     const paymentAmount = paymentEntity.amount || 0;
 
     // Fetch customer metadata from Redis cache
@@ -351,3 +359,12 @@ async function sendWhatsAppNotification({ customerName, customerMobile, orderId,
     }
   }
 }
+
+// ── Vercel config: disable body parser so we receive the raw request body ────
+// Required for Razorpay webhook signature verification.
+// Without this, Vercel parses + re-serializes the body, breaking the HMAC check.
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};

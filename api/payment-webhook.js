@@ -195,8 +195,8 @@ export default async function handler(req, res) {
     // Send confirmation emails (customer + admin)
     console.log(`📧 Sending emails for order ${orderId} — status: ${status}, customer: ${finalCustomerEmail}`);
     const emailResult = await sendPaymentEmail({
-      to: finalCustomerEmail,
       customerEmail:   finalCustomerEmail,
+      orderId,  // ← Added missing orderId param
       customerName:    finalCustomerName,
       customerMobile:  finalCustomerMobile,
       customerDob:     finalCustomerDob,
@@ -236,7 +236,6 @@ export default async function handler(req, res) {
       timeOfBirth:                finalTimeOfBirth,
       placeOfBirth:               finalPlaceOfBirth,
       pinCode:                    finalPinCode,
-      orderId,
       amount:        paymentAmount,
       packageType:   finalPackageType,
       status,

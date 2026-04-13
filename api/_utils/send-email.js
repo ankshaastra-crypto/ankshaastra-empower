@@ -59,6 +59,7 @@ const getTransporter = () => {
 export async function sendPaymentEmail({ 
   to, 
   customerEmail, 
+  orderId,
   customerName, 
   customerMobile = '',
   customerDob = '',
@@ -98,13 +99,18 @@ export async function sendPaymentEmail({
   timeOfBirth = '',
   placeOfBirth = '',
   pinCode = '',
-  orderId, 
   amount, 
   packageType, 
   status, 
   transactionId,
   invoicePdfBuffer = null,
 }) {
+  // ─── DEDUPLICATION CHECK ──────────────────────────────────────────────────
+  // Skip if already sent for this order+email (webhook + status page idempotency)
+  if (await import('./db.js').then(m => m.isEmailSent(customerEmail, orderId))) {
+    console.log(`⏭️  Email already sent for ${orderId} → ${customerEmail}`);
+    return { success: true, skipped: true, reason: 'already_sent' };
+  }
   const adminEmail = 'social@ankshaastra.com';
   const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';
 
@@ -753,7 +759,8 @@ export async function sendPaymentEmail({
         customerSuccess = true;
         console.log(`✅ Customer email sent successfully! Message ID: ${customerEmailResult.messageId}`);
         try {
-          await recordEmailDelivery(customerEmail, 'sent');
+          const { recordEmailDelivery } = await import('./db.js');
+          await recordEmailDelivery(customerEmail, orderId, 'sent');
         } catch {
           /* non-fatal */
         }

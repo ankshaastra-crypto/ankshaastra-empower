@@ -97,10 +97,15 @@ CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}.payment (
 CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}."emailDelivery" (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT NOT NULL,
+  order_id VARCHAR(100),
   status TEXT,
   sent_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Deduplication constraint: one email per order per recipient
+ALTER TABLE ${DB_SCHEMA}."emailDelivery" ADD CONSTRAINT IF NOT EXISTS unique_email_order 
+  UNIQUE(email, order_id);
 
 CREATE INDEX IF NOT EXISTS idx_customer_details_order_id ON ${DB_SCHEMA}.customer_details(order_id);
 CREATE INDEX IF NOT EXISTS idx_payment_order_id ON ${DB_SCHEMA}.payment(order_id);
@@ -443,16 +448,35 @@ export async function savePayment(orderId, transactionId, amountPaise, status) {
   }
 }
 
-// ─── recordEmailDelivery ───────────────────────────────────────────────────────
-export async function recordEmailDelivery(email, deliveryStatus = 'sent') {
+// ─── isEmailSent ────────────────────────────────────────────────────────────────
+// Check if email already sent for this order+recipient (deduplication)
+export async function isEmailSent(email, orderId) {
   const p = getPool();
-  if (!p || !email) return false;
+  if (!p || !email || !orderId) return false;
+  try {
+    const result = await p.query(
+      `SELECT 1 FROM ${DB_SCHEMA}."emailDelivery" 
+       WHERE email = $1 AND order_id = $2 AND status = 'sent'`,
+      [email, orderId]
+    );
+    return result.rowCount > 0;
+  } catch (error) {
+    console.error('isEmailSent check failed:', error.message);
+    return false; // Fail open — don't block email
+  }
+}
+
+// ─── recordEmailDelivery ───────────────────────────────────────────────────────
+export async function recordEmailDelivery(email, orderId, deliveryStatus = 'sent') {
+  const p = getPool();
+  if (!p || !email || !orderId) return false;
   await ensureSchemaOnce();
   try {
     await p.query(
-      `INSERT INTO ${DB_SCHEMA}."emailDelivery" (email, status, sent_at)
-       VALUES ($1, $2, NOW())`,
-      [email, deliveryStatus]
+      `INSERT INTO ${DB_SCHEMA}."emailDelivery" (email, order_id, status, sent_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (email, order_id) DO NOTHING`,
+      [email, orderId, deliveryStatus]
     );
     return true;
   } catch (error) {

@@ -225,42 +225,16 @@ export default async function handler(req, res) {
         console.error('❌ PDF generation failed (non-fatal):', pdfErr.message);
       }
 
-      // Send emails to customer + admin (non-fatal if fails)
+      // ❌ REMOVED: Duplicate emails now handled ONLY by webhook
+      // Webhook (payment-webhook.js) is single authoritative source
+      // This prevents 4→2 emails total (admin + customer)
+      /*
       try {
-        const emailResult = await sendPaymentEmail({
-          to:            customerEmail,
-          customerEmail,
-          customerName,
-          customerMobile,
-          customerDob,
-          customerGender,
-          customerCity,
-          person1Name,     person1FirstName,  person1MiddleName,  person1SurName,
-          person1Dob,      person1Gender,     person1MiddleNameType,
-          person2Name,     person2FirstName,  person2MiddleName,  person2SurName,
-          person2Dob,      person2Gender,     person2MiddleNameType,
-          person3Name,     person3FirstName,  person3MiddleName,  person3SurName,
-          person3Dob,      person3Gender,     person3MiddleNameType,
-          fatherFirstName, fatherMiddleName,  fatherMiddleNameType, fatherLastName,
-          fatherFullName,  childDob,          childMiddleName,    childLastName,
-          fatherFirstNameAsMiddleName,        nameOptions,
-          timeOfBirth,     placeOfBirth,      pinCode,
-          orderId:         internalOrderId,
-          amount:          amountInPaise,
-          packageType,
-          status:          paymentStatus,
-          transactionId:   transactionId || '',
-          invoicePdfBuffer,
-        });
-
-        if (emailResult?.success) {
-          console.log('✅ Emails sent to customer + admin');
-        } else {
-          console.error('❌ Email failed:', emailResult?.error);
-        }
-      } catch (emailErr) {
-        console.error('❌ Email error (non-fatal):', emailErr.message);
-      }
+        const emailResult = await sendPaymentEmail({...});
+        ...
+      } catch (emailErr) {...}
+      */
+      console.log('ℹ️  Emails handled by webhook — page loads status only');
     }
 
     // ─────────────────────────────────────────────────────────────────────────

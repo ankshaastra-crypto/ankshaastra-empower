@@ -1,25 +1,19 @@
-# Fix Razorpay Webhook Payload Issue
+# Fix Duplicate Invoice Emails
 
 ## Status: 🔄 In Progress
 
-### Step 1: [✅] Analysis Complete
-- Identified root cause: Wrong payload path `req.body.data?.payment` → should be `req.body.payload?.payment`
-- Plan reviewed and approved
+### Plan Steps:
+- [x] 1. Analyze email sending flow (files read)
+- [ ] 2. Identify duplicate triggers  
+- [ ] 3. Add deduplication logic (emailDelivery table + constraints)
+- [ ] 4. Single source: webhook only sends emails
+- [ ] 5. Test: exactly 2 emails (admin + customer)
+- [x] 6. Razorpay ✅ Fixed separately
 
-### Step 2: [✅] Create TODO.md
-- Track progress
+### Current Understanding:
+- Webhook (`verify-payment.js`) likely sends emails
+- Frontend (`PaymentStatus.tsx`) may also trigger  
+- Need deduplication regardless
 
-### Step 3: [✅] Fix api/payment-webhook.js
-- Updated payload extraction to `req.body.payload?.payment`
-- Added debug logging (payload structure, keys)
-- Improved status logic (`captured`/`paid`)
-- Enhanced error diagnostics
-
-### Step 4: [⏳] Deploy & Verify Production Logs
-- Deploy to Vercel 
-- Monitor for "Invalid payload" resolution
-- Check next webhook call logs
-
-### Step 5: [⏳] Test End-to-End
-- Live payment → webhook → DB/email/PDF/WhatsApp
+**Next**: Implement DB constraint + check before send"
 

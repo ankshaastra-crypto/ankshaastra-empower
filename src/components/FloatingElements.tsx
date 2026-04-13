@@ -43,16 +43,6 @@ const FloatingElements = () => {
         <span>Get My Report</span>
       </button>
 
-      <a
-        href="https://wa.me/919667305577"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-20 left-6 z-50 border-2 border-green-500 text-green-600 bg-background/80 backdrop-blur-sm px-4 py-3 rounded-full transition-all duration-300 hover:bg-green-500 hover:text-white hover:scale-105 flex items-center gap-2"
-        aria-label="Contact on WhatsApp"
-      >
-        <FaWhatsapp className="w-5 h-5" />
-        <span className="text-sm font-medium">Chat With Me</span>
-      </a>
 
       {showBackToTop && (
         <button

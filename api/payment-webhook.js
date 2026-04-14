@@ -82,18 +82,101 @@ export default async function handler(req, res) {
     console.log(`📊 Webhook: ${status} | event: ${event} | order: ${orderId} | tx: ${transactionId}`);
     const paymentAmount = paymentEntity.amount || 0;
 
-    // Fetch customer metadata from Redis cache
+    // Fetch customer metadata — Redis first, then DB fallback
     let metadata = {};
     if (orderId) {
+      // Try Redis cache first (fastest)
       try {
         const { getRedisCache } = await import('./_utils/redis-cache.js');
         const cache = getRedisCache();
         const storedOrder = await cache.get(`order:${orderId}`);
         if (storedOrder && typeof storedOrder === 'object') {
           metadata = storedOrder;
+          console.log(`✅ Metadata from Redis for order: ${orderId}`);
         }
       } catch {
-        console.warn('Redis cache miss for order:', orderId);
+        console.warn('Redis cache miss — will try DB fallback');
+      }
+
+      // DB fallback: if Redis had no data, query customer_details table
+      if (!metadata.email) {
+        try {
+          const { getPool, DB_SCHEMA } = await import('./_utils/db.js');
+          const p = getPool();
+          if (p) {
+            const result = await p.query(
+              `SELECT c.email, c.name, c.mobile, c.dob, c.gender, c.city, c.pin_code,
+                      c.person1_name, c.person1_first_name, c.person1_middle_name,
+                      c.person1_sur_name, c.person1_dob, c.person1_gender,
+                      c.person1_middle_name_type,
+                      c.person2_name, c.person2_first_name, c.person2_middle_name,
+                      c.person2_sur_name, c.person2_dob, c.person2_gender,
+                      c.person2_middle_name_type,
+                      c.person3_name, c.person3_first_name, c.person3_middle_name,
+                      c.person3_sur_name, c.person3_dob, c.person3_gender,
+                      c.person3_middle_name_type,
+                      c.father_first_name, c.father_middle_name, c.father_middle_name_type,
+                      c.father_last_name, c.father_full_name,
+                      c.child_dob, c.child_middle_name, c.child_last_name,
+                      c.father_first_as_middle, c.name_options,
+                      c.time_of_birth, c.place_of_birth, c.pin_code as pin_code2,
+                      o.package_type, o.amount
+               FROM ${DB_SCHEMA}.customer_details c
+               JOIN ${DB_SCHEMA}.orders o ON o.order_id = c.order_id
+               WHERE c.order_id = $1`,
+              [orderId]
+            );
+            if (result.rows.length > 0) {
+              const r = result.rows[0];
+              metadata = {
+                email:  r.email,
+                name:   r.name,
+                mobile: r.mobile,
+                dob:    r.dob,
+                gender: r.gender,
+                city:   r.city,
+                pinCode: r.pin_code,
+                packageType: r.package_type,
+                person1Name:           r.person1_name,
+                person1FirstName:      r.person1_first_name,
+                person1MiddleName:     r.person1_middle_name,
+                person1SurName:        r.person1_sur_name,
+                person1Dob:            r.person1_dob,
+                person1Gender:         r.person1_gender,
+                person1MiddleNameType: r.person1_middle_name_type,
+                person2Name:           r.person2_name,
+                person2FirstName:      r.person2_first_name,
+                person2MiddleName:     r.person2_middle_name,
+                person2SurName:        r.person2_sur_name,
+                person2Dob:            r.person2_dob,
+                person2Gender:         r.person2_gender,
+                person2MiddleNameType: r.person2_middle_name_type,
+                person3Name:           r.person3_name,
+                person3FirstName:      r.person3_first_name,
+                person3MiddleName:     r.person3_middle_name,
+                person3SurName:        r.person3_sur_name,
+                person3Dob:            r.person3_dob,
+                person3Gender:         r.person3_gender,
+                person3MiddleNameType: r.person3_middle_name_type,
+                fatherFirstName:             r.father_first_name,
+                fatherMiddleName:            r.father_middle_name,
+                fatherMiddleNameType:        r.father_middle_name_type,
+                fatherLastName:              r.father_last_name,
+                fatherFullName:              r.father_full_name,
+                childDob:                    r.child_dob,
+                childMiddleName:             r.child_middle_name,
+                childLastName:               r.child_last_name,
+                fatherFirstNameAsMiddleName: r.father_first_as_middle,
+                nameOptions:                 r.name_options,
+                timeOfBirth:                 r.time_of_birth,
+                placeOfBirth:                r.place_of_birth,
+              };
+              console.log(`✅ Metadata from DB for order: ${orderId} — email: ${metadata.email}`);
+            }
+          }
+        } catch (dbFallbackErr) {
+          console.warn('DB fallback for metadata failed:', dbFallbackErr.message);
+        }
       }
     }
 
@@ -148,10 +231,13 @@ export default async function handler(req, res) {
     const finalTimeOfBirth                = str(metadata.timeOfBirth);
     const finalPlaceOfBirth               = str(metadata.placeOfBirth);
 
-    // Validate required fields
-    if (!finalCustomerEmail || !orderId) {
-      console.error('Missing required fields for email — email:', finalCustomerEmail, 'orderId:', orderId);
-      return res.status(400).json({ error: 'Missing required fields' });
+    // Log warning if email missing but don't block — webhook must return 200 to Razorpay
+    if (!finalCustomerEmail) {
+      console.warn(`⚠️  No customer email found for order ${orderId} — emails will be skipped`);
+    }
+    if (!orderId) {
+      console.error('No orderId in webhook payload');
+      return res.status(400).json({ error: 'Missing orderId' });
     }
 
     // Save payment to PostgreSQL
@@ -192,9 +278,12 @@ export default async function handler(req, res) {
       }
     }
 
-    // Send confirmation emails (customer + admin)
-    console.log(`📧 Sending emails for order ${orderId} — status: ${status}, customer: ${finalCustomerEmail}`);
-    const emailResult = await sendPaymentEmail({
+    // Send confirmation emails (customer + admin) — only if email available
+    // Dedup check inside sendPaymentEmail prevents double-send with payment-status
+    let emailResult = { success: true, skipped: true };
+    if (finalCustomerEmail && status === 'SUCCESS') {
+      console.log(`📧 Webhook sending emails for order ${orderId} — customer: ${finalCustomerEmail}`);
+      emailResult = await sendPaymentEmail({
       customerEmail:   finalCustomerEmail,
       orderId,  // ← Added missing orderId param
       customerName:    finalCustomerName,
@@ -259,8 +348,12 @@ export default async function handler(req, res) {
       // Non-fatal
     }
 
-    if (!emailResult.success) {
+    } // end if(finalCustomerEmail && status === 'SUCCESS')
+
+    if (!emailResult.success && !emailResult.skipped) {
       console.error('Failed to send confirmation emails:', emailResult.error);
+    } else if (emailResult.skipped) {
+      console.log('⏭️  Emails already sent for this order (sent by payment-status) — skipped');
     }
 
     return res.status(200).json({

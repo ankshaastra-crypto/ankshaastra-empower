@@ -1,8 +1,8 @@
 // Suppress DEP0169 deprecation warning from dependencies
-
+import './suppress-deprecation.js';
 
 import nodemailer from 'nodemailer';
-import { recordEmailDelivery } from './db.js';
+import { recordEmailDelivery, isEmailSent } from './db.js';
 
 // Reuse transporter instance (singleton pattern) for better performance
 let transporterInstance = null;
@@ -105,11 +105,16 @@ export async function sendPaymentEmail({
   transactionId,
   invoicePdfBuffer = null,
 }) {
-  // ─── DEDUPLICATION CHECK ──────────────────────────────────────────────────
-  // Skip if already sent for this order+email (webhook + status page idempotency)
-  if (await import('./db.js').then(m => m.isEmailSent(customerEmail, orderId))) {
-    console.log(`⏭️  Email already sent for ${orderId} → ${customerEmail}`);
-    return { success: true, skipped: true, reason: 'already_sent' };
+  // ─── DEDUPLICATION CHECK ─────────────────────────────────────────────────
+  // One email per order per recipient — prevents double-send from webhook + status
+  try {
+    if (await isEmailSent(customerEmail, orderId)) {
+      console.log(`⏭️  Email already sent for order ${orderId} → ${customerEmail} — skipping`);
+      return { success: true, skipped: true, reason: 'already_sent' };
+    }
+  } catch (dedupErr) {
+    // DB check failed — log and continue (better to send than silently drop)
+    console.warn('⚠️  Dedup check failed (sending anyway):', dedupErr.message);
   }
   const adminEmail = 'social@ankshaastra.com';
   const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';

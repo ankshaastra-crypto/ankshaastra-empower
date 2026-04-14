@@ -100,12 +100,9 @@ CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}."emailDelivery" (
   order_id VARCHAR(100),
   status TEXT,
   sent_at TIMESTAMPTZ,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(email, order_id)
 );
-
--- Deduplication constraint: one email per order per recipient
-ALTER TABLE ${DB_SCHEMA}."emailDelivery" ADD CONSTRAINT IF NOT EXISTS unique_email_order 
-  UNIQUE(email, order_id);
 
 CREATE INDEX IF NOT EXISTS idx_customer_details_order_id ON ${DB_SCHEMA}.customer_details(order_id);
 CREATE INDEX IF NOT EXISTS idx_payment_order_id ON ${DB_SCHEMA}.payment(order_id);

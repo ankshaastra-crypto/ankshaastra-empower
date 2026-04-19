@@ -717,6 +717,9 @@ const FAQSection = () => {
 };
 
 // ─── Claim Form ───────────────────────────────────────────────────────────────
+const ADDON_EXTRA_NAMES_PRICE = 497;
+const BASE_REPORT_PRICE = 2497;
+
 const ClaimFormSection = () => {
   const ref = useFadeUp();
   const [formData, setFormData] = useState<FormData>({
@@ -727,6 +730,8 @@ const ClaimFormSection = () => {
   const [errors, setErrors]     = useState<FormErrors>({});
   const [touched, setTouched]   = useState<Partial<Record<keyof FormErrors, boolean>>>({});
   const [calOpen, setCalOpen]   = useState(false);
+  const [addonExtraNames, setAddonExtraNames] = useState(false);
+  const totalPrice = BASE_REPORT_PRICE + (addonExtraNames ? ADDON_EXTRA_NAMES_PRICE : 0);
 
   const handleChange = (name: keyof FormData, value: string | Date | undefined) => {
     const next = { ...formData, [name]: value };

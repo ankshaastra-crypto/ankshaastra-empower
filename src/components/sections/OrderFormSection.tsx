@@ -506,18 +506,6 @@ const OrderFormSection = () => {
         nameOptions: mergedNameOptions,
         packageType,
       };
-        person1Gender: babyFormData.gender,
-        fatherFullName: babyFormData.fatherFullName,
-        fatherFirstNameAsMiddleName: babyFormData.fatherFirstNameAsMiddleName || "",
-        childMiddleName: babyFormData.childMiddleName || "",
-        childLastName: babyFormData.childLastName,
-        childDob: babyFormData.childDob,
-        timeOfBirth: normalizeTimeInput(babyFormData.timeOfBirth),
-        placeOfBirth: babyFormData.placeOfBirth,
-        pinCode: babyFormData.pinCode,
-        nameOptions: babyFormData.nameOptions || "",
-        packageType,
-      };
     } else {
       orderPayload = {
         orderId,

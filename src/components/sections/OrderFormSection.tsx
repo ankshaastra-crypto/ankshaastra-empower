@@ -814,18 +814,8 @@ const OrderFormSection = () => {
         </div>
       </div>
 
-      {/* Birth City & Pin Code */}
+      {/* Pin Code & Birth City (Pin first to auto-fill city) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="placeOfBirth">Birth City *</Label>
-          <div className="relative">
-            <Input id="placeOfBirth" name="placeOfBirth" value={babyFormData.placeOfBirth} onChange={handleInputChange}
-              placeholder={cityLoading ? "Fetching city..." : "Enter birth city"} required
-              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.placeOfBirth ? "border-destructive" : isFieldValid("placeOfBirth") ? "border-success" : ""}`} />
-            <ValidIcon field="placeOfBirth" />
-          </div>
-          {errors.placeOfBirth && <p className="text-destructive text-sm mt-1">{errors.placeOfBirth}</p>}
-        </div>
         <div>
           <Label htmlFor="pinCode">Pin Code *</Label>
           <div className="relative">
@@ -835,6 +825,16 @@ const OrderFormSection = () => {
             {cityLoading ? <Loader2 className="w-4 h-4 animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" /> : <ValidIcon field="pinCode" />}
           </div>
           {errors.pinCode && <p className="text-destructive text-sm mt-1">{errors.pinCode}</p>}
+        </div>
+        <div>
+          <Label htmlFor="placeOfBirth">Birth City *</Label>
+          <div className="relative">
+            <Input id="placeOfBirth" name="placeOfBirth" value={babyFormData.placeOfBirth} onChange={handleInputChange}
+              placeholder={cityLoading ? "Fetching city..." : "Auto-filled from PIN code"} required
+              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.placeOfBirth ? "border-destructive" : isFieldValid("placeOfBirth") ? "border-success" : ""}`} />
+            <ValidIcon field="placeOfBirth" />
+          </div>
+          {errors.placeOfBirth && <p className="text-destructive text-sm mt-1">{errors.placeOfBirth}</p>}
         </div>
       </div>
 

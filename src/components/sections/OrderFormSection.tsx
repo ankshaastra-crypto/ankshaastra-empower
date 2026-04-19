@@ -1059,7 +1059,20 @@ const OrderFormSection = () => {
                   <div className="space-y-4 pb-6 border-b border-border">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        {packageType === "namecheck" ? `Name Check (${nameCheckCount} Name${nameCheckCount !== 1 ? "s" : ""})` : "Perfect Baby Name Report"}
+                        {packageType === "namecheck"
+                          ? `Name Check (${nameCheckCount} Name${nameCheckCount !== 1 ? "s" : ""})`
+                          : packageType === "premium"
+                            ? "Premium Report + Live Session"
+                            : "Perfect Baby Name Report"}
+                      </span>
+                      <span className="text-foreground font-medium">
+                        {formatPrice(
+                          packageType === "namecheck"
+                            ? NAME_CHECK_PRICING[nameCheckCount].price
+                            : packageType === "premium"
+                              ? getPackagePrice("premium")
+                              : getPackagePrice("single")
+                        )}
                       </span>
                     </div>
                     {packageType === "namecheck" && nameCheckCount > 1 && (
@@ -1073,6 +1086,40 @@ const OrderFormSection = () => {
                           <span>{formatPrice(NAME_CHECK_PRICING[nameCheckCount].savings * nameCheckCount)}</span>
                         </div>
                       </>
+                    )}
+
+                    {/* Add-on toggle inside Order Summary */}
+                    {isAddonEligible && (
+                      <div className={cn(
+                        "rounded-lg border p-3 transition-all",
+                        addonExtraNames ? "border-accent bg-accent/5" : "border-dashed border-accent/40"
+                      )}>
+                        <div className="flex items-start gap-2.5">
+                          <Checkbox
+                            id="addonExtraNamesSummary"
+                            checked={addonExtraNames}
+                            onCheckedChange={(c) => setAddonExtraNames(c === true)}
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <Label htmlFor="addonExtraNamesSummary" className="text-sm font-semibold text-foreground cursor-pointer flex items-center gap-1.5">
+                              <Sparkles className="w-3.5 h-3.5 text-accent" />
+                              Add 10+ Extra Aligned Names
+                            </Label>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">More variety to choose from</p>
+                          </div>
+                          <span className="text-sm font-bold text-accent whitespace-nowrap">
+                            +{formatPrice(ADDON_EXTRA_NAMES_PRICE)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {isAddonActive && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Add-on: Extra Names</span>
+                        <span className="text-foreground font-medium">+{formatPrice(ADDON_EXTRA_NAMES_PRICE)}</span>
+                      </div>
                     )}
                   </div>
                   <div className="py-6 border-b border-border">

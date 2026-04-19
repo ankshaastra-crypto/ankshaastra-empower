@@ -479,6 +479,12 @@ const OrderFormSection = () => {
     let orderPayload: OrderPayload;
 
     if (packageType === "single" || packageType === "premium") {
+      const userNameOptions = (babyFormData.nameOptions || "").trim();
+      const addonTag = isAddonActive
+        ? `[ADD-ON: +${ADDON_EXTRA_NAMES_LABEL} (₹${ADDON_EXTRA_NAMES_PRICE})]`
+        : "";
+      const mergedNameOptions = [userNameOptions, addonTag].filter(Boolean).join(" ");
+
       orderPayload = {
         orderId,
         email: babyFormData.email,
@@ -488,6 +494,18 @@ const OrderFormSection = () => {
         gender: babyFormData.gender,
         person1Name: babyFormData.fatherFullName,
         person1Dob: babyFormData.childDob,
+        person1Gender: babyFormData.gender,
+        fatherFullName: babyFormData.fatherFullName,
+        fatherFirstNameAsMiddleName: babyFormData.fatherFirstNameAsMiddleName || "",
+        childMiddleName: babyFormData.childMiddleName || "",
+        childLastName: babyFormData.childLastName,
+        childDob: babyFormData.childDob,
+        timeOfBirth: normalizeTimeInput(babyFormData.timeOfBirth),
+        placeOfBirth: babyFormData.placeOfBirth,
+        pinCode: babyFormData.pinCode,
+        nameOptions: mergedNameOptions,
+        packageType,
+      };
         person1Gender: babyFormData.gender,
         fatherFullName: babyFormData.fatherFullName,
         fatherFirstNameAsMiddleName: babyFormData.fatherFirstNameAsMiddleName || "",

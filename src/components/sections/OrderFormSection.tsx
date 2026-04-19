@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, CalendarIcon, CheckCircle2, ChevronRight, ChevronLeft, Loader2, Shield, Lock } from "lucide-react";
+import { Check, CalendarIcon, CheckCircle2, ChevronRight, ChevronLeft, Loader2, Shield, Lock, Sparkles } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
@@ -97,6 +98,10 @@ const NAME_CHECK_PRICING = {
   3: { price: 747, originalPrice: 879, savings: 44 },
 };
 
+// Optional add-on: 10+ extra numerologically aligned names (Baby Name + Premium only)
+const ADDON_EXTRA_NAMES_PRICE = 497;
+const ADDON_EXTRA_NAMES_LABEL = "10+ Extra Numerologically Aligned Names";
+
 const STEPS = [
   { id: 1, label: "Package" },
   { id: 2, label: "Details" },
@@ -110,6 +115,7 @@ const OrderFormSection = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [packageType, setPackageType] = useState<"namecheck" | "single" | "premium">("single");
   const [nameCheckCount, setNameCheckCount] = useState<1 | 2 | 3>(1);
+  const [addonExtraNames, setAddonExtraNames] = useState<boolean>(false);
 
   // Name Check form data
   const [formData, setFormData] = useState({
@@ -170,6 +176,7 @@ const OrderFormSection = () => {
         setPackageType("namecheck");
         const count = parseInt(detail.split("-")[1]) as 1 | 2 | 3;
         setNameCheckCount(count);
+        setAddonExtraNames(false);
       } else if (detail === "single") {
         setPackageType("single");
       } else if (detail === "premium") {
@@ -177,6 +184,7 @@ const OrderFormSection = () => {
       } else if (detail === "namecheck") {
         setPackageType("namecheck");
         setNameCheckCount(1);
+        setAddonExtraNames(false);
       }
       setFormStep(1);
     };
@@ -371,10 +379,13 @@ const OrderFormSection = () => {
   const getFullName = (first: string, middle: string, sur: string) =>
     [first, middle, sur].filter(Boolean).join(" ").trim();
 
+  const isAddonEligible = packageType === "single" || packageType === "premium";
+  const isAddonActive = isAddonEligible && addonExtraNames;
+
   const getPrice = (): number => {
     if (packageType === "namecheck") return NAME_CHECK_PRICING[nameCheckCount].price;
-    if (packageType === "premium") return getPackagePrice("premium");
-    return getPackagePrice("single");
+    const base = packageType === "premium" ? getPackagePrice("premium") : getPackagePrice("single");
+    return base + (isAddonActive ? ADDON_EXTRA_NAMES_PRICE : 0);
   };
 
   const getRequiredPersonCount = (): number => (packageType === "namecheck" ? nameCheckCount : 1);
@@ -470,6 +481,12 @@ const OrderFormSection = () => {
     let orderPayload: OrderPayload;
 
     if (packageType === "single" || packageType === "premium") {
+      const userNameOptions = (babyFormData.nameOptions || "").trim();
+      const addonTag = isAddonActive
+        ? `[ADD-ON: +${ADDON_EXTRA_NAMES_LABEL} (₹${ADDON_EXTRA_NAMES_PRICE})]`
+        : "";
+      const mergedNameOptions = [userNameOptions, addonTag].filter(Boolean).join(" ");
+
       orderPayload = {
         orderId,
         email: babyFormData.email,
@@ -488,7 +505,7 @@ const OrderFormSection = () => {
         timeOfBirth: normalizeTimeInput(babyFormData.timeOfBirth),
         placeOfBirth: babyFormData.placeOfBirth,
         pinCode: babyFormData.pinCode,
-        nameOptions: babyFormData.nameOptions || "",
+        nameOptions: mergedNameOptions,
         packageType,
       };
     } else {
@@ -954,6 +971,7 @@ const OrderFormSection = () => {
         ...(babyFormData.nameOptions ? [{ label: "Name Options", value: babyFormData.nameOptions }] : []),
         { label: "Email", value: babyFormData.email },
         { label: "WhatsApp", value: babyFormData.whatsapp },
+        ...(isAddonActive ? [{ label: "Add-on", value: `${ADDON_EXTRA_NAMES_LABEL} (+${formatPrice(ADDON_EXTRA_NAMES_PRICE)})` }] : []),
       );
     } else {
       items.push({ label: "Package", value: `Name Check (${nameCheckCount} Name${nameCheckCount > 1 ? "s" : ""})` });
@@ -1042,7 +1060,20 @@ const OrderFormSection = () => {
                   <div className="space-y-4 pb-6 border-b border-border">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        {packageType === "namecheck" ? `Name Check (${nameCheckCount} Name${nameCheckCount !== 1 ? "s" : ""})` : "Perfect Baby Name Report"}
+                        {packageType === "namecheck"
+                          ? `Name Check (${nameCheckCount} Name${nameCheckCount !== 1 ? "s" : ""})`
+                          : packageType === "premium"
+                            ? "Premium Report + Live Session"
+                            : "Perfect Baby Name Report"}
+                      </span>
+                      <span className="text-foreground font-medium">
+                        {formatPrice(
+                          packageType === "namecheck"
+                            ? NAME_CHECK_PRICING[nameCheckCount].price
+                            : packageType === "premium"
+                              ? getPackagePrice("premium")
+                              : getPackagePrice("single")
+                        )}
                       </span>
                     </div>
                     {packageType === "namecheck" && nameCheckCount > 1 && (
@@ -1056,6 +1087,40 @@ const OrderFormSection = () => {
                           <span>{formatPrice(NAME_CHECK_PRICING[nameCheckCount].savings * nameCheckCount)}</span>
                         </div>
                       </>
+                    )}
+
+                    {/* Add-on toggle inside Order Summary */}
+                    {isAddonEligible && (
+                      <div className={cn(
+                        "rounded-lg border p-3 transition-all",
+                        addonExtraNames ? "border-accent bg-accent/5" : "border-dashed border-accent/40"
+                      )}>
+                        <div className="flex items-start gap-2.5">
+                          <Checkbox
+                            id="addonExtraNamesSummary"
+                            checked={addonExtraNames}
+                            onCheckedChange={(c) => setAddonExtraNames(c === true)}
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <Label htmlFor="addonExtraNamesSummary" className="text-sm font-semibold text-foreground cursor-pointer flex items-center gap-1.5">
+                              <Sparkles className="w-3.5 h-3.5 text-accent" />
+                              Add 10+ Extra Aligned Names
+                            </Label>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">More variety to choose from</p>
+                          </div>
+                          <span className="text-sm font-bold text-accent whitespace-nowrap">
+                            +{formatPrice(ADDON_EXTRA_NAMES_PRICE)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {isAddonActive && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Add-on: Extra Names</span>
+                        <span className="text-foreground font-medium">+{formatPrice(ADDON_EXTRA_NAMES_PRICE)}</span>
+                      </div>
                     )}
                   </div>
                   <div className="py-6 border-b border-border">
@@ -1112,7 +1177,11 @@ const OrderFormSection = () => {
             <div className="max-w-3xl mx-auto">
               {formStep === 1 && (
                 <div className="space-y-4">
-                  <RadioGroup value={packageType} onValueChange={(val) => setPackageType(val as "namecheck" | "single" | "premium")} className="grid gap-4">
+                  <RadioGroup value={packageType} onValueChange={(val) => {
+                    const next = val as "namecheck" | "single" | "premium";
+                    setPackageType(next);
+                    if (next === "namecheck") setAddonExtraNames(false);
+                  }} className="grid gap-4">
                     {/* Name Check Option */}
                     <label htmlFor="namecheck"
                       className={`flex items-center gap-4 p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${packageType === "namecheck" ? "border-secondary bg-secondary/5 shadow-card" : "border-border hover:border-secondary/50"}`}>
@@ -1230,6 +1299,55 @@ const OrderFormSection = () => {
                     </>
                   ) : (
                     renderBabyNameFields()
+                  )}
+
+                  {/* Optional Add-On (Baby Name + Premium only) */}
+                  {isAddonEligible && (
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setAddonExtraNames((v) => !v)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setAddonExtraNames((v) => !v);
+                        }
+                      }}
+                      className={cn(
+                        "relative rounded-xl border-2 p-4 cursor-pointer transition-all duration-300 group",
+                        addonExtraNames
+                          ? "border-accent bg-accent/5 shadow-card"
+                          : "border-dashed border-accent/40 hover:border-accent hover:bg-accent/5"
+                      )}
+                    >
+                      <div className="absolute -top-2.5 left-4 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide">
+                        RECOMMENDED ADD-ON
+                      </div>
+                      <div className="flex items-start gap-3 pt-1">
+                        <Checkbox
+                          id="addonExtraNames"
+                          checked={addonExtraNames}
+                          onCheckedChange={(c) => setAddonExtraNames(c === true)}
+                          className="mt-1 flex-shrink-0"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Sparkles className="w-4 h-4 text-accent" />
+                            <Label htmlFor="addonExtraNames" className="font-semibold text-foreground cursor-pointer text-sm md:text-base">
+                              Get 10+ Extra Numerologically Aligned Names
+                            </Label>
+                          </div>
+                          <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                            Double your options. Receive an additional set of 10+ handcrafted names — perfect if you want more variety to choose from.
+                          </p>
+                          <div className="flex items-baseline gap-2 mt-2">
+                            <span className="text-lg font-heading font-bold text-accent">+ {formatPrice(ADDON_EXTRA_NAMES_PRICE)}</span>
+                            <span className="text-xs text-muted-foreground">one-time</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   )}
 
                   <div className="flex gap-3 pt-4">

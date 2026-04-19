@@ -1253,6 +1253,55 @@ const OrderFormSection = () => {
                     renderBabyNameFields()
                   )}
 
+                  {/* Optional Add-On (Baby Name + Premium only) */}
+                  {isAddonEligible && (
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setAddonExtraNames((v) => !v)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setAddonExtraNames((v) => !v);
+                        }
+                      }}
+                      className={cn(
+                        "relative rounded-xl border-2 p-4 cursor-pointer transition-all duration-300 group",
+                        addonExtraNames
+                          ? "border-accent bg-accent/5 shadow-card"
+                          : "border-dashed border-accent/40 hover:border-accent hover:bg-accent/5"
+                      )}
+                    >
+                      <div className="absolute -top-2.5 left-4 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide">
+                        RECOMMENDED ADD-ON
+                      </div>
+                      <div className="flex items-start gap-3 pt-1">
+                        <Checkbox
+                          id="addonExtraNames"
+                          checked={addonExtraNames}
+                          onCheckedChange={(c) => setAddonExtraNames(c === true)}
+                          className="mt-1 flex-shrink-0"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Sparkles className="w-4 h-4 text-accent" />
+                            <Label htmlFor="addonExtraNames" className="font-semibold text-foreground cursor-pointer text-sm md:text-base">
+                              Get 10+ Extra Numerologically Aligned Names
+                            </Label>
+                          </div>
+                          <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                            Double your options. Receive an additional set of 10+ handcrafted names — perfect if you want more variety to choose from.
+                          </p>
+                          <div className="flex items-baseline gap-2 mt-2">
+                            <span className="text-lg font-heading font-bold text-accent">+ {formatPrice(ADDON_EXTRA_NAMES_PRICE)}</span>
+                            <span className="text-xs text-muted-foreground">one-time</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex gap-3 pt-4">
                     <Button variant="outline" size="lg" onClick={() => goToStep(1)} className="flex-1">
                       <ChevronLeft className="w-5 h-5 mr-1" /> Back

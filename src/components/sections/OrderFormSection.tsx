@@ -971,6 +971,7 @@ const OrderFormSection = () => {
         ...(babyFormData.nameOptions ? [{ label: "Name Options", value: babyFormData.nameOptions }] : []),
         { label: "Email", value: babyFormData.email },
         { label: "WhatsApp", value: babyFormData.whatsapp },
+        ...(isAddonActive ? [{ label: "Add-on", value: `${ADDON_EXTRA_NAMES_LABEL} (+${formatPrice(ADDON_EXTRA_NAMES_PRICE)})` }] : []),
       );
     } else {
       items.push({ label: "Package", value: `Name Check (${nameCheckCount} Name${nameCheckCount > 1 ? "s" : ""})` });

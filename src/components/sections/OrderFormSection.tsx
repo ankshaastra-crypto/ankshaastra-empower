@@ -1129,7 +1129,11 @@ const OrderFormSection = () => {
             <div className="max-w-3xl mx-auto">
               {formStep === 1 && (
                 <div className="space-y-4">
-                  <RadioGroup value={packageType} onValueChange={(val) => setPackageType(val as "namecheck" | "single" | "premium")} className="grid gap-4">
+                  <RadioGroup value={packageType} onValueChange={(val) => {
+                    const next = val as "namecheck" | "single" | "premium";
+                    setPackageType(next);
+                    if (next === "namecheck") setAddonExtraNames(false);
+                  }} className="grid gap-4">
                     {/* Name Check Option */}
                     <label htmlFor="namecheck"
                       className={`flex items-center gap-4 p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${packageType === "namecheck" ? "border-secondary bg-secondary/5 shadow-card" : "border-border hover:border-secondary/50"}`}>

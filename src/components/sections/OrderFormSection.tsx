@@ -115,6 +115,7 @@ const OrderFormSection = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [packageType, setPackageType] = useState<"namecheck" | "single" | "premium">("single");
   const [nameCheckCount, setNameCheckCount] = useState<1 | 2 | 3>(1);
+  const [addonExtraNames, setAddonExtraNames] = useState<boolean>(false);
 
   // Name Check form data
   const [formData, setFormData] = useState({

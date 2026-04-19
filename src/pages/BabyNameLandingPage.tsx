@@ -717,6 +717,9 @@ const FAQSection = () => {
 };
 
 // ─── Claim Form ───────────────────────────────────────────────────────────────
+const ADDON_EXTRA_NAMES_PRICE = 497;
+const BASE_REPORT_PRICE = 2497;
+
 const ClaimFormSection = () => {
   const ref = useFadeUp();
   const [formData, setFormData] = useState<FormData>({
@@ -727,6 +730,8 @@ const ClaimFormSection = () => {
   const [errors, setErrors]     = useState<FormErrors>({});
   const [touched, setTouched]   = useState<Partial<Record<keyof FormErrors, boolean>>>({});
   const [calOpen, setCalOpen]   = useState(false);
+  const [addonExtraNames, setAddonExtraNames] = useState(false);
+  const totalPrice = BASE_REPORT_PRICE + (addonExtraNames ? ADDON_EXTRA_NAMES_PRICE : 0);
 
   const handleChange = (name: keyof FormData, value: string | Date | undefined) => {
     const next = { ...formData, [name]: value };
@@ -932,19 +937,93 @@ const ClaimFormSection = () => {
                 style={{ ...inputSx, border: `1px solid ${T.goldBorder}`, borderRadius: 12 }} />
             </div>
 
+            {/* Optional Add-On: 10+ Extra Names */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setAddonExtraNames(v => !v)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setAddonExtraNames(v => !v); }
+              }}
+              style={{
+                position: "relative",
+                background: addonExtraNames ? T.goldLight : "#fff",
+                border: `2px ${addonExtraNames ? "solid" : "dashed"} ${addonExtraNames ? T.gold : T.goldBorderStrong}`,
+                borderRadius: 14,
+                padding: "16px 18px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 12,
+              }}
+            >
+              <span style={{
+                position: "absolute", top: -10, left: 14,
+                background: T.gold, color: "#fff",
+                fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.04em",
+                padding: "3px 8px", borderRadius: 999, fontFamily: T.body,
+              }}>RECOMMENDED ADD-ON</span>
+              <div style={{
+                width: 22, height: 22, borderRadius: 6, flexShrink: 0, marginTop: 2,
+                border: `2px solid ${addonExtraNames ? T.gold : T.goldBorderStrong}`,
+                background: addonExtraNames ? T.gold : "#fff",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: "#fff", fontWeight: 900, fontSize: "0.85rem",
+              }}>
+                {addonExtraNames ? "✓" : ""}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                  <Sparkles size={15} color={T.gold} />
+                  <span style={{ fontFamily: T.body, fontWeight: 700, fontSize: "0.95rem", color: T.charcoal }}>
+                    Get 10+ Extra Numerologically Aligned Names
+                  </span>
+                </div>
+                <p style={{ fontFamily: T.body, fontSize: "0.8rem", color: T.secondary, marginTop: 4, lineHeight: 1.4 }}>
+                  Double your options. Receive an additional set of 10+ handcrafted names — perfect if you want more variety.
+                </p>
+                <div style={{ marginTop: 8, fontFamily: T.heading, fontWeight: 700, fontSize: "1.1rem", color: T.gold }}>
+                  + ₹{ADDON_EXTRA_NAMES_PRICE.toLocaleString("en-IN")}
+                </div>
+              </div>
+            </div>
+
             {/* Price summary */}
             <div style={{
               background: T.goldLight, border: `1px solid ${T.goldBorder}`,
               borderRadius: 14, padding: "16px 20px",
-              display: "flex", alignItems: "center", justifyContent: "space-between",
             }}>
-              <div>
-                <div style={{ fontFamily: T.body, fontWeight: 700, fontSize: "0.9rem", color: T.charcoal }}>Personalised Baby Name Report</div>
-                <div style={{ fontFamily: T.body, fontSize: "0.78rem", color: T.secondary, marginTop: 2 }}>Delivered within 24–48 Hours</div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div>
+                  <div style={{ fontFamily: T.body, fontWeight: 700, fontSize: "0.9rem", color: T.charcoal }}>Personalised Baby Name Report</div>
+                  <div style={{ fontFamily: T.body, fontSize: "0.78rem", color: T.secondary, marginTop: 2 }}>Delivered within 24–48 Hours</div>
+                </div>
+                <div style={{ fontFamily: T.body, fontSize: "0.9rem", color: T.charcoal }}>
+                  ₹{BASE_REPORT_PRICE.toLocaleString("en-IN")}
+                </div>
               </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontFamily: T.body, fontSize: "0.8rem", textDecoration: "line-through", color: T.secondary }}>₹4,999</div>
-                <div style={{ fontFamily: T.heading, fontWeight: 700, fontSize: "1.8rem", color: T.charcoal }}>₹2,497</div>
+              {addonExtraNames && (
+                <div style={{
+                  display: "flex", justifyContent: "space-between",
+                  fontFamily: T.body, fontSize: "0.85rem", color: T.charcoal,
+                  marginTop: 10, paddingTop: 10, borderTop: `1px dashed ${T.goldBorder}`,
+                }}>
+                  <span>+ 10 Extra Aligned Names</span>
+                  <span style={{ fontWeight: 700 }}>₹{ADDON_EXTRA_NAMES_PRICE.toLocaleString("en-IN")}</span>
+                </div>
+              )}
+              <div style={{
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                marginTop: 12, paddingTop: 12, borderTop: `1px solid ${T.goldBorder}`,
+              }}>
+                <span style={{ fontFamily: T.body, fontWeight: 700, fontSize: "0.95rem", color: T.charcoal }}>Total</span>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontFamily: T.body, fontSize: "0.78rem", textDecoration: "line-through", color: T.secondary }}>₹4,999</div>
+                  <div style={{ fontFamily: T.heading, fontWeight: 700, fontSize: "1.8rem", color: T.charcoal }}>
+                    ₹{totalPrice.toLocaleString("en-IN")}
+                  </div>
+                </div>
               </div>
             </div>
 

@@ -96,7 +96,9 @@ const NAME_CHECK_PRICING = {
   1: { price: 293, originalPrice: 293, savings: 0 },
   2: { price: 528, originalPrice: 586, savings: 29 },
   3: { price: 747, originalPrice: 879, savings: 44 },
-};
+// Optional add-on: 10+ extra numerologically aligned names
+const ADDON_EXTRA_NAMES_PRICE = 497;
+const ADDON_EXTRA_NAMES_LABEL = "10+ Extra Numerologically Aligned Names";
 
 const STEPS = [
   { id: 1, label: "Package" },

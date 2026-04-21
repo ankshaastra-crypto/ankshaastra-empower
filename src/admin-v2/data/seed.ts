@@ -270,7 +270,7 @@ export const INQUIRIES: Inquiry[] = Array.from({ length: 15 }, (_, i) => {
   };
 });
 
-// Monthly revenue last 12 months
+// Monthly revenue last 12 months (realistic for premium solo numerology service)
 export const MONTHLY_REVENUE = Array.from({ length: 12 }, (_, i) => {
   const d = new Date();
   d.setMonth(d.getMonth() - (11 - i));

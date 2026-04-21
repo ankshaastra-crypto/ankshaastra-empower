@@ -1,0 +1,146 @@
+import { useState } from "react";
+import { Card } from "../components/ui-bits";
+import { ChevronRight, Clock } from "lucide-react";
+
+type NodeKind = "input" | "analysis" | "delivery" | "complete";
+interface FlowNode { id: string; label: string; kind: NodeKind; tools?: string; time?: string; checklist?: string[]; }
+
+const FLOWS: { id: string; name: string; avgDays: number; nodes: FlowNode[] }[] = [
+  {
+    id: "name-correction", name: "Name Correction Flow", avgDays: 5,
+    nodes: [
+      { id: "n1", label: "Inquiry Received", kind: "input", time: "5 min", checklist: ["Save contact", "Note service interest"] },
+      { id: "n2", label: "Client Details Collected", kind: "input", time: "15 min", checklist: ["Full name", "DOB", "Birth time"] },
+      { id: "n3", label: "DOB & Name Analysis", kind: "analysis", tools: "Numerology calculator", time: "30 min", checklist: ["Life Path", "Destiny", "Soul Urge"] },
+      { id: "n4", label: "Chaldean + Pythagorean", kind: "analysis", tools: "Chart sheet", time: "20 min", checklist: ["Chaldean value", "Pythagorean value"] },
+      { id: "n5", label: "Compatibility Check", kind: "analysis", time: "20 min" },
+      { id: "n6", label: "Correction Suggested", kind: "analysis", time: "45 min", checklist: ["Suggest spelling", "Verify number"] },
+      { id: "n7", label: "Report Written", kind: "delivery", time: "1 hr" },
+      { id: "n8", label: "PDF Generated", kind: "delivery", tools: "Report template", time: "10 min" },
+      { id: "n9", label: "Sent via WhatsApp/Email", kind: "delivery", time: "5 min" },
+      { id: "n10", label: "Follow-up after 7 days", kind: "complete", time: "10 min" },
+    ],
+  },
+  {
+    id: "baby-name", name: "Baby Name Flow", avgDays: 3,
+    nodes: [
+      { id: "b1", label: "Parents' Details", kind: "input", time: "10 min" },
+      { id: "b2", label: "DOB Recorded", kind: "input", time: "5 min" },
+      { id: "b3", label: "Lucky Numbers", kind: "analysis", time: "30 min" },
+      { id: "b4", label: "Name Shortlist", kind: "analysis", time: "45 min" },
+      { id: "b5", label: "Final Report", kind: "complete", time: "30 min" },
+    ],
+  },
+  {
+    id: "business", name: "Business Name Flow", avgDays: 7,
+    nodes: [
+      { id: "p1", label: "Owner DOB", kind: "input", time: "5 min" },
+      { id: "p2", label: "Business Nature", kind: "input", time: "15 min" },
+      { id: "p3", label: "Name Suggestions", kind: "analysis", time: "1 hr" },
+      { id: "p4", label: "Brand Alignment", kind: "analysis", time: "30 min" },
+      { id: "p5", label: "Report", kind: "complete", time: "45 min" },
+    ],
+  },
+];
+
+const KIND_STYLE: Record<NodeKind, string> = {
+  input: "border-[hsl(217_91%_60%/0.4)] bg-[hsl(217_91%_60%/0.1)] text-[hsl(217_91%_70%)]",
+  analysis: "border-[hsl(var(--gold)/0.4)] bg-[hsl(var(--gold)/0.1)] text-[hsl(var(--gold))]",
+  delivery: "border-[hsl(174_72%_45%/0.4)] bg-[hsl(174_72%_45%/0.1)] text-[hsl(174_72%_60%)]",
+  complete: "border-[hsl(var(--success)/0.4)] bg-[hsl(var(--success)/0.12)] text-[hsl(var(--success))]",
+};
+
+export default function Workflows() {
+  const [active, setActive] = useState<FlowNode | null>(null);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold gold-gradient-text">Workflows</h1>
+        <p className="text-sm text-[hsl(var(--muted-foreground))]">Step-by-step flows for each service. Click a node for details.</p>
+      </div>
+
+      <div className="flex flex-wrap gap-3 text-xs">
+        <Legend color="hsl(217 91% 60%)" label="Input / Trigger" />
+        <Legend color="hsl(var(--gold))" label="Analysis" />
+        <Legend color="hsl(174 72% 45%)" label="Delivery" />
+        <Legend color="hsl(var(--success))" label="Completion" />
+      </div>
+
+      {FLOWS.map(flow => (
+        <Card key={flow.id}>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">{flow.name}</h3>
+            <span className="inline-flex items-center gap-1 text-xs text-[hsl(var(--muted-foreground))]">
+              <Clock className="h-3.5 w-3.5" /> Avg {flow.avgDays} days
+            </span>
+          </div>
+          <div className="overflow-x-auto -mx-2 px-2 pb-2">
+            <div className="flex items-center gap-2 min-w-max">
+              {flow.nodes.map((n, i) => (
+                <div key={n.id} className="flex items-center">
+                  <button
+                    onClick={() => setActive(n)}
+                    className={`rounded-xl border px-3 py-2.5 text-xs font-medium hover-lift max-w-[140px] text-center ${KIND_STYLE[n.kind]}`}
+                  >
+                    {n.label}
+                  </button>
+                  {i < flow.nodes.length - 1 && <ChevronRight className="h-4 w-4 text-[hsl(var(--muted-foreground))] mx-1 shrink-0" />}
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+      ))}
+
+      {active && (
+        <div className="fixed inset-0 z-50 flex justify-end" onClick={() => setActive(null)}>
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="relative h-full w-full max-w-md border-l border-[hsl(var(--border))] p-6 overflow-y-auto"
+            style={{ background: "hsl(var(--navy-2))" }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className={`inline-block rounded-lg border px-3 py-1 text-xs font-medium mb-3 ${KIND_STYLE[active.kind]}`}>
+              {active.kind.toUpperCase()}
+            </div>
+            <h3 className="text-xl font-semibold gold-gradient-text mb-3">{active.label}</h3>
+            <div className="space-y-2 text-sm">
+              {active.tools && <Row label="Tools" value={active.tools} />}
+              {active.time && <Row label="Avg time" value={active.time} />}
+            </div>
+            {active.checklist && (
+              <>
+                <h4 className="font-semibold text-sm mt-5 mb-2">Checklist</h4>
+                <ul className="space-y-1.5 text-sm">
+                  {active.checklist.map((c, i) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--gold))]" /> {c}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            <button onClick={() => setActive(null)} className="mt-6 text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--gold))]">Close →</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Legend({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-[hsl(var(--muted-foreground))]">
+      <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} /> {label}
+    </span>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between border-b border-[hsl(var(--border))] py-2">
+      <span className="text-[hsl(var(--muted-foreground))]">{label}</span>
+      <span>{value}</span>
+    </div>
+  );
+}

@@ -33,7 +33,7 @@ export default function Settings() {
             <div className="h-20 w-20 rounded-full bg-gradient-to-br from-[hsl(var(--gold))] to-[hsl(var(--gold-soft))] flex items-center justify-center text-2xl font-bold text-[hsl(var(--navy))]">A✦</div>
             <div className="flex-1 space-y-3">
               <Input label="Display Name" defaultValue="Ankshaastra" />
-              <Input label="Bio" defaultValue="Premium Numerology & Name Correction Specialist" />
+              <Input label="Bio" defaultValue="Premium Numerology & Baby Name Specialist" />
               <Input label="Contact Email" defaultValue="hello@ankshaastra.com" />
             </div>
           </div>
@@ -71,7 +71,7 @@ export default function Settings() {
         <Card>
           <h3 className="font-semibold mb-3">Report Templates</h3>
           <div className="space-y-2">
-            {["Name Correction Standard", "Baby Name Premium", "Business Name Pro", "Signature Analysis", "Lo Shu Grid Detailed"].map(t => (
+            {["Name Check Quick Report", "Perfect Baby Name Report", "Live Consultation Report", "Detailed Add-on Analysis"].map(t => (
               <div key={t} className="flex items-center justify-between border border-[hsl(var(--border))] rounded-lg p-3">
                 <span className="font-medium text-sm">{t}</span>
                 <Badge tone="gold">Active</Badge>

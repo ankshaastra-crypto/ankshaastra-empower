@@ -201,6 +201,7 @@ function generateClient(i: number): Client {
   const source = pick(SOURCES);
   const dateAdded = isoDaysAgo(randInt(0, 180));
   const numerology = makeNumerology(dob);
+  const hasAddOn = ADD_ON_ELIGIBLE.includes(service) && rand() > 0.55;
 
   const timeline = [
     { step: "Inquiry Received", done: true, date: dateAdded },
@@ -235,14 +236,15 @@ function generateClient(i: number): Client {
     notes: pick(NOTE_SAMPLES),
     reportStatus: status,
     paymentStatus: ps,
-    addOn: ADD_ON_ELIGIBLE.includes(service) && rand() > 0.6,
-    amount: SERVICE_PRICES[service] + (ADD_ON_ELIGIBLE.includes(service) && rand() > 0.6 ? ADD_ON_PRICE : 0),
+    addOn: hasAddOn,
+    amount: SERVICE_PRICES[service] + (hasAddOn ? ADD_ON_PRICE : 0),
     paymentMethod: pick(METHODS),
     paymentDate: ps !== "Pending" ? isoDaysAgo(randInt(0, 90)) : undefined,
     dateAdded,
     source,
     timeline,
   };
+
 }
 
 

@@ -49,11 +49,10 @@ export default function Settings() {
           </div>
           <div className="space-y-2">
             {[
-              { name: "Name Correction", price: 8500, days: 5 },
-              { name: "Business Name", price: 15000, days: 7 },
-              { name: "Baby Name", price: 2447, days: 3 },
-              { name: "Signature Analysis", price: 5500, days: 4 },
-              { name: "Lo Shu Grid", price: 6500, days: 4 },
+              { name: "Name Check", price: 293, days: 1, note: "Quick numerology check" },
+              { name: "Perfect Baby Name", price: 2447, days: 2, note: "Detailed baby name report" },
+              { name: "Live Video Consultation", price: 8927, days: 3, note: "Includes report + 1:1 session" },
+              { name: "Add-on (Detailed Analysis)", price: 497, days: 0, note: "Optional · Perfect Baby Name & Live Consultation only" },
             ].map(s => (
               <div key={s.name} className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center border border-[hsl(var(--border))] rounded-lg p-3">
                 <div className="font-medium">{s.name}</div>

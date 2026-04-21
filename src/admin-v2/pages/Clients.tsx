@@ -45,7 +45,7 @@ export default function Clients() {
               className="w-full rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--navy))] pl-9 pr-3 py-2 text-sm outline-none focus:border-[hsl(var(--gold)/0.5)]"
             />
           </div>
-          <Select value={service} onChange={setService} options={["Name Correction","Business Name","Baby Name","Signature Analysis","Lo Shu Grid"]} placeholder="All Services" />
+          <Select value={service} onChange={setService} options={["Name Check","Perfect Baby Name","Live Video Consultation"]} placeholder="All Services" />
           <Select value={status} onChange={setStatus} options={["Pending Analysis","Analysis Done","Report Written","Sent to Client","Follow-up Pending","Closed"]} placeholder="All Status" />
           <Select value={payment} onChange={setPayment} options={["Paid","Pending","Partial"]} placeholder="All Payment" />
         </div>
@@ -132,9 +132,9 @@ function AddClientModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-[hsl(var(--muted-foreground))] mb-1 block">Service Type</label>
-              <Select value="" onChange={() => {}} options={["Name Correction","Business Name","Baby Name","Signature Analysis","Lo Shu Grid"]} placeholder="Choose service" />
+              <Select value="" onChange={() => {}} options={["Name Check","Perfect Baby Name","Live Video Consultation"]} placeholder="Choose service" />
             </div>
-            <Input label="Amount (₹)" type="number" placeholder="8500" />
+            <Input label="Amount (₹)" type="number" placeholder="2447" />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <GhostButton onClick={onClose}>Cancel</GhostButton>

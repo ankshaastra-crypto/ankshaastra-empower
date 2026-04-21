@@ -1,5 +1,5 @@
 import { Card, Badge, paymentStatusTone, GhostButton } from "../components/ui-bits";
-import { TRANSACTIONS, MONTHLY_REVENUE, getRevenueByService, getPaymentMethodBreakdown, CLIENTS, fmtINR, fmtDate } from "../data/seed";
+import { TRANSACTIONS, MONTHLY_REVENUE, getRevenueByService, CLIENTS, fmtINR, fmtDate, ADD_ON_PRICE } from "../data/seed";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
 import { Download, IndianRupee, TrendingUp, Wallet, AlertCircle } from "lucide-react";
 import { useToastV2 } from "../components/Toast";
@@ -17,7 +17,12 @@ export default function Revenue() {
   const avg = Math.round(total / Math.max(1, TRANSACTIONS.length));
   const pending = CLIENTS.filter(c => c.paymentStatus === "Pending").reduce((s, c) => s + c.amount, 0);
   const byService = getRevenueByService();
-  const byMethod = getPaymentMethodBreakdown();
+  const addOnRevenue = CLIENTS.filter(c => c.addOn && c.paymentStatus !== "Pending").length * ADD_ON_PRICE;
+  const baseRevenue = total - addOnRevenue;
+  const addOnSplit = [
+    { name: "Base Service", value: baseRevenue },
+    { name: "₹497 Add-on", value: addOnRevenue },
+  ];
 
   return (
     <div className="space-y-5">
@@ -61,11 +66,11 @@ export default function Revenue() {
         </Card>
 
         <Card>
-          <h3 className="font-semibold mb-4">Payment Method Split</h3>
+          <h3 className="font-semibold mb-4">Add-on Revenue Split</h3>
           <ResponsiveContainer width="100%" height={240}>
             <PieChart>
-              <Pie data={byMethod} dataKey="value" nameKey="name" outerRadius={90}>
-                {byMethod.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+              <Pie data={addOnSplit} dataKey="value" nameKey="name" outerRadius={90}>
+                {addOnSplit.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
               </Pie>
               <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => fmtINR(v)} />
               <Legend wrapperStyle={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }} />
@@ -80,7 +85,7 @@ export default function Revenue() {
           <table className="w-full text-sm min-w-[700px]">
             <thead>
               <tr className="text-xs uppercase text-[hsl(var(--muted-foreground))] border-b border-[hsl(var(--border))]">
-                <Th>Client</Th><Th>Service</Th><Th>Amount</Th><Th>Method</Th><Th>Date</Th><Th>Status</Th>
+                <Th>Client</Th><Th>Service</Th><Th>Amount</Th><Th>Date</Th><Th>Status</Th>
               </tr>
             </thead>
             <tbody>
@@ -89,7 +94,6 @@ export default function Revenue() {
                   <Td className="font-medium">{t.clientName}</Td>
                   <Td>{t.service}</Td>
                   <Td className="font-semibold">{fmtINR(t.amount)}</Td>
-                  <Td>{t.method}</Td>
                   <Td>{fmtDate(t.date)}</Td>
                   <Td><Badge tone={paymentStatusTone(t.status)}>{t.status}</Badge></Td>
                 </tr>

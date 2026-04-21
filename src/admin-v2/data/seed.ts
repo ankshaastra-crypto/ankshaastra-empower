@@ -1,10 +1,9 @@
 // Mock/seed data for Ankshaastra Admin V2
 export type ServiceType =
-  | "Name Correction"
-  | "Business Name"
-  | "Baby Name"
-  | "Signature Analysis"
-  | "Lo Shu Grid";
+  | "Name Check"
+  | "Perfect Baby Name"
+  | "Live Video Consultation";
+
 
 export type ReportStatus =
   | "Pending Analysis"
@@ -44,6 +43,8 @@ export interface Client {
   phone: string;
   email: string;
   service: ServiceType;
+  addOn: boolean; // ₹497 add-on (only valid for Perfect Baby Name & Live Video Consultation)
+
   numerology: NumerologyProfile;
   currentName: { name: string; chaldean: number; pythagorean: number; compatibility: number };
   suggestions: NameSuggestion[];
@@ -98,32 +99,37 @@ const CITIES: [string, string][] = [
   ["Ahmedabad","Gujarat"],["Surat","Gujarat"],["Lucknow","Uttar Pradesh"],
   ["Kolkata","West Bengal"],["Indore","Madhya Pradesh"],["Bhopal","Madhya Pradesh"]
 ];
-const SERVICES: ServiceType[] = ["Name Correction","Business Name","Baby Name","Signature Analysis","Lo Shu Grid"];
+const SERVICES: ServiceType[] = ["Name Check","Perfect Baby Name","Live Video Consultation"];
 const STATUSES: ReportStatus[] = ["Pending Analysis","Analysis Done","Report Written","Sent to Client","Follow-up Pending","Closed"];
 const PAYMENT_STATUSES: PaymentStatus[] = ["Paid","Paid","Paid","Pending","Partial"];
 const SOURCES: InquirySource[] = ["Instagram","Website","WhatsApp","Referral","Facebook"];
 const METHODS: PaymentMethod[] = ["UPI","Bank Transfer","Cash","Online"];
 
-const SERVICE_PRICES: Record<ServiceType, number> = {
-  "Name Correction": 8500,
-  "Business Name": 15000,
-  "Baby Name": 2447,
-  "Signature Analysis": 5500,
-  "Lo Shu Grid": 6500,
+// All prices INCLUDING 18% GST
+export const SERVICE_PRICES: Record<ServiceType, number> = {
+  "Name Check": 293,
+  "Perfect Baby Name": 2447,
+  "Live Video Consultation": 8927,
 };
+
+// Optional add-on (incl. GST) — available only for Perfect Baby Name & Live Video Consultation
+export const ADD_ON_PRICE = 497;
+export const ADD_ON_ELIGIBLE: ServiceType[] = ["Perfect Baby Name", "Live Video Consultation"];
+
 
 const NOTE_SAMPLES = [
   "Client prefers to keep surname, only first name correction.",
-  "Requested business name aligned with Life Path 7.",
   "Parents want a name starting with 'A' for the baby.",
   "Follow-up scheduled after 7 days of report delivery.",
-  "Signature analysis revealed strong leadership traits.",
-  "Lo Shu Grid showed missing 4 — remedy suggested.",
-  "Client is repeat customer, second consultation.",
+  "Live consultation booked for next Saturday evening.",
+  "Client opted for ₹497 add-on for detailed analysis.",
+  "Quick name check requested before final decision.",
+  "Client is repeat customer — second consultation.",
   "WhatsApp delivery preferred over email.",
   "Numerology shows Master Number 22 — confirmed twice.",
   "Discount applied for referral from existing client.",
 ];
+
 
 // Deterministic PRNG so data is stable
 function seedRandom(seed: number) {
@@ -229,7 +235,8 @@ function generateClient(i: number): Client {
     notes: pick(NOTE_SAMPLES),
     reportStatus: status,
     paymentStatus: ps,
-    amount: SERVICE_PRICES[service] + (rand() > 0.7 ? randInt(-1000, 2000) : 0),
+    addOn: ADD_ON_ELIGIBLE.includes(service) && rand() > 0.6,
+    amount: SERVICE_PRICES[service] + (ADD_ON_ELIGIBLE.includes(service) && rand() > 0.6 ? ADD_ON_PRICE : 0),
     paymentMethod: pick(METHODS),
     paymentDate: ps !== "Pending" ? isoDaysAgo(randInt(0, 90)) : undefined,
     dateAdded,
@@ -237,6 +244,7 @@ function generateClient(i: number): Client {
     timeline,
   };
 }
+
 
 export const CLIENTS: Client[] = Array.from({ length: 40 }, (_, i) => generateClient(i));
 

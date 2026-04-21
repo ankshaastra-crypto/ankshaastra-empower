@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "@/pages/Index";
 import ProtectedRoute from "@/components/admin/ProtectedRoute";
+import { adminV2Routes } from "@/admin-v2/routes";
 
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
@@ -43,6 +44,7 @@ const App = () => (
             }
           />
           <Route path="/toggle-preview" element={<TogglePreview />} />
+          {adminV2Routes}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

@@ -16,7 +16,7 @@ export type ReportStatus =
 export type PaymentStatus = "Paid" | "Pending" | "Partial";
 export type InquiryStatus = "New" | "Contacted" | "Converted" | "Lost";
 export type InquirySource = "Instagram" | "Website" | "WhatsApp" | "Referral" | "Facebook";
-export type PaymentMethod = "UPI" | "Bank Transfer" | "Cash" | "Online";
+export type PaymentMethod = "Online";
 
 export interface NumerologyProfile {
   lifePath: number;
@@ -103,7 +103,7 @@ const SERVICES: ServiceType[] = ["Name Check","Perfect Baby Name","Live Video Co
 const STATUSES: ReportStatus[] = ["Pending Analysis","Analysis Done","Report Written","Sent to Client","Follow-up Pending","Closed"];
 const PAYMENT_STATUSES: PaymentStatus[] = ["Paid","Paid","Paid","Pending","Partial"];
 const SOURCES: InquirySource[] = ["Instagram","Website","WhatsApp","Referral","Facebook"];
-const METHODS: PaymentMethod[] = ["UPI","Bank Transfer","Cash","Online"];
+const METHODS: PaymentMethod[] = ["Online"];
 
 // All prices INCLUDING 18% GST
 export const SERVICE_PRICES: Record<ServiceType, number> = {

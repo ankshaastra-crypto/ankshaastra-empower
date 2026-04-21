@@ -33,7 +33,7 @@ export default function Settings() {
             <div className="h-20 w-20 rounded-full bg-gradient-to-br from-[hsl(var(--gold))] to-[hsl(var(--gold-soft))] flex items-center justify-center text-2xl font-bold text-[hsl(var(--navy))]">A✦</div>
             <div className="flex-1 space-y-3">
               <Input label="Display Name" defaultValue="Ankshaastra" />
-              <Input label="Bio" defaultValue="Premium Numerology & Name Correction Specialist" />
+              <Input label="Bio" defaultValue="Premium Numerology & Baby Name Specialist" />
               <Input label="Contact Email" defaultValue="hello@ankshaastra.com" />
             </div>
           </div>
@@ -49,16 +49,15 @@ export default function Settings() {
           </div>
           <div className="space-y-2">
             {[
-              { name: "Name Correction", price: 8500, days: 5 },
-              { name: "Business Name", price: 15000, days: 7 },
-              { name: "Baby Name", price: 2447, days: 3 },
-              { name: "Signature Analysis", price: 5500, days: 4 },
-              { name: "Lo Shu Grid", price: 6500, days: 4 },
+              { name: "Name Check", price: 293, days: 1, note: "Quick numerology check" },
+              { name: "Perfect Baby Name", price: 2447, days: 2, note: "Detailed baby name report" },
+              { name: "Live Video Consultation", price: 8927, days: 3, note: "Includes report + 1:1 session" },
+              { name: "Add-on (Detailed Analysis)", price: 497, days: 0, note: "Optional · Perfect Baby Name & Live Consultation only" },
             ].map(s => (
               <div key={s.name} className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center border border-[hsl(var(--border))] rounded-lg p-3">
                 <div className="font-medium">{s.name}</div>
-                <div className="text-sm text-[hsl(var(--muted-foreground))]">{fmtINR(s.price)}</div>
-                <div className="text-sm text-[hsl(var(--muted-foreground))]">{s.days} days delivery</div>
+                <div className="text-sm text-[hsl(var(--muted-foreground))]">{fmtINR(s.price)} <span className="text-[10px]">incl. GST</span></div>
+                <div className="text-sm text-[hsl(var(--muted-foreground))]">{s.days > 0 ? `${s.days} day${s.days > 1 ? "s" : ""} delivery` : s.note}</div>
                 <div className="text-right">
                   <button className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--gold))]">Edit</button>
                 </div>
@@ -72,7 +71,7 @@ export default function Settings() {
         <Card>
           <h3 className="font-semibold mb-3">Report Templates</h3>
           <div className="space-y-2">
-            {["Name Correction Standard", "Baby Name Premium", "Business Name Pro", "Signature Analysis", "Lo Shu Grid Detailed"].map(t => (
+            {["Name Check Quick Report", "Perfect Baby Name Report", "Live Consultation Report", "Detailed Add-on Analysis"].map(t => (
               <div key={t} className="flex items-center justify-between border border-[hsl(var(--border))] rounded-lg p-3">
                 <span className="font-medium text-sm">{t}</span>
                 <Badge tone="gold">Active</Badge>

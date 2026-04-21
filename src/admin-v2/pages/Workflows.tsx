@@ -7,38 +7,42 @@ interface FlowNode { id: string; label: string; kind: NodeKind; tools?: string; 
 
 const FLOWS: { id: string; name: string; avgDays: number; nodes: FlowNode[] }[] = [
   {
-    id: "name-correction", name: "Name Correction Flow", avgDays: 5,
+    id: "name-check", name: "Name Check Flow (₹293)", avgDays: 1,
     nodes: [
-      { id: "n1", label: "Inquiry Received", kind: "input", time: "5 min", checklist: ["Save contact", "Note service interest"] },
-      { id: "n2", label: "Client Details Collected", kind: "input", time: "15 min", checklist: ["Full name", "DOB", "Birth time"] },
-      { id: "n3", label: "DOB & Name Analysis", kind: "analysis", tools: "Numerology calculator", time: "30 min", checklist: ["Life Path", "Destiny", "Soul Urge"] },
-      { id: "n4", label: "Chaldean + Pythagorean", kind: "analysis", tools: "Chart sheet", time: "20 min", checklist: ["Chaldean value", "Pythagorean value"] },
-      { id: "n5", label: "Compatibility Check", kind: "analysis", time: "20 min" },
-      { id: "n6", label: "Correction Suggested", kind: "analysis", time: "45 min", checklist: ["Suggest spelling", "Verify number"] },
-      { id: "n7", label: "Report Written", kind: "delivery", time: "1 hr" },
-      { id: "n8", label: "PDF Generated", kind: "delivery", tools: "Report template", time: "10 min" },
-      { id: "n9", label: "Sent via WhatsApp/Email", kind: "delivery", time: "5 min" },
-      { id: "n10", label: "Follow-up after 7 days", kind: "complete", time: "10 min" },
+      { id: "n1", label: "Inquiry Received", kind: "input", time: "5 min", checklist: ["Save contact", "Confirm payment"] },
+      { id: "n2", label: "Name & DOB Collected", kind: "input", time: "5 min", checklist: ["Full name", "DOB"] },
+      { id: "n3", label: "Quick Numerology Check", kind: "analysis", tools: "Numerology calculator", time: "20 min", checklist: ["Life Path", "Compatibility score"] },
+      { id: "n4", label: "Compatibility Verdict", kind: "analysis", time: "10 min" },
+      { id: "n5", label: "Sent via WhatsApp/Email", kind: "delivery", time: "5 min" },
+      { id: "n6", label: "Closed", kind: "complete", time: "—" },
     ],
   },
   {
-    id: "baby-name", name: "Baby Name Flow", avgDays: 3,
+    id: "perfect-baby", name: "Perfect Baby Name Flow (₹2,447)", avgDays: 2,
     nodes: [
       { id: "b1", label: "Parents' Details", kind: "input", time: "10 min" },
-      { id: "b2", label: "DOB Recorded", kind: "input", time: "5 min" },
-      { id: "b3", label: "Lucky Numbers", kind: "analysis", time: "30 min" },
-      { id: "b4", label: "Name Shortlist", kind: "analysis", time: "45 min" },
-      { id: "b5", label: "Final Report", kind: "complete", time: "30 min" },
+      { id: "b2", label: "Child DOB / Time / Place", kind: "input", time: "10 min" },
+      { id: "b3", label: "Numerology Calculation", kind: "analysis", tools: "Chaldean + Pythagorean", time: "45 min" },
+      { id: "b4", label: "Lucky Numbers & Letters", kind: "analysis", time: "30 min" },
+      { id: "b5", label: "Name Shortlist (10+)", kind: "analysis", time: "1 hr" },
+      { id: "b6", label: "Add-on Analysis (if opted ₹497)", kind: "analysis", time: "30 min", checklist: ["Detailed energy chart", "Phonetic breakdown"] },
+      { id: "b7", label: "Report Written (50+ pages)", kind: "delivery", tools: "Report template", time: "1.5 hr" },
+      { id: "b8", label: "PDF Generated", kind: "delivery", time: "10 min" },
+      { id: "b9", label: "Sent via WhatsApp/Email", kind: "delivery", time: "5 min" },
+      { id: "b10", label: "Follow-up after 7 days", kind: "complete", time: "10 min" },
     ],
   },
   {
-    id: "business", name: "Business Name Flow", avgDays: 7,
+    id: "live-consult", name: "Live Video Consultation Flow (₹8,927)", avgDays: 3,
     nodes: [
-      { id: "p1", label: "Owner DOB", kind: "input", time: "5 min" },
-      { id: "p2", label: "Business Nature", kind: "input", time: "15 min" },
-      { id: "p3", label: "Name Suggestions", kind: "analysis", time: "1 hr" },
-      { id: "p4", label: "Brand Alignment", kind: "analysis", time: "30 min" },
-      { id: "p5", label: "Report", kind: "complete", time: "45 min" },
+      { id: "p1", label: "Parents' Details", kind: "input", time: "10 min" },
+      { id: "p2", label: "Child DOB / Time / Place", kind: "input", time: "10 min" },
+      { id: "p3", label: "Slot Booking", kind: "input", time: "5 min", checklist: ["Confirm Zoom/Google Meet link"] },
+      { id: "p4", label: "Pre-call Numerology Prep", kind: "analysis", time: "1 hr" },
+      { id: "p5", label: "Add-on Analysis (if opted ₹497)", kind: "analysis", time: "30 min" },
+      { id: "p6", label: "Live 20-min Video Session", kind: "delivery", tools: "Zoom / Meet", time: "20 min" },
+      { id: "p7", label: "Detailed Report Sent", kind: "delivery", time: "1.5 hr" },
+      { id: "p8", label: "Follow-up after 7 days", kind: "complete", time: "10 min" },
     ],
   },
 ];
@@ -72,7 +76,7 @@ export default function Workflows() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold">{flow.name}</h3>
             <span className="inline-flex items-center gap-1 text-xs text-[hsl(var(--muted-foreground))]">
-              <Clock className="h-3.5 w-3.5" /> Avg {flow.avgDays} days
+              <Clock className="h-3.5 w-3.5" /> Avg {flow.avgDays} day{flow.avgDays > 1 ? "s" : ""}
             </span>
           </div>
           <div className="overflow-x-auto -mx-2 px-2 pb-2">
@@ -81,7 +85,7 @@ export default function Workflows() {
                 <div key={n.id} className="flex items-center">
                   <button
                     onClick={() => setActive(n)}
-                    className={`rounded-xl border px-3 py-2.5 text-xs font-medium hover-lift max-w-[140px] text-center ${KIND_STYLE[n.kind]}`}
+                    className={`rounded-xl border px-3 py-2.5 text-xs font-medium hover-lift max-w-[160px] text-center ${KIND_STYLE[n.kind]}`}
                   >
                     {n.label}
                   </button>

@@ -26,9 +26,9 @@ export default function Analytics() {
 
   const popularStacked = MONTHLY_REVENUE.slice(-6).map(m => ({
     month: m.month,
-    "Name Correction": Math.floor(Math.random() * 6) + 2,
-    "Baby Name": Math.floor(Math.random() * 5) + 1,
-    "Business Name": Math.floor(Math.random() * 4) + 1,
+    "Name Check": Math.floor(Math.random() * 8) + 3,
+    "Perfect Baby Name": Math.floor(Math.random() * 5) + 2,
+    "Live Video Consultation": Math.floor(Math.random() * 3) + 1,
   }));
 
   const cityData: Record<string, number> = {};
@@ -82,9 +82,9 @@ export default function Analytics() {
             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} />
             <Tooltip contentStyle={tooltipStyle} />
             <Legend wrapperStyle={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }} />
-            <Bar dataKey="Name Correction" stackId="a" fill="hsl(var(--gold))" />
-            <Bar dataKey="Baby Name" stackId="a" fill="hsl(245 58% 60%)" />
-            <Bar dataKey="Business Name" stackId="a" fill="hsl(174 72% 45%)" />
+            <Bar dataKey="Name Check" stackId="a" fill="hsl(var(--gold))" />
+            <Bar dataKey="Perfect Baby Name" stackId="a" fill="hsl(245 58% 60%)" />
+            <Bar dataKey="Live Video Consultation" stackId="a" fill="hsl(174 72% 45%)" />
           </BarChart>
         </ResponsiveContainer>
       </Card>

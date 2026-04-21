@@ -56,8 +56,8 @@ export default function Settings() {
             ].map(s => (
               <div key={s.name} className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center border border-[hsl(var(--border))] rounded-lg p-3">
                 <div className="font-medium">{s.name}</div>
-                <div className="text-sm text-[hsl(var(--muted-foreground))]">{fmtINR(s.price)}</div>
-                <div className="text-sm text-[hsl(var(--muted-foreground))]">{s.days} days delivery</div>
+                <div className="text-sm text-[hsl(var(--muted-foreground))]">{fmtINR(s.price)} <span className="text-[10px]">incl. GST</span></div>
+                <div className="text-sm text-[hsl(var(--muted-foreground))]">{s.days > 0 ? `${s.days} day${s.days > 1 ? "s" : ""} delivery` : s.note}</div>
                 <div className="text-right">
                   <button className="text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--gold))]">Edit</button>
                 </div>

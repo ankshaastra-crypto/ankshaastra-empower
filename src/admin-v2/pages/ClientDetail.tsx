@@ -142,7 +142,9 @@ export default function ClientDetail() {
         <Card>
           <h3 className="font-semibold mb-3">Payment Info</h3>
           <div className="space-y-2 text-sm">
-            <Row label="Amount" value={fmtINR(client.amount)} />
+            <Row label="Service" value={`${client.service}${client.addOn ? " + Add-on" : ""}`} />
+            <Row label="Amount" value={<span>{fmtINR(client.amount)} <span className="text-xs text-[hsl(var(--muted-foreground))]">incl. GST</span></span>} />
+            {client.addOn && <Row label="Add-on" value={<Badge tone="gold">₹497 Detailed Analysis</Badge>} />}
             <Row label="Method" value={client.paymentMethod} />
             <Row label="Date" value={fmtDate(client.paymentDate)} />
             <Row label="Status" value={<Badge tone={paymentStatusTone(client.paymentStatus)}>{client.paymentStatus}</Badge>} />

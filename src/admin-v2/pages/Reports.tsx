@@ -70,7 +70,7 @@ export default function Reports() {
                       const urgent = days > 14;
                       return (
                         <div key={c.id} className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--navy-2))] p-3 hover:border-[hsl(var(--gold)/0.4)] transition-colors">
-                          <Link to={`/admin/v2/clients/${encodeURIComponent(c.id)}`} className="font-medium text-sm hover:text-[hsl(var(--gold))]">{c.name}</Link>
+                          <Link to={`/admin/panel/clients/${encodeURIComponent(c.id)}`} className="font-medium text-sm hover:text-[hsl(var(--gold))]">{c.name}</Link>
                           <div className="text-xs text-[hsl(var(--muted-foreground))] mt-1">{c.service}</div>
                           <div className="flex items-center justify-between mt-2">
                             <span className="inline-flex items-center gap-1 text-xs text-[hsl(var(--muted-foreground))]">

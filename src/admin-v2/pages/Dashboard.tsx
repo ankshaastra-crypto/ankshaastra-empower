@@ -127,7 +127,7 @@ export default function Dashboard() {
                 {pending.length === 0 ? (
                   <p className="text-sm text-[hsl(var(--muted-foreground))] py-4 text-center">All caught up ✦</p>
                 ) : pending.map(c => (
-                  <Link key={c.id} to={`/admin/v2/clients/${encodeURIComponent(c.id)}`}
+                  <Link key={c.id} to={`/admin/panel/clients/${encodeURIComponent(c.id)}`}
                     className="block rounded-lg border border-[hsl(var(--border))] p-3 hover:border-[hsl(var(--gold)/0.4)] transition-colors"
                   >
                     <div className="font-medium text-sm">{c.name}</div>
@@ -141,11 +141,11 @@ export default function Dashboard() {
           <Card>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold">Recent Clients</h3>
-              <Link to="/admin/v2/clients" className="text-xs text-[hsl(var(--gold))] hover:underline">View all →</Link>
+              <Link to="/admin/panel/clients" className="text-xs text-[hsl(var(--gold))] hover:underline">View all →</Link>
             </div>
             <div className="space-y-2">
               {recent.map(c => (
-                <Link key={c.id} to={`/admin/v2/clients/${encodeURIComponent(c.id)}`}
+                <Link key={c.id} to={`/admin/panel/clients/${encodeURIComponent(c.id)}`}
                   className="flex items-center justify-between rounded-lg p-3 hover:bg-[hsl(var(--navy-3))] transition-colors"
                 >
                   <div>

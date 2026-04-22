@@ -7,14 +7,14 @@ import {
 } from "lucide-react";
 
 const PAGES = [
-  { to: "/admin/v2", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/admin/v2/clients", label: "Clients", icon: Users },
-  { to: "/admin/v2/inquiries", label: "Inquiries", icon: Inbox },
-  { to: "/admin/v2/reports", label: "Reports", icon: FileText },
-  { to: "/admin/v2/revenue", label: "Revenue", icon: IndianRupee },
-  { to: "/admin/v2/workflows", label: "Workflows", icon: GitBranch },
-  { to: "/admin/v2/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/admin/v2/settings", label: "Settings", icon: Settings },
+  { to: "/admin/panel", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/admin/panel/clients", label: "Clients", icon: Users },
+  { to: "/admin/panel/inquiries", label: "Inquiries", icon: Inbox },
+  { to: "/admin/panel/reports", label: "Reports", icon: FileText },
+  { to: "/admin/panel/revenue", label: "Revenue", icon: IndianRupee },
+  { to: "/admin/panel/workflows", label: "Workflows", icon: GitBranch },
+  { to: "/admin/panel/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/admin/panel/settings", label: "Settings", icon: Settings },
 ];
 
 export default function CommandPalette({
@@ -62,7 +62,7 @@ export default function CommandPalette({
                 <Command.Item
                   key={c.id}
                   value={`${c.name} ${c.phone} ${c.email} ${c.id}`}
-                  onSelect={() => go(`/admin/v2/clients/${encodeURIComponent(c.id)}`)}
+                  onSelect={() => go(`/admin/panel/clients/${encodeURIComponent(c.id)}`)}
                   className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-[hsl(var(--foreground))] cursor-pointer aria-selected:bg-[hsl(var(--gold)/0.12)]"
                 >
                   <UserIcon className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />

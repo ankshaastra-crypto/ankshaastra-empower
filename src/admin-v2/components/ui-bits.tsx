@@ -1,21 +1,15 @@
 import { ReactNode } from "react";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return (
-    <div
-      className={`glass-panel hover-lift rounded-xl p-5 ${className}`}
-    >
-      {children}
-    </div>
-  );
+  return <div className={`glass-panel hover-lift rounded-lg p-5 ${className}`}>{children}</div>;
 }
 
 export function PageTitle({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 className="text-2xl font-semibold gold-gradient-text">{title}</h1>
-        {subtitle && <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">{subtitle}</p>}
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+        {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
       </div>
       {action}
     </div>
@@ -24,20 +18,16 @@ export function PageTitle({ title, subtitle, action }: { title: string; subtitle
 
 type BadgeTone = "success" | "warning" | "danger" | "info" | "neutral" | "gold";
 const TONE: Record<BadgeTone, string> = {
-  success: "bg-[hsl(var(--success)/0.15)] text-[hsl(var(--success))] border-[hsl(var(--success)/0.3)]",
-  warning: "bg-[hsl(var(--warning)/0.15)] text-[hsl(var(--warning))] border-[hsl(var(--warning)/0.3)]",
-  danger:  "bg-[hsl(var(--destructive)/0.15)] text-[hsl(var(--destructive))] border-[hsl(var(--destructive)/0.3)]",
-  info:    "bg-[hsl(var(--info)/0.15)] text-[hsl(var(--info))] border-[hsl(var(--info)/0.3)]",
-  gold:    "bg-[hsl(var(--gold)/0.12)] text-[hsl(var(--gold))] border-[hsl(var(--gold)/0.3)]",
-  neutral: "bg-[hsl(var(--navy-3))] text-[hsl(var(--muted-foreground))] border-[hsl(var(--border))]",
+  success: "border-transparent bg-[hsl(var(--success)/0.12)] text-[hsl(var(--success))]",
+  warning: "border-transparent bg-[hsl(var(--warning)/0.12)] text-[hsl(var(--warning))]",
+  danger: "border-transparent bg-[hsl(var(--destructive)/0.12)] text-[hsl(var(--destructive))]",
+  info: "border-transparent bg-[hsl(var(--info)/0.12)] text-[hsl(var(--info))]",
+  gold: "border-transparent bg-[hsl(var(--gold)/0.12)] text-[hsl(var(--gold))]",
+  neutral: "border-[hsl(var(--border))] bg-[hsl(var(--secondary))] text-muted-foreground",
 };
 
 export function Badge({ children, tone = "neutral" }: { children: ReactNode; tone?: BadgeTone }) {
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${TONE[tone]}`}>
-      {children}
-    </span>
-  );
+  return <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${TONE[tone]}`}>{children}</span>;
 }
 
 export function reportStatusTone(status: string): BadgeTone {
@@ -67,12 +57,12 @@ export function EmptyState({ icon: Icon, title, message, action }: {
   action?: ReactNode;
 }) {
   return (
-    <div className="text-center py-16 px-4">
-      <div className="mx-auto w-14 h-14 rounded-full bg-[hsl(var(--gold)/0.1)] flex items-center justify-center mb-4">
-        <Icon className="h-7 w-7 text-[hsl(var(--gold))]" />
+    <div className="px-4 py-16 text-center">
+      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[hsl(var(--secondary))]">
+        <Icon className="h-7 w-7 text-primary" />
       </div>
-      <h3 className="text-base font-semibold text-[hsl(var(--foreground))] mb-1">{title}</h3>
-      <p className="text-sm text-[hsl(var(--muted-foreground))] max-w-sm mx-auto mb-4">{message}</p>
+      <h3 className="mb-1 text-base font-semibold text-foreground">{title}</h3>
+      <p className="mx-auto mb-4 max-w-sm text-sm text-muted-foreground">{message}</p>
       {action}
     </div>
   );
@@ -85,7 +75,7 @@ export function GoldButton({ children, onClick, type = "button", className = "" 
     <button
       type={type}
       onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[hsl(var(--gold))] to-[hsl(var(--gold-soft))] px-4 py-2 text-sm font-semibold text-[hsl(var(--navy))] hover:shadow-[0_8px_24px_-8px_hsl(var(--gold)/0.5)] transition-shadow ${className}`}
+      className={`inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 ${className}`}
     >
       {children}
     </button>
@@ -98,7 +88,7 @@ export function GhostButton({ children, onClick, className = "" }: {
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--navy-2))] px-3 py-2 text-sm text-[hsl(var(--foreground))] hover:border-[hsl(var(--gold)/0.4)] hover:text-[hsl(var(--gold))] transition-colors ${className}`}
+      className={`inline-flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground transition-colors hover:border-primary/40 hover:text-primary ${className}`}
     >
       {children}
     </button>

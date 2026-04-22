@@ -80,7 +80,7 @@ export default function Clients() {
                   <tr key={c.id} className="border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--navy-3)/0.4)] transition-colors">
                     <Td>{i + 1}</Td>
                     <Td>
-                      <Link to={`/admin/v2/clients/${encodeURIComponent(c.id)}`} className="font-medium hover:text-[hsl(var(--gold))]">{c.name}</Link>
+                      <Link to={`/admin/panel/clients/${encodeURIComponent(c.id)}`} className="font-medium hover:text-[hsl(var(--gold))]">{c.name}</Link>
                       <div className="text-xs text-[hsl(var(--muted-foreground))]">{c.email}</div>
                     </Td>
                     <Td>{c.phone}</Td>

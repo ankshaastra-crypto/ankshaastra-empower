@@ -64,7 +64,7 @@ export default function Inquiries() {
                   {inquiries.map(i => (
                     <tr key={i.id} className="border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--navy-3)/0.4)]">
                       <Td>
-                        <Link to={`/admin/v2/clients/${encodeURIComponent(i.id)}`} className="font-medium hover:text-[hsl(var(--gold))]">{i.name}</Link>
+                        <Link to={`/admin/panel/clients/${encodeURIComponent(i.id)}`} className="font-medium hover:text-[hsl(var(--gold))]">{i.name}</Link>
                       </Td>
                       <Td>{i.phone}</Td>
                       <Td className="text-xs text-[hsl(var(--muted-foreground))]">{i.email}</Td>

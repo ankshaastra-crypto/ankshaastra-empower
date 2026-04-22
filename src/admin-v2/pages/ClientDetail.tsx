@@ -23,7 +23,7 @@ export default function ClientDetail() {
     return (
       <div className="text-center py-20">
         <p className="text-[hsl(var(--muted-foreground))]">Order not found</p>
-        <Link to="/admin/v2/clients" className="text-[hsl(var(--gold))] text-sm">← Back to clients</Link>
+        <Link to="/admin/panel/clients" className="text-[hsl(var(--gold))] text-sm">← Back to clients</Link>
       </div>
     );
   }

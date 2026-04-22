@@ -34,10 +34,10 @@ const App = () => (
           <Route path="/baby-name" element={<BabyNameLandingPage />} />
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/v2/*" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminLogin />} />
           <Route path="/toggle-preview" element={<TogglePreview />} />
           {adminV2Routes}
+          <Route path="/admin/v2/*" element={<AdminLogin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

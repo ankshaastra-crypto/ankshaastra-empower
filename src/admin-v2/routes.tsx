@@ -2,6 +2,7 @@ import { lazy } from "react";
 import { Route } from "react-router-dom";
 import { ToastProvider } from "./components/Toast";
 import { AdminDataProvider } from "./data/AdminDataContext";
+import ProtectedRoute from "@/components/admin/ProtectedRoute";
 
 const AdminLayout = lazy(() => import("./components/AdminLayout"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -16,13 +17,15 @@ const Settings = lazy(() => import("./pages/Settings"));
 
 export const adminV2Routes = (
   <Route
-    path="/admin/v2"
+    path="/admin/panel"
     element={
-      <ToastProvider>
-        <AdminDataProvider>
-          <AdminLayout />
-        </AdminDataProvider>
-      </ToastProvider>
+      <ProtectedRoute>
+        <ToastProvider>
+          <AdminDataProvider>
+            <AdminLayout />
+          </AdminDataProvider>
+        </ToastProvider>
+      </ProtectedRoute>
     }
   >
     <Route index element={<Dashboard />} />

@@ -48,10 +48,10 @@ const FLOWS: { id: string; name: string; avgDays: number; nodes: FlowNode[] }[] 
 ];
 
 const KIND_STYLE: Record<NodeKind, string> = {
-  input: "border-[hsl(217_91%_60%/0.4)] bg-[hsl(217_91%_60%/0.1)] text-[hsl(217_91%_70%)]",
-  analysis: "border-[hsl(var(--gold)/0.4)] bg-[hsl(var(--gold)/0.1)] text-[hsl(var(--gold))]",
-  delivery: "border-[hsl(174_72%_45%/0.4)] bg-[hsl(174_72%_45%/0.1)] text-[hsl(174_72%_60%)]",
-  complete: "border-[hsl(var(--success)/0.4)] bg-[hsl(var(--success)/0.12)] text-[hsl(var(--success))]",
+  input: "border-[hsl(217_91%_56%/0.35)] bg-[hsl(217_91%_56%/0.08)] text-[hsl(217_91%_45%)]",
+  analysis: "border-primary/35 bg-primary/10 text-primary",
+  delivery: "border-[hsl(174_60%_38%/0.3)] bg-[hsl(174_60%_38%/0.1)] text-[hsl(174_60%_30%)]",
+  complete: "border-[hsl(var(--success)/0.3)] bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]",
 };
 
 export default function Workflows() {
@@ -60,36 +60,36 @@ export default function Workflows() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold gold-gradient-text">Workflows</h1>
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">Step-by-step flows for each service. Click a node for details.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Workflows</h1>
+        <p className="text-sm text-muted-foreground">Step-by-step flows for each service. Click a node for details.</p>
       </div>
 
       <div className="flex flex-wrap gap-3 text-xs">
-        <Legend color="hsl(217 91% 60%)" label="Input / Trigger" />
-        <Legend color="hsl(var(--gold))" label="Analysis" />
-        <Legend color="hsl(174 72% 45%)" label="Delivery" />
-        <Legend color="hsl(var(--success))" label="Completion" />
+        <Legend color="hsl(217 91% 56%)" label="Input / Trigger" />
+        <Legend color="hsl(38 92% 50%)" label="Analysis" />
+        <Legend color="hsl(174 60% 38%)" label="Delivery" />
+        <Legend color="hsl(152 52% 40%)" label="Completion" />
       </div>
 
-      {FLOWS.map(flow => (
+      {FLOWS.map((flow) => (
         <Card key={flow.id}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">{flow.name}</h3>
-            <span className="inline-flex items-center gap-1 text-xs text-[hsl(var(--muted-foreground))]">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-semibold text-foreground">{flow.name}</h3>
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3.5 w-3.5" /> Avg {flow.avgDays} day{flow.avgDays > 1 ? "s" : ""}
             </span>
           </div>
-          <div className="overflow-x-auto -mx-2 px-2 pb-2">
-            <div className="flex items-center gap-2 min-w-max">
+          <div className="-mx-2 overflow-x-auto px-2 pb-2">
+            <div className="flex min-w-max items-center gap-2">
               {flow.nodes.map((n, i) => (
                 <div key={n.id} className="flex items-center">
                   <button
                     onClick={() => setActive(n)}
-                    className={`rounded-xl border px-3 py-2.5 text-xs font-medium hover-lift max-w-[160px] text-center ${KIND_STYLE[n.kind]}`}
+                    className={`hover-lift max-w-[160px] rounded-xl border px-3 py-2.5 text-center text-xs font-medium ${KIND_STYLE[n.kind]}`}
                   >
                     {n.label}
                   </button>
-                  {i < flow.nodes.length - 1 && <ChevronRight className="h-4 w-4 text-[hsl(var(--muted-foreground))] mx-1 shrink-0" />}
+                  {i < flow.nodes.length - 1 && <ChevronRight className="mx-1 h-4 w-4 shrink-0 text-muted-foreground" />}
                 </div>
               ))}
             </div>
@@ -99,32 +99,32 @@ export default function Workflows() {
 
       {active && (
         <div className="fixed inset-0 z-50 flex justify-end" onClick={() => setActive(null)}>
-          <div className="absolute inset-0 bg-black/60" />
-          <div className="relative h-full w-full max-w-md border-l border-[hsl(var(--border))] p-6 overflow-y-auto"
-            style={{ background: "hsl(var(--navy-2))" }}
-            onClick={e => e.stopPropagation()}
+          <div className="absolute inset-0 bg-black/30" />
+          <div
+            className="relative h-full w-full max-w-md overflow-y-auto border-l border-border bg-card p-6"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className={`inline-block rounded-lg border px-3 py-1 text-xs font-medium mb-3 ${KIND_STYLE[active.kind]}`}>
+            <div className={`mb-3 inline-block rounded-lg border px-3 py-1 text-xs font-medium ${KIND_STYLE[active.kind]}`}>
               {active.kind.toUpperCase()}
             </div>
-            <h3 className="text-xl font-semibold gold-gradient-text mb-3">{active.label}</h3>
+            <h3 className="mb-3 text-xl font-semibold text-foreground">{active.label}</h3>
             <div className="space-y-2 text-sm">
               {active.tools && <Row label="Tools" value={active.tools} />}
               {active.time && <Row label="Avg time" value={active.time} />}
             </div>
             {active.checklist && (
               <>
-                <h4 className="font-semibold text-sm mt-5 mb-2">Checklist</h4>
+                <h4 className="mb-2 mt-5 text-sm font-semibold text-foreground">Checklist</h4>
                 <ul className="space-y-1.5 text-sm">
                   {active.checklist.map((c, i) => (
-                    <li key={i} className="flex items-center gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--gold))]" /> {c}
+                    <li key={i} className="flex items-center gap-2 text-foreground">
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary" /> {c}
                     </li>
                   ))}
                 </ul>
               </>
             )}
-            <button onClick={() => setActive(null)} className="mt-6 text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--gold))]">Close →</button>
+            <button onClick={() => setActive(null)} className="mt-6 text-xs text-muted-foreground hover:text-primary">Close →</button>
           </div>
         </div>
       )}
@@ -134,7 +134,7 @@ export default function Workflows() {
 
 function Legend({ color, label }: { color: string; label: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-[hsl(var(--muted-foreground))]">
+    <span className="inline-flex items-center gap-1.5 text-muted-foreground">
       <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} /> {label}
     </span>
   );
@@ -142,9 +142,9 @@ function Legend({ color, label }: { color: string; label: string }) {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between border-b border-[hsl(var(--border))] py-2">
-      <span className="text-[hsl(var(--muted-foreground))]">{label}</span>
-      <span>{value}</span>
+    <div className="flex justify-between border-b border-border py-2">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-foreground">{value}</span>
     </div>
   );
 }

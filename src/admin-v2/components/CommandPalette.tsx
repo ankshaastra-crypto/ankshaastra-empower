@@ -1,6 +1,6 @@
 import { Command } from "cmdk";
 import { useNavigate } from "react-router-dom";
-import { CLIENTS } from "../data/seed";
+import { useAdminData } from "../data/AdminDataContext";
 import {
   LayoutDashboard, Users, Inbox, FileText, IndianRupee,
   GitBranch, BarChart3, Settings, User as UserIcon,
@@ -21,6 +21,7 @@ export default function CommandPalette({
   open, onOpenChange,
 }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const navigate = useNavigate();
+  const { clients } = useAdminData();
   if (!open) return null;
   const close = () => onOpenChange(false);
   const go = (to: string) => { navigate(to); close(); };
@@ -57,11 +58,11 @@ export default function CommandPalette({
               ))}
             </Command.Group>
             <Command.Group heading="Clients" className="text-xs text-[hsl(var(--muted-foreground))] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 mt-2">
-              {CLIENTS.slice(0, 30).map(c => (
+              {clients.slice(0, 30).map(c => (
                 <Command.Item
                   key={c.id}
                   value={`${c.name} ${c.phone} ${c.email} ${c.id}`}
-                  onSelect={() => go(`/admin/v2/clients/${c.id}`)}
+                  onSelect={() => go(`/admin/v2/clients/${encodeURIComponent(c.id)}`)}
                   className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-[hsl(var(--foreground))] cursor-pointer aria-selected:bg-[hsl(var(--gold)/0.12)]"
                 >
                   <UserIcon className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />

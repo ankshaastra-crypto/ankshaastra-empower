@@ -1,7 +1,8 @@
 import { Card, Badge, paymentStatusTone, GhostButton } from "../components/ui-bits";
-import { TRANSACTIONS, MONTHLY_REVENUE, getRevenueByService, CLIENTS, fmtINR, fmtDate, ADD_ON_PRICE } from "../data/seed";
+import { fmtINR, fmtDate, ADD_ON_PRICE } from "../data/seed";
+import { useAdminData } from "../data/AdminDataContext";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
-import { Download, IndianRupee, TrendingUp, Wallet, AlertCircle } from "lucide-react";
+import { Download, IndianRupee, TrendingUp, Wallet, AlertCircle, Loader2 } from "lucide-react";
 import { useToastV2 } from "../components/Toast";
 
 const tooltipStyle = {
@@ -12,36 +13,52 @@ const COLORS = ["hsl(38 92% 50%)", "hsl(245 58% 60%)", "hsl(174 72% 45%)", "hsl(
 
 export default function Revenue() {
   const { toast } = useToastV2();
-  const total = TRANSACTIONS.reduce((s, t) => s + t.amount, 0);
-  const thisMonthLabel = MONTHLY_REVENUE[MONTHLY_REVENUE.length - 1];
-  const avg = Math.round(total / Math.max(1, TRANSACTIONS.length));
-  const pending = CLIENTS.filter(c => c.paymentStatus === "Pending").reduce((s, c) => s + c.amount, 0);
-  const byService = getRevenueByService();
-  const addOnRevenue = CLIENTS.filter(c => c.addOn && c.paymentStatus !== "Pending").length * ADD_ON_PRICE;
-  const baseRevenue = total - addOnRevenue;
+  const { clients, loading, metrics } = useAdminData();
+
+  if (loading) {
+    return <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-[hsl(var(--gold))]" /></div>;
+  }
+
+  const total = metrics.totalRevenue;
+  const thisMonth = metrics.monthlyRevenue[metrics.monthlyRevenue.length - 1]?.revenue || 0;
   const addOnSplit = [
-    { name: "Base Service", value: baseRevenue },
-    { name: "₹497 Add-on", value: addOnRevenue },
+    { name: "Base Service", value: metrics.baseRevenue },
+    { name: "₹497 Add-on", value: metrics.addOnRevenue },
   ];
+  const transactions = clients.filter(c => c.paymentStatus === "Paid");
+
+  const exportCsv = () => {
+    const rows = [
+      ["Order ID", "Client", "Service", "Amount", "Date", "Status"],
+      ...transactions.map(c => [c.id, c.name, c.service, c.amount, c.paymentDate || c.dateAdded, c.paymentStatus]),
+    ];
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `revenue-${Date.now()}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    toast("CSV exported");
+  };
 
   return (
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold gold-gradient-text">Revenue</h1>
-        <GhostButton onClick={() => toast("CSV exported (mock)")}><Download className="h-4 w-4" /> Export CSV</GhostButton>
+        <GhostButton onClick={exportCsv}><Download className="h-4 w-4" /> Export CSV</GhostButton>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KPI icon={IndianRupee} label="Total Revenue" value={fmtINR(total)} />
-        <KPI icon={TrendingUp} label="This Month" value={fmtINR(thisMonthLabel.revenue)} />
-        <KPI icon={Wallet} label="Avg per Client" value={fmtINR(avg)} />
-        <KPI icon={AlertCircle} label="Pending" value={fmtINR(pending)} amber />
+        <KPI icon={TrendingUp} label="This Month" value={fmtINR(thisMonth)} />
+        <KPI icon={Wallet} label="Avg per Client" value={fmtINR(metrics.avgOrder)} />
+        <KPI icon={AlertCircle} label="Pending" value={fmtINR(metrics.pendingRevenue)} amber />
       </div>
 
       <Card>
         <h3 className="font-semibold mb-4">Monthly Revenue (Last 12 months)</h3>
         <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={MONTHLY_REVENUE}>
+          <BarChart data={metrics.monthlyRevenue}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={11} />
             <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} />
@@ -55,7 +72,7 @@ export default function Revenue() {
         <Card>
           <h3 className="font-semibold mb-4">Revenue by Service</h3>
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={byService} layout="vertical" margin={{ left: 20 }}>
+            <BarChart data={metrics.revenueByService} layout="vertical" margin={{ left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={11} />
               <YAxis type="category" dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} width={120} />
@@ -66,7 +83,7 @@ export default function Revenue() {
         </Card>
 
         <Card>
-          <h3 className="font-semibold mb-4">Add-on Revenue Split</h3>
+          <h3 className="font-semibold mb-4">Add-on Revenue Split (₹{ADD_ON_PRICE})</h3>
           <ResponsiveContainer width="100%" height={240}>
             <PieChart>
               <Pie data={addOnSplit} dataKey="value" nameKey="name" outerRadius={90}>
@@ -81,26 +98,30 @@ export default function Revenue() {
 
       <Card>
         <h3 className="font-semibold mb-3">Transactions</h3>
-        <div className="overflow-x-auto -mx-5">
-          <table className="w-full text-sm min-w-[700px]">
-            <thead>
-              <tr className="text-xs uppercase text-[hsl(var(--muted-foreground))] border-b border-[hsl(var(--border))]">
-                <Th>Client</Th><Th>Service</Th><Th>Amount</Th><Th>Date</Th><Th>Status</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {TRANSACTIONS.slice(0, 25).map(t => (
-                <tr key={t.id} className={`border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--navy-3)/0.4)] ${t.status === "Pending" ? "bg-[hsl(var(--gold)/0.05)]" : ""}`}>
-                  <Td className="font-medium">{t.clientName}</Td>
-                  <Td>{t.service}</Td>
-                  <Td className="font-semibold">{fmtINR(t.amount)}</Td>
-                  <Td>{fmtDate(t.date)}</Td>
-                  <Td><Badge tone={paymentStatusTone(t.status)}>{t.status}</Badge></Td>
+        {transactions.length === 0 ? (
+          <p className="text-sm text-[hsl(var(--muted-foreground))] text-center py-8">No completed transactions yet.</p>
+        ) : (
+          <div className="overflow-x-auto -mx-5">
+            <table className="w-full text-sm min-w-[700px]">
+              <thead>
+                <tr className="text-xs uppercase text-[hsl(var(--muted-foreground))] border-b border-[hsl(var(--border))]">
+                  <Th>Client</Th><Th>Service</Th><Th>Amount</Th><Th>Date</Th><Th>Status</Th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {transactions.slice(0, 50).map(t => (
+                  <tr key={t.id} className="border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--navy-3)/0.4)]">
+                    <Td className="font-medium">{t.name}</Td>
+                    <Td>{t.service}</Td>
+                    <Td className="font-semibold">{fmtINR(t.amount)}</Td>
+                    <Td>{fmtDate(t.paymentDate || t.dateAdded)}</Td>
+                    <Td><Badge tone={paymentStatusTone(t.paymentStatus)}>{t.paymentStatus}</Badge></Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
     </div>
   );

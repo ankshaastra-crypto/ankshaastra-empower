@@ -1,6 +1,7 @@
 import { lazy } from "react";
 import { Route } from "react-router-dom";
 import { ToastProvider } from "./components/Toast";
+import { AdminDataProvider } from "./data/AdminDataContext";
 
 const AdminLayout = lazy(() => import("./components/AdminLayout"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -18,7 +19,9 @@ export const adminV2Routes = (
     path="/admin/v2"
     element={
       <ToastProvider>
-        <AdminLayout />
+        <AdminDataProvider>
+          <AdminLayout />
+        </AdminDataProvider>
       </ToastProvider>
     }
   >

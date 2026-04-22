@@ -1,7 +1,8 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Card, Badge, GoldButton, GhostButton, reportStatusTone, paymentStatusTone } from "../components/ui-bits";
-import { CLIENTS, NUMEROLOGY_MEANINGS, fmtDate, fmtINR } from "../data/seed";
-import { ArrowLeft, MessageCircle, Mail, Phone, MapPin, Calendar, CheckCircle2, Circle } from "lucide-react";
+import { NUMEROLOGY_MEANINGS, fmtDate, fmtINR } from "../data/seed";
+import { useAdminData } from "../data/AdminDataContext";
+import { ArrowLeft, MessageCircle, Mail, Phone, MapPin, Calendar, CheckCircle2, Circle, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useToastV2 } from "../components/Toast";
 
@@ -9,13 +10,19 @@ export default function ClientDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToastV2();
-  const client = CLIENTS.find(c => c.id === id);
+  const { clients, loading } = useAdminData();
+  const decoded = id ? decodeURIComponent(id) : "";
+  const client = clients.find(c => c.id === decoded);
   const [notes, setNotes] = useState(client?.notes || "");
+
+  if (loading) {
+    return <div className="flex items-center justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-[hsl(var(--gold))]" /></div>;
+  }
 
   if (!client) {
     return (
       <div className="text-center py-20">
-        <p className="text-[hsl(var(--muted-foreground))]">Client not found</p>
+        <p className="text-[hsl(var(--muted-foreground))]">Order not found</p>
         <Link to="/admin/v2/clients" className="text-[hsl(var(--gold))] text-sm">← Back to clients</Link>
       </div>
     );
@@ -29,6 +36,9 @@ export default function ClientDetail() {
     { label: "Birth", value: client.numerology.birth },
   ];
 
+  const phoneDigits = client.phone.replace(/[^\d]/g, "");
+  const waLink = phoneDigits ? `https://wa.me/${phoneDigits.startsWith("91") ? phoneDigits : "91" + phoneDigits}` : "#";
+
   return (
     <div className="space-y-5">
       <button onClick={() => navigate(-1)} className="inline-flex items-center gap-1 text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--gold))]">
@@ -38,82 +48,40 @@ export default function ClientDetail() {
       <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">{client.name}</h1>
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">{client.service} · ID {client.id}</p>
+          <p className="text-sm text-[hsl(var(--muted-foreground))]">{client.service} · Order {client.id}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <GhostButton onClick={() => toast("Opened WhatsApp (mock)")}><MessageCircle className="h-4 w-4" /> WhatsApp</GhostButton>
-          <GhostButton onClick={() => toast("Email composer (mock)")}><Mail className="h-4 w-4" /> Email</GhostButton>
-          <GoldButton onClick={() => toast("Notes saved")}>Save Notes</GoldButton>
+          <a href={waLink} target="_blank" rel="noopener noreferrer">
+            <GhostButton><MessageCircle className="h-4 w-4" /> WhatsApp</GhostButton>
+          </a>
+          <a href={`mailto:${client.email}`}>
+            <GhostButton><Mail className="h-4 w-4" /> Email</GhostButton>
+          </a>
+          <GoldButton onClick={() => toast("Notes saved locally")}>Save Notes</GoldButton>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card>
-          <h3 className="font-semibold mb-3">Personal Info</h3>
+          <h3 className="font-semibold mb-3">Customer Info</h3>
           <Info icon={Calendar} label="DOB" value={`${fmtDate(client.dob)}${client.birthTime ? " · " + client.birthTime : ""}`} />
           <Info icon={Phone} label="Phone" value={client.phone} />
           <Info icon={Mail} label="Email" value={client.email} />
-          <Info icon={MapPin} label="Location" value={`${client.city}, ${client.state}`} />
-          <div className="mt-3 flex gap-2">
+          <Info icon={MapPin} label="City" value={client.city} />
+          <div className="mt-3 flex gap-2 flex-wrap">
             <Badge tone="neutral">{client.gender}</Badge>
             <Badge tone={reportStatusTone(client.reportStatus)}>{client.reportStatus}</Badge>
           </div>
         </Card>
 
         <Card className="lg:col-span-2">
-          <h3 className="font-semibold mb-3">Numerology Profile</h3>
+          <h3 className="font-semibold mb-3">Numerology Profile (auto-calculated)</h3>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             {numCards.map(n => (
               <div key={n.label} className="text-center rounded-xl border border-[hsl(var(--gold)/0.25)] bg-[hsl(var(--gold)/0.06)] p-3">
                 <div className="text-3xl font-bold gold-gradient-text">{n.value}</div>
                 <div className="text-xs font-medium mt-1">{n.label}</div>
                 <div className="text-[10px] text-[hsl(var(--muted-foreground))] mt-1 leading-tight">{NUMEROLOGY_MEANINGS[n.value]}</div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
-          <h3 className="font-semibold mb-3">Current Name Analysis</h3>
-          <div className="space-y-3">
-            <div className="text-sm">
-              <span className="text-[hsl(var(--muted-foreground))]">Name: </span>
-              <span className="font-medium">{client.currentName.name}</span>
-            </div>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-lg bg-[hsl(var(--navy-3))] p-3">
-                <div className="text-xs text-[hsl(var(--muted-foreground))]">Chaldean</div>
-                <div className="text-xl font-semibold mt-1">{client.currentName.chaldean}</div>
-              </div>
-              <div className="rounded-lg bg-[hsl(var(--navy-3))] p-3">
-                <div className="text-xs text-[hsl(var(--muted-foreground))]">Pythagorean</div>
-                <div className="text-xl font-semibold mt-1">{client.currentName.pythagorean}</div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-xs mb-1">
-                <span className="text-[hsl(var(--muted-foreground))]">Compatibility</span>
-                <span className="font-medium">{client.currentName.compatibility}%</span>
-              </div>
-              <div className="h-2 rounded-full bg-[hsl(var(--navy-3))] overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-[hsl(var(--gold))] to-[hsl(var(--gold-soft))]" style={{ width: `${client.currentName.compatibility}%` }} />
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <h3 className="font-semibold mb-3">Suggested Corrections</h3>
-          <div className="space-y-2">
-            {client.suggestions.map((s, i) => (
-              <div key={i} className="flex items-center justify-between rounded-lg border border-[hsl(var(--border))] p-3">
-                <div>
-                  <div className="font-medium text-sm">{s.spelling}</div>
-                  <div className="text-xs text-[hsl(var(--muted-foreground))]">New number: {s.number}</div>
-                </div>
-                <Badge tone="success">+{s.improvement}%</Badge>
               </div>
             ))}
           </div>
@@ -145,11 +113,10 @@ export default function ClientDetail() {
             <Row label="Service" value={`${client.service}${client.addOn ? " + Add-on" : ""}`} />
             <Row label="Amount" value={<span>{fmtINR(client.amount)} <span className="text-xs text-[hsl(var(--muted-foreground))]">incl. GST</span></span>} />
             {client.addOn && <Row label="Add-on" value={<Badge tone="gold">₹497 Detailed Analysis</Badge>} />}
-            <Row label="Method" value={client.paymentMethod} />
+            <Row label="Method" value="Online" />
             <Row label="Date" value={fmtDate(client.paymentDate)} />
             <Row label="Status" value={<Badge tone={paymentStatusTone(client.paymentStatus)}>{client.paymentStatus}</Badge>} />
           </div>
-          <button className="mt-4 text-xs text-[hsl(var(--gold))] hover:underline">Download Receipt →</button>
         </Card>
       </div>
 
@@ -172,7 +139,7 @@ function Info({ icon: Icon, label, value }: { icon: any; label: string; value: s
     <div className="flex items-center gap-2 py-1.5 text-sm">
       <Icon className="h-4 w-4 text-[hsl(var(--muted-foreground))]" />
       <span className="text-[hsl(var(--muted-foreground))] w-16 text-xs">{label}</span>
-      <span className="font-medium">{value}</span>
+      <span className="font-medium break-all">{value}</span>
     </div>
   );
 }

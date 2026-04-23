@@ -1227,7 +1227,7 @@ const OrderFormSection = () => {
                   <RadioGroup value={packageType} onValueChange={(val) => {
                     const next = val as "namecheck" | "single" | "premium";
                     setPackageType(next);
-                    if (next === "namecheck") setAddonExtraNames(false);
+                    if (next === "namecheck") { setAddonExtraNames(false); setAddonNickname(false); }
                   }} className="grid gap-4">
                     {/* Name Check Option */}
                     <label htmlFor="namecheck"

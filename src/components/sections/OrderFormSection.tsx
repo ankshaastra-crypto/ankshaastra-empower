@@ -494,10 +494,11 @@ const OrderFormSection = () => {
 
     if (packageType === "single" || packageType === "premium") {
       const userNameOptions = (babyFormData.nameOptions || "").trim();
-      const addonTag = isAddonActive
-        ? `[ADD-ON: +${ADDON_EXTRA_NAMES_LABEL} (₹${ADDON_EXTRA_NAMES_PRICE})]`
-        : "";
-      const mergedNameOptions = [userNameOptions, addonTag].filter(Boolean).join(" ");
+      const addonTags = [
+        isAddonActive ? `[ADD-ON: +${ADDON_EXTRA_NAMES_LABEL} (₹${ADDON_EXTRA_NAMES_PRICE})]` : "",
+        isNicknameActive ? `[ADD-ON: +${ADDON_NICKNAME_LABEL} (₹${ADDON_NICKNAME_PRICE})]` : "",
+      ].filter(Boolean).join(" ");
+      const mergedNameOptions = [userNameOptions, addonTags].filter(Boolean).join(" ");
 
       orderPayload = {
         orderId,

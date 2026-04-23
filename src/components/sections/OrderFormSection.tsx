@@ -388,11 +388,16 @@ const OrderFormSection = () => {
 
   const isAddonEligible = packageType === "single" || packageType === "premium";
   const isAddonActive = isAddonEligible && addonExtraNames;
+  const isNicknameActive = isAddonEligible && addonNickname;
 
   const getPrice = (): number => {
     if (packageType === "namecheck") return NAME_CHECK_PRICING[nameCheckCount].price;
     const base = packageType === "premium" ? getPackagePrice("premium") : getPackagePrice("single");
-    return base + (isAddonActive ? ADDON_EXTRA_NAMES_PRICE : 0);
+    return (
+      base +
+      (isAddonActive ? ADDON_EXTRA_NAMES_PRICE : 0) +
+      (isNicknameActive ? ADDON_NICKNAME_PRICE : 0)
+    );
   };
 
   const getRequiredPersonCount = (): number => (packageType === "namecheck" ? nameCheckCount : 1);

@@ -102,6 +102,10 @@ const NAME_CHECK_PRICING = {
 const ADDON_EXTRA_NAMES_PRICE = 497;
 const ADDON_EXTRA_NAMES_LABEL = "10+ Extra Numerologically Aligned Names";
 
+// Optional add-on: Numerologically Aligned Nickname (Baby Name + Premium only)
+const ADDON_NICKNAME_PRICE = 497;
+const ADDON_NICKNAME_LABEL = "Numerologically Aligned Nickname";
+
 const STEPS = [
   { id: 1, label: "Package" },
   { id: 2, label: "Details" },

@@ -182,6 +182,7 @@ const OrderFormSection = () => {
         const count = parseInt(detail.split("-")[1]) as 1 | 2 | 3;
         setNameCheckCount(count);
         setAddonExtraNames(false);
+        setAddonNickname(false);
       } else if (detail === "single") {
         setPackageType("single");
       } else if (detail === "premium") {
@@ -190,6 +191,7 @@ const OrderFormSection = () => {
         setPackageType("namecheck");
         setNameCheckCount(1);
         setAddonExtraNames(false);
+        setAddonNickname(false);
       }
       setFormStep(1);
     };

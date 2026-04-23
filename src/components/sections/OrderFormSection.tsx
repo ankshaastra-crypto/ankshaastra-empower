@@ -1103,7 +1103,7 @@ const OrderFormSection = () => {
                       </>
                     )}
 
-                    {/* Add-on toggle inside Order Summary */}
+                    {/* Add-on toggles inside Order Summary */}
                     {isAddonEligible && (
                       <div className={cn(
                         "rounded-lg border p-3 transition-all",
@@ -1130,10 +1130,43 @@ const OrderFormSection = () => {
                       </div>
                     )}
 
+                    {isAddonEligible && (
+                      <div className={cn(
+                        "rounded-lg border p-3 transition-all",
+                        addonNickname ? "border-accent bg-accent/5" : "border-dashed border-accent/40"
+                      )}>
+                        <div className="flex items-start gap-2.5">
+                          <Checkbox
+                            id="addonNicknameSummary"
+                            checked={addonNickname}
+                            onCheckedChange={(c) => setAddonNickname(c === true)}
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <Label htmlFor="addonNicknameSummary" className="text-sm font-semibold text-foreground cursor-pointer flex items-center gap-1.5">
+                              <Sparkles className="w-3.5 h-3.5 text-accent" />
+                              Add a Numerologically Aligned Nickname
+                            </Label>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">A short, lucky pet name for your child</p>
+                          </div>
+                          <span className="text-sm font-bold text-accent whitespace-nowrap">
+                            +{formatPrice(ADDON_NICKNAME_PRICE)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
                     {isAddonActive && (
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Add-on: Extra Names</span>
                         <span className="text-foreground font-medium">+{formatPrice(ADDON_EXTRA_NAMES_PRICE)}</span>
+                      </div>
+                    )}
+
+                    {isNicknameActive && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Add-on: Nickname</span>
+                        <span className="text-foreground font-medium">+{formatPrice(ADDON_NICKNAME_PRICE)}</span>
                       </div>
                     )}
                   </div>

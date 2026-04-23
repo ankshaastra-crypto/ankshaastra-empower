@@ -24,7 +24,37 @@ npm run dev
 
 ### Environment Variables
 
-**Required:**
+> ⚠️ **CRITICAL — Frontend Supabase connectivity (admin panel, orders, etc.)**
+>
+> The frontend reads Supabase credentials from **Vite env vars** at build time
+> (`src/integrations/supabase/client.ts` uses `import.meta.env.VITE_SUPABASE_URL`
+> and `import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY`).
+>
+> Locally these come from `.env` (already populated). But `.env` is **gitignored**,
+> so **on Vercel / Netlify you MUST add them manually** or the admin panel will
+> show a blank screen and every Supabase call will fail.
+>
+> **Required Vite env vars (Production + Preview + Development):**
+>
+> ```bash
+> VITE_SUPABASE_URL=https://knhzavivzannzgvhwknb.supabase.co
+> VITE_SUPABASE_PUBLISHABLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...   # the anon/publishable key
+> VITE_SUPABASE_PROJECT_ID=knhzavivzannzgvhwknb
+> ```
+>
+> **Vercel:** Project → Settings → Environment Variables → add each of the three
+> above for **Production, Preview, and Development** → **Redeploy** (Vite vars are
+> baked in at build time, so a redeploy is required after adding them).
+>
+> **Netlify:** Site settings → Environment variables → add the three vars →
+> Trigger a new deploy.
+>
+> **How to verify it worked:** open the deployed site, hit `/admin`, log in, and
+> the dashboard should load. If you still see a blank page, open DevTools →
+> Console and look for `Invalid URL` or `supabaseUrl is required` — that means
+> the build did not pick up the vars (you forgot to redeploy after adding them).
+
+**Required (backend / API routes):**
 
 ```bash
 RAZORPAY_KEY_ID=your_razorpay_key_id

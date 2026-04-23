@@ -102,6 +102,10 @@ const NAME_CHECK_PRICING = {
 const ADDON_EXTRA_NAMES_PRICE = 497;
 const ADDON_EXTRA_NAMES_LABEL = "10+ Extra Numerologically Aligned Names";
 
+// Optional add-on: Numerologically Aligned Nickname (Baby Name + Premium only)
+const ADDON_NICKNAME_PRICE = 497;
+const ADDON_NICKNAME_LABEL = "Numerologically Aligned Nickname";
+
 const STEPS = [
   { id: 1, label: "Package" },
   { id: 2, label: "Details" },
@@ -116,6 +120,7 @@ const OrderFormSection = () => {
   const [packageType, setPackageType] = useState<"namecheck" | "single" | "premium">("single");
   const [nameCheckCount, setNameCheckCount] = useState<1 | 2 | 3>(1);
   const [addonExtraNames, setAddonExtraNames] = useState<boolean>(false);
+  const [addonNickname, setAddonNickname] = useState<boolean>(false);
 
   // Name Check form data
   const [formData, setFormData] = useState({
@@ -177,6 +182,7 @@ const OrderFormSection = () => {
         const count = parseInt(detail.split("-")[1]) as 1 | 2 | 3;
         setNameCheckCount(count);
         setAddonExtraNames(false);
+        setAddonNickname(false);
       } else if (detail === "single") {
         setPackageType("single");
       } else if (detail === "premium") {
@@ -185,6 +191,7 @@ const OrderFormSection = () => {
         setPackageType("namecheck");
         setNameCheckCount(1);
         setAddonExtraNames(false);
+        setAddonNickname(false);
       }
       setFormStep(1);
     };
@@ -381,11 +388,16 @@ const OrderFormSection = () => {
 
   const isAddonEligible = packageType === "single" || packageType === "premium";
   const isAddonActive = isAddonEligible && addonExtraNames;
+  const isNicknameActive = isAddonEligible && addonNickname;
 
   const getPrice = (): number => {
     if (packageType === "namecheck") return NAME_CHECK_PRICING[nameCheckCount].price;
     const base = packageType === "premium" ? getPackagePrice("premium") : getPackagePrice("single");
-    return base + (isAddonActive ? ADDON_EXTRA_NAMES_PRICE : 0);
+    return (
+      base +
+      (isAddonActive ? ADDON_EXTRA_NAMES_PRICE : 0) +
+      (isNicknameActive ? ADDON_NICKNAME_PRICE : 0)
+    );
   };
 
   const getRequiredPersonCount = (): number => (packageType === "namecheck" ? nameCheckCount : 1);
@@ -482,10 +494,11 @@ const OrderFormSection = () => {
 
     if (packageType === "single" || packageType === "premium") {
       const userNameOptions = (babyFormData.nameOptions || "").trim();
-      const addonTag = isAddonActive
-        ? `[ADD-ON: +${ADDON_EXTRA_NAMES_LABEL} (₹${ADDON_EXTRA_NAMES_PRICE})]`
-        : "";
-      const mergedNameOptions = [userNameOptions, addonTag].filter(Boolean).join(" ");
+      const addonTags = [
+        isAddonActive ? `[ADD-ON: +${ADDON_EXTRA_NAMES_LABEL} (₹${ADDON_EXTRA_NAMES_PRICE})]` : "",
+        isNicknameActive ? `[ADD-ON: +${ADDON_NICKNAME_LABEL} (₹${ADDON_NICKNAME_PRICE})]` : "",
+      ].filter(Boolean).join(" ");
+      const mergedNameOptions = [userNameOptions, addonTags].filter(Boolean).join(" ");
 
       orderPayload = {
         orderId,
@@ -972,6 +985,7 @@ const OrderFormSection = () => {
         { label: "Email", value: babyFormData.email },
         { label: "WhatsApp", value: babyFormData.whatsapp },
         ...(isAddonActive ? [{ label: "Add-on", value: `${ADDON_EXTRA_NAMES_LABEL} (+${formatPrice(ADDON_EXTRA_NAMES_PRICE)})` }] : []),
+        ...(isNicknameActive ? [{ label: "Add-on", value: `${ADDON_NICKNAME_LABEL} (+${formatPrice(ADDON_NICKNAME_PRICE)})` }] : []),
       );
     } else {
       items.push({ label: "Package", value: `Name Check (${nameCheckCount} Name${nameCheckCount > 1 ? "s" : ""})` });
@@ -1089,7 +1103,7 @@ const OrderFormSection = () => {
                       </>
                     )}
 
-                    {/* Add-on toggle inside Order Summary */}
+                    {/* Add-on toggles inside Order Summary */}
                     {isAddonEligible && (
                       <div className={cn(
                         "rounded-lg border p-3 transition-all",
@@ -1116,10 +1130,43 @@ const OrderFormSection = () => {
                       </div>
                     )}
 
+                    {isAddonEligible && (
+                      <div className={cn(
+                        "rounded-lg border p-3 transition-all",
+                        addonNickname ? "border-accent bg-accent/5" : "border-dashed border-accent/40"
+                      )}>
+                        <div className="flex items-start gap-2.5">
+                          <Checkbox
+                            id="addonNicknameSummary"
+                            checked={addonNickname}
+                            onCheckedChange={(c) => setAddonNickname(c === true)}
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <Label htmlFor="addonNicknameSummary" className="text-sm font-semibold text-foreground cursor-pointer flex items-center gap-1.5">
+                              <Sparkles className="w-3.5 h-3.5 text-accent" />
+                              Add a Numerologically Aligned Nickname
+                            </Label>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">A short, lucky pet name for your child</p>
+                          </div>
+                          <span className="text-sm font-bold text-accent whitespace-nowrap">
+                            +{formatPrice(ADDON_NICKNAME_PRICE)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
                     {isAddonActive && (
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Add-on: Extra Names</span>
                         <span className="text-foreground font-medium">+{formatPrice(ADDON_EXTRA_NAMES_PRICE)}</span>
+                      </div>
+                    )}
+
+                    {isNicknameActive && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Add-on: Nickname</span>
+                        <span className="text-foreground font-medium">+{formatPrice(ADDON_NICKNAME_PRICE)}</span>
                       </div>
                     )}
                   </div>
@@ -1180,7 +1227,7 @@ const OrderFormSection = () => {
                   <RadioGroup value={packageType} onValueChange={(val) => {
                     const next = val as "namecheck" | "single" | "premium";
                     setPackageType(next);
-                    if (next === "namecheck") setAddonExtraNames(false);
+                    if (next === "namecheck") { setAddonExtraNames(false); setAddonNickname(false); }
                   }} className="grid gap-4">
                     {/* Name Check Option */}
                     <label htmlFor="namecheck"
@@ -1343,6 +1390,55 @@ const OrderFormSection = () => {
                           </p>
                           <div className="flex items-baseline gap-2 mt-2">
                             <span className="text-lg font-heading font-bold text-accent">+ {formatPrice(ADDON_EXTRA_NAMES_PRICE)}</span>
+                            <span className="text-xs text-muted-foreground">one-time</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Optional Add-On: Nickname (Baby Name + Premium only) */}
+                  {isAddonEligible && (
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setAddonNickname((v) => !v)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setAddonNickname((v) => !v);
+                        }
+                      }}
+                      className={cn(
+                        "relative rounded-xl border-2 p-4 cursor-pointer transition-all duration-300 group",
+                        addonNickname
+                          ? "border-accent bg-accent/5 shadow-card"
+                          : "border-dashed border-accent/40 hover:border-accent hover:bg-accent/5"
+                      )}
+                    >
+                      <div className="absolute -top-2.5 left-4 bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide">
+                        OPTIONAL ADD-ON
+                      </div>
+                      <div className="flex items-start gap-3 pt-1">
+                        <Checkbox
+                          id="addonNickname"
+                          checked={addonNickname}
+                          onCheckedChange={(c) => setAddonNickname(c === true)}
+                          className="mt-1 flex-shrink-0"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Sparkles className="w-4 h-4 text-accent" />
+                            <Label htmlFor="addonNickname" className="font-semibold text-foreground cursor-pointer text-sm md:text-base">
+                              Add a Numerologically Aligned Nickname
+                            </Label>
+                          </div>
+                          <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                            A short, lucky pet name aligned with your child's numerology — ideal for daily use at home and with family.
+                          </p>
+                          <div className="flex items-baseline gap-2 mt-2">
+                            <span className="text-lg font-heading font-bold text-accent">+ {formatPrice(ADDON_NICKNAME_PRICE)}</span>
                             <span className="text-xs text-muted-foreground">one-time</span>
                           </div>
                         </div>

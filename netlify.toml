@@ -1,0 +1,68 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+  # Bundle the shared utilities + their deps with each function
+  included_files = ["api/**"]
+
+[functions."payment-webhook"]
+  # Razorpay webhooks need raw body for signature verification
+  # Adapter passes both rawBody and parsed body to the handler
+  timeout = 30
+
+# Map /api/* paths to the corresponding Netlify Functions
+[[redirects]]
+  from = "/api/initiate-payment"
+  to = "/.netlify/functions/initiate-payment"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/payment-status"
+  to = "/.netlify/functions/payment-status"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/payment-webhook"
+  to = "/.netlify/functions/payment-webhook"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/whatsapp-webhook"
+  to = "/.netlify/functions/whatsapp-webhook"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/admin/init-db"
+  to = "/.netlify/functions/admin-init-db"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/admin/order"
+  to = "/.netlify/functions/admin-order"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/admin/verify-order"
+  to = "/.netlify/functions/admin-verify-order"
+  status = 200
+  force = true
+
+# SPA fallback — must come last
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Permissions-Policy = "unload=*"

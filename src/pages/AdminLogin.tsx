@@ -24,6 +24,11 @@ const AdminLogin = () => {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    if (!auth) {
+      setError("Authentication is not available. Please try again later.");
+      setLoading(false);
+      return;
+    }
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
       navigate("/admin/panel", { replace: true });

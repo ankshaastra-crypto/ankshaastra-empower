@@ -49,6 +49,10 @@ const AdminDashboard = () => {
   };
 
   const fetchOrders = useCallback(async () => {
+    if (!db) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const q = query(collection(db, "orders"), orderBy("order_date", "desc"));
@@ -137,7 +141,7 @@ const AdminDashboard = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => { signOut(auth); navigate("/admin/login"); }}
+              onClick={() => { if (auth) signOut(auth); navigate("/admin/login"); }}
             >
               <LogOut className="h-4 w-4 mr-1" /> Logout
             </Button>

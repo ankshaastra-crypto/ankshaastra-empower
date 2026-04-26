@@ -2,6 +2,9 @@ import { initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
 import { getFirestore, type Firestore } from "firebase/firestore";
 
+// Firebase config — project: empowerperfect-baby-name
+// IMPORTANT: Firebase Authentication must be enabled in Firebase Console:
+// Console → Authentication → Sign-in method → Email/Password → Enable
 const firebaseConfig = {
   apiKey: "AIzaSyD2HfYgPnLlOix2o_lU6Hk_GM2G4mUIgJ8",
   authDomain: "empowerperfect-baby-name.firebaseapp.com",
@@ -22,7 +25,6 @@ try {
   db = getFirestore(app);
 } catch (error) {
   console.warn("Firebase initialization failed:", error);
-  // App can continue without Firebase — auth features will be unavailable
 }
 
 export { auth, db };

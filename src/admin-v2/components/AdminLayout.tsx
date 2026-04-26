@@ -58,7 +58,7 @@ export default function AdminLayout() {
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
-      await signOut(auth);
+      if (auth) await signOut(auth);
     } finally {
       setLoggingOut(false);
     }

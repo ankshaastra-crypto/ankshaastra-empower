@@ -18,15 +18,17 @@ const ENCRYPTED_POSITION = TAG_POSITION + TAG_LENGTH;
  */
 function getEncryptionKey() {
   const key = process.env.ENCRYPTION_KEY;
-  
+
   if (!key || key.trim() === '') {
-    throw new Error('ENCRYPTION_KEY environment variable is not set. Please set it in Vercel environment variables.');
+    console.error('ENCRYPTION_KEY environment variable is not set');
+    return null;
   }
-  
+
   if (key.length < 32) {
-    throw new Error('ENCRYPTION_KEY must be at least 32 characters long');
+    console.error('ENCRYPTION_KEY must be at least 32 characters long');
+    return null;
   }
-  
+
   // Use first 32 characters for AES-256
   return crypto.createHash('sha256').update(key.substring(0, 32)).digest();
 }
@@ -40,19 +42,23 @@ export function encrypt(text) {
   if (!text || text.trim() === '') {
     return '';
   }
-  
+
   try {
     const key = getEncryptionKey();
+    if (!key) {
+      console.error('Encryption skipped: no key available');
+      return '';
+    }
     const iv = crypto.randomBytes(IV_LENGTH);
     const salt = crypto.randomBytes(SALT_LENGTH);
-    
+
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-    
+
     let encrypted = cipher.update(text, 'utf8', 'base64');
     encrypted += cipher.final('base64');
-    
+
     const tag = cipher.getAuthTag();
-    
+
     // Combine salt + iv + tag + encrypted data
     const combined = Buffer.concat([
       salt,
@@ -60,10 +66,10 @@ export function encrypt(text) {
       tag,
       Buffer.from(encrypted, 'base64')
     ]);
-    
+
     return combined.toString('base64');
   } catch (error) {
-    console.error('Encryption error');
+    console.error('Encryption error:', error.message);
     return '';
   }
 }
@@ -77,26 +83,30 @@ export function decrypt(encryptedText) {
   if (!encryptedText || encryptedText.trim() === '') {
     return '';
   }
-  
+
   try {
     const key = getEncryptionKey();
+    if (!key) {
+      console.error('Decryption skipped: no key available');
+      return '';
+    }
     const combined = Buffer.from(encryptedText, 'base64');
-    
+
     // Extract components
     const salt = combined.subarray(0, SALT_LENGTH);
     const iv = combined.subarray(SALT_LENGTH, TAG_POSITION);
     const tag = combined.subarray(TAG_POSITION, ENCRYPTED_POSITION);
     const encrypted = combined.subarray(ENCRYPTED_POSITION);
-    
+
     const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
     decipher.setAuthTag(tag);
-    
+
     let decrypted = decipher.update(encrypted, null, 'utf8');
     decrypted += decipher.final('utf8');
-    
+
     return decrypted;
   } catch (error) {
-    console.error('Decryption error');
+    console.error('Decryption error:', error.message);
     return '';
   }
 }

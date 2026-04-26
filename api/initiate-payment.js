@@ -200,9 +200,8 @@ export default async function handler(req, res) {
     }
   }
   if (!encryptedData?.trim()) {
-    // Encryption failed but continue — payment still works, customer data
-    // will be retrieved from DB in payment-status instead of URL param
-    console.warn('⚠️  Encryption failed — proceeding without encrypted data in URL');
+    // Non-fatal: payment proceeds; payment-status.js reads customer data from DB
+    console.warn('⚠️  Encryption unavailable — proceeding without encrypted URL data');
     encryptedData = '';
   }
 

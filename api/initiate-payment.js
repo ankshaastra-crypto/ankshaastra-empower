@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { encryptCustomerData } from './_utils/encryption.js';
 import { rateLimiter } from './_utils/rate-limiter.js';
 import { saveOrderAndCustomer } from './_utils/db.js'; // Static - fixes bundling
+import { getRedisCache } from './_utils/redis-cache.js';
 
 export default async function handler(req, res) {
   await rateLimiter(req, res, () => {});
@@ -113,7 +114,6 @@ export default async function handler(req, res) {
 
     // Redis cache for webhook
     try {
-      const { getRedisCache } = await import('./_utils/redis-cache.js');
       const cache = getRedisCache();
       await cache.set(`order:${orderId}`, customerData, 3600);
     } catch {}

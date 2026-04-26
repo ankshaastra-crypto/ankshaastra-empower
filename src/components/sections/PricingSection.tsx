@@ -3,6 +3,7 @@ import { Check, Clock, Lock } from "lucide-react";
 import { useState } from "react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { getPackagePricing, formatPrice } from "@/lib/packagePricing";
+import { trackViewContent } from "@/lib/metaPixel";
 import PriceDisplay from "@/components/PriceDisplay";
 import CountdownTimer from "@/components/CountdownTimer";
 
@@ -13,6 +14,23 @@ const PricingSection = () => {
   const [activeTab, setActiveTab] = useState<"namecheck" | "single" | "premium">("single");
 
   const scrollToForm = (packageType?: string) => {
+    if (packageType) {
+      let price = 0;
+      let contentName = "";
+      if (packageType.startsWith("namecheck")) {
+        const count = parseInt(packageType.split("-")[1]) || 1;
+        price = nameCheckPlans[count as 1 | 2 | 3].price;
+        contentName = `Name Check (${count} Name${count !== 1 ? "s" : ""})`;
+      } else if (packageType === "single") {
+        price = pricing.single.price;
+        contentName = "Perfect Baby Name Report";
+      } else if (packageType === "premium") {
+        price = pricing.premium.price;
+        contentName = "Premium Report + Live Session";
+      }
+      trackViewContent(price, "INR", contentName);
+    }
+
     const formSection = document.getElementById("order-form");
     if (formSection) {
       formSection.scrollIntoView({ behavior: "smooth" });

@@ -8,10 +8,18 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-  }
-});
+let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
+
+if (SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY) {
+  supabaseInstance = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    auth: {
+      storage: localStorage,
+      persistSession: true,
+      autoRefreshToken: true,
+    }
+  });
+} else {
+  console.warn('Supabase environment variables (VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY) are missing. Supabase client will be unavailable.');
+}
+
+export const supabase = supabaseInstance ?? ({} as ReturnType<typeof createClient<Database>>);

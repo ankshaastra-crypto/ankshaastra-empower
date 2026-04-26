@@ -5,15 +5,14 @@
 
 [functions]
   node_bundler = "esbuild"
-  # Bundle the shared utilities + their deps with each function
-  included_files = ["api/**"]
-
-[functions."payment-webhook"]
-  # Razorpay webhooks need raw body for signature verification
-  # Adapter passes both rawBody and parsed body to the handler
-  timeout = 30
 
 # Map /api/* paths to the corresponding Netlify Functions
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/health"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/api/initiate-payment"
   to = "/.netlify/functions/initiate-payment"

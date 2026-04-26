@@ -3,12 +3,14 @@ pages_build_output_dir = "dist"
 compatibility_date = "2024-09-23"
 compatibility_flags = [ "nodejs_compat_v2" ]
 
+# ─── Build-time variables (Vite bakes these into the frontend bundle) ──────────
+# These MUST also be set in Cloudflare Pages Dashboard →
+# Settings → Variables & Secrets → for them to work at BUILD time.
 [vars]
-# Build-time variables (for the frontend)
+VITE_RAZORPAY_KEY_ID = ""
 VITE_SUPABASE_URL = "https://hhibpjjozfrtyemivgqz.supabase.co"
 VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_lUUcU7jfgfV9h2RIH041lA_L3npqtRn"
 
-
-# Email variables
-RESEND_API_KEY=your_resend_key
-FROM_EMAIL=your_verified_email
+# NOTE: All SECRET values (API keys, passwords, secrets) must be added via
+# Cloudflare Pages Dashboard → Settings → Variables & Secrets → Add Secret
+# Do NOT put real secret values in this file (it gets committed to git).

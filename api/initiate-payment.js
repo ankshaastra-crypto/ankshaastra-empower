@@ -200,11 +200,10 @@ export default async function handler(req, res) {
     }
   }
   if (!encryptedData?.trim()) {
-    return res.status(500).json({
-      success: false,
-      error: 'Encryption failed',
-      diagnostics: { loadErrors, encryptionAvailable: !!utils.encryptCustomerData }
-    });
+    // Encryption failed but continue — payment still works, customer data
+    // will be retrieved from DB in payment-status instead of URL param
+    console.warn('⚠️  Encryption failed — proceeding without encrypted data in URL');
+    encryptedData = '';
   }
 
   // ─── Step 8: Create Razorpay order ─────────────────────────────────────────
@@ -261,4 +260,3 @@ export default async function handler(req, res) {
     });
   }
 }
-

@@ -14,3 +14,9 @@ VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_lUUcU7jfgfV9h2RIH041lA_L3npqtRn"
 # NOTE: All SECRET values (API keys, passwords, secrets) must be added via
 # Cloudflare Pages Dashboard → Settings → Variables & Secrets → Add Secret
 # Do NOT put real secret values in this file (it gets committed to git).
+
+SMTP_SECURE = "false"
+FROM_EMAIL = "Ankshaastra <no-reply@ankshaastra.com>"
+ADMIN_EMAIL = "social@ankshaastra.com"
+
+WHATSAPP_ADMIN_NUMBER = "919667305577"

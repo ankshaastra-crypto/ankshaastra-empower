@@ -25,18 +25,11 @@ class RedisCache {
       const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
       
       this.client = new Redis(redisUrl, {
-        maxRetriesPerRequest: 3,
-        retryStrategy: (times) => {
-          const delay = Math.min(times * 50, 2000);
-          return delay;
-        },
-        reconnectOnError: (err) => {
-          const targetError = 'READONLY';
-          if (err.message.includes(targetError)) {
-            return true; // Reconnect on READONLY error
-          }
-          return false;
-        },
+        maxRetriesPerRequest: 1,
+        retryStrategy: () => null, // Don't retry — fail fast in serverless
+        reconnectOnError: () => false, // Don't reconnect in serverless
+        connectTimeout: 3000, // 3 second connection timeout
+        lazyConnect: true, // Don't connect immediately — connect on first command
       });
 
       this.client.on('connect', () => {

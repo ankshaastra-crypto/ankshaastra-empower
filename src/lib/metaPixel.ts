@@ -32,6 +32,80 @@ export const trackMetaEvent = (
 };
 
 /**
+ * Track a ViewContent event (when user views a product/package)
+ * @param value - The content value
+ * @param currency - The currency code (default: 'INR')
+ * @param contentName - The content name (e.g., package type)
+ * @param contentType - The content type (default: 'product')
+ */
+export const trackViewContent = (
+  value: number,
+  currency: string = 'INR',
+  contentName?: string,
+  contentType: string = 'product'
+): void => {
+  const params: Record<string, unknown> = {
+    value,
+    currency,
+    content_type: contentType,
+  };
+
+  if (contentName) {
+    params.content_name = contentName;
+  }
+
+  trackMetaEvent('ViewContent', params);
+};
+
+/**
+ * Track a Lead event (when user submits form details)
+ * @param value - The lead value
+ * @param currency - The currency code (default: 'INR')
+ * @param contentName - Optional content name
+ */
+export const trackLead = (
+  value?: number,
+  currency: string = 'INR',
+  contentName?: string
+): void => {
+  const params: Record<string, unknown> = {};
+
+  if (value !== undefined) {
+    params.value = value;
+    params.currency = currency;
+  }
+
+  if (contentName) {
+    params.content_name = contentName;
+  }
+
+  trackMetaEvent('Lead', params);
+};
+
+/**
+ * Track an AddToCart event (for remarketing)
+ * @param value - The cart value
+ * @param currency - The currency code (default: 'INR')
+ * @param contentName - Optional content name
+ */
+export const trackAddToCart = (
+  value: number,
+  currency: string = 'INR',
+  contentName?: string
+): void => {
+  const params: Record<string, unknown> = {
+    value,
+    currency,
+  };
+
+  if (contentName) {
+    params.content_name = contentName;
+  }
+
+  trackMetaEvent('AddToCart', params);
+};
+
+/**
  * Track a purchase event
  * @param value - The purchase value
  * @param currency - The currency code (default: 'INR')

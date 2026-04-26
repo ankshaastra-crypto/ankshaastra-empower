@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
-import { trackInitiateCheckout } from "@/lib/metaPixel";
+import { trackInitiateCheckout, trackLead, trackAddToCart } from "@/lib/metaPixel";
 import { getPackagePrice, formatPrice } from "@/lib/packagePricing";
 
 interface RazorpayPaymentResponse {
@@ -471,6 +471,17 @@ const OrderFormSection = () => {
         return;
       }
       setErrors({});
+
+      // Track Lead (form submitted) and AddToCart (cart assembled)
+      const price = getPrice();
+      const contentName = packageType === "namecheck"
+        ? `Name Check (${nameCheckCount} Name${nameCheckCount !== 1 ? "s" : ""})`
+        : packageType === "premium"
+          ? "Premium Report + Live Session"
+          : "Perfect Baby Name Report";
+      trackLead(price, "INR", contentName);
+      trackAddToCart(price, "INR", contentName);
+
       setFormStep(3);
       scrollToFormTop();
     } else if (step < formStep) {

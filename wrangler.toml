@@ -2,3 +2,14 @@ name = "ankshaastra-empower"
 pages_build_output_dir = "dist"
 compatibility_date = "2024-09-23"
 compatibility_flags = [ "nodejs_compat_v2" ]
+
+[vars]
+# Build-time variables (for the frontend)
+VITE_SUPABASE_URL = "https://hhibpjjozfrtyemivgqz.supabase.co"
+VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_lUUcU7jfgfV9h2RIH041lA_L3npqtRn"
+
+# Runtime variables (for the API)
+RAZORPAY_KEY_ID = "your-razorpay-id"
+# IMPORTANT: For security, secrets like KEY_SECRET should be 
+# added via the dashboard under "Secrets" or keep it here for now to test.
+RAZORPAY_KEY_SECRET = "your-razorpay-secret"

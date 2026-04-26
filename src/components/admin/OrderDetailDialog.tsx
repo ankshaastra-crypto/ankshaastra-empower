@@ -75,6 +75,10 @@ const OrderDetailDialog = ({ order, onClose, onUpdated }: Props) => {
   // Download removed — storage bucket no longer used
 
   const handleSave = async () => {
+    if (!db) {
+      toast({ title: "Error", description: "Database is not available.", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     try {
       const ref = doc(db, "orders", order.order_id);

@@ -294,12 +294,27 @@ const PaymentStatus = () => {
 
         if (result.success && result.status === "SUCCESS") {
           setStatus("success");
-          // Merge fallback data so email/name/mobile never show N/A
+          // Merge storedOrderData first (has all form fields), then API result
+          // overwrites with any server-verified values. This ensures baby fields
+          // (fatherFullName, childDob, timeOfBirth, etc.) are never N/A.
           setPaymentData({
+            ...(storedOrderData || {}),
             ...result,
-            customerEmail: result.customerEmail || finalEmail,
-            customerName: result.customerName || finalName,
-            customerMobile: result.customerMobile || finalMobile,
+            customerEmail: result.customerEmail || finalEmail || storedOrderData?.email,
+            customerName: result.customerName || finalName || storedOrderData?.name,
+            customerMobile: result.customerMobile || finalMobile || storedOrderData?.mobile,
+            // Baby report fields — prefer API result, fall back to stored form data
+            fatherFullName: result.fatherFullName || storedOrderData?.fatherFullName,
+            childDob: result.childDob || storedOrderData?.childDob,
+            timeOfBirth: result.timeOfBirth || storedOrderData?.timeOfBirth,
+            placeOfBirth: result.placeOfBirth || storedOrderData?.placeOfBirth,
+            pinCode: result.pinCode || storedOrderData?.pinCode,
+            gender: result.gender || storedOrderData?.gender,
+            childLastName: result.childLastName || storedOrderData?.childLastName,
+            childMiddleName: result.childMiddleName || storedOrderData?.childMiddleName,
+            fatherFirstNameAsMiddleName: result.fatherFirstNameAsMiddleName || storedOrderData?.fatherFirstNameAsMiddleName,
+            nameOptions: result.nameOptions || storedOrderData?.nameOptions,
+            packageType: result.packageType || storedOrderData?.packageType || finalPackageType,
           });
 
           // Track purchase event with Meta Pixel
@@ -320,10 +335,11 @@ const PaymentStatus = () => {
           console.warn("Payment marked as failed");
           setStatus("failed");
           setPaymentData({
+            ...(storedOrderData || {}),
             ...result,
-            customerEmail: result.customerEmail || finalEmail,
-            customerName: result.customerName || finalName,
-            customerMobile: result.customerMobile || finalMobile,
+            customerEmail: result.customerEmail || finalEmail || storedOrderData?.email,
+            customerName: result.customerName || finalName || storedOrderData?.name,
+            customerMobile: result.customerMobile || finalMobile || storedOrderData?.mobile,
           });
 
           // Navigate to failed URL if not already there

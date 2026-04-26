@@ -1,7 +1,7 @@
 // api/payment-webhook.js
 import './_utils/suppress-deprecation.js';
 
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import { sendPaymentEmail } from './_utils/send-email.js';
 import { getOrderFull } from './_utils/db.js';
 import { generateInvoicePDF } from './_utils/supabase-server.js';

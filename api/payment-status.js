@@ -1,7 +1,7 @@
 // api/payment-status.js
 import './_utils/suppress-deprecation.js'; // ✅ correct — file is in api/_utils/
 
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import { decryptCustomerData } from './_utils/encryption.js';
 import { rateLimiter } from './_utils/rate-limiter.js';
 import { savePayment } from './_utils/db.js';

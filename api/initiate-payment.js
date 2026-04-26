@@ -1,5 +1,5 @@
 // api/initiate-payment.js — Defensive version with lazy imports and step-by-step diagnostics
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 
 // Lazy-load all utilities so import failures are caught and reported
 async function loadUtils() {

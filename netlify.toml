@@ -4,7 +4,11 @@
   functions = "netlify/functions"
 
 [functions]
-  node_bundler = "esbuild"
+  # NFT (Node File Tracing) correctly handles native modules and CJS packages.
+  # esbuild CANNOT bundle: ioredis (dynamic require), pg (native bindings),
+  # nodemailer (dynamic transport plugins), pdf-lib (large binary assets).
+  node_bundler = "nft"
+  node_version = "20"
 
 # Map /api/* paths to the corresponding Netlify Functions
 [[redirects]]
@@ -44,6 +48,12 @@
   force = true
 
 [[redirects]]
+  from = "/api/admin/orders"
+  to = "/.netlify/functions/admin-order"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/admin/order"
   to = "/.netlify/functions/admin-order"
   status = 200
@@ -55,7 +65,7 @@
   status = 200
   force = true
 
-# SPA fallback — must come last
+# SPA fallback — must be last
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -65,3 +75,5 @@
   for = "/*"
   [headers.values]
     Permissions-Policy = "unload=*"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"

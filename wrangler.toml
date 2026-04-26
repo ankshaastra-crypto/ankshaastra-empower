@@ -7,3 +7,8 @@ compatibility_flags = [ "nodejs_compat_v2" ]
 # Build-time variables (for the frontend)
 VITE_SUPABASE_URL = "https://hhibpjjozfrtyemivgqz.supabase.co"
 VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_lUUcU7jfgfV9h2RIH041lA_L3npqtRn"
+
+
+# Email variables
+RESEND_API_KEY=your_resend_key
+FROM_EMAIL=your_verified_email

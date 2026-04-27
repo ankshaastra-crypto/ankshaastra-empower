@@ -15,7 +15,9 @@ VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_lUUcU7jfgfV9h2RIH041lA_L3npqtRn"
 # Cloudflare Pages Dashboard → Settings → Variables & Secrets → Add Secret
 # Do NOT put real secret values in this file (it gets committed to git).
 
+SMTP_PORT = "587"
 SMTP_SECURE = "false"
-FROM_EMAIL = "Ankshaastra <no-reply@ankshaastra.com>"
+FROM_EMAIL = "Ankshaastra <madappscreator@gmail.com>"
+ADMIN_EMAIL = "social@ankshaastra.com"
 VITE_RAZORPAY_KEY_ID = "rzp_live_SiOfLiV0lwCQ7H"
 WHATSAPP_ADMIN_NUMBER = "919667305577"

@@ -7,6 +7,7 @@ import { rateLimiter } from './_utils/rate-limiter.js';
 import { savePayment } from './_utils/db.js';
 import { sendPaymentEmail } from './_utils/send-email.js';
 import { generateInvoicePDF } from './_utils/supabase-server.js';
+import { sendWhatsAppNotification } from './_utils/send-whatsapp.js';
 
 export default async function handler(req, res) {
   await rateLimiter(req, res, () => {});
@@ -263,6 +264,36 @@ export default async function handler(req, res) {
         }
       } catch (emailErr) {
         console.error('❌ Email error (non-fatal):', emailErr.message);
+      }
+
+      // ✅ Send WhatsApp notification to customer and admin
+      try {
+        // Calculate GST details for WhatsApp message
+        const pin = parseInt(pinCode || '0', 10);
+        const isIntraState = pin >= 200000 && pin <= 289999;
+        const subtotal = +(amountInRupees / 1.18).toFixed(2);
+        const cgstAmount = isIntraState ? +(subtotal * 0.09).toFixed(2) : 0;
+        const sgstAmount = isIntraState ? +(subtotal * 0.09).toFixed(2) : 0;
+        const igstAmount = isIntraState ? 0 : +(subtotal * 0.18).toFixed(2);
+
+        await sendWhatsAppNotification({
+          customerName,
+          customerMobile,
+          orderId: internalOrderId,
+          packageType,
+          amount: amountInPaise,
+          transactionId: transactionId || '',
+          status: paymentStatus,
+          subtotal,
+          cgstAmount,
+          sgstAmount,
+          igstAmount,
+          totalWithGst: amountInRupees,
+          pinCode,
+        });
+        console.log('✅ WhatsApp notification sent');
+      } catch (waErr) {
+        console.error('❌ WhatsApp notification error (non-fatal):', waErr.message);
       }
     }
 

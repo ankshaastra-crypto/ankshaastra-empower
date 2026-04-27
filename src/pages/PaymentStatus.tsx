@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { CheckCircle2, XCircle, Loader2, MessageCircle, User, CreditCard, Package, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -101,6 +101,8 @@ const PaymentStatus = () => {
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   // Store order data from localStorage/params as fallback for email, name, mobile (ensures never N/A)
   const [orderFallback, setOrderFallback] = useState<{ email?: string; name?: string; mobile?: string } | null>(null);
+  // Prevent duplicate trackPurchase calls on re-renders
+  const trackedOrdersRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     const checkPaymentStatus = async () => {
@@ -317,12 +319,13 @@ const PaymentStatus = () => {
             packageType: result.packageType || storedOrderData?.packageType || finalPackageType,
           });
 
-          // Track purchase event with Meta Pixel
+          // Track purchase event with Meta Pixel (only once per order)
           const amount = result.amount || 0;
           const paymentOrderId = result.orderId || internalOrderId;
           const pkgType = packageType || "single";
 
-          if (amount > 0) {
+          if (amount > 0 && !trackedOrdersRef.current.has(paymentOrderId)) {
+            trackedOrdersRef.current.add(paymentOrderId);
             trackPurchase(amount, "INR", paymentOrderId, pkgType);
           }
 
@@ -378,7 +381,7 @@ const PaymentStatus = () => {
     };
 
     checkPaymentStatus();
-  }, [searchParams, location.pathname, navigate]);
+  }, [searchParams]); // Only searchParams to ensure we check payment when URL changes
 
   const buildWhatsAppUrl = useCallback((d: PaymentData, fb: typeof orderFallback) => {
     const pkg = packageNames[d.packageType || "single"] || d.packageType || "Numerology Report";

@@ -6,6 +6,7 @@ import { sendPaymentEmail } from './_utils/send-email.js';
 import { getOrderFull } from './_utils/db.js';
 import { generateInvoicePDF } from './_utils/supabase-server.js';
 import { rateLimiter } from './_utils/rate-limiter.js';
+import { sendWhatsAppNotification } from './_utils/send-whatsapp.js';
 
 export default async function handler(req, res) {
   // Apply rate limiting
@@ -334,6 +335,15 @@ export default async function handler(req, res) {
 
     // Also send WhatsApp notification
     try {
+      // Calculate GST details for WhatsApp message
+      const amountInRupees = paymentAmount / 100;
+      const pin = parseInt(finalPinCode || '0', 10);
+      const isIntraState = pin >= 200000 && pin <= 289999;
+      const subtotal = +(amountInRupees / 1.18).toFixed(2);
+      const cgstAmount = isIntraState ? +(subtotal * 0.09).toFixed(2) : 0;
+      const sgstAmount = isIntraState ? +(subtotal * 0.09).toFixed(2) : 0;
+      const igstAmount = isIntraState ? 0 : +(subtotal * 0.18).toFixed(2);
+
       await sendWhatsAppNotification({
         customerName:   finalCustomerName,
         customerMobile: finalCustomerMobile,
@@ -342,6 +352,12 @@ export default async function handler(req, res) {
         amount:         paymentAmount,
         transactionId:  transactionId || '',
         status,
+        subtotal,
+        cgstAmount,
+        sgstAmount,
+        igstAmount,
+        totalWithGst: amountInRupees,
+        pinCode: finalPinCode,
       });
     } catch (waError) {
       console.error('❌ WhatsApp notification failed:', waError.message);
@@ -370,87 +386,7 @@ export default async function handler(req, res) {
   }
 }
 
-// ─── WhatsApp Notification via WhatsApp Business Cloud API ───────────────────
 
-async function sendWhatsAppNotification({ customerName, customerMobile, orderId, packageType, amount, transactionId, status }) {
-  const token     = process.env.WHATSAPP_TOKEN;
-  const phoneId   = process.env.WHATSAPP_PHONE_NUMBER_ID;
-  const adminNum  = process.env.WHATSAPP_ADMIN_NUMBER; // e.g. 919667305577
-
-  if (!token || !phoneId) {
-    console.log('WhatsApp env not configured — skipping notification');
-    return;
-  }
-
-  const amountInRupees = amount && amount > 0 ? (amount / 100).toLocaleString('en-IN') : '0';
-  const packageNames = {
-    single:    'Single Name Report',
-    premium:   'Premium Report',
-    namecheck: 'Name Check',
-    namecheck1: 'Name Check (1 Person)',
-    namecheck2: 'Name Check (2 Persons)',
-    namecheck3: 'Name Check (3 Persons)',
-    baby_name: 'Baby Name Report',
-  };
-  const packageName = packageNames[packageType] || packageType || 'Numerology Report';
-
-  const emoji  = status === 'SUCCESS' ? '✅' : '❌';
-  const title  = status === 'SUCCESS' ? 'Payment Received' : 'Payment Failed';
-
-  // Build the message text
-  const customerMsg = status === 'SUCCESS'
-    ? `🙏 *Namaste ${customerName}!*\n\nThank you for ordering from *Ankshaastra*.\n\n📦 *Package:* ${packageName}\n💰 *Amount Paid:* ₹${amountInRupees}\n🔖 *Order ID:* ${orderId}\n\nYour personalized numerology report will be delivered within *24-48 hours* to your registered email/WhatsApp.\n\nFor any queries, call us: *+91-9667305577*\n\n🌟 _Ankshaastra — Empower Your Name_`
-    : `Dear ${customerName},\n\nWe could not process your payment for *${packageName}*.\n\n🔖 *Order ID:* ${orderId}\n\nPlease try again or contact us at *+91-9667305577*.\n\n_Ankshaastra — Empower Your Name_`;
-
-  const adminMsg = `${emoji} *${title}*\n\n👤 *Customer:* ${customerName}\n📱 *Mobile:* ${customerMobile || 'N/A'}\n📦 *Package:* ${packageName}\n💰 *Amount:* ₹${amountInRupees}\n🔖 *Order ID:* ${orderId}\n🧾 *Transaction ID:* ${transactionId || 'N/A'}\n📅 *Time:* ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
-
-  const sendMessage = async (to, text) => {
-    if (!to) return;
-    // Normalize number — strip leading + or spaces
-    const normalized = to.replace(/\D/g, '');
-    const response = await fetch(
-      `https://graph.facebook.com/v19.0/${phoneId}/messages`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          to: normalized,
-          type: 'text',
-          text: { body: text },
-        }),
-      }
-    );
-    const result = await response.json();
-    if (!response.ok) {
-      throw new Error(`WhatsApp API error: ${JSON.stringify(result)}`);
-    }
-    return result;
-  };
-
-  // Send to customer (if mobile provided)
-  if (customerMobile) {
-    try {
-      await sendMessage(customerMobile, customerMsg);
-      console.log(`✅ WhatsApp sent to customer: ${customerMobile}`);
-    } catch (e) {
-      console.error('WhatsApp customer send failed:', e.message);
-    }
-  }
-
-  // Send to admin
-  if (adminNum) {
-    try {
-      await sendMessage(adminNum, adminMsg);
-      console.log(`✅ WhatsApp sent to admin: ${adminNum}`);
-    } catch (e) {
-      console.error('WhatsApp admin send failed:', e.message);
-    }
-  }
-}
 
 // ── Vercel config: disable body parser so we receive the raw request body ────
 // Required for Razorpay webhook signature verification.

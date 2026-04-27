@@ -3,7 +3,6 @@
 Production-ready payment processing system with Razorpay integration and email notifications. Optimized for serverless deployment on Vercel.
 
 ## Features
-
 - Razorpay Payment Integration
 - Email Notifications (Customer & Admin)
 - PostgreSQL Database (`ankshaastra` schema: orders, customer_details, payment, emailDelivery)

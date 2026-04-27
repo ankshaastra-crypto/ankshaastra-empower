@@ -582,6 +582,71 @@ export async function getOrderFull(orderId) {
   }
 }
 
+export async function getCustomerMetadata(orderId, razorpayOrderId) {
+  const p = getPool();
+  if (!p) return null;
+  await ensureSchemaOnce();
+
+  try {
+    const result = await p.query(
+      `SELECT
+         c.email,
+         c.name,
+         c.mobile,
+         c.dob,
+         c.gender,
+         c.city,
+         c.pin_code AS "pinCode",
+         c.person1_name AS "person1Name",
+         c.person1_first_name AS "person1FirstName",
+         c.person1_middle_name AS "person1MiddleName",
+         c.person1_middle_name_type AS "person1MiddleNameType",
+         c.person1_sur_name AS "person1SurName",
+         c.person1_dob AS "person1Dob",
+         c.person1_gender AS "person1Gender",
+         c.person2_name AS "person2Name",
+         c.person2_first_name AS "person2FirstName",
+         c.person2_middle_name AS "person2MiddleName",
+         c.person2_middle_name_type AS "person2MiddleNameType",
+         c.person2_sur_name AS "person2SurName",
+         c.person2_dob AS "person2Dob",
+         c.person2_gender AS "person2Gender",
+         c.person3_name AS "person3Name",
+         c.person3_first_name AS "person3FirstName",
+         c.person3_middle_name AS "person3MiddleName",
+         c.person3_middle_name_type AS "person3MiddleNameType",
+         c.person3_sur_name AS "person3SurName",
+         c.person3_dob AS "person3Dob",
+         c.person3_gender AS "person3Gender",
+         c.father_first_name AS "fatherFirstName",
+         c.father_middle_name AS "fatherMiddleName",
+         c.father_middle_name_type AS "fatherMiddleNameType",
+         c.father_last_name AS "fatherLastName",
+         c.father_full_name AS "fatherFullName",
+         c.child_dob AS "childDob",
+         c.time_of_birth AS "timeOfBirth",
+         c.place_of_birth AS "placeOfBirth",
+         c.father_first_as_middle AS "fatherFirstNameAsMiddleName",
+         c.child_middle_name AS "childMiddleName",
+         c.child_last_name AS "childLastName",
+         c.name_options AS "nameOptions",
+         o.package_type AS "packageType",
+         o.amount
+       FROM ${DB_SCHEMA}.customer_details c
+       JOIN ${DB_SCHEMA}.orders o ON o.order_id = c.order_id
+       WHERE c.order_id = $1 OR o.razorpay_order_id = $2
+       LIMIT 1`,
+      [orderId, razorpayOrderId]
+    );
+
+    if (result.rows.length === 0) return null;
+    return result.rows[0];
+  } catch (error) {
+    console.error('getCustomerMetadata error:', error.message);
+    throw error;
+  }
+}
+
 // ─── getNextInvoiceNumber ─────────────────────────────────────────────────────
 // Atomically increments the sequence for the given financial year and returns
 // a GST-compliant invoice number: EYN{FY}/{NNNN} e.g. EYN26-27/7001

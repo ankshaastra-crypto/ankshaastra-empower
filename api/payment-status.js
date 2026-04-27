@@ -4,7 +4,7 @@ import './_utils/suppress-deprecation.js'; // ✅ correct — file is in api/_ut
 import crypto from 'node:crypto';
 import { decryptCustomerData } from './_utils/encryption.js';
 import { rateLimiter } from './_utils/rate-limiter.js';
-import { savePayment } from './_utils/db.js';
+import { savePayment, getCustomerMetadata } from './_utils/db.js';
 import { sendPaymentEmail } from './_utils/send-email.js';
 import { generateInvoicePDF } from './_utils/supabase-server.js';
 import { sendWhatsAppNotification } from './_utils/send-whatsapp.js';
@@ -144,6 +144,22 @@ export default async function handler(req, res) {
       } catch (decErr) {
         console.error('Decryption failed (non-fatal):', decErr.message);
       }
+    }
+
+    // DB fallback: if encrypted URL data is missing or incomplete, load saved customer metadata
+    try {
+      const dbMetadata = await getCustomerMetadata(internalOrderId, razorpayOrderId);
+      if (dbMetadata) {
+        customerData = {
+          ...dbMetadata,
+          ...Object.fromEntries(
+            Object.entries(customerData || {}).filter(([, value]) => value != null && value.toString().trim() !== '')
+          ),
+        };
+        console.log(`✅ Customer metadata loaded from DB for order ${internalOrderId}`);
+      }
+    } catch (dbMetaErr) {
+      console.error('DB metadata fallback failed (non-fatal):', dbMetaErr.message);
     }
 
     // Helper: decrypted → query param → empty string

@@ -317,86 +317,86 @@ export default async function handler(req, res) {
     if (finalCustomerEmail && status === 'SUCCESS') {
       console.log(`📧 Webhook sending emails for order ${orderId} — customer: ${finalCustomerEmail}`);
       emailResult = await sendPaymentEmail({
-      customerEmail:   finalCustomerEmail,
-      orderId,  // ← Added missing orderId param
-      customerName:    finalCustomerName,
-      customerMobile:  finalCustomerMobile,
-      customerDob:     finalCustomerDob,
-      customerGender:  finalCustomerGender,
-      customerCity:    finalCustomerCity,
-      person1Name:           finalPerson1Name,
-      person1FirstName:      finalPerson1FirstName,
-      person1MiddleName:     finalPerson1MiddleName,
-      person1SurName:        finalPerson1SurName,
-      person1Dob:            finalPerson1Dob,
-      person1Gender:         finalPerson1Gender,
-      person1MiddleNameType: finalPerson1MiddleNameType,
-      person2Name:           finalPerson2Name,
-      person2FirstName:      finalPerson2FirstName,
-      person2MiddleName:     finalPerson2MiddleName,
-      person2SurName:        finalPerson2SurName,
-      person2Dob:            finalPerson2Dob,
-      person2Gender:         finalPerson2Gender,
-      person2MiddleNameType: finalPerson2MiddleNameType,
-      person3Name:           finalPerson3Name,
-      person3FirstName:      finalPerson3FirstName,
-      person3MiddleName:     finalPerson3MiddleName,
-      person3SurName:        finalPerson3SurName,
-      person3Dob:            finalPerson3Dob,
-      person3Gender:         finalPerson3Gender,
-      person3MiddleNameType: finalPerson3MiddleNameType,
-      fatherFirstName:            finalFatherFirstName,
-      fatherMiddleName:           finalFatherMiddleName,
-      fatherMiddleNameType:       finalFatherMiddleNameType,
-      fatherLastName:             finalFatherLastName,
-      fatherFullName:             finalFatherFullName,
-      childMiddleName:            finalChildMiddleName,
-      childLastName:              finalChildLastName,
-      fatherFirstNameAsMiddleName: finalFatherFirstNameAsMiddleName,
-      nameOptions:                finalNameOptions,
-      childDob:                   finalChildDob,
-      timeOfBirth:                finalTimeOfBirth,
-      placeOfBirth:               finalPlaceOfBirth,
-      pinCode:                    finalPinCode,
-      amount:        paymentAmount,
-      packageType:   finalPackageType,
-      status,
-      transactionId: transactionId || '',
-      invoicePdfBuffer,
-    });
-
-    // Also send WhatsApp notification
-    try {
-      // Calculate GST details for WhatsApp message
-      const amountInRupees = paymentAmount / 100;
-      const pin = parseInt(finalPinCode || '0', 10);
-      const isIntraState = pin >= 200000 && pin <= 289999;
-      const subtotal = +(amountInRupees / 1.18).toFixed(2);
-      const cgstAmount = isIntraState ? +(subtotal * 0.09).toFixed(2) : 0;
-      const sgstAmount = isIntraState ? +(subtotal * 0.09).toFixed(2) : 0;
-      const igstAmount = isIntraState ? 0 : +(subtotal * 0.18).toFixed(2);
-
-      await sendWhatsAppNotification({
-        customerName:   finalCustomerName,
-        customerMobile: finalCustomerMobile,
+        customerEmail:   finalCustomerEmail,
         orderId,
-        packageType:    finalPackageType,
-        amount:         paymentAmount,
-        transactionId:  transactionId || '',
+        customerName:    finalCustomerName,
+        customerMobile:  finalCustomerMobile,
+        customerDob:     finalCustomerDob,
+        customerGender:  finalCustomerGender,
+        customerCity:    finalCustomerCity,
+        person1Name:           finalPerson1Name,
+        person1FirstName:      finalPerson1FirstName,
+        person1MiddleName:     finalPerson1MiddleName,
+        person1SurName:        finalPerson1SurName,
+        person1Dob:            finalPerson1Dob,
+        person1Gender:         finalPerson1Gender,
+        person1MiddleNameType: finalPerson1MiddleNameType,
+        person2Name:           finalPerson2Name,
+        person2FirstName:      finalPerson2FirstName,
+        person2MiddleName:     finalPerson2MiddleName,
+        person2SurName:        finalPerson2SurName,
+        person2Dob:            finalPerson2Dob,
+        person2Gender:         finalPerson2Gender,
+        person2MiddleNameType: finalPerson2MiddleNameType,
+        person3Name:           finalPerson3Name,
+        person3FirstName:      finalPerson3FirstName,
+        person3MiddleName:     finalPerson3MiddleName,
+        person3SurName:        finalPerson3SurName,
+        person3Dob:            finalPerson3Dob,
+        person3Gender:         finalPerson3Gender,
+        person3MiddleNameType: finalPerson3MiddleNameType,
+        fatherFirstName:            finalFatherFirstName,
+        fatherMiddleName:           finalFatherMiddleName,
+        fatherMiddleNameType:       finalFatherMiddleNameType,
+        fatherLastName:             finalFatherLastName,
+        fatherFullName:             finalFatherFullName,
+        childMiddleName:            finalChildMiddleName,
+        childLastName:              finalChildLastName,
+        fatherFirstNameAsMiddleName: finalFatherFirstNameAsMiddleName,
+        nameOptions:                finalNameOptions,
+        childDob:                   finalChildDob,
+        timeOfBirth:                finalTimeOfBirth,
+        placeOfBirth:               finalPlaceOfBirth,
+        pinCode:                    finalPinCode,
+        amount:        paymentAmount,
+        packageType:   finalPackageType,
         status,
-        subtotal,
-        cgstAmount,
-        sgstAmount,
-        igstAmount,
-        totalWithGst: amountInRupees,
-        pinCode: finalPinCode,
+        transactionId: transactionId || '',
+        invoicePdfBuffer,
       });
-    } catch (waError) {
-      console.error('❌ WhatsApp notification failed:', waError.message);
-      // Non-fatal
     }
 
-    } // end if(finalCustomerEmail && status === 'SUCCESS')
+    // Always send WhatsApp notifications when payment succeeds, even if email metadata is incomplete
+    if (status === 'SUCCESS') {
+      try {
+        const amountInRupees = paymentAmount / 100;
+        const pin = parseInt(finalPinCode || '0', 10);
+        const isIntraState = pin >= 200000 && pin <= 289999;
+        const subtotal = +(amountInRupees / 1.18).toFixed(2);
+        const cgstAmount = isIntraState ? +(subtotal * 0.09).toFixed(2) : 0;
+        const sgstAmount = isIntraState ? +(subtotal * 0.09).toFixed(2) : 0;
+        const igstAmount = isIntraState ? 0 : +(subtotal * 0.18).toFixed(2);
+
+        await sendWhatsAppNotification({
+          customerName:   finalCustomerName,
+          customerMobile: finalCustomerMobile,
+          orderId,
+          packageType:    finalPackageType,
+          amount:         paymentAmount,
+          transactionId:  transactionId || '',
+          status,
+          subtotal,
+          cgstAmount,
+          sgstAmount,
+          igstAmount,
+          totalWithGst: amountInRupees,
+          pinCode: finalPinCode,
+        });
+      } catch (waError) {
+        console.error('❌ WhatsApp notification failed:', waError.message);
+        // Non-fatal
+      }
+    }
 
     if (!emailResult.success && !emailResult.skipped) {
       console.error('Failed to send confirmation emails:', emailResult.error);

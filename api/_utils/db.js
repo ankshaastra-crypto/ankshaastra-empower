@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}.orders (
   order_id VARCHAR(100) PRIMARY KEY,
   amount DECIMAL(12, 2) NOT NULL,
   package_type VARCHAR(50) NOT NULL DEFAULT 'single',
+  razorpay_order_id VARCHAR(255) UNIQUE,
   status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -143,6 +144,7 @@ ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS father_first_
 ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS child_middle_name VARCHAR(255);
 ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS name_options TEXT;
 ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS place_of_birth VARCHAR(255);
+ALTER TABLE ${DB_SCHEMA}.orders ADD COLUMN IF NOT EXISTS razorpay_order_id VARCHAR(255);
 `;
 
 // Create invoice tables if they don't exist yet (separate from SCHEMA_SQL for safety)
@@ -282,14 +284,15 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
   try {
     await client.query('BEGIN');
 
-    // Upsert order
+    // Upsert order with optional Razorpay order mapping
     await client.query(
-      `INSERT INTO ${ord} (order_id, amount, package_type, status)
-       VALUES ($1, $2, $3, 'PENDING')
+      `INSERT INTO ${ord} (order_id, amount, package_type, razorpay_order_id, status)
+       VALUES ($1, $2, $3, $4, 'PENDING')
        ON CONFLICT (order_id) DO UPDATE SET
          amount = EXCLUDED.amount,
-         package_type = EXCLUDED.package_type`,
-      [orderId, amount, packageType || 'single']
+         package_type = EXCLUDED.package_type,
+         razorpay_order_id = COALESCE(EXCLUDED.razorpay_order_id, ${DB_SCHEMA}.orders.razorpay_order_id)`,
+      [orderId, amount, packageType || 'single', customerData.razorpayOrderId || null]
     );
 
     // Upsert customer details — all 41 columns, all 41 values

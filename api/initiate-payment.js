@@ -241,6 +241,30 @@ export default async function handler(req, res) {
     }
 
     const result = await response.json();
+
+    // Persist mapping from internal order ID to Razorpay order ID
+    if (utils.saveOrderAndCustomer) {
+      try {
+        await utils.saveOrderAndCustomer(orderId, amount, packageType || 'single', {
+          ...customerData,
+          razorpayOrderId: result.id,
+        });
+      } catch (dbError) {
+        console.error('DB save error after Razorpay order creation:', dbError?.message || dbError);
+      }
+    }
+
+    // Cache both internal and Razorpay order keys, if available
+    if (utils.getRedisCache && result.id) {
+      try {
+        const cache = utils.getRedisCache();
+        await cache.set(`order:${orderId}`, customerData, 3600);
+        await cache.set(`razorpayOrder:${result.id}`, customerData, 3600);
+      } catch (redisError) {
+        console.error('Redis cache error after Razorpay order creation:', redisError?.message || redisError);
+      }
+    }
+
     return res.status(200).json({
       success: true,
       orderId,

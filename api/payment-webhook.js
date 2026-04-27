@@ -63,17 +63,46 @@ export default async function handler(req, res) {
 
     // ── Extract event + payment entity ────────────────────────────────────────
     const event = body.event;
-    // Razorpay sends payload.payment.entity for payment events
-    const paymentEntity = body.payload?.payment?.entity || body.data?.payment || body.data?.order;
+    const paymentEntity = body.payload?.payment?.entity || body.payload?.order?.entity || body.data?.payment || body.data?.order;
 
     if (!paymentEntity) {
       console.error('No payment entity in webhook payload — event:', event, 'keys:', Object.keys(body));
       return res.status(400).json({ error: 'No payment entity in payload' });
     }
 
-    // Extract payment details
-    const orderId = paymentEntity.order_id || paymentEntity.id;
+    // Determine Razorpay order ID and optional internal receipt/order mapping
+    const razorpayOrderId =
+      body.payload?.payment?.entity?.order_id ||
+      body.payload?.order?.entity?.id ||
+      body.data?.payment?.order_id ||
+      body.data?.order?.id ||
+      paymentEntity.order_id ||
+      paymentEntity.id;
+
+    let internalOrderId = body.payload?.order?.entity?.receipt || body.data?.order?.receipt || null;
     const transactionId = paymentEntity.id;
+    let orderId = internalOrderId || razorpayOrderId;
+
+    if (!internalOrderId && razorpayOrderId) {
+      try {
+        const { getPool, DB_SCHEMA } = await import('./_utils/db.js');
+        const p = getPool();
+        if (p) {
+          const mapping = await p.query(
+            `SELECT order_id FROM ${DB_SCHEMA}.orders WHERE razorpay_order_id = $1 LIMIT 1`,
+            [razorpayOrderId]
+          );
+          if (mapping.rows.length > 0) {
+            internalOrderId = mapping.rows[0].order_id;
+            orderId = internalOrderId;
+            console.log(`✅ Resolved internal order ID from Razorpay mapping: ${orderId}`);
+          }
+        }
+      } catch (mappingError) {
+        console.warn('Could not resolve internal order ID from Razorpay order mapping:', mappingError.message);
+      }
+    }
+
     const status =
       (event === 'payment.captured' || event === 'order.paid' ||
        paymentEntity.status === 'captured' || paymentEntity.status === 'paid')
@@ -90,10 +119,13 @@ export default async function handler(req, res) {
       try {
         const { getRedisCache } = await import('./_utils/redis-cache.js');
         const cache = getRedisCache();
-        const storedOrder = await cache.get(`order:${orderId}`);
+        let storedOrder = await cache.get(`order:${orderId}`);
+        if (!storedOrder && razorpayOrderId) {
+          storedOrder = await cache.get(`razorpayOrder:${razorpayOrderId}`);
+        }
         if (storedOrder && typeof storedOrder === 'object') {
           metadata = storedOrder;
-          console.log(`✅ Metadata from Redis for order: ${orderId}`);
+          console.log(`✅ Metadata from Redis for order lookup: ${orderId || razorpayOrderId}`);
         }
       } catch {
         console.warn('Redis cache miss — will try DB fallback');
@@ -124,8 +156,8 @@ export default async function handler(req, res) {
                       o.package_type, o.amount
                FROM ${DB_SCHEMA}.customer_details c
                JOIN ${DB_SCHEMA}.orders o ON o.order_id = c.order_id
-               WHERE c.order_id = $1`,
-              [orderId]
+               WHERE c.order_id = $1 OR o.razorpay_order_id = $2`,
+              [orderId, razorpayOrderId]
             );
             if (result.rows.length > 0) {
               const r = result.rows[0];

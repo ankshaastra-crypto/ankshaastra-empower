@@ -12,6 +12,7 @@ export interface PackagePricing {
   namecheck: PackageTier;
   single: PackageTier;
   premium: PackageTier;
+  consultation: PackageTier;
 }
 
 const DEFAULT_PACKAGE_PRICING: PackagePricing = {
@@ -26,6 +27,10 @@ const DEFAULT_PACKAGE_PRICING: PackagePricing = {
   premium: {
     price: 8927,
     originalPrice: 18218,
+  },
+  consultation: {
+    price: 1,
+    originalPrice: 1,
   },
 };
 
@@ -79,13 +84,17 @@ export function getPackagePricing(): PackagePricing {
       price: DEFAULT_PACKAGE_PRICING.premium.price,
       originalPrice: DEFAULT_PACKAGE_PRICING.premium.originalPrice,
     },
+    consultation: {
+      price: DEFAULT_PACKAGE_PRICING.consultation.price,
+      originalPrice: DEFAULT_PACKAGE_PRICING.consultation.originalPrice,
+    },
   };
 }
 
 /**
  * Get price for a specific package type
  */
-export function getPackagePrice(packageType: "namecheck" | "single" | "premium"): number {
+export function getPackagePrice(packageType: "namecheck" | "single" | "premium" | "consultation"): number {
   const pricing = getPackagePricing();
   return pricing[packageType].price;
 }
@@ -94,7 +103,7 @@ export function getPackagePrice(packageType: "namecheck" | "single" | "premium")
  * Get original price for a specific package type
  */
 export function getPackageOriginalPrice(
-  packageType: "namecheck" | "single" | "premium",
+  packageType: "namecheck" | "single" | "premium" | "consultation",
 ): number {
   const pricing = getPackagePricing();
   return pricing[packageType].originalPrice;

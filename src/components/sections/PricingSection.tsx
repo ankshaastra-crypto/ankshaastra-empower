@@ -27,6 +27,9 @@ const PricingSection = () => {
       } else if (packageType === "premium") {
         price = pricing.premium.price;
         contentName = "Premium Report + Live Session";
+      } else if (packageType === "consultation") {
+        price = pricing.consultation.price;
+        contentName = "Live Consultation";
       }
       trackViewContent(price, "INR", contentName);
     }

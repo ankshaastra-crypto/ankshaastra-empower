@@ -117,13 +117,14 @@ const OrderFormSection = () => {
   const { ref } = useScrollAnimation({ threshold: 0.1 });
   const [formStep, setFormStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [packageType, setPackageType] = useState<"namecheck" | "single" | "premium">("single");
+  const [packageType, setPackageType] = useState<"namecheck" | "single" | "premium" | "consultation">("single");
   const [nameCheckCount, setNameCheckCount] = useState<1 | 2 | 3>(1);
   const [addonExtraNames, setAddonExtraNames] = useState<boolean>(false);
   const [addonNickname, setAddonNickname] = useState<boolean>(false);
 
   // Name Check form data
   const [formData, setFormData] = useState({
+    name: "",
     person1FirstName: "",
     person1MiddleName: "",
     person1MiddleNameType: "",
@@ -286,6 +287,23 @@ const OrderFormSection = () => {
         default:
           return false;
       }
+    } else if (packageType === "consultation") {
+      const val = formData[fieldName as keyof typeof formData];
+      if (!val || (typeof val === "string" && !val.trim())) return false;
+      switch (fieldName) {
+        case "name":
+          return validateName(val, true);
+        case "email":
+          return validateEmail(val);
+        case "mobile":
+          return validateMobile(val);
+        case "pinCode":
+          return validatePinCode(val);
+        case "city":
+          return validateCity(val);
+        default:
+          return false;
+      }
     } else {
       const val = formData[fieldName as keyof typeof formData];
       if (!val || (typeof val === "string" && !val.trim())) return false;
@@ -426,6 +444,17 @@ const OrderFormSection = () => {
         newErrors.email = !babyFormData.email ? "Email address is required" : "Please enter a valid email address";
       if (!babyFormData.whatsapp || !validateMobile(babyFormData.whatsapp))
         newErrors.whatsapp = !babyFormData.whatsapp ? "WhatsApp number is required" : "Please enter a valid 10-digit number starting with 6-9";
+    } else if (packageType === "consultation") {
+      if (!formData.name || !validateName(formData.name, true))
+        newErrors.name = "Full name is required";
+      if (!formData.email || !validateEmail(formData.email))
+        newErrors.email = !formData.email ? "Email address is required" : "Please enter a valid email address";
+      if (!formData.mobile || !validateMobile(formData.mobile))
+        newErrors.mobile = !formData.mobile ? "WhatsApp number is required" : "Please enter a valid 10-digit number starting with 6-9";
+      if (!formData.pinCode || !validatePinCode(formData.pinCode))
+        newErrors.pinCode = !formData.pinCode ? "Pin code is required" : "Please enter a valid 6-digit Indian pin code";
+      if (!formData.city || !validateCity(formData.city))
+        newErrors.city = !formData.city ? "City name is required" : "Must be 2-50 characters with only letters";
     } else {
       const requiredPersons = getRequiredPersonCount();
       for (let i = 1; i <= requiredPersons; i++) {
@@ -530,6 +559,16 @@ const OrderFormSection = () => {
         placeOfBirth: babyFormData.placeOfBirth,
         pinCode: babyFormData.pinCode,
         nameOptions: mergedNameOptions,
+        packageType,
+      };
+    } else if (packageType === "consultation") {
+      orderPayload = {
+        orderId,
+        email: formData.email,
+        mobile: formData.mobile,
+        name: formData.name,
+        city: formData.city,
+        pinCode: formData.pinCode || "",
         packageType,
       };
     } else {
@@ -998,6 +1037,15 @@ const OrderFormSection = () => {
         ...(isAddonActive ? [{ label: "Add-on", value: `${ADDON_EXTRA_NAMES_LABEL} (+${formatPrice(ADDON_EXTRA_NAMES_PRICE)})` }] : []),
         ...(isNicknameActive ? [{ label: "Add-on", value: `${ADDON_NICKNAME_LABEL} (+${formatPrice(ADDON_NICKNAME_PRICE)})` }] : []),
       );
+    } else if (packageType === "consultation") {
+      items.push(
+        { label: "Package", value: "Live Consultation" },
+        { label: "Name", value: formData.name },
+        { label: "Email", value: formData.email },
+        { label: "WhatsApp", value: formData.mobile },
+        { label: "City", value: formData.city },
+        { label: "Pin Code", value: formData.pinCode },
+      );
     } else {
       items.push({ label: "Package", value: `Name Check (${nameCheckCount} Name${nameCheckCount > 1 ? "s" : ""})` });
       for (let i = 1; i <= nameCheckCount; i++) {
@@ -1236,7 +1284,7 @@ const OrderFormSection = () => {
               {formStep === 1 && (
                 <div className="space-y-4">
                   <RadioGroup value={packageType} onValueChange={(val) => {
-                    const next = val as "namecheck" | "single" | "premium";
+                    const next = val as "namecheck" | "single" | "premium" | "consultation";
                     setPackageType(next);
                     if (next === "namecheck") { setAddonExtraNames(false); setAddonNickname(false); }
                   }} className="grid gap-4">
@@ -1277,6 +1325,19 @@ const OrderFormSection = () => {
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">Full report + 20-min live video consultation with Himansshu Ji</p>
                         <span className="text-foreground font-bold text-lg">{formatPrice(getPackagePrice("premium"))}</span>
+                      </div>
+                    </label>
+                    {/* Live Consultation Option */}
+                    <label htmlFor="consultation"
+                      className={`flex items-center gap-4 p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${packageType === "consultation" ? "border-primary bg-primary/5 shadow-card" : "border-border hover:border-primary/50"}`}>
+                      <RadioGroupItem value="consultation" id="consultation" className="text-primary flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground">Live Consultation</span>
+                          <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">TEST</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">20-min live video consultation with Himansshu Ji</p>
+                        <span className="text-primary font-bold text-lg">{formatPrice(getPackagePrice("consultation"))}</span>
                       </div>
                     </label>
                   </RadioGroup>
@@ -1355,6 +1416,59 @@ const OrderFormSection = () => {
                         </div>
                       </div>
                     </>
+                  ) : packageType === "consultation" ? (
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="name">Full Name *</Label>
+                        <div className="relative">
+                          <Input id="name" name="name" type="text" value={formData.name} onChange={handleInputChange}
+                            placeholder="Enter your full name" required maxLength={100}
+                            className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.name ? "border-destructive" : isFieldValid("name") ? "border-success" : ""}`} />
+                          <ValidIcon field="name" />
+                        </div>
+                        {errors.name && <p className="text-destructive text-sm mt-1">{errors.name}</p>}
+                      </div>
+                      <div>
+                        <Label htmlFor="email">Email ID *</Label>
+                        <div className="relative">
+                          <Input id="email" name="email" type="email" value={formData.email} onChange={handleInputChange}
+                            placeholder="Enter email address" required
+                            className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.email ? "border-destructive" : isFieldValid("email") ? "border-success" : ""}`} />
+                          <ValidIcon field="email" />
+                        </div>
+                        {errors.email && <p className="text-destructive text-sm mt-1">{errors.email}</p>}
+                      </div>
+                      <div>
+                        <Label htmlFor="mobile">WhatsApp Number *</Label>
+                        <div className="relative">
+                          <Input id="mobile" name="mobile" type="tel" value={formData.mobile} onChange={handleInputChange}
+                            placeholder="Enter 10-digit WhatsApp number" required maxLength={10}
+                            className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.mobile ? "border-destructive" : isFieldValid("mobile") ? "border-success" : ""}`} />
+                          <ValidIcon field="mobile" />
+                        </div>
+                        {errors.mobile && <p className="text-destructive text-sm mt-1">{errors.mobile}</p>}
+                      </div>
+                      <div>
+                        <Label htmlFor="pinCode">Pin Code *</Label>
+                        <div className="relative">
+                          <Input id="pinCode" name="pinCode" type="text" value={formData.pinCode} onChange={handleInputChange}
+                            placeholder="Enter 6-digit pin code" required maxLength={6}
+                            className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.pinCode ? "border-destructive" : isFieldValid("pinCode") ? "border-success" : ""}`} />
+                          {cityLoading ? <Loader2 className="w-4 h-4 animate-spin absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" /> : <ValidIcon field="pinCode" />}
+                        </div>
+                        {errors.pinCode && <p className="text-destructive text-sm mt-1">{errors.pinCode}</p>}
+                      </div>
+                      <div>
+                        <Label htmlFor="city">City Name *</Label>
+                        <div className="relative">
+                          <Input id="city" name="city" type="text" value={formData.city} onChange={handleInputChange}
+                            placeholder={cityLoading ? "Fetching city..." : "Enter your city name"} required maxLength={50}
+                            className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.city ? "border-destructive" : isFieldValid("city") ? "border-success" : ""}`} />
+                          <ValidIcon field="city" />
+                        </div>
+                        {errors.city && <p className="text-destructive text-sm mt-1">{errors.city}</p>}
+                      </div>
+                    </div>
                   ) : (
                     renderBabyNameFields()
                   )}

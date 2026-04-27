@@ -17,5 +17,5 @@ VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_lUUcU7jfgfV9h2RIH041lA_L3npqtRn"
 
 SMTP_SECURE = "false"
 FROM_EMAIL = "Ankshaastra <no-reply@ankshaastra.com>"
-VITE_RAZORPAY_KEY_ID = "rzp_test_SddFKpiKSu8gn1"
+VITE_RAZORPAY_KEY_ID = "rzp_live_SiOfLiV0lwCQ7H"
 WHATSAPP_ADMIN_NUMBER = "919667305577"

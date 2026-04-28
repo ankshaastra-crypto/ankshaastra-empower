@@ -29,3 +29,5 @@ FROM_EMAIL = "madappscreator@gmail.com"
 ADMIN_EMAIL = "madappscreator@gmail.com"
 VITE_RAZORPAY_KEY_ID = "rzp_live_SiOfLiV0lwCQ7H"
 WHATSAPP_ADMIN_NUMBER = "919667305577"
+
+database_id = "d801cb24-4f5e-439a-9615-d4bf89545cce"

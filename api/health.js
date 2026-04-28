@@ -13,6 +13,12 @@ export default async function handler(req, res) {
       SUPABASE_URL: !!process.env.SUPABASE_URL,
       SUPABASE_KEY: !!process.env.SUPABASE_KEY,
       RESEND_API_KEY: !!process.env.RESEND_API_KEY,
+      SMTP_HOST: !!process.env.SMTP_HOST,
+      SMTP_PORT: !!process.env.SMTP_PORT,
+      SMTP_USER: !!process.env.SMTP_USER,
+      SMTP_PASSWORD: !!process.env.SMTP_PASSWORD,
+      FROM_EMAIL: !!process.env.FROM_EMAIL,
+      ADMIN_EMAIL: !!process.env.ADMIN_EMAIL,
     },
     modules: {}
   };
@@ -63,4 +69,3 @@ export default async function handler(req, res) {
   const allOk = Object.values(diagnostics.modules).every(m => m.ok);
   res.status(allOk ? 200 : 500).json(diagnostics);
 }
-

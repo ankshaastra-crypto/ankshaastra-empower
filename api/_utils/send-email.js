@@ -105,18 +105,24 @@ export async function sendPaymentEmail({
   transactionId,
   invoicePdfBuffer = null,
 }) {
+  const adminEmail = process.env.ADMIN_EMAIL || 'social@ankshaastra.com';
+  let customerAlreadySent = false;
+  let adminAlreadySent = false;
+
   // ─── DEDUPLICATION CHECK ─────────────────────────────────────────────────
   // One email per order per recipient — prevents double-send from webhook + status
+  // without blocking admin retries when only the customer email was sent.
   try {
-    if (await isEmailSent(customerEmail, orderId)) {
-      console.log(`⏭️  Email already sent for order ${orderId} → ${customerEmail} — skipping`);
+    customerAlreadySent = await isEmailSent(customerEmail, orderId);
+    adminAlreadySent = await isEmailSent(adminEmail, orderId);
+    if (customerAlreadySent && adminAlreadySent) {
+      console.log(`⏭️  Emails already sent for order ${orderId} — skipping`);
       return { success: true, skipped: true, reason: 'already_sent' };
     }
   } catch (dedupErr) {
     // DB check failed — log and continue (better to send than silently drop)
     console.warn('⚠️  Dedup check failed (sending anyway):', dedupErr.message);
   }
-  const adminEmail = 'social@ankshaastra.com';
   const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';
 
   
@@ -739,9 +745,12 @@ export async function sendPaymentEmail({
     console.log(`📧 Sending customer email to: ${customerEmail}`);
     let customerEmailResult = null;
     let customerError = null;
-    let customerSuccess = false;
+    let customerSuccess = customerAlreadySent;
     
     try {
+      if (customerAlreadySent) {
+        console.log(`⏭️  Customer email already sent for ${orderId} → ${customerEmail}`);
+      } else {
       // Prepare email options
       const customerMailOptions = {
         from: fromEmail,
@@ -775,6 +784,7 @@ export async function sendPaymentEmail({
         customerError = new Error("Email sent but no messageId returned");
         console.error("❌ Customer email sent but invalid response");
       }
+      }
     } catch (customerErr) {
       customerError = customerErr;
       customerSuccess = false;
@@ -790,9 +800,12 @@ export async function sendPaymentEmail({
 console.log(`📧 Admin email prepared for orderId: ${orderId}, to: ${adminEmail}`);
     let adminEmailResult = null;
     let adminError = null;
-    let adminSuccess = false;
+    let adminSuccess = adminAlreadySent;
     
     try {
+      if (adminAlreadySent) {
+        console.log(`⏭️  Admin email already sent for ${orderId} → ${adminEmail}`);
+      } else {
       const adminMailOptions = {
         from: fromEmail,
         to: adminEmail,
@@ -815,9 +828,16 @@ console.log(`📧 Admin email prepared for orderId: ${orderId}, to: ${adminEmail
       if (adminEmailResult && adminEmailResult.messageId) {
         adminSuccess = true;
         console.log(`✅ Admin email sent successfully! Message ID: ${adminEmailResult.messageId}`);
+        try {
+          const { recordEmailDelivery } = await import('./db.js');
+          await recordEmailDelivery(adminEmail, orderId, 'sent');
+        } catch {
+          /* non-fatal */
+        }
       } else {
         adminError = new Error("Email sent but no messageId returned");
         console.error("❌ Admin email sent but invalid response");
+      }
       }
     } catch (adminErr) {
       adminError = adminErr;
@@ -886,8 +906,10 @@ console.log(`📧 Admin email prepared for orderId: ${orderId}, to: ${adminEmail
     // Both emails sent successfully
     return {
       success: true,
-      customerMessageId: customerEmailResult.messageId,
-      adminMessageId: adminEmailResult.messageId,
+      customerMessageId: customerEmailResult?.messageId || null,
+      adminMessageId: adminEmailResult?.messageId || null,
+      customerAlreadySent,
+      adminAlreadySent,
     };
   } catch (error) {
     console.error('Error sending emails');

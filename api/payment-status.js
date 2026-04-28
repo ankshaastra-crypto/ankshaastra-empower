@@ -224,6 +224,12 @@ export default async function handler(req, res) {
     // ─────────────────────────────────────────────────────────────────────────
     // STEP 7: Generate PDF + send emails on SUCCESS
     // ─────────────────────────────────────────────────────────────────────────
+    let emailResult = {
+      success: false,
+      skipped: true,
+      reason: paymentStatus === 'SUCCESS' ? 'customer_email_missing' : 'payment_not_successful',
+    };
+
     if (paymentStatus === 'SUCCESS' && customerEmail) {
 
       // Generate PDF (non-fatal if fails)
@@ -250,7 +256,7 @@ export default async function handler(req, res) {
       // Deduplication in sendPaymentEmail (isEmailSent DB check) prevents
       // double-send if webhook also fires. One email per order guaranteed.
       try {
-        const emailResult = await sendPaymentEmail({
+        emailResult = await sendPaymentEmail({
           to:            customerEmail,
           customerEmail,
           customerName,
@@ -284,6 +290,11 @@ export default async function handler(req, res) {
         }
       } catch (emailErr) {
         console.error('❌ Email error (non-fatal):', emailErr.message);
+        emailResult = {
+          success: false,
+          skipped: false,
+          error: emailErr.message,
+        };
       }
 
       // ✅ Send WhatsApp notification to customer and admin
@@ -348,6 +359,18 @@ export default async function handler(req, res) {
       fatherFirstNameAsMiddleName,        nameOptions,
       gender:          customerGender,
       timeOfBirth,     placeOfBirth,      pinCode,
+      email: {
+        success: emailResult.success,
+        skipped: emailResult.skipped,
+        reason: emailResult.reason,
+        error: emailResult.error,
+        details: emailResult.details,
+        missing: emailResult.missing,
+        customerMessageId: emailResult.customerMessageId,
+        adminMessageId: emailResult.adminMessageId,
+        customerAlreadySent: emailResult.customerAlreadySent,
+        adminAlreadySent: emailResult.adminAlreadySent,
+      },
     });
 
   } catch (error) {

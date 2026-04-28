@@ -422,6 +422,18 @@ export default async function handler(req, res) {
       success: true,
       message: 'Webhook processed successfully',
       emailSent: emailResult.success,
+      email: {
+        success: emailResult.success,
+        skipped: emailResult.skipped,
+        reason: emailResult.reason,
+        error: emailResult.error,
+        details: emailResult.details,
+        missing: emailResult.missing,
+        customerMessageId: emailResult.customerMessageId,
+        adminMessageId: emailResult.adminMessageId,
+        customerAlreadySent: emailResult.customerAlreadySent,
+        adminAlreadySent: emailResult.adminAlreadySent,
+      },
     });
   } catch (error) {
     console.error('Webhook Error:', error.message);

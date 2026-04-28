@@ -663,8 +663,20 @@ const OrderFormSection = () => {
           order_id: razorpayOrderId,
           handler: (response: RazorpayPaymentResponse) => {
             // Payment successful - redirect to payment status page with internal order ID and encrypted data
-            const dataParam = result.encryptedData ? `&data=${encodeURIComponent(result.encryptedData)}` : "";
-            window.location.href = `/payment-status?orderId=${result.orderId}${dataParam}&razorpay_payment_id=${response.razorpay_payment_id}&razorpay_order_id=${response.razorpay_order_id}&razorpay_signature=${response.razorpay_signature}`;
+            const callbackParams = new URLSearchParams({
+              orderId: result.orderId,
+              email: orderPayload.email || "",
+              name: orderPayload.name || "",
+              mobile: orderPayload.mobile || "",
+              package: orderPayload.packageType || packageType,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            if (result.encryptedData) {
+              callbackParams.set("data", result.encryptedData);
+            }
+            window.location.href = `/payment-status?${callbackParams.toString()}`;
           },
           prefill: {
             name: orderPayload.name || "",

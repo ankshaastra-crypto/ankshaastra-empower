@@ -97,6 +97,38 @@ const packageNames: Record<string, string> = {
   babyname: "Perfect Baby Name Report",
 };
 
+const readStoredOrder = (orderId: string) => {
+  const keys = [`order_${orderId}`, `payment_order_${orderId}`];
+  for (const storage of [sessionStorage, localStorage]) {
+    for (const key of keys) {
+      try {
+        const stored = storage.getItem(key);
+        if (stored) return JSON.parse(stored);
+      } catch {
+        // Ignore malformed storage entries.
+      }
+    }
+  }
+  return null;
+};
+
+const persistStoredOrder = (orderId: string, data: unknown) => {
+  if (!orderId || !data) return;
+  try {
+    const serialized = JSON.stringify(data);
+    sessionStorage.setItem(`payment_order_${orderId}`, serialized);
+    localStorage.setItem(`order_${orderId}`, serialized);
+  } catch {
+    // Storage can be unavailable in private/restricted browser modes.
+  }
+};
+
+const hasText = (value: unknown) =>
+  typeof value === "string" ? value.trim().length > 0 : value != null;
+
+const isGenericCustomerName = (value: unknown) =>
+  typeof value === "string" && value.trim().toLowerCase() === "customer";
+
 const PaymentStatus = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -139,19 +171,12 @@ const PaymentStatus = () => {
       const name = searchParams.get("name");
       const packageType = searchParams.get("package");
 
-      // Try to retrieve order data from localStorage (backup if Razorpay stripped query params)
+      // Retrieve order data saved before Razorpay opened. Keep it through the
+      // success-page redirect because this component runs more than once.
       let storedOrderData = null;
       if (internalOrderId) {
-        try {
-          const stored = localStorage.getItem(`order_${internalOrderId}`);
-          if (stored) {
-            storedOrderData = JSON.parse(stored);
-            // Clean up localStorage after retrieving
-            localStorage.removeItem(`order_${internalOrderId}`);
-          }
-        } catch (e) {
-          // Silent fail
-        }
+        storedOrderData = readStoredOrder(internalOrderId);
+        if (storedOrderData) persistStoredOrder(internalOrderId, storedOrderData);
       }
 
       // Use stored data if available, otherwise use URL params
@@ -310,28 +335,37 @@ const PaymentStatus = () => {
 
         if (result.success && result.status === "SUCCESS") {
           setStatus("success");
+          const mergedPaymentData = {
+            ...result,
+            ...(storedOrderData || {}),
+            success: result.success,
+            status: result.status,
+            orderId: result.orderId || internalOrderId,
+            transactionId: result.transactionId,
+            amount: result.amount,
+            customerEmail: storedOrderData?.email || result.customerEmail || finalEmail,
+            customerName: storedOrderData?.name || (isGenericCustomerName(result.customerName) ? "" : result.customerName) || finalName,
+            customerMobile: storedOrderData?.mobile || result.customerMobile || finalMobile,
+            customerCity: storedOrderData?.city || result.customerCity,
+            customerDob: storedOrderData?.dob || result.customerDob,
+            customerGender: storedOrderData?.gender || result.customerGender,
+            fatherFullName: storedOrderData?.fatherFullName || result.fatherFullName,
+            childDob: storedOrderData?.childDob || result.childDob,
+            timeOfBirth: storedOrderData?.timeOfBirth || result.timeOfBirth,
+            placeOfBirth: storedOrderData?.placeOfBirth || result.placeOfBirth,
+            pinCode: storedOrderData?.pinCode || result.pinCode,
+            gender: storedOrderData?.gender || result.gender,
+            childLastName: storedOrderData?.childLastName || result.childLastName,
+            childMiddleName: storedOrderData?.childMiddleName || result.childMiddleName,
+            fatherFirstNameAsMiddleName: storedOrderData?.fatherFirstNameAsMiddleName || result.fatherFirstNameAsMiddleName,
+            nameOptions: storedOrderData?.nameOptions || result.nameOptions,
+            packageType: storedOrderData?.packageType || result.packageType || finalPackageType,
+          };
+          persistStoredOrder(internalOrderId, mergedPaymentData);
           // Merge storedOrderData first (has all form fields), then API result
           // overwrites with any server-verified values. This ensures baby fields
           // (fatherFullName, childDob, timeOfBirth, etc.) are never N/A.
-          setPaymentData({
-            ...(storedOrderData || {}),
-            ...result,
-            customerEmail: result.customerEmail || finalEmail || storedOrderData?.email,
-            customerName: result.customerName || finalName || storedOrderData?.name,
-            customerMobile: result.customerMobile || finalMobile || storedOrderData?.mobile,
-            // Baby report fields — prefer API result, fall back to stored form data
-            fatherFullName: result.fatherFullName || storedOrderData?.fatherFullName,
-            childDob: result.childDob || storedOrderData?.childDob,
-            timeOfBirth: result.timeOfBirth || storedOrderData?.timeOfBirth,
-            placeOfBirth: result.placeOfBirth || storedOrderData?.placeOfBirth,
-            pinCode: result.pinCode || storedOrderData?.pinCode,
-            gender: result.gender || storedOrderData?.gender,
-            childLastName: result.childLastName || storedOrderData?.childLastName,
-            childMiddleName: result.childMiddleName || storedOrderData?.childMiddleName,
-            fatherFirstNameAsMiddleName: result.fatherFirstNameAsMiddleName || storedOrderData?.fatherFirstNameAsMiddleName,
-            nameOptions: result.nameOptions || storedOrderData?.nameOptions,
-            packageType: result.packageType || storedOrderData?.packageType || finalPackageType,
-          });
+          setPaymentData(mergedPaymentData);
 
           // Track purchase event with Meta Pixel (only once per order)
           const amount = result.amount || 0;
@@ -352,11 +386,11 @@ const PaymentStatus = () => {
           console.warn("Payment marked as failed");
           setStatus("failed");
           setPaymentData({
-            ...(storedOrderData || {}),
             ...result,
-            customerEmail: result.customerEmail || finalEmail || storedOrderData?.email,
-            customerName: result.customerName || finalName || storedOrderData?.name,
-            customerMobile: result.customerMobile || finalMobile || storedOrderData?.mobile,
+            ...(storedOrderData || {}),
+            customerEmail: storedOrderData?.email || result.customerEmail || finalEmail,
+            customerName: storedOrderData?.name || (isGenericCustomerName(result.customerName) ? "" : result.customerName) || finalName,
+            customerMobile: storedOrderData?.mobile || result.customerMobile || finalMobile,
           });
 
           // Navigate to failed URL if not already there
@@ -429,8 +463,8 @@ const PaymentStatus = () => {
         `\nBirth City: ${displayValue(birthCity)}` +
         `\nPin Code: ${displayValue(d.pinCode)}` +
         `\nChild's Gender: ${displayValue(gender)}` +
-        (d.childMiddleName ? `\nChild's Middle Name: ${d.childMiddleName}` : '') +
-        (d.childLastName ? `\nChild's Last Name: ${d.childLastName}` : '') +
+        (hasText(d.childMiddleName) ? `\nChild's Middle Name: ${d.childMiddleName}` : '') +
+        (hasText(d.childLastName) ? `\nChild's Last Name: ${d.childLastName}` : '') +
         `\nFather's First Name as Middle Name: ${d.fatherFirstNameAsMiddleName === 'yes' ? 'Yes' : d.fatherFirstNameAsMiddleName === 'no' ? 'No' : 'N/A'}` +
         `\nPreferred Name Options: ${displayValue(d.nameOptions)}`;
     } else {

@@ -3,7 +3,7 @@ export default async function handler(req, res) {
   const diagnostics = {
     time: new Date().toISOString(),
     nodeVersion: process.version,
-    platform: process.env.VERCEL ? 'vercel' : process.env.NETLIFY ? 'netlify' : 'unknown',
+    platform: process.env.CF_PAGES ? 'cloudflare-pages' : process.env.VERCEL ? 'vercel' : process.env.NETLIFY ? 'netlify' : 'unknown',
     envVars: {
       RAZORPAY_KEY_ID: !!process.env.RAZORPAY_KEY_ID,
       RAZORPAY_KEY_SECRET: !!process.env.RAZORPAY_KEY_SECRET,
@@ -11,6 +11,7 @@ export default async function handler(req, res) {
       REDIS_URL: !!process.env.REDIS_URL,
       ENCRYPTION_KEY: !!process.env.ENCRYPTION_KEY,
       SUPABASE_URL: !!process.env.SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
       SUPABASE_KEY: !!process.env.SUPABASE_KEY,
       RESEND_API_KEY: !!process.env.RESEND_API_KEY,
       SMTP_HOST: !!process.env.SMTP_HOST,

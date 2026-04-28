@@ -3,6 +3,14 @@ pages_build_output_dir = "dist"
 compatibility_date = "2024-09-23"
 compatibility_flags = [ "nodejs_compat_v2" ]
 
+# ═════════════════════════════════════════════════════════════════════════════
+# D1 DATABASE BINDING — Primary database for Cloudflare Pages
+# ═════════════════════════════════════════════════════════════════════════════
+[[d1_databases]]
+binding = "DB" # This is the env.DB variable used in functions
+database_name = "ankshaastra-db"
+database_id = "00000000-0000-0000-0000-000000000000" # REPLACE with your D1 database ID
+
 # ─── Build-time variables (Vite bakes these into the frontend bundle) ──────────
 # These MUST also be set in Cloudflare Pages Dashboard →
 # Settings → Variables & Secrets → for them to work at BUILD time.

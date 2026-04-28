@@ -107,6 +107,14 @@ export function toCF(handler) {
       }
     }
 
+    // Inject D1 env into unified DB layer
+    try {
+      const { setEnv } = await import('./api/_utils/db-unified.js');
+      setEnv(env);
+    } catch (e) {
+      // db-unified not available (should not happen)
+    }
+
     const req = buildReq(request, params);
     await parseBody(req);
 

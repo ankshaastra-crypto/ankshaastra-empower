@@ -1,5 +1,5 @@
-import '../../_utils/suppress-deprecation.js';
-import { sendPaymentEmail } from '../../_utils/send-email.js';
+import '../_utils/suppress-deprecation.js';
+import { sendPaymentEmail } from '../_utils/send-email.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {

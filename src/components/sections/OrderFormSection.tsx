@@ -188,6 +188,8 @@ const OrderFormSection = () => {
         setPackageType("single");
       } else if (detail === "premium") {
         setPackageType("premium");
+      } else if (detail === "consultation") {
+        setPackageType("consultation");
       } else if (detail === "namecheck") {
         setPackageType("namecheck");
         setNameCheckCount(1);
@@ -1040,7 +1042,7 @@ const OrderFormSection = () => {
       );
     } else if (packageType === "consultation") {
       items.push(
-        { label: "Package", value: "Live Consultation" },
+        { label: "Package", value: "Website Testing" },
         { label: "Name", value: formData.name },
         { label: "Email", value: formData.email },
         { label: "WhatsApp", value: formData.mobile },
@@ -1328,16 +1330,16 @@ const OrderFormSection = () => {
                         <span className="text-foreground font-bold text-lg">{formatPrice(getPackagePrice("premium"))}</span>
                       </div>
                     </label>
-                    {/* Live Consultation Option */}
-                    <label htmlFor="consultation"
-                      className={`flex items-center gap-4 p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${packageType === "consultation" ? "border-primary bg-primary/5 shadow-card" : "border-border hover:border-primary/50"}`}>
-                      <RadioGroupItem value="consultation" id="consultation" className="text-primary flex-shrink-0" />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-foreground">Live Consultation</span>
+                      {/* Website testing payment option */}
+                      <label htmlFor="consultation"
+                        className={`flex items-center gap-4 p-5 rounded-xl border-2 cursor-pointer transition-all duration-300 hover:shadow-card ${packageType === "consultation" ? "border-primary bg-primary/5 shadow-card" : "border-border hover:border-primary/50"}`}>
+                        <RadioGroupItem value="consultation" id="consultation" className="text-primary flex-shrink-0" />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                          <span className="font-semibold text-foreground">Website Testing</span>
                           <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">TEST</span>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">20-min live video consultation with Himansshu Ji</p>
+                        <p className="text-sm text-muted-foreground mt-1">Please don't make any payment on this as website is being tested for smoother experience.</p>
                         <span className="text-primary font-bold text-lg">{formatPrice(getPackagePrice("consultation"))}</span>
                       </div>
                     </label>

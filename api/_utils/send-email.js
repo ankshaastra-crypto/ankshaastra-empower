@@ -231,6 +231,8 @@ export async function sendPaymentEmail({
     packageName = 'Name Check';
   } else if (packageType === 'single') {
     packageName = 'Single Report';
+  } else if (packageType === 'consultation') {
+    packageName = 'Website Testing';
   }
   // Amount is expected in paise (smallest currency unit), convert to rupees for display
   // Handle edge case where amount might be 0 or undefined

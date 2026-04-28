@@ -18,14 +18,28 @@ export default async function handler(req, res) {
   }
 
   try {
-    // ── Read raw body BEFORE any parsing (critical for Razorpay signature) ────
-    // bodyParser is disabled via config export below so req is a raw stream.
-    const rawBody = await new Promise((resolve, reject) => {
-      let data = '';
-      req.on('data', chunk => { data += chunk; });
-      req.on('end', () => resolve(data));
-      req.on('error', reject);
-    });
+    // Read raw body before parsing. Cloudflare Pages exposes req.rawBody from
+    // functions/_adapter.js; Vercel exposes the original Node request stream.
+    let rawBody = '';
+    if (typeof req.rawBody === 'string') {
+      rawBody = req.rawBody;
+    } else if (typeof req.body === 'string') {
+      rawBody = req.body;
+    } else if (req.body && typeof req.body === 'object') {
+      rawBody = JSON.stringify(req.body);
+    } else if (typeof req.on === 'function') {
+      rawBody = await new Promise((resolve, reject) => {
+        let data = '';
+        req.on('data', chunk => { data += chunk; });
+        req.on('end', () => resolve(data));
+        req.on('error', reject);
+      });
+    }
+
+    if (!rawBody) {
+      console.error('Missing webhook raw body');
+      return res.status(400).json({ error: 'Missing webhook payload' });
+    }
 
     // Parse JSON from raw string
     let body;

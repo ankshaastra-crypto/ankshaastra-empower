@@ -39,7 +39,7 @@ export async function sendWhatsAppNotification({
   const packageNames = {
     single: 'Perfect Baby Name Report',
     premium: 'Premium Report + Live Session',
-    consultation: 'Live Consultation',
+    consultation: 'Website Testing',
     namecheck: 'Name Check Report',
     'namecheck-1': 'Name Check (1 Person)',
     'namecheck-2': 'Name Check (2 Persons)',

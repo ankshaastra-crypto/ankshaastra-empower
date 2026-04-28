@@ -12,6 +12,11 @@ interface PaymentData {
   orderId: string;
   transactionId?: string;
   amount?: number;
+  email?: string;
+  name?: string;
+  mobile?: string;
+  city?: string;
+  dob?: string;
   customerEmail?: string;
   customerName?: string;
   customerMobile?: string;
@@ -86,7 +91,7 @@ const packageNames: Record<string, string> = {
   "namecheck-3": "Name Check (3 Persons)",
   single: "Perfect Baby Name Report",
   premium: "Premium Report + Live Session",
-  consultation: "Live Consultation",
+  consultation: "Website Testing",
   family: "Family Package (3 Reports)",
   baby: "Perfect Baby Name Report",
   babyname: "Perfect Baby Name Report",
@@ -125,6 +130,10 @@ const PaymentStatus = () => {
       const razorpayPaymentId =
         searchParams.get("razorpay_payment_id") ||
         searchParams.get("razorpayPaymentId");
+
+      const razorpaySignature =
+        searchParams.get("razorpay_signature") ||
+        searchParams.get("razorpaySignature");
 
       const email = searchParams.get("email");
       const name = searchParams.get("name");
@@ -174,6 +183,7 @@ const PaymentStatus = () => {
         });
         if (razorpayOrderId) params.append("razorpay_order_id", razorpayOrderId);
         if (razorpayPaymentId) params.append("razorpay_payment_id", razorpayPaymentId);
+        if (razorpaySignature) params.append("razorpay_signature", razorpaySignature);
 
         // Add person details if available from stored data
         if (storedOrderData) {
@@ -276,6 +286,9 @@ const PaymentStatus = () => {
         if (razorpayPaymentId) {
           newParams.append("razorpay_payment_id", razorpayPaymentId);
         }
+        if (razorpaySignature) {
+          newParams.append("razorpay_signature", razorpaySignature);
+        }
 
         // Call our API to check payment status
         const response = await fetch(
@@ -363,6 +376,7 @@ const PaymentStatus = () => {
         const dataParam = searchParams.get("data");
         const razorpayOrderIdParam = searchParams.get("razorpay_order_id") || searchParams.get("razorpayOrderId");
         const razorpayPaymentIdParam = searchParams.get("razorpay_payment_id") || searchParams.get("razorpayPaymentId");
+        const razorpaySignatureParam = searchParams.get("razorpay_signature") || searchParams.get("razorpaySignature");
         if (!location.pathname.includes("/failed") && orderIdParam) {
           const newParams = new URLSearchParams();
           newParams.append("orderId", orderIdParam);
@@ -374,6 +388,9 @@ const PaymentStatus = () => {
           }
           if (razorpayPaymentIdParam) {
             newParams.append("razorpay_payment_id", razorpayPaymentIdParam);
+          }
+          if (razorpaySignatureParam) {
+            newParams.append("razorpay_signature", razorpaySignatureParam);
           }
           const failedUrl = `/payment/failed${newParams.toString() ? '?' + newParams.toString() : ''}`;
           navigate(failedUrl, { replace: true });
@@ -388,27 +405,34 @@ const PaymentStatus = () => {
     const pkg = packageNames[d.packageType || "single"] || d.packageType || "Numerology Report";
     // Baby report: packageType is 'single' or 'premium'
     const isBabyReport = d.packageType === 'single' || d.packageType === 'premium' || d.packageType === 'baby' || d.packageType === 'babyname';
+    const firstValue = (...values: Array<string | undefined | null>) =>
+      values.find((value) => value && value.toString().trim())?.toString().trim() || "";
+    const displayValue = (...values: Array<string | undefined | null>) =>
+      firstValue(...values) || "N/A";
+    const customerName = displayValue(d.customerName, d.name, fb?.name);
+    const customerEmail = displayValue(d.customerEmail, d.email, fb?.email);
+    const customerMobile = displayValue(d.customerMobile, d.mobile, fb?.mobile);
     
     let personDetails = '';
     
     if (isBabyReport) {
-      const fatherName = d.fatherFullName || [d.fatherFirstName, d.fatherMiddleName, d.fatherLastName].filter(Boolean).join(' ') || '';
-      const childDob = d.childDob || d.customerDob || '';
-      const gender = d.gender || d.customerGender || d.person1Gender || '';
-      const na = (v?: string | null) => (v && v.trim()) ? v.trim() : 'N/A';
+      const fatherName = firstValue(d.fatherFullName, [d.fatherFirstName, d.fatherMiddleName, d.fatherLastName].filter(Boolean).join(' '), d.customerName, d.name);
+      const childDob = firstValue(d.childDob, d.customerDob, d.dob, d.person1Dob);
+      const gender = firstValue(d.gender, d.customerGender, d.person1Gender);
+      const birthCity = firstValue(d.placeOfBirth, d.customerCity, d.city);
 
       personDetails =
         `\n\n*Child & Report Details:*` +
-        `\nFather's Full Name: ${na(fatherName)}` +
-        `\nChild's Date of Birth: ${na(childDob)}` +
-        `\nTime of Birth: ${na(d.timeOfBirth)}` +
-        `\nBirth City: ${na(d.placeOfBirth)}` +
-        `\nPin Code: ${na(d.pinCode)}` +
-        `\nChild's Gender: ${na(gender)}` +
+        `\nFather's Full Name: ${displayValue(fatherName)}` +
+        `\nChild's Date of Birth: ${displayValue(childDob)}` +
+        `\nTime of Birth: ${displayValue(d.timeOfBirth)}` +
+        `\nBirth City: ${displayValue(birthCity)}` +
+        `\nPin Code: ${displayValue(d.pinCode)}` +
+        `\nChild's Gender: ${displayValue(gender)}` +
         (d.childMiddleName ? `\nChild's Middle Name: ${d.childMiddleName}` : '') +
         (d.childLastName ? `\nChild's Last Name: ${d.childLastName}` : '') +
         `\nFather's First Name as Middle Name: ${d.fatherFirstNameAsMiddleName === 'yes' ? 'Yes' : d.fatherFirstNameAsMiddleName === 'no' ? 'No' : 'N/A'}` +
-        `\nPreferred Name Options: ${na(d.nameOptions)}`;
+        `\nPreferred Name Options: ${displayValue(d.nameOptions)}`;
     } else {
       // Name Check packages — show each person
       const buildPersonBlock = (label: string, name?: string, firstName?: string, middleName?: string, surName?: string, dob?: string, gender?: string, middleNameType?: string) => {
@@ -424,7 +448,8 @@ const PaymentStatus = () => {
       personDetails = buildPersonBlock('Person 1', d.person1Name, d.person1FirstName, d.person1MiddleName, d.person1SurName, d.person1Dob, d.person1Gender, d.person1MiddleNameType);
       personDetails += buildPersonBlock('Person 2', d.person2Name, d.person2FirstName, d.person2MiddleName, d.person2SurName, d.person2Dob, d.person2Gender, d.person2MiddleNameType);
       personDetails += buildPersonBlock('Person 3', d.person3Name, d.person3FirstName, d.person3MiddleName, d.person3SurName, d.person3Dob, d.person3Gender, d.person3MiddleNameType);
-      if (d.customerCity) personDetails += `\n\nCity: ${d.customerCity}`;
+      const city = firstValue(d.customerCity, d.city);
+      if (city) personDetails += `\n\nCity: ${city}`;
       if (d.pinCode) personDetails += `\nPin Code: ${d.pinCode}`;
     }
     
@@ -435,9 +460,9 @@ const PaymentStatus = () => {
       `Amount: ₹${d.amount?.toLocaleString('en-IN') || "—"}\n` +
       `Package: ${pkg}\n\n` +
       `*Customer Details:*\n` +
-      `Name: ${d.customerName || fb?.name || "—"}\n` +
-      `Email: ${d.customerEmail || fb?.email || "—"}\n` +
-      `WhatsApp: ${d.customerMobile || fb?.mobile || "—"}` +
+      `Name: ${customerName}\n` +
+      `Email: ${customerEmail}\n` +
+      `WhatsApp: ${customerMobile}` +
       personDetails +
       `\n\nPlease process my report. Thank you! 🙏`
     );

@@ -117,8 +117,8 @@ export default async function handler(req, res) {
 
     const paymentStatus  = isSuccess ? 'SUCCESS' : 'FAILED';
     const transactionId  = razorpayPaymentId || statusResult?.id;
-    const amountInPaise  = statusResult?.amount || 0;
-    const amountInRupees = amountInPaise / 100;
+    let amountInPaise  = statusResult?.amount || 0;
+    let amountInRupees = amountInPaise / 100;
 
     console.log(`📊 ${paymentStatus} — order: ${internalOrderId}, tx: ${transactionId}, ₹${amountInRupees}`);
 
@@ -156,6 +156,10 @@ export default async function handler(req, res) {
             Object.entries(customerData || {}).filter(([, value]) => value != null && value.toString().trim() !== '')
           ),
         };
+        if (!amountInPaise && dbMetadata.amount) {
+          amountInRupees = Number(dbMetadata.amount) || 0;
+          amountInPaise = Math.round(amountInRupees * 100);
+        }
         console.log(`✅ Customer metadata loaded from DB for order ${internalOrderId}`);
       }
     } catch (dbMetaErr) {

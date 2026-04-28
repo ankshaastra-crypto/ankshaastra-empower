@@ -16,7 +16,18 @@ Your Cloudflare Pages deployment now uses **Cloudflare D1 SQLite** instead of Su
 3. **`functions/api/initiate-payment.js`** — Stores customer data in D1
 4. **`functions/api/payment-webhook.js`** — Saves payment, generates PDF, sends emails
 5. **`functions/api/admin/order.js`** — Reads orders from D1
-6. **`wrangler.toml`** — D1 database binding added
+6. **`wrangler.toml`** — Removed invalid D1 config (Pages uses dashboard binding only)
+
+---
+
+## ⚠️ IMPORTANT: D1 Binding is Dashboard-Only
+
+**Do NOT add `[[d1_databases]]` to `wrangler.toml`** — Cloudflare Pages ignores it and throws:
+```
+Error 8000022: Invalid database UUID
+```
+
+For **Cloudflare Pages**, D1 must be bound via the **Dashboard** or **Wrangler CLI**.
 
 ---
 
@@ -43,39 +54,34 @@ You will see output like:
    database_id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 ```
 
-### 4. Update wrangler.toml
-Open `wrangler.toml` and replace:
-```toml
-database_id = "00000000-0000-0000-0000-000000000000"
-```
-with your actual database ID from Step 3.
+### 4. Bind D1 to Your Pages Project (CRITICAL STEP)
 
-### 5. Bind D1 to Your Pages Project
+**Option A: Via Cloudflare Dashboard (Recommended)**
+1. Go to https://dash.cloudflare.com/
+2. Pages → **ankshaastra-empower** → **Settings** → **Functions**
+3. **D1 Database Bindings** → **Add binding**
+4. Variable name: `DB`
+5. Database: Select `ankshaastra-db` from dropdown
+6. Click **Save**
 
-**Option A: Via Wrangler CLI**
+**Option B: Via Wrangler CLI**
 ```bash
 wrangler pages project bind d1 ankshaastra-db --project-name=ankshaastra-empower
 ```
 
-**Option B: Via Cloudflare Dashboard**
-1. Go to https://dash.cloudflare.com/
-2. Pages → ankshaastra-empower → Settings → Functions
-3. D1 Database Bindings → Add binding
-4. Variable name: `DB`
-5. Database: `ankshaastra-db`
+### 5. Set Environment Variables
 
-### 6. Set Environment Variables
-
-Go to Cloudflare Pages Dashboard → Settings → Environment Variables
+Go to Cloudflare Pages Dashboard → **ankshaastra-empower** → **Settings** → **Environment Variables**
 
 **Required Secrets (click "Encrypt"):**
+
 | Variable | Description |
 |----------|-------------|
-| `RAZORPAY_KEY_SECRET` | From Razorpay Dashboard |
-| `RAZORPAY_WEBHOOK_SECRET` | From Razorpay Dashboard |
 | `SMTP_HOST` | e.g., `smtp.gmail.com` |
 | `SMTP_USER` | e.g., `your-email@gmail.com` |
-| `SMTP_PASSWORD` | Gmail App Password or SMTP password |
+| `SMTP_PASSWORD` | Gmail App Password (create at https://myaccount.google.com/apppasswords) |
+| `RAZORPAY_KEY_SECRET` | From Razorpay Dashboard |
+| `RAZORPAY_WEBHOOK_SECRET` | From Razorpay Dashboard |
 | `ENCRYPTION_KEY` | Any long random string |
 
 **Optional (for Supabase fallback):**
@@ -91,6 +97,12 @@ Go to Cloudflare Pages Dashboard → Settings → Environment Variables
 - `ADMIN_EMAIL`
 - `VITE_RAZORPAY_KEY_ID`
 - `WHATSAPP_ADMIN_NUMBER`
+
+### 6. Verify Binding Before Deploy
+
+Check that D1 binding appears in dashboard:
+- Pages → ankshaastra-empower → Settings → Functions → D1 Database Bindings
+- Should show: `DB` → `ankshaastra-db`
 
 ### 7. Deploy
 ```bash
@@ -113,7 +125,7 @@ Expected response:
   "platform": "cloudflare-pages",
   "dbConnected": true,
   "dbType": "d1",
-  "dbNow": "2026-04-28 12:34:56",
+  "dbNow": "...",
   "modules": {
     "d1-db": { "ok": true },
     "db-unified": { "ok": true },
@@ -137,40 +149,36 @@ Expected response:
 
 ## Troubleshooting
 
-### "dbConnected": false
-- Check that D1 binding is set (Variable name = `DB`)
-- Verify `database_id` in `wrangler.toml` is correct
-- Check Cloudflare Pages Functions logs
+### "Error 8000022: Invalid database UUID"
+**Cause:** `[[d1_databases]]` in wrangler.toml (Pages ignores this).  
+**Fix:** Removed from wrangler.toml. Bind D1 via Dashboard instead.
+
+### "D1 not available" or "dbConnected": false
+**Cause:** D1 binding not set (env.DB is undefined).  
+**Fix:** Go to Dashboard → Pages → ankshaastra-empower → Settings → Functions → D1 Database Bindings → Add `DB` → Select `ankshaastra-db`
+
+### "No such module" errors
+**Cause:** Dynamic imports failing.  
+**Fix:** Already fixed — all function handlers now use static imports.
 
 ### Emails not sending
-- Verify SMTP_HOST, SMTP_USER, SMTP_PASSWORD are set
-- For Gmail, use App Password (not regular password)
-- Check Functions logs for SMTP errors
+**Cause:** SMTP env vars missing.  
+**Fix:** Add SMTP_HOST, SMTP_USER, SMTP_PASSWORD as secrets in dashboard.
 
 ### "database_id mismatch"
-- Make sure you created the D1 database and copied the correct ID
-- The ID in `wrangler.toml` must match your actual D1 database
+**Cause:** D1 database not created or wrong ID.  
+**Fix:** Run `wrangler d1 list` to see your databases, verify binding in dashboard.
 
 ---
 
 ## Architecture
 
 ```
-User Form Submit
-      ↓
-Cloudflare Pages Function (initiate-payment.js)
-      ↓
-D1 SQLite (stores customer data)
-      ↓
-Razorpay (payment)
-      ↓
-Webhook (payment-webhook.js)
-      ↓
-D1 SQLite (updates payment status)
-      ↓
-PDF Generation (pdf-lib)
-      ↓
-Email Send (nodemailer) → Customer + Admin with PDF
+Payment Flow:
+1. Customer fills form → initiate-payment.js saves to D1
+2. Razorpay processes payment → sends webhook
+3. payment-webhook.js reads from D1 → generates invoice PDF → sends email to customer + admin
+4. Both emails include GST invoice PDF attachment
 ```
 
 ## Benefits of D1
@@ -184,5 +192,5 @@ Email Send (nodemailer) → Customer + Admin with PDF
 ## Rollback
 
 If you need to rollback to Supabase PostgreSQL:
-1. Revert `functions/` files to use `api/` imports
-2. Or set `DATABASE_URL` env var and D1 will auto-fallback to pg
+1. Set `DATABASE_URL` environment variable
+2. The unified DB layer will auto-fallback to pg when D1 is not bound

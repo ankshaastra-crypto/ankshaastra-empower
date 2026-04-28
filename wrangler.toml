@@ -3,13 +3,10 @@ pages_build_output_dir = "dist"
 compatibility_date = "2024-09-23"
 compatibility_flags = [ "nodejs_compat_v2" ]
 
-# ═════════════════════════════════════════════════════════════════════════════
-# D1 DATABASE BINDING — Primary database for Cloudflare Pages
-# ═════════════════════════════════════════════════════════════════════════════
-[[d1_databases]]
-binding = "DB" # This is the env.DB variable used in functions
-database_name = "ankshaastra-db"
-database_id = "00000000-0000-0000-0000-000000000000" # REPLACE with your D1 database ID
+# NOTE: D1 database binding is configured via Cloudflare Dashboard:
+# Pages → ankshaastra-empower → Settings → Functions → D1 Database Bindings
+# Variable name must be: DB
+# Do NOT add [[d1_databases]] here — Pages ignores it and it causes deployment errors.
 
 # ─── Build-time variables (Vite bakes these into the frontend bundle) ──────────
 # These MUST also be set in Cloudflare Pages Dashboard →
@@ -29,5 +26,3 @@ FROM_EMAIL = "madappscreator@gmail.com"
 ADMIN_EMAIL = "madappscreator@gmail.com"
 VITE_RAZORPAY_KEY_ID = "rzp_live_SiOfLiV0lwCQ7H"
 WHATSAPP_ADMIN_NUMBER = "919667305577"
-
-database_id = "d801cb24-4f5e-439a-9615-d4bf89545cce"

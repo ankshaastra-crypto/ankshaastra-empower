@@ -5,6 +5,14 @@
 import { setEnv } from './_utils/db-unified.js';
 import { getD1, d1Query } from './_utils/d1-db.js';
 import { createClient } from '@supabase/supabase-js';
+import * as suppressDeprecation from './_utils/suppress-deprecation.js';
+import * as encryptionModule from './_utils/encryption.js';
+import * as rateLimiterModule from './_utils/rate-limiter.js';
+import * as dbUnifiedModule from './_utils/db-unified.js';
+import * as redisCacheModule from './_utils/redis-cache.js';
+import * as sendEmailModule from './_utils/send-email.js';
+import * as supabaseServerModule from './_utils/supabase-server.js';
+import * as d1DbModule from './_utils/d1-db.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -45,20 +53,31 @@ export async function onRequest(context) {
   };
 
   // ─── Test module loads (static imports) ───────────────────────────────────
+  const moduleMap = {
+    'suppress-deprecation': suppressDeprecation,
+    encryption: encryptionModule,
+    'rate-limiter': rateLimiterModule,
+    'db-unified': dbUnifiedModule,
+    'redis-cache': redisCacheModule,
+    'send-email': sendEmailModule,
+    'supabase-server': supabaseServerModule,
+    'd1-db': d1DbModule,
+  };
+
   const modules = [
-    { name: 'suppress-deprecation', path: './_utils/suppress-deprecation.js' },
-    { name: 'encryption', path: './_utils/encryption.js', exports: ['encryptCustomerData', 'decryptCustomerData'] },
-    { name: 'rate-limiter', path: './_utils/rate-limiter.js', exports: ['rateLimiter'] },
-    { name: 'db-unified', path: './_utils/db-unified.js', exports: ['saveOrderAndCustomer', 'savePayment', 'getOrderFull'] },
-    { name: 'redis-cache', path: './_utils/redis-cache.js', exports: ['getRedisCache'] },
-    { name: 'send-email', path: './_utils/send-email.js', exports: ['sendPaymentEmail'] },
-    { name: 'supabase-server', path: './_utils/supabase-server.js', exports: ['generateInvoicePDF'] },
-    { name: 'd1-db', path: './_utils/d1-db.js', exports: ['d1Query', 'd1Run'] },
+    { name: 'suppress-deprecation', exports: [] },
+    { name: 'encryption', exports: ['encryptCustomerData', 'decryptCustomerData'] },
+    { name: 'rate-limiter', exports: ['rateLimiter'] },
+    { name: 'db-unified', exports: ['saveOrderAndCustomer', 'savePayment', 'getOrderFull'] },
+    { name: 'redis-cache', exports: ['getRedisCache'] },
+    { name: 'send-email', exports: ['sendPaymentEmail'] },
+    { name: 'supabase-server', exports: ['generateInvoicePDF'] },
+    { name: 'd1-db', exports: ['d1Query', 'd1Run'] },
   ];
 
   for (const mod of modules) {
     try {
-      const imported = await import(new URL(mod.path, import.meta.url));
+      const imported = moduleMap[mod.name];
       const available = {};
       if (mod.exports) {
         for (const exp of mod.exports) {

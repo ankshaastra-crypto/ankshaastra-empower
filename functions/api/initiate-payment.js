@@ -15,7 +15,7 @@ export async function onRequest(context) {
       if (typeof v === 'string') process.env[k] = v;
     }
   }
-  setEnv(env);
+  // setEnv handled by _adapter.js
 
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {

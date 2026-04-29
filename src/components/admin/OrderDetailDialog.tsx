@@ -48,7 +48,7 @@ const OrderDetailDialog = ({ order, onClose, onUpdated }: Props) => {
   useEffect(() => {
     if (order?.order_id) {
       getInvoiceForOrder(order.order_id).then((inv) => {
-        setInvoiceId(inv?.id || null);
+        setInvoiceId(inv?.id != null ? String(inv.id) : null);
       });
     }
   }, [order?.order_id]);

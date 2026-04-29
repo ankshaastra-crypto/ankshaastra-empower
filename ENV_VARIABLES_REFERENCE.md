@@ -320,3 +320,56 @@ const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;  // ❓ Check
 ---
 
 **Last Updated:** April 28, 2026
+
+---
+
+## 💰 DYNAMIC PRICING (Added 2026-04 — change without code edits)
+
+All package prices are now read from environment variables. To change a
+price, update the variable in **Cloudflare Pages → Settings → Environment
+Variables**, then trigger a redeploy. No code changes required.
+
+You must set **two** copies of each price (or accept the defaults):
+
+1. `VITE_PACKAGE_*` — used by the **frontend** (the displayed price). Required
+   at build time.
+2. `PACKAGE_*` (no `VITE_` prefix) — used by the **Cloudflare Function** to
+   validate the order amount on the server before creating the Razorpay
+   order. Prevents a tampered client from paying a smaller amount.
+
+**Always set both to the same value.**
+
+| Frontend variable                              | Backend variable                         | Default | Description                              |
+| ---------------------------------------------- | ---------------------------------------- | ------- | ---------------------------------------- |
+| `VITE_PACKAGE_SINGLE_PRICE`                    | `PACKAGE_SINGLE_PRICE`                   | 2447    | Perfect Baby Name Report                 |
+| `VITE_PACKAGE_SINGLE_ORIGINAL_PRICE`           | —                                        | 7500    | Strikethrough "before" price             |
+| `VITE_PACKAGE_PREMIUM_PRICE`                   | `PACKAGE_PREMIUM_PRICE`                  | 8927    | Report + Live Video Session              |
+| `VITE_PACKAGE_PREMIUM_ORIGINAL_PRICE`          | —                                        | 18218   | Strikethrough "before" price             |
+| `VITE_PACKAGE_NAMECHECK_1_PRICE`               | `PACKAGE_NAMECHECK_1_PRICE`              | 293     | Name Check (1 name)                      |
+| `VITE_PACKAGE_NAMECHECK_1_ORIGINAL_PRICE`      | —                                        | 293     |                                          |
+| `VITE_PACKAGE_NAMECHECK_2_PRICE`               | `PACKAGE_NAMECHECK_2_PRICE`              | 528     | Name Check (2 names)                     |
+| `VITE_PACKAGE_NAMECHECK_2_ORIGINAL_PRICE`      | —                                        | 586     |                                          |
+| `VITE_PACKAGE_NAMECHECK_3_PRICE`               | `PACKAGE_NAMECHECK_3_PRICE`              | 747     | Name Check (3 names)                     |
+| `VITE_PACKAGE_NAMECHECK_3_ORIGINAL_PRICE`      | —                                        | 879     |                                          |
+| `VITE_PACKAGE_CONSULTATION_PRICE`              | `PACKAGE_CONSULTATION_PRICE`             | 1       | Live Consultation only                   |
+| `VITE_PACKAGE_CONSULTATION_ORIGINAL_PRICE`     | —                                        | 1       |                                          |
+
+### To change a price (example: bump Premium from 8927 → 9999)
+
+1. In Cloudflare Pages → Settings → Environment Variables, set:
+   - `VITE_PACKAGE_PREMIUM_PRICE = 9999`
+   - `PACKAGE_PREMIUM_PRICE = 9999`
+2. Save and trigger a **deploy** (or push any commit). The frontend rebuild
+   picks up the new `VITE_*` value; the backend reads `PACKAGE_*` at
+   request time.
+3. Verify on the live site: pricing card shows ₹9,999 and a checkout for
+   ₹8,927 is now rejected with "Price mismatch".
+
+### Server-side validation
+
+The Cloudflare Function `functions/api/initiate-payment.js` calls
+`validatePackageAmount(env, packageType, amount)` from
+`functions/api/_utils/pricing.js` before creating the Razorpay order.
+If the client-supplied amount does not match `PACKAGE_*_PRICE`, the request
+is rejected with HTTP 400 and the order is NOT saved.
+

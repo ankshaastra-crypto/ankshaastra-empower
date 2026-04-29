@@ -1,7 +1,7 @@
-// Real Supabase data adapter for Admin V2.
-// Maps the `orders` table rows into the existing `Client` shape so all
-// admin v2 UI keeps working without changes.
-import { supabase } from "@/integrations/supabase/client";
+// Real D1 data adapter for Admin V2.
+// Fetches from Cloudflare Function GET /api/admin/order (which reads D1)
+// and maps order rows into the existing `Client` shape so all admin v2 UI
+// keeps working without changes.
 import {
   ADD_ON_ELIGIBLE,
   ADD_ON_PRICE,
@@ -16,33 +16,35 @@ import {
 
 type OrderRow = {
   order_id: string;
-  status: string;
   amount: number;
   package_type: string;
-  customer_name: string | null;
-  customer_email: string | null;
-  customer_mobile: string | null;
-  customer_city: string | null;
-  transaction_id: string | null;
-  created_at: string;
-  updated_at: string;
-  // baby-name flow
+  order_status: string;
+  order_created_at: string;
+  // customer
+  name: string | null;
+  email: string | null;
+  mobile: string | null;
+  city: string | null;
+  // baby-name
   father_first_name: string | null;
   father_middle_name: string | null;
   father_last_name: string | null;
   child_dob: string | null;
-  child_tob: string | null;
-  child_pob: string | null;
+  time_of_birth: string | null;
   child_gender: string | null;
-  // name-check flow
-  person1_full_name: string | null;
+  // name-check (person 1)
+  person1_name: string | null;
+  person1_first_name: string | null;
   person1_dob: string | null;
   person1_gender: string | null;
+  // payment
+  transaction_id: string | null;
+  payment_status: string | null;
+  amount_paise: number | null;
 };
 
 const PACKAGE_TO_SERVICE: Record<string, ServiceType> = {
-  single: "Name Check",
-  name_check: "Name Check",
+  single: "Perfect Baby Name",
   perfect: "Perfect Baby Name",
   perfect_baby_name: "Perfect Baby Name",
   baby_name: "Perfect Baby Name",
@@ -50,21 +52,26 @@ const PACKAGE_TO_SERVICE: Record<string, ServiceType> = {
   live: "Live Video Consultation",
   live_video: "Live Video Consultation",
   consultation: "Live Video Consultation",
+  namecheck: "Name Check",
+  "namecheck-1": "Name Check",
+  "namecheck-2": "Name Check",
+  "namecheck-3": "Name Check",
+  name_check: "Name Check",
 };
 
 function mapService(pkg: string | null | undefined): ServiceType {
   if (!pkg) return "Name Check";
   const key = pkg.toLowerCase().trim();
   if (PACKAGE_TO_SERVICE[key]) return PACKAGE_TO_SERVICE[key];
-  // Substring fallback
-  if (key.includes("live") || key.includes("video") || key.includes("consult")) return "Live Video Consultation";
-  if (key.includes("perfect") || key.includes("baby")) return "Perfect Baby Name";
+  if (key.includes("live") || key.includes("video") || key.includes("consult") || key.includes("premium")) return "Live Video Consultation";
+  if (key.includes("perfect") || key.includes("baby") || key === "single") return "Perfect Baby Name";
   return "Name Check";
 }
 
-function mapPaymentStatus(s: string | null | undefined): PaymentStatus {
-  const v = (s || "").toUpperCase();
+function mapPaymentStatus(transactionId: string | null, paymentStatus: string | null | undefined): PaymentStatus {
+  const v = (paymentStatus || "").toUpperCase();
   if (v === "SUCCESS" || v === "PAID" || v === "COMPLETED") return "Paid";
+  if (transactionId) return "Paid";
   if (v === "FAILED" || v === "CANCELLED") return "Pending";
   return "Pending";
 }
@@ -106,15 +113,17 @@ function numerologyFromDob(dobStr: string | null | undefined) {
 }
 
 function deriveDisplayName(o: OrderRow, service: ServiceType): string {
-  if (service === "Name Check" && o.person1_full_name) return o.person1_full_name;
-  if ((service === "Perfect Baby Name" || service === "Live Video Consultation")) {
+  if (service === "Name Check" && (o.person1_name || o.person1_first_name)) {
+    return o.person1_name || o.person1_first_name || "Unnamed";
+  }
+  if (service === "Perfect Baby Name" || service === "Live Video Consultation") {
     const parts = [o.father_first_name, o.father_middle_name, o.father_last_name]
       .filter(Boolean)
       .join(" ")
       .trim();
     if (parts) return `${parts}'s Baby`;
   }
-  return o.customer_name || "Unnamed";
+  return o.name || "Unnamed";
 }
 
 function deriveDob(o: OrderRow, service: ServiceType): string | null {
@@ -128,14 +137,10 @@ function deriveGender(o: OrderRow, service: ServiceType): "Male" | "Female" {
   return "Male";
 }
 
-export function orderRowToClient(o: OrderRow, idx: number): Client {
+function orderRowToClient(o: OrderRow): Client {
   const service = mapService(o.package_type);
-  const paymentStatus = mapPaymentStatus(o.status === "PENDING" ? "PENDING" : "SUCCESS");
-  // The orders.status field actually tracks order lifecycle.
-  // Payment success is implied by transaction_id presence.
-  const isPaid = !!o.transaction_id;
-  const ps: PaymentStatus = isPaid ? "Paid" : "Pending";
-  const reportStatus = mapReportStatus(o.status, ps);
+  const ps = mapPaymentStatus(o.transaction_id, o.payment_status);
+  const reportStatus = mapReportStatus(o.order_status, ps);
   const dob = deriveDob(o, service);
   const numerology = numerologyFromDob(dob);
   const name = deriveDisplayName(o, service);
@@ -143,18 +148,19 @@ export function orderRowToClient(o: OrderRow, idx: number): Client {
   const baseAmount = SERVICE_PRICES[service];
   const hasAddOn = ADD_ON_ELIGIBLE.includes(service) && amount >= baseAmount + ADD_ON_PRICE - 5;
 
-  const dateAdded = o.created_at;
+  const dateAdded = o.order_created_at;
+  const isPaid = ps === "Paid";
 
   return {
     id: o.order_id,
     name,
     dob: dob || dateAdded,
-    birthTime: o.child_tob || undefined,
+    birthTime: o.time_of_birth || undefined,
     gender: deriveGender(o, service),
-    city: o.customer_city || "—",
+    city: o.city || "—",
     state: "—",
-    phone: o.customer_mobile || "—",
-    email: o.customer_email || "—",
+    phone: o.mobile || "—",
+    email: o.email || "—",
     service,
     addOn: hasAddOn,
     numerology,
@@ -170,28 +176,41 @@ export function orderRowToClient(o: OrderRow, idx: number): Client {
     paymentStatus: ps,
     amount,
     paymentMethod: "Online",
-    paymentDate: isPaid ? o.created_at : undefined,
+    paymentDate: isPaid ? dateAdded : undefined,
     dateAdded,
     source: "Website" as InquirySource,
     timeline: [
-      { step: "Order Placed", done: true, date: o.created_at },
-      { step: "Payment Received", done: isPaid, date: isPaid ? o.created_at : null },
-      { step: "Analysis In Progress", done: ["Analysis Done","Report Written","Sent to Client","Follow-up Pending","Closed"].includes(reportStatus), date: null },
-      { step: "Report Delivered", done: ["Sent to Client","Closed"].includes(reportStatus), date: null },
+      { step: "Order Placed", done: true, date: dateAdded },
+      { step: "Payment Received", done: isPaid, date: isPaid ? dateAdded : null },
+      { step: "Analysis In Progress", done: ["Analysis Done", "Report Written", "Sent to Client", "Follow-up Pending", "Closed"].includes(reportStatus), date: null },
+      { step: "Report Delivered", done: ["Sent to Client", "Closed"].includes(reportStatus), date: null },
       { step: "Closed", done: reportStatus === "Closed", date: null },
     ],
   };
 }
 
+/**
+ * Fetch all orders from D1 via the Cloudflare Function `/api/admin/order`.
+ * The function returns `{ success, orders: OrderRow[] }`.
+ */
 export async function fetchClientsFromSupabase(): Promise<Client[]> {
-  const { data, error } = await supabase
-    .from("orders")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(1000);
+  // Name kept for back-compat with existing call sites; now hits D1.
+  const res = await fetch("/api/admin/order", {
+    method: "GET",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+  });
 
-  if (error) throw error;
-  return (data || []).map((row, i) => orderRowToClient(row as unknown as OrderRow, i));
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Admin orders fetch failed (${res.status}): ${text || res.statusText}`);
+  }
+
+  const json: { success?: boolean; orders?: OrderRow[]; error?: string } = await res.json();
+  if (json.success === false) throw new Error(json.error || "Admin orders fetch failed");
+
+  const orders = json.orders || [];
+  return orders.map((row) => orderRowToClient(row));
 }
 
 export { NUMEROLOGY_MEANINGS };

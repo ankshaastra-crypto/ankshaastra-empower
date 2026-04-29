@@ -13,6 +13,25 @@ const PricingSection = () => {
   const [selectedNameCheckPlan, setSelectedNameCheckPlan] = useState<1 | 2 | 3>(1);
   const [activeTab, setActiveTab] = useState<"namecheck" | "single" | "premium">("single");
 
+  // Per-person effective price for the discount label
+  const nameCheckPlans = {
+    1: {
+      price: pricing.nameCheckTiers[1].price,
+      originalPrice: pricing.nameCheckTiers[1].originalPrice,
+      effectivePerPerson: pricing.nameCheckTiers[1].price,
+    },
+    2: {
+      price: pricing.nameCheckTiers[2].price,
+      originalPrice: pricing.nameCheckTiers[2].originalPrice,
+      effectivePerPerson: Math.round(pricing.nameCheckTiers[2].price / 2),
+    },
+    3: {
+      price: pricing.nameCheckTiers[3].price,
+      originalPrice: pricing.nameCheckTiers[3].originalPrice,
+      effectivePerPerson: Math.round(pricing.nameCheckTiers[3].price / 3),
+    },
+  } as const;
+
   const scrollToForm = (packageType?: string) => {
     if (packageType) {
       let price = 0;
@@ -43,12 +62,6 @@ const PricingSection = () => {
         );
       }
     }
-  };
-
-  const nameCheckPlans = {
-    1: { price: 293, originalPrice: 293, effectivePerPerson: 293 },
-    2: { price: 528, originalPrice: 586, effectivePerPerson: 264 },
-    3: { price: 747, originalPrice: 879, effectivePerPerson: 249 },
   };
 
   const nameCheckFeatures = [

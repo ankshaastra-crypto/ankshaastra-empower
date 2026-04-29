@@ -1,6 +1,22 @@
 /**
  * Package Pricing Configuration
- * Reads prices from environment variables for easy management
+ *
+ * All prices are read from Vite environment variables so they can be changed
+ * via Cloudflare Pages env vars (rebuild required) without touching source code.
+ *
+ * Set these in Cloudflare Pages → Project → Settings → Environment variables
+ * (Production + Preview), then trigger a redeploy:
+ *
+ *   VITE_PACKAGE_SINGLE_PRICE / VITE_PACKAGE_SINGLE_ORIGINAL_PRICE
+ *   VITE_PACKAGE_PREMIUM_PRICE / VITE_PACKAGE_PREMIUM_ORIGINAL_PRICE
+ *   VITE_PACKAGE_NAMECHECK_1_PRICE / VITE_PACKAGE_NAMECHECK_1_ORIGINAL_PRICE
+ *   VITE_PACKAGE_NAMECHECK_2_PRICE / VITE_PACKAGE_NAMECHECK_2_ORIGINAL_PRICE
+ *   VITE_PACKAGE_NAMECHECK_3_PRICE / VITE_PACKAGE_NAMECHECK_3_ORIGINAL_PRICE
+ *   VITE_PACKAGE_CONSULTATION_PRICE / VITE_PACKAGE_CONSULTATION_ORIGINAL_PRICE
+ *
+ * IMPORTANT: also mirror these on the Cloudflare Function side
+ * (without the VITE_ prefix) so the backend can validate the order amount.
+ * See `functions/api/_utils/pricing.js`.
  */
 
 export interface PackageTier {
@@ -8,110 +24,120 @@ export interface PackageTier {
   originalPrice: number;
 }
 
+export interface NameCheckTiers {
+  1: PackageTier;
+  2: PackageTier;
+  3: PackageTier;
+}
+
 export interface PackagePricing {
-  namecheck: PackageTier;
+  namecheck: PackageTier; // default = 1-name tier (kept for back-compat)
+  nameCheckTiers: NameCheckTiers;
   single: PackageTier;
   premium: PackageTier;
   consultation: PackageTier;
 }
 
-const DEFAULT_PACKAGE_PRICING: PackagePricing = {
+const DEFAULTS = {
+  single: { price: 2447, originalPrice: 7500 },
+  premium: { price: 8927, originalPrice: 18218 },
+  consultation: { price: 1, originalPrice: 1 },
   namecheck: {
-    price: 293,
-    originalPrice: 293,
+    1: { price: 293, originalPrice: 293 },
+    2: { price: 528, originalPrice: 586 },
+    3: { price: 747, originalPrice: 879 },
   },
-  single: {
-    price: 2447,
-    originalPrice: 7500,
-  },
-  premium: {
-    price: 8927,
-    originalPrice: 18218,
-  },
-  consultation: {
-    price: 1,
-    originalPrice: 1,
-  },
-};
+} as const;
 
-/**
- * Get package pricing from environment variables
- * Falls back to default values if env vars are not set
- *
- * IMPORTANT: After changing environment variables:
- * 1. Restart the Vite dev server (Ctrl+C then npm run dev)
- * 2. Or rebuild the project (npm run build)
- *
- * In production (Vercel), environment variables are loaded at build time.
- */
-export function getPackagePricing(): PackagePricing {
-  // Helper function to safely parse env var with fallback
-  const getEnvNumber = (
-    envVar: string | undefined,
-    fallback: number,
-  ): number => {
-    if (envVar === undefined || envVar === "") {
-      return fallback;
-    }
-    const parsed = Number(envVar);
-    return isNaN(parsed) ? fallback : parsed;
+function envNumber(value: unknown, fallback: number): number {
+  if (value === undefined || value === null || value === "") return fallback;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function readTier(
+  priceEnv: string | undefined,
+  originalEnv: string | undefined,
+  fallback: { price: number; originalPrice: number },
+): PackageTier {
+  return {
+    price: envNumber(priceEnv, fallback.price),
+    originalPrice: envNumber(originalEnv, fallback.originalPrice),
   };
+}
 
-  // Debug logging (only in development)
+export function getPackagePricing(): PackagePricing {
+  const env = import.meta.env;
+
+  const single = readTier(
+    env.VITE_PACKAGE_SINGLE_PRICE,
+    env.VITE_PACKAGE_SINGLE_ORIGINAL_PRICE,
+    DEFAULTS.single,
+  );
+  const premium = readTier(
+    env.VITE_PACKAGE_PREMIUM_PRICE,
+    env.VITE_PACKAGE_PREMIUM_ORIGINAL_PRICE,
+    DEFAULTS.premium,
+  );
+  const consultation = readTier(
+    env.VITE_PACKAGE_CONSULTATION_PRICE,
+    env.VITE_PACKAGE_CONSULTATION_ORIGINAL_PRICE,
+    DEFAULTS.consultation,
+  );
+  const nc1 = readTier(
+    env.VITE_PACKAGE_NAMECHECK_1_PRICE,
+    env.VITE_PACKAGE_NAMECHECK_1_ORIGINAL_PRICE,
+    DEFAULTS.namecheck[1],
+  );
+  const nc2 = readTier(
+    env.VITE_PACKAGE_NAMECHECK_2_PRICE,
+    env.VITE_PACKAGE_NAMECHECK_2_ORIGINAL_PRICE,
+    DEFAULTS.namecheck[2],
+  );
+  const nc3 = readTier(
+    env.VITE_PACKAGE_NAMECHECK_3_PRICE,
+    env.VITE_PACKAGE_NAMECHECK_3_ORIGINAL_PRICE,
+    DEFAULTS.namecheck[3],
+  );
+
   if (import.meta.env.DEV) {
-    console.log("📦 Package Pricing Environment Variables:", {
-      namecheck: import.meta.env.VITE_PACKAGE_NAMECHECK_PRICE,
-      single: import.meta.env.VITE_PACKAGE_SINGLE_PRICE,
-    });
+    console.log("📦 Package Pricing:", { single, premium, namecheck: { 1: nc1, 2: nc2, 3: nc3 } });
   }
 
   return {
-    namecheck: {
-      price: getEnvNumber(
-        import.meta.env.VITE_PACKAGE_NAMECHECK_PRICE,
-        DEFAULT_PACKAGE_PRICING.namecheck.price,
-      ),
-      originalPrice: getEnvNumber(
-        import.meta.env.VITE_PACKAGE_NAMECHECK_ORIGINAL_PRICE,
-        DEFAULT_PACKAGE_PRICING.namecheck.originalPrice,
-      ),
-    },
-    single: {
-      price: DEFAULT_PACKAGE_PRICING.single.price,
-      originalPrice: DEFAULT_PACKAGE_PRICING.single.originalPrice,
-    },
-    premium: {
-      price: DEFAULT_PACKAGE_PRICING.premium.price,
-      originalPrice: DEFAULT_PACKAGE_PRICING.premium.originalPrice,
-    },
-    consultation: {
-      price: DEFAULT_PACKAGE_PRICING.consultation.price,
-      originalPrice: DEFAULT_PACKAGE_PRICING.consultation.originalPrice,
-    },
+    namecheck: nc1,
+    nameCheckTiers: { 1: nc1, 2: nc2, 3: nc3 },
+    single,
+    premium,
+    consultation,
   };
 }
 
-/**
- * Get price for a specific package type
- */
-export function getPackagePrice(packageType: "namecheck" | "single" | "premium" | "consultation"): number {
-  const pricing = getPackagePricing();
-  return pricing[packageType].price;
+export type PackageType =
+  | "single"
+  | "premium"
+  | "consultation"
+  | "namecheck"
+  | "namecheck-1"
+  | "namecheck-2"
+  | "namecheck-3";
+
+export function getPackagePrice(packageType: PackageType): number {
+  const p = getPackagePricing();
+  if (packageType === "namecheck" || packageType === "namecheck-1") return p.nameCheckTiers[1].price;
+  if (packageType === "namecheck-2") return p.nameCheckTiers[2].price;
+  if (packageType === "namecheck-3") return p.nameCheckTiers[3].price;
+  return p[packageType].price;
 }
 
-/**
- * Get original price for a specific package type
- */
-export function getPackageOriginalPrice(
-  packageType: "namecheck" | "single" | "premium" | "consultation",
-): number {
-  const pricing = getPackagePricing();
-  return pricing[packageType].originalPrice;
+export function getPackageOriginalPrice(packageType: PackageType): number {
+  const p = getPackagePricing();
+  if (packageType === "namecheck" || packageType === "namecheck-1") return p.nameCheckTiers[1].originalPrice;
+  if (packageType === "namecheck-2") return p.nameCheckTiers[2].originalPrice;
+  if (packageType === "namecheck-3") return p.nameCheckTiers[3].originalPrice;
+  return p[packageType].originalPrice;
 }
 
-/**
- * Format price as currency string (₹X,XXX)
- */
 export function formatPrice(price: number): string {
   return `₹\u2009${price.toLocaleString("en-IN")}`;
 }

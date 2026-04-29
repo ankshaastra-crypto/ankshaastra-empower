@@ -1,143 +1,93 @@
-import { Phone } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
 import logo from "@/assets/logo.png";
-import {
-  FaYoutube,
-  FaInstagram,
-  FaFacebookF,
-  FaLinkedinIn,
-  FaPinterestP,
-} from "react-icons/fa";
-import { FaXTwitter } from "react-icons/fa6";
 
+const Header = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const scrolledRef = useRef(false);
 
+  useEffect(() => {
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const scrolled = window.scrollY > 50;
+          if (scrolled !== scrolledRef.current) {
+            scrolledRef.current = scrolled;
+            setIsScrolled(scrolled);
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
-const Footer = () => {
+  const scrollToForm = () => {
+    const formSection = document.getElementById("order-form");
+    if (formSection) formSection.scrollIntoView({ behavior: "smooth" });
+    setIsMobileMenuOpen(false);
+  };
+
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById("pricing");
+    if (pricingSection) pricingSection.scrollIntoView({ behavior: "smooth" });
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <footer className="bg-primary py-12">
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          {/* Logo */}
-          <Link to="/" className="flex items-center justify-center gap-2 mb-6">
-            <img 
-                src={logo} 
-                alt="Ankshaastra Logo"
-                className="h-12 w-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
-              />
-          </Link>
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled ? "backdrop-blur-lg shadow-lg py-3" : "bg-transparent py-5"
+      }`}
+      style={isScrolled ? { background: 'rgba(44, 44, 44, 0.96)' } : {}}
+    >
+      <div className="container mx-auto flex items-center justify-between">
+        <Link to="/">
+          <img
+            src={logo}
+            alt="Ankshaastra Logo"
+            className="h-12 w-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
+          />
+        </Link>
 
-          {/* Social Media Icons */}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <a
-              href="https://www.youtube.com/@Ankshaastra"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="YouTube"
-              className="text-white/60 hover:text-red-500 transition-colors"
-            >
-              <FaYoutube className="w-5 h-5" />
-            </a>
-
-            <a
-              href="https://www.instagram.com/ankshaastra?igsh=MXJjdDFvNTJrdzZyYQ%3D%3D&utm_source=qr"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram"
-              className="text-white/60 hover:text-pink-500 transition-colors"
-            >
-              <FaInstagram className="w-5 h-5" />
-            </a>
-
-            <a
-              href="https://www.facebook.com/profile.php?id=61561549995939#"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Facebook"
-              className="text-white/60 hover:text-blue-500 transition-colors"
-            >
-              <FaFacebookF className="w-5 h-5" />
-            </a>
-
-            <a
-              href="https://www.linkedin.com/company/104817997/admin/dashboard/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="LinkedIn"
-              className="text-white/60 hover:text-blue-400 transition-colors"
-            >
-              <FaLinkedinIn className="w-5 h-5" />
-            </a>
-
-            <a
-              href="https://x.com/ankshaastra?s=11"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="X"
-              className="text-white/60 hover:text-white transition-colors"
-            >
-              <FaXTwitter className="w-5 h-5" />
-            </a>
-
-            <a
-              href="https://pin.it/7xB0bMR12"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Pinterest"
-              className="text-white/60 hover:text-red-400 transition-colors"
-            >
-              <FaPinterestP className="w-5 h-5" />
-            </a>
-          </div>
-
-          {/* Contact */}
-          <div className="flex items-center justify-center gap-2 text-accent mb-8">
-            <Phone className="w-5 h-5" />
-            <span className="text-lg font-medium">For Queries: 9667305577</span>
-          </div>
-
-          {/* Policy Links */}
-          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 mb-8">
-            <Link 
-              to="/privacy-policy"
-              className="text-white/70 hover:text-accent transition-colors text-sm"
-            >
-              Privacy Policy
-            </Link>
-            <Link 
-              to="/refund-policy"
-              className="text-white/70 hover:text-accent transition-colors text-sm"
-            >
-              Refund Policy
-            </Link>
-            <Link 
-              to="/shipping-policy"
-              className="text-white/70 hover:text-accent transition-colors text-sm"
-            >
-              Shipping Policy
-            </Link>
-            <Link 
-              to="/terms-of-service"
-              className="text-white/70 hover:text-accent transition-colors text-sm"
-            >
-              Terms of Service
-            </Link>
-          </div>
-
-          {/* Disclaimer */}
-          <p className="text-white/50 text-sm leading-relaxed max-w-2xl mx-auto mb-6">
-            This analysis is based on traditional numerology principles and is intended 
-            for guidance purposes only. Individual results may vary based on personal 
-            implementation and life circumstances.
-          </p>
-
-          {/* Copyright */}
-          <p className="text-white/40 text-sm">
-            © 2026 Ankshaastra. All Rights Reserved.
-          </p>
+        <div className="hidden md:flex items-center gap-3">
+          <Button
+            variant="hero-small"
+            size="default"
+            onClick={() => window.open("https://miraclebaby.ankshaastra.com", "_blank")}
+          >
+            C-Section Dates
+          </Button>
         </div>
+
+        <div className="md:hidden flex items-center gap-2">
+          <button
+            className="text-white p-2"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+
+        {isMobileMenuOpen && (
+          <div className="absolute top-full left-0 right-0 bg-primary/98 backdrop-blur-lg md:hidden py-4 px-6 border-t border-white/10 flex flex-col gap-3">
+            <Button variant="hero-small" size="default" onClick={scrollToPricing} className="w-full">
+              Get Name Check Report
+            </Button>
+            <Button variant="gold-outline" size="default" onClick={scrollToForm} className="w-full">
+              Get Baby Name Report
+            </Button>
+          </div>
+        )}
       </div>
-    </footer>
+    </header>
   );
 };
 
-export default Footer;
+export default Header;

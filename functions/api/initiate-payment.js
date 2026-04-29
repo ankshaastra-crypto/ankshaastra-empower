@@ -4,6 +4,7 @@
 import crypto from 'node:crypto';
 import { setEnv } from './_utils/db-unified.js';
 import { getD1, d1SaveOrderAndCustomer } from './_utils/d1-db.js';
+import { validatePackageAmount } from './_utils/pricing.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -85,6 +86,27 @@ export async function onRequest(context) {
       });
     }
 
+    // ── Server-side price validation ────────────────────────────────────────
+    // The amount the client sent MUST match the canonical price for the
+    // package, as configured via Cloudflare env vars (PACKAGE_*_PRICE).
+    // This prevents tampered clients from paying a lower amount.
+    const priceCheck = validatePackageAmount(env, packageType || 'single', amount);
+    if (!priceCheck.ok) {
+      console.warn(
+        `⚠️ Price validation failed for ${packageType}: client=${amount}, expected=${priceCheck.expected}`
+      );
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Price mismatch',
+        message: 'The package amount does not match server pricing. Please refresh and try again.',
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    // Use the server-side authoritative amount from here on
+    const verifiedAmount = priceCheck.amount;
+
     // Check Razorpay env vars
     const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
     const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
@@ -148,8 +170,8 @@ export async function onRequest(context) {
     const d1 = getD1(env);
     if (d1) {
       try {
-        await d1SaveOrderAndCustomer(d1, orderId, amount, packageType || 'single', customerData);
-        console.log(`✅ Order saved to D1: ${orderId}`);
+        await d1SaveOrderAndCustomer(d1, orderId, verifiedAmount, packageType || 'single', customerData);
+        console.log(`✅ Order saved to D1: ${orderId} (₹${verifiedAmount})`);
       } catch (dbError) {
         console.error('D1 save error:', dbError?.message);
         // Non-fatal: continue with Razorpay order creation
@@ -159,9 +181,8 @@ export async function onRequest(context) {
     }
 
     // ── Create Razorpay order ───────────────────────────────────────────────
-    const amountValue = typeof amount === 'string' ? Number(amount) : amount;
     const payload = {
-      amount: Math.round(amountValue * 100),
+      amount: Math.round(verifiedAmount * 100),
       currency: 'INR',
       receipt: orderId,
       payment_capture: 1
@@ -200,7 +221,7 @@ export async function onRequest(context) {
     // Update D1 with Razorpay order ID mapping
     if (d1 && result.id) {
       try {
-        await d1SaveOrderAndCustomer(d1, orderId, amount, packageType || 'single', {
+        await d1SaveOrderAndCustomer(d1, orderId, verifiedAmount, packageType || 'single', {
           ...customerData,
           razorpayOrderId: result.id,
         });

@@ -20,7 +20,7 @@ export async function onRequest(context) {
       if (typeof v === 'string') process.env[k] = v;
     }
   }
-  setEnv(env);
+  // setEnv handled by _adapter.js
 
   const diagnostics = {
     time: new Date().toISOString(),

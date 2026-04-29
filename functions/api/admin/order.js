@@ -1,7 +1,7 @@
 // functions/api/admin/order.js — Cloudflare-native admin order queries
 // Uses D1 for order data retrieval
 
-import { setEnv } from '../_utils/db-unified.js';
+// import { setEnv } from '../_utils/db-unified.js'; // Handled by adapter
 import { getD1, d1GetOrders } from '../_utils/d1-db.js';
 
 export async function onRequest(context) {

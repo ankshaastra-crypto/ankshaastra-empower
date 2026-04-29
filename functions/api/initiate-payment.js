@@ -2,7 +2,7 @@
 // Stores customer form data in D1, creates Razorpay order
 
 import crypto from 'node:crypto';
-import { setEnv } from './_utils/db-unified.js';
+// import { setEnv } from './_utils/db-unified.js'; // Handled by adapter
 import { getD1, d1SaveOrderAndCustomer } from './_utils/d1-db.js';
 import { validatePackageAmount } from './_utils/pricing.js';
 

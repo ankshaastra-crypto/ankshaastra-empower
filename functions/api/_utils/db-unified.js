@@ -1,1 +1,218 @@
-Ly8gZnVuY3Rpb25zL2FwaS9fdXRpbHMvZGItdW5pZmllZC5qcyDigJQgQXV0by1zZWxlY3RzIEQxIChDbG91ZGZsYXJlKSBvciBwZyAoZmFsbGJhY2spCi8vIFRoaXMgaXMgdGhlIE9OTFkgZGIgaW1wb3J0IHVzZWQgYnkgYWxsIGZ1bmN0aW9uIGhhbmRsZXJzLgovLyBPbiBDbG91ZGZsYXJlIFBhZ2VzIHdpdGggRDEgYm91bmQg4oaSIHVzZXMgRDEgKFNRTGl0ZSwgSFRUUC1iYXNlZCwgbm8gY29ubmVjdGlvbiBpc3N1ZXMpCi8vIE9uIFZlcmNlbC9OZXRsaWZ5IG9yIHdpdGhvdXQgRDEg4oaSIGZhbGxzIGJhY2sgdG8gb3JpZ2luYWwgcGcgUG9vbAoKaW1wb3J0IHsKICBnZXREMSwKICBlbnN1cmVEMVNjaGVtYSwKICBkMVNhdmVPcmRlckFuZEN1c3RvbWVyLAogIGQxU2F2ZVBheW1lbnQsCiAgZDFHZXRPcmRlckZ1bGwsCiAgZDFHZXRDdXN0b21lck1ldGFkYXRhLAogIGQxR2V0T3JkZXJzLAogIGQxSXNFbWFpbFNlbnQsCiAgZDFSZWNvcmRFbWFpbERlbGl2ZXJ5LAogIGQxR2V0TmV4dEludm9pY2VOdW1iZXIsCiAgZDFTYXZlSW52b2ljZVJlY29yZCwKICBkMUdldEV4aXN0aW5nSW52b2ljZU51bWJlciwKICBkMVF1ZXJ5LAogIGQxUnVuLAp9IGZyb20gJy4vZDEtZGIuanMnOwoKLy8gT3JpZ2luYWwgcGctYmFzZWQgZXhwb3J0cyAoZmFsbGJhY2spCmltcG9ydCB7IGdldFBvb2wgYXMgZ2V0UGdQb29sLCBEQl9TQ0hFTUEgYXMgUEdfU0NIRU1BIH0gZnJvbSAnLi9kYi5qcyc7CgpsZXQgZW52Q2FjaGUgPSBudWxsOwoKLy8gQ2FsbGVkIG9uY2UgZnJvbSB0aGUgYWRhcHRlciB0byBpbmplY3QgZW52CmV4cG9ydCBmdW5jdGlvbiBzZXRFbnYoZW52KSB7CiAgZW52Q2FjaGUgPSBlbnY7Cn0KCi8vIERldGVjdCBpZiB3ZSdyZSBydW5uaW5nIGluIENsb3VkZmxhcmUgd2l0aCBEMSBib3VuZApmdW5jdGlvbiBoYXNEMSgpIHsKICByZXR1cm4gISFlbnZDYWNoZT8uREI7Cn0KCmZ1bmN0aW9uIGdldEQxSW5zdGFuY2UoKSB7CiAgcmV0dXJuIGVudkNhY2hlPy5EQiB8fCBudWxsOwp9CgovLyDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZDilZAKLy8gVU5JRklFRCBFWFBPUlRTIChzYW1lIEFQSSBhcyBvcmlnaW5hbCBkYi5qcywgYXV0by1zZWxlY3RzIGJhY2tlbmQpCi8vIOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkOKVkAoKZXhwb3J0IGNvbnN0IERCX1NDSEVNQSA9ICdwdWJsaWMnOyAvLyBEMSBkb2Vzbid0IHVzZSBzY2hlbWFzCgovLyDilIDilIDilIAgcXVlcnkg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmV4cG9ydCBhc3luYyBmdW5jdGlvbiBxdWVyeShzcWwsIHBhcmFtcykgewogIGNvbnN0IGQxID0gZ2V0RDFJbnN0YW5jZSgpOwogIGlmIChkMSkgcmV0dXJuIGQxUXVlcnkoZDEsIHNxbCwgcGFyYW1zKTsKICBjb25zdCBwZyA9IGdldFBnUG9vbCgpOwogIGlmICghcGcpIHJldHVybiB7IHJvd3M6IFtdLCByb3dDb3VudDogMCB9OwogIHJldHVybiBwZy5xdWVyeShzcWwsIHBhcmFtcyk7Cn0KCi8vIOKUgOKUgOKUgCBydW4g4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmV4cG9ydCBhc3luYyBmdW5jdGlvbiBydW4oc3FsLCBwYXJhbXMpIHsKICBjb25zdCBkMSA9IGdldEQxSW5zdGFuY2UoKTsKICBpZiAoZDEpIHJldHVybiBkMVJ1bihkMSwgc3FsLCBwYXJhbXMpOwogIGNvbnN0IHBnID0gZ2V0UGdQb29sKCk7CiAgaWYgKCFwZykgcmV0dXJuIHsgcm93Q291bnQ6IDAgfTsKICByZXR1cm4gcGcucXVlcnkoc3FsLCBwYXJhbXMpOwp9CgovLyDilIDilIDilIAgc2F2ZU9yZGVyQW5kQ3VzdG9tZXIg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmV4cG9ydCBhc3luYyBmdW5jdGlvbiBzYXZlT3JkZXJBbmRDdXN0b21lcihvcmRlcklkLCBhbW91bnQsIHBhY2thZ2VUeXBlLCBjdXN0b21lckRhdGEpIHsKICBjb25zdCBkMSA9IGdldEQxSW5zdGFuY2UoKTsKICBpZiAoZDEpIHJldHVybiBkMVNhdmVPcmRlckFuZEN1c3RvbWVyKGQxLCBvcmRlcklkLCBhbW91bnQsIHBhY2thZ2VUeXBlLCBjdXN0b21lckRhdGEpOwoKICAvLyBGYWxsYmFjayB0byBwZwogIGNvbnN0IHsgc2F2ZU9yZGVyQW5kQ3VzdG9tZXI6IHBnU2F2ZSB9ID0gYXdhaXQgaW1wb3J0KCcuL2RiLmpzJyk7CiAgcmV0dXJuIHBnU2F2ZShvcmRlcklkLCBhbW91bnQsIHBhY2thZ2VUeXBlLCBjdXN0b21lckRhdGEpOwp9CgovLyDilIDilIDilIAgc2F2ZVBheW1lbnQg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmV4cG9ydCBhc3luYyBmdW5jdGlvbiBzYXZlUGF5bWVudChvcmRlcklkLCB0cmFuc2FjdGlvbklkLCBhbW91bnRQYWlzZSwgc3RhdHVzKSB7CiAgY29uc3QgZDEgPSBnZXREMUluc3RhbmNlKCk7CiAgaWYgKGQxKSByZXR1cm4gZDFTYXZlUGF5bWVudChkMSwgb3JkZXJJZCwgdHJhbnNhY3Rpb25JZCwgYW1vdW50UGFpc2UsIHN0YXR1cyk7CgogIGNvbnN0IHsgc2F2ZVBheW1lbnQ6IHBnU2F2ZSB9ID0gYXdhaXQgaW1wb3J0KCcuL2RiLmpzJyk7CiAgcmV0dXJuIHBnU2F2ZShvcmRlcklkLCB0cmFuc2FjdGlvbklkLCBhbW91bnRQYWlzZSwgc3RhdHVzKTsKfQoKLy8g4pSA4pSA4pSAIGdldE9yZGVyRnVsbCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIGdldE9yZGVyRnVsbChvcmRlcklkKSB7CiAgY29uc3QgZDEgPSBnZXREMUluc3RhbmNlKCk7CiAgaWYgKGQxKSByZXR1cm4gZDFHZXRPcmRlckZ1bGwoZDEsIG9yZGVySWQpOwoKICBjb25zdCB7IGdldE9yZGVyRnVsbDogcGdHZXQgfSA9IGF3YWl0IGltcG9ydCgnLi9kYi5qcycpOwogIHJldHVybiBwZ0dldChvcmRlcklkKTsKfQoKLy8g4pSA4pSA4pSAIGdldEN1c3RvbWVyTWV0YWRhdGEg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmV4cG9ydCBhc3luYyBmdW5jdGlvbiBnZXRDdXN0b21lck1ldGFkYXRhKG9yZGVySWQsIHJhem9ycGF5T3JkZXJJZCkgewogIGNvbnN0IGQxID0gZ2V0RDFJbnN0YW5jZSgpOwogIGlmIChkMSkgcmV0dXJuIGQxR2V0Q3VzdG9tZXJNZXRhZGF0YShkMSwgb3JkZXJJZCwgcmF6b3JwYXlPcmRlcklkKTsKCiAgY29uc3QgeyBnZXRDdXN0b21lck1ldGFkYXRhOiBwZ0dldCB9ID0gYXdhaXQgaW1wb3J0KCcuL2RiLmpzJyk7CiAgcmV0dXJuIHBnR2V0KG9yZGVySWQsIHJhem9ycGF5T3JkZXJJZCk7Cn0KCi8vIOKUgOKUgOKUgCBnZXRPcmRlcnMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmV4cG9ydCBhc3luYyBmdW5jdGlvbiBnZXRPcmRlcnMoKSB7CiAgY29uc3QgZDEgPSBnZXREMUluc3RhbmNlKCk7CiAgaWYgKGQxKSByZXR1cm4gZDFHZXRPcmRlcnMoZDEpOwoKICBjb25zdCB7IGdldE9yZGVyczogcGdHZXQgfSA9IGF3YWl0IGltcG9ydCgnLi9kYi5qcycpOwogIHJldHVybiBwZ0dldCgpOwp9CgovLyDilIDilIDilIAgaXNFbWFpbFNlbnQg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmV4cG9ydCBhc3luYyBmdW5jdGlvbiBpc0VtYWlsU2VudChlbWFpbCwgb3JkZXJJZCkgewogIGNvbnN0IGQxID0gZ2V0RDFJbnN0YW5jZSgpOwogIGlmIChkMSkgcmV0dXJuIGQxSXNFbWFpbFNlbnQoZDEsIGVtYWlsLCBvcmRlcklkKTsKCiAgY29uc3QgeyBpc0VtYWlsU2VudDogcGdDaGVjayB9ID0gYXdhaXQgaW1wb3J0KCcuL2RiLmpzJyk7CiAgcmV0dXJuIHBnQ2hlY2soZW1haWwsIG9yZGVySWQpOwp9CgovLyDilIDilIDilIAgcmVjb3JkRW1haWxEZWxpdmVyeSDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIHJlY29yZEVtYWlsRGVsaXZlcnkoZW1haWwsIG9yZGVySWQsIHN0YXR1cykgewogIGNvbnN0IGQxID0gZ2V0RDFJbnN0YW5jZSgpOwogIGlmIChkMSkgcmV0dXJuIGQxUmVjb3JkRW1haWxEZWxpdmVyeShkMSwgZW1haWwsIG9yZGVySWQsIHN0YXR1cyk7CgogIGNvbnN0IHsgcmVjb3JkRW1haWxEZWxpdmVyeTogcGdSZWNvcmQgfSA9IGF3YWl0IGltcG9ydCgnLi9kYi5qcycpOwogIHJldHVybiBwZ1JlY29yZChlbWFpbCwgb3JkZXJJZCwgc3RhdHVzKTsKfQoKLy8g4pSA4pSA4pSAIGdldE5leHRJbnZvaWNlTnVtYmVyIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgYXN5bmMgZnVuY3Rpb24gZ2V0TmV4dEludm9pY2VOdW1iZXIoZmluYW5jaWFsWWVhcikgewogIGNvbnN0IGQxID0gZ2V0RDFJbnN0YW5jZSgpOwogIGlmIChkMSkgcmV0dXJuIGQxR2V0TmV4dEludm9pY2VOdW1iZXIoZDEsIGZpbmFuY2lhbFllYXIpOwoKICBjb25zdCB7IGdldE5leHRJbnZvaWNlTnVtYmVyOiBwZ0dldCB9ID0gYXdhaXQgaW1wb3J0KCcuL2RiLmpzJyk7CiAgcmV0dXJuIHBnR2V0KGZpbmFuY2lhbFllYXIpOwp9CgovLyDilIDilIDilIAgc2F2ZUludm9pY2VSZWNvcmQg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmV4cG9ydCBhc3luYyBmdW5jdGlvbiBzYXZlSW52b2ljZVJlY29yZChkYXRhKSB7CiAgY29uc3QgZDEgPSBnZXREMUluc3RhbmNlKCk7CiAgaWYgKGQxKSByZXR1cm4gZDFTYXZlSW52b2ljZVJlY29yZChkMSwgZGF0YSk7CgogIGNvbnN0IHsgc2F2ZUludm9pY2VSZWNvcmQ6IHBnU2F2ZSB9ID0gYXdhaXQgaW1wb3J0KCcuL2RiLmpzJyk7CiAgcmV0dXJuIHBnU2F2ZShkYXRhKTsKfQoKLy8g4pSA4pSA4pSAIGdldEV4aXN0aW5nSW52b2ljZU51bWJlciDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZXhwb3J0IGFzeW5jIGZ1bmN0aW9uIGdldEV4aXN0aW5nSW52b2ljZU51bWJlcihvcmRlcklkKSB7CiAgY29uc3QgZDEgPSBnZXREMUluc3RhbmNlKCk7CiAgaWYgKGQxKSByZXR1cm4gZDFHZXRFeGlzdGluZ0ludm9pY2VOdW1iZXIoZDEsIG9yZGVySWQpOwoKICAvLyBGYWxsYmFjazogcXVlcnkgaW52b2ljZXMgdGFibGUgZGlyZWN0bHkgdmlhIHBnCiAgdHJ5IHsKICAgIGNvbnN0IHBnID0gZ2V0UGdQb29sKCk7CiAgICBpZiAoIXBnKSByZXR1cm4gbnVsbDsKICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IHBnLnF1ZXJ5KAogICAgICBgU0VMRUNUIGludm9pY2VfbnVtYmVyIEZST00gaW52b2ljZXMgV0hFUkUgb3JkZXJfaWQgPSAkMSBMSU1JVCAxYCwKICAgICAgW29yZGVySWRdCiAgICApOwogICAgcmV0dXJuIHJlc3VsdC5yb3dzWzBdPy5pbnZvaWNlX251bWJlciB8fCBudWxsOwogIH0gY2F0Y2ggewogICAgcmV0dXJuIG51bGw7CiAgfQp9CgovLyDilIDilIDilIAgZ2V0UG9vbCDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKLy8gUmV0dXJucyBudWxsIGZvciBEMSAobm8gcG9vbCksIG9yIHBnIFBvb2wgaWYgYXZhaWxhYmxlCmV4cG9ydCBmdW5jdGlvbiBnZXRQb29sKCkgewogIGlmIChoYXNEMSgpKSByZXR1cm4gbnVsbDsKICByZXR1cm4gZ2V0UGdQb29sKCk7Cn0KCi8vIOKUgOKUgOKUgCBlbnN1cmVTY2hlbWFPbmNlIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApleHBvcnQgYXN5bmMgZnVuY3Rpb24gZW5zdXJlU2NoZW1hT25jZShmb3JjZSA9IGZhbHNlKSB7CiAgY29uc3QgZDEgPSBnZXREMUluc3RhbmNlKCk7CiAgaWYgKGQxKSB7CiAgICBhd2FpdCBlbnN1cmVEMVNjaGVtYShkMSk7CiAgICByZXR1cm47CiAgfQogIGNvbnN0IHsgZW5zdXJlU2NoZW1hT25jZTogcGdFbnN1cmUgfSA9IGF3YWl0IGltcG9ydCgnLi9kYi5qcycpOwogIHJldHVybiBwZ0Vuc3VyZShmb3JjZSk7Cn0K
+// functions/api/_utils/db-unified.js — Auto-selects D1 (Cloudflare) or pg (fallback)
+// This is the ONLY db import used by all function handlers.
+// On Cloudflare Pages with D1 bound — Uses D1 (SQLite, HTTP-based, no connection issues)
+// On Vercel/Netlify or without D1 — falls back to original pg Pool
+
+import {
+  getD1,
+  ensureD1Schema,
+  d1SaveOrderAndCustomer,
+  d1SavePayment,
+  d1GetOrderFull,
+  d1GetCustomerMetadata,
+  d1GetOrders,
+  d1IsEmailSent,
+  d1RecordEmailDelivery,
+  d1GetNextInvoiceNumber,
+  d1SaveInvoiceRecord,
+  d1GetExistingInvoiceNumber,
+  d1Query,
+  d1Run,
+} from './d1-db.js';
+
+// Original pg-based exports (fallback)
+import { getPool as getPgPool, DB_SCHEMA as PG_SCHEMA } from './db.js';
+
+let envCache = null;
+
+// Called once from the adapter to inject env
+export function setEnv(env) {
+  envCache = env;
+}
+
+// Detect if we're running in Cloudflare with D1 bound
+function hasD1() {
+  return !envCache?.DB;
+}
+
+function getD1Instance() {
+  return envCache?.DB || null;
+}
+
+/*
+UNIFIED EXPORTS (same API as original db.js, auto-selects backend)
+*/
+
+// D1 doesn't use schemas
+export const DB_SCHEMA = 'public';
+
+/*
+Query — auto-selects D1 (Cloudflare) or pg (fallback)
+*/
+export async function query(sql, params) {
+  const d1 = getD1Instance();
+  if (d1) return d1Query(d1, sql, params);
+  
+  const pg = getPgPool();
+  if (!pg) return { rows: [], rowCount: 0 };
+  
+  return pg.query(sql, params);
+}
+
+/*
+Run — auto-selects D1 or pg
+*/
+export async function run(sql, params) {
+  const d1 = getD1Instance();
+  if (d1) return d1Run(d1, sql, params);
+  
+  const pg = getPgPool();
+  if (!pg) return { rowCount: 0 };
+  
+  return pg.query(sql, params);
+}
+
+/*
+saveOrderAndCustomer — auto-selects D1 or pg
+*/
+export async function saveOrderAndCustomer(orderId, amount, packageType, customerData) {
+  const d1 = getD1Instance();
+  if (d1) return d1SaveOrderAndCustomer(d1, orderId, amount, packageType, customerData);
+
+  // Fallback to pg
+  const { saveOrderAndCustomer: pgSave } = await import('./db.js');
+  return pgSave(orderId, amount, packageType, customerData);
+}
+
+/*
+savePayment — auto-selects D1 or pg
+*/
+export async function savePayment(orderId, transactionId, amountParsed, status) {
+  const d1 = getD1Instance();
+  if (d1) return d1SavePayment(d1, orderId, transactionId, amountParsed, status);
+
+  const { savePayment: pgSave } = await import('./db.js');
+  return pgSave(orderId, transactionId, amountParsed, status);
+}
+
+/*
+getOrderFull — auto-selects D1 or pg
+*/
+export async function getOrderFull(orderId) {
+  const d1 = getD1Instance();
+  if (d1) return d1GetOrderFull(d1, orderId);
+
+  const { getOrderFull: pgGet } = await import('./db.js');
+  return pgGet(orderId);
+}
+
+/*
+getCustomerMetadata — auto-selects D1 or pg  
+*/
+export async function getCustomerMetadata(orderId, razorpayOrderId) {
+  const d1 = getD1Instance();
+  if (d1) return d1GetCustomerMetadata(d1, orderId, razorpayOrderId);
+
+  const { getCustomerMetadata: pgGet } = await import('./db.js');
+  return pgGet(orderId, razorpayOrderId);
+}
+
+/*
+getOrders — auto-selects D1 or pg
+*/
+export async function getOrders() {
+  const d1 = getD1Instance();
+  if (d1) return d1GetOrders(d1);
+
+  const { getOrders: pgGet } = await import('./db.js');
+  return pgGet();
+}
+
+/*
+isEmailSent — auto-selects D1 or pg
+*/
+export async function isEmailSent(email, orderId) {
+  const d1 = getD1Instance();
+  if (d1) return d1IsEmailSent(d1, email, orderId);
+
+  const { isEmailSent: pgCheck } = await import('./db.js');
+  return pgCheck(email, orderId);
+}
+
+/*
+recordEmailDelivery — auto-selects D1 or pg
+*/
+export async function recordEmailDelivery(email, orderId, status) {
+  const d1 = getD1Instance();
+  if (d1) return d1RecordEmailDelivery(d1, email, orderId, status);
+
+  const { recordEmailDelivery: pgRecord } = await import('./db.js');
+  return pgRecord(email, orderId, status);
+}
+
+/*
+getNextInvoiceNumber — auto-selects D1 or pg
+*/
+export async function getNextInvoiceNumber(financialYear) {
+  const d1 = getD1Instance();
+  if (d1) return d1GetNextInvoiceNumber(d1, financialYear);
+
+  const { getNextInvoiceNumber: pgGet } = await import('./db.js');
+  return pgGet(financialYear);
+}
+
+/*
+saveInvoiceRecord — auto-selects D1 or pg
+*/
+export async function saveInvoiceRecord(data) {
+  const d1 = getD1Instance();
+  if (d1) return d1SaveInvoiceRecord(d1, data);
+
+  const { saveInvoiceRecord: pgSave } = await import('./db.js');
+  return pgSave(data);
+}
+
+/*
+getExistingInvoiceNumber — auto-selects D1 or pg  
+*/
+export async function getExistingInvoiceNumber(orderId) {
+  const d1 = getD1Instance();
+  if (d1) return d1GetExistingInvoiceNumber(d1, orderId);
+
+  // Fallback: query invoices table directly via pg
+  try {
+    const pg = getPgPool();
+    if (!pg) return null;
+    
+    const result = await pg.query(
+      `SELECT invoice_number FROM invoices WHERE order_id = $1 LIMIT 1`,
+      [orderId]
+    );
+    return result.rows[0]?.invoice_number || null;
+  } catch {
+    return null;
+  }
+}
+
+/*
+getPool — Returns null for D1 (no pool), or pg Pool if available
+*/
+export function getPool() {
+  if (hasD1()) return null;
+  return getPgPool();
+}
+
+/*
+ensureSchemaOnce — auto-selects D1 or pg
+*/
+export async function ensureSchemaOnce(force = false) {
+  const d1 = getD1Instance();
+  if (d1) {
+    await ensureD1Schema(d1);
+    return;
+  }
+  
+  const { ensureSchemaOnce: pgEnsure } = await import('./db.js');
+  return pgEnsure(force);
+}
+

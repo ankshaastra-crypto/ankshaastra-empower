@@ -1,7 +1,7 @@
 // functions/api/health.js — Cloudflare-native diagnostic endpoint
 // Tests D1 database connectivity and module loads.
 
-import { setEnv } from './_utils/db-unified.js';
+// import { setEnv } from './_utils/db-unified.js'; // Handled by adapter
 import { getD1, d1Query } from './_utils/d1-db.js';
 import * as suppressDeprecation from './_utils/suppress-deprecation.js';
 import * as encryptionModule from './_utils/encryption.js';

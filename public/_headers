@@ -1,32 +1,29 @@
 /*
-  Content-Type "text/html"
-  
+/* 
+  Content-Type: text/html
+
 *.js
-  Content-Type "application/javascript"
-  
-*.ts
-  Content-Type "application/javascript"
-  
+  Content-Type: application/javascript
+
 *.css
-  Content-Type "text/css"
-  
+  Content-Type: text/css; charset=utf-8
+
 *.woff
-  Content-Type "font/woff"
-  
-*.woff2
-  Content-Type "font/woff2"
-  
+  Content-Type: font/woff
+
+*.woff2  
+  Content-Type: font/woff2
+
 *.png
-  Content-Type "image/png"
-  
-*.jpg
-  Content-Type "image/jpeg"
-  
-*.jpeg
-  Content-Type "image/jpeg"
-  
+  Content-Type: image/png
+
+*.jpg *.jpeg
+  Content-Type: image/jpeg
+
 *.svg
-  Content-Type "image/svg+xml"
-  
+  Content-Type: image/svg+xml
+
 *.ico
-  Content-Type "image/x-icon"
+  Content-Type: image/x-icon
+*/
+

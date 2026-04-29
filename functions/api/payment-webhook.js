@@ -3,7 +3,7 @@
 // Sends confirmation email with GST invoice PDF to customer + admin
 
 import crypto from 'node:crypto';
-import { setEnv } from './_utils/db-unified.js';
+// import { setEnv } from './_utils/db-unified.js'; // Handled by adapter
 import {
   getD1, d1SavePayment, d1GetCustomerMetadata, d1GetOrderFull,
   d1GetNextInvoiceNumber, d1SaveInvoiceRecord, d1GetExistingInvoiceNumber,

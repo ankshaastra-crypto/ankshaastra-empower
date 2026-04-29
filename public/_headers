@@ -1,29 +1,32 @@
 /*
-/* 
   Content-Type: text/html
 
-*.js
+/*.js
   Content-Type: application/javascript
 
-*.css
+/*.css
   Content-Type: text/css; charset=utf-8
 
-*.woff
+/*.woff
   Content-Type: font/woff
 
-*.woff2  
+/*.woff2
   Content-Type: font/woff2
 
-*.png
+/*.png
   Content-Type: image/png
 
-*.jpg *.jpeg
+/*.jpg
   Content-Type: image/jpeg
 
-*.svg
+/*.jpeg
+  Content-Type: image/jpeg
+
+/*.svg
   Content-Type: image/svg+xml
 
-*.ico
+/*.ico
   Content-Type: image/x-icon
-*/
 
+/*
+Cache-Control: no-cache

@@ -33,10 +33,16 @@ name = "ankshaastra-empower"
 binding = "DB"
 database_name = "ankshaastra-db"
 database_id = "d801cb24-4f5e-439a-9615-d4bf89545cce"
-
+[vars]
+# ... existing vars
 PACKAGE_SINGLE_PRICE = "2447"
 PACKAGE_PREMIUM_PRICE = "8927"
 PACKAGE_NAMECHECK_1_PRICE = "293"
-PACKAGE_NAMECHECK_2_PRICE = "528"
+PACKAGE_NAMECHECK_2_PRICE = "528" 
 PACKAGE_NAMECHECK_3_PRICE = "747"
 PACKAGE_CONSULTATION_PRICE = "1"
+
+# Frontend (VITE_ bakes at build time)
+VITE_PACKAGE_SINGLE_PRICE = "2447"
+VITE_PACKAGE_PREMIUM_PRICE = "8927"
+# ... all VITE_ vars

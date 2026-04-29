@@ -29,7 +29,4 @@ WHATSAPP_ADMIN_NUMBER = "919667305577"
 
 name = "ankshaastra-empower"
 
-[[d1_databases]]
-binding = "DB"
-database_name = "ankshaastra-db"
-database_id = "d801cb24-4f5e-439a-9615-d4bf89545cce"
+

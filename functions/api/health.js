@@ -58,7 +58,7 @@ export async function onRequest(context) {
 
   for (const mod of modules) {
     try {
-      const imported = await import(mod.path);
+      const imported = await import(new URL(mod.path, import.meta.url));
       const available = {};
       if (mod.exports) {
         for (const exp of mod.exports) {
@@ -110,7 +110,7 @@ export async function onRequest(context) {
   if (!diagnostics.dbConnected && process.env.DATABASE_URL) {
     diagnostics.dbType = 'pg';
     try {
-      const { getPool } = await import('./_utils/db.js');
+      const { getPool } = await import(new URL('./_utils/db.js', import.meta.url));
       const pool = getPool();
       if (pool) {
         const result = await pool.query('SELECT NOW() as now');

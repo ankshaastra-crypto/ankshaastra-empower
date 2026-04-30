@@ -285,7 +285,7 @@ export async function onRequest(context) {
     if (finalCustomerEmail && status === 'SUCCESS') {
       console.log(`📧 Sending emails for order ${orderId}`);
       try {
-        emailResult = await sendPaymentEmail({
+emailResult = await sendUnifiedEmail({
           customerEmail: finalCustomerEmail,
           orderId,
           customerName: finalCustomerName,

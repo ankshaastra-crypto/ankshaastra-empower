@@ -11,7 +11,6 @@ export const onRequest = async (context) => {
     const orderId = url.searchParams.get('orderId');
     const razorpayOrderId = url.searchParams.get('razorpay_order_id');
     const razorpayPaymentId = url.searchParams.get('razorpay_payment_id');
-    const razorpaySignature = url.searchParams.get('razorpay_signature');
     
     // Try various parameter names that might contain the order ID
     const finalOrderId = orderId || 
@@ -32,11 +31,14 @@ export const onRequest = async (context) => {
       });
     }
     
-    // Get D1 database
-    const d1 = getD1(env);
+    // Get customer details from URL params
+    const customerName = url.searchParams.get('name') || 'Customer';
+    const customerEmail = url.searchParams.get('email') || '';
+    const customerMobile = url.searchParams.get('mobile') || '';
+    const packageType = url.searchParams.get('package') || 'single';
+    const amount = parseFloat(url.searchParams.get('amount') || '0');
     
     // If razorpay_payment_id is present, payment is confirmed successful
-    // Return success immediately, no need for DB verification
     const razorpayConfirmedSuccess = !!razorpayPaymentId;
     
     if (razorpayConfirmedSuccess) {
@@ -46,41 +48,49 @@ export const onRequest = async (context) => {
         razorpayPaymentId
       });
       
-      // Try to get customer details from URL params if D1 is not available
-      const customerName = url.searchParams.get('name') || 'Customer';
-      const customerEmail = url.searchParams.get('email') || '';
-      const customerMobile = url.searchParams.get('mobile') || '';
-      const packageType = url.searchParams.get('package') || 'single';
+      // Get D1 database
+      const d1 = getD1(env);
       
-      // If D1 is available, try to record the payment
       if (d1) {
         try {
-          // First check if order exists
+          // First check if order exists in orders table
           const orderCheck = await d1Query(d1, `
-            SELECT order_id, amount, package_type, status FROM orders WHERE order_id = ?1
+            SELECT order_id, amount FROM orders WHERE order_id = ?1
           `, [finalOrderId]);
           
-          const orderAmount = orderCheck.rows[0]?.amount || 0;
+          if (orderCheck.rows.length === 0) {
+            // Order doesn't exist - create it with SUCCESS status
+            // Parse amount from URL or use default
+            const orderAmount = amount || 0;
+            
+            await d1Run(d1, `
+              INSERT INTO orders (order_id, amount, package_type, razorpay_order_id, status)
+              VALUES (?1, ?2, ?3, ?4, 'SUCCESS')
+            `, [finalOrderId, orderAmount, packageType, razorpayOrderId]);
+            
+            console.log('Created order in DB:', finalOrderId);
+          } else {
+            // Order exists - just update status
+            await d1Run(d1, `
+              UPDATE orders SET status = 'SUCCESS' WHERE order_id = ?1
+            `, [finalOrderId]);
+          }
           
-          // Save payment record
+          // Now insert payment record
           await d1Run(d1, `
             INSERT INTO payment (order_id, transaction_id, amount_paise, status)
             VALUES (?1, ?2, ?3, 'SUCCESS')
-          `, [finalOrderId, razorpayPaymentId, Math.round(orderAmount * 100)]);
-          
-          // Update order status
-          await d1Run(d1, `
-            UPDATE orders SET status = 'SUCCESS' WHERE order_id = ?1
-          `, [finalOrderId]);
+          `, [finalOrderId, razorpayPaymentId, Math.round((amount || 0) * 100)]);
           
           console.log('Payment recorded in D1:', finalOrderId, razorpayPaymentId);
+          
         } catch (dbError) {
-          // Don't fail the request if DB recording fails
+          // Log error but don't fail the request since payment is confirmed
           console.error('DB recording error:', dbError?.message);
         }
       }
       
-      // Return success response with details from URL params
+      // Return success response
       return new Response(JSON.stringify({
         success: true,
         status: 'SUCCESS',
@@ -90,14 +100,15 @@ export const onRequest = async (context) => {
         customerEmail,
         customerMobile,
         packageType,
-        razorpayOrderId
+        razorpayOrderId,
+        amount: amount || 0
       }), {
         headers: { 'Content-Type': 'application/json' }
       });
     }
     
-    // No razorpay_payment_id - need to check DB for payment status
-    // This handles the case where user directly visits without payment
+    // No razorpay_payment_id - need to check DB
+    const d1 = getD1(env);
     
     if (!d1) {
       return new Response(JSON.stringify({
@@ -134,7 +145,7 @@ export const onRequest = async (context) => {
       
       const order = orderResult.rows[0];
       
-      // Check payment table for payment status
+      // Check payment table
       const paymentResult = await d1Query(d1, `
         SELECT transaction_id, amount_paise, status, created_at
         FROM payment

@@ -1,5 +1,7 @@
-import { getD1, ensureD1Schema, d1Query, d1Run } from './_utils/d1-db.js';
-import { getCustomerMetadata } from './_utils/db-unified.js';
+// functions/api/payment-status.js — Payment verification endpoint
+// Returns SUCCESS if Razorpay confirms payment via redirect parameters
+
+import { getD1, d1Query, d1Run } from './_utils/d1-db.js';
 
 export const onRequest = async (context) => {
   const { request, env } = context;
@@ -33,8 +35,8 @@ export const onRequest = async (context) => {
     // Get D1 database
     const d1 = getD1(env);
     
-    // If we have razorpay_payment_id, payment was definitely successful at Razorpay side
-    // Even if webhook hasn't been processed yet, we can consider it success
+    // If razorpay_payment_id is present, payment is confirmed successful
+    // Return success immediately, no need for DB verification
     const razorpayConfirmedSuccess = !!razorpayPaymentId;
     
     if (razorpayConfirmedSuccess) {
@@ -43,44 +45,83 @@ export const onRequest = async (context) => {
         razorpayOrderId,
         razorpayPaymentId
       });
+      
+      // Try to get customer details from URL params if D1 is not available
+      const customerName = url.searchParams.get('name') || 'Customer';
+      const customerEmail = url.searchParams.get('email') || '';
+      const customerMobile = url.searchParams.get('mobile') || '';
+      const packageType = url.searchParams.get('package') || 'single';
+      
+      // If D1 is available, try to record the payment
+      if (d1) {
+        try {
+          // First check if order exists
+          const orderCheck = await d1Query(d1, `
+            SELECT order_id, amount, package_type, status FROM orders WHERE order_id = ?1
+          `, [finalOrderId]);
+          
+          const orderAmount = orderCheck.rows[0]?.amount || 0;
+          
+          // Save payment record
+          await d1Run(d1, `
+            INSERT INTO payment (order_id, transaction_id, amount_paise, status)
+            VALUES (?1, ?2, ?3, 'SUCCESS')
+          `, [finalOrderId, razorpayPaymentId, Math.round(orderAmount * 100)]);
+          
+          // Update order status
+          await d1Run(d1, `
+            UPDATE orders SET status = 'SUCCESS' WHERE order_id = ?1
+          `, [finalOrderId]);
+          
+          console.log('Payment recorded in D1:', finalOrderId, razorpayPaymentId);
+        } catch (dbError) {
+          // Don't fail the request if DB recording fails
+          console.error('DB recording error:', dbError?.message);
+        }
+      }
+      
+      // Return success response with details from URL params
+      return new Response(JSON.stringify({
+        success: true,
+        status: 'SUCCESS',
+        orderId: finalOrderId,
+        transactionId: razorpayPaymentId,
+        customerName,
+        customerEmail,
+        customerMobile,
+        packageType,
+        razorpayOrderId
+      }), {
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     
-    // Use D1 if available
-    if (d1) {
-      await ensureD1Schema(d1);
-      
-      // First get customer details
-      const customerResult = await d1Query(d1, `
-        SELECT 
-          c.name, c.email, c.mobile, c.dob, c.gender, c.city, c.pin_code,
-          c.person1_name, c.person1_first_name, c.person1_middle_name, c.person1_sur_name, c.person1_dob, c.person1_gender,
-          c.person2_name, c.person2_first_name, c.person2_middle_name, c.person2_sur_name, c.person2_dob, c.person2_gender,
-          c.person3_name, c.person3_first_name, c.person3_middle_name, c.person3_sur_name, c.person3_dob, c.person3_gender,
-          c.father_first_name, c.father_middle_name, c.father_last_name, c.father_full_name,
-          c.child_dob, c.time_of_birth, c.place_of_birth, c.child_last_name, c.child_middle_name,
-          c.father_first_as_middle, c.name_options,
-          o.package_type, o.amount, o.status AS order_status
-        FROM customer_details c
-        JOIN orders o ON o.order_id = c.order_id
-        WHERE c.order_id = ?1 OR o.razorpay_order_id = ?2
+    // No razorpay_payment_id - need to check DB for payment status
+    // This handles the case where user directly visits without payment
+    
+    if (!d1) {
+      return new Response(JSON.stringify({
+        success: false,
+        status: 'FAILED',
+        error: 'No payment confirmation and database not available'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Check order status in D1
+    try {
+      const orderResult = await d1Query(d1, `
+        SELECT o.order_id, o.amount, o.package_type, o.status AS order_status,
+               c.name, c.email, c.mobile
+        FROM orders o
+        LEFT JOIN customer_details c ON o.order_id = c.order_id
+        WHERE o.order_id = ?1
         LIMIT 1
-      `, [finalOrderId, razorpayOrderId]);
+      `, [finalOrderId]);
       
-      if (customerResult.rows.length === 0) {
-        // Order not found in DB - could be a duplicate browser refresh
-        // If Razorpay confirms success, still return success
-        if (razorpayConfirmedSuccess) {
-          return new Response(JSON.stringify({
-            success: true,
-            status: 'SUCCESS',
-            orderId: finalOrderId,
-            transactionId: razorpayPaymentId,
-            warning: 'Order details not found in database but payment confirmed by Razorpay'
-          }), {
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
-        
+      if (orderResult.rows.length === 0) {
         return new Response(JSON.stringify({
           success: false,
           status: 'FAILED',
@@ -91,9 +132,9 @@ export const onRequest = async (context) => {
         });
       }
       
-      const customer = customerResult.rows[0];
+      const order = orderResult.rows[0];
       
-      // Get payment status from payment table
+      // Check payment table for payment status
       const paymentResult = await d1Query(d1, `
         SELECT transaction_id, amount_paise, status, created_at
         FROM payment
@@ -102,167 +143,33 @@ export const onRequest = async (context) => {
         LIMIT 1
       `, [finalOrderId]);
       
-      // Determine payment status
-      let paymentStatus = customer.order_status || 'PENDING';
-      
-      // If we have payment record in DB, use that status
+      let paymentStatus = order.order_status;
       if (paymentResult.rows.length > 0) {
         paymentStatus = paymentResult.rows[0].status;
       }
       
-      // If Razorpay confirms success (has payment ID), override DB status
-      // This handles the case where webhook hasn't processed yet
-      const finalStatus = razorpayConfirmedSuccess ? 'SUCCESS' : paymentStatus;
+      const isSuccess = paymentStatus === 'SUCCESS';
       
-      // If payment is successful at Razorpay but not recorded in DB yet,
-      // save the payment record now (for reliability)
-      if (razorpayConfirmedSuccess && paymentStatus !== 'SUCCESS' && d1) {
-        try {
-          await d1Run(d1, `
-            INSERT INTO payment (order_id, transaction_id, amount_paise, status)
-            VALUES (?1, ?2, ?3, 'SUCCESS')
-          `, [finalOrderId, razorpayPaymentId, Math.round((customer.amount || 0) * 100)]);
-          
-          // Also update order status
-          await d1Run(d1, `
-            UPDATE orders SET status = 'SUCCESS' WHERE order_id = ?1
-          `, [finalOrderId]);
-          
-          console.log('Payment recorded from redirect:', finalOrderId, razorpayPaymentId);
-        } catch (saveError) {
-          console.error('Error saving payment from redirect:', saveError);
-        }
-      }
-      
-      // Build response
-      const response = {
-        success: finalStatus === 'SUCCESS',
-        status: finalStatus === 'SUCCESS' ? 'SUCCESS' : 'FAILED',
-        orderId: finalOrderId,
-        transactionId: paymentResult.rows[0]?.transaction_id || razorpayPaymentId || null,
-        amount: customer.amount || 0,
-        customerName: customer.name || 'Customer',
-        customerEmail: customer.email || '',
-        customerMobile: customer.mobile || '',
-        customerCity: customer.city || '',
-        customerDob: customer.dob || null,
-        customerGender: customer.gender || null,
-        packageType: customer.package_type || 'single',
-        person1Name: customer.person1_name || null,
-        person1FirstName: customer.person1_first_name || null,
-        person1MiddleName: customer.person1_middle_name || null,
-        person1SurName: customer.person1_sur_name || null,
-        person1Dob: customer.person1_dob || null,
-        person1Gender: customer.person1_gender || null,
-        person2Name: customer.person2_name || null,
-        person2FirstName: customer.person2_first_name || null,
-        person2MiddleName: customer.person2_middle_name || null,
-        person2SurName: customer.person2_sur_name || null,
-        person2Dob: customer.person2_dob || null,
-        person2Gender: customer.person2_gender || null,
-        person3Name: customer.person3_name || null,
-        person3FirstName: customer.person3_first_name || null,
-        person3MiddleName: customer.person3_middle_name || null,
-        person3SurName: customer.person3_sur_name || null,
-        person3Dob: customer.person3_dob || null,
-        person3Gender: customer.person3_gender || null,
-        fatherFullName: customer.father_full_name || null,
-        childDob: customer.child_dob || null,
-        timeOfBirth: customer.time_of_birth || null,
-        placeOfBirth: customer.place_of_birth || null,
-        pinCode: customer.pin_code || null,
-        childLastName: customer.child_last_name || null,
-        childMiddleName: customer.child_middle_name || null,
-        fatherFirstNameAsMiddleName: customer.father_first_as_middle || null,
-        nameOptions: customer.name_options || null
-      };
-      
-      return new Response(JSON.stringify(response), {
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    // No D1 available - try using getCustomerMetadata fallback
-    try {
-      const metadata = await getCustomerMetadata(finalOrderId, razorpayOrderId);
-      
-      if (!metadata) {
-        // If Razorpay confirms success, return success
-        if (razorpayConfirmedSuccess) {
-          return new Response(JSON.stringify({
-            success: true,
-            status: 'SUCCESS',
-            orderId: finalOrderId,
-            transactionId: razorpayPaymentId,
-            warning: 'Order details not found but payment confirmed by Razorpay'
-          }), {
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
-        
-        return new Response(JSON.stringify({
-          success: false,
-          status: 'FAILED',
-          error: 'Order not found'
-        }), {
-          status: 404,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-      
-      // If Razorpay confirms success, return success
-      if (razorpayConfirmedSuccess) {
-        return new Response(JSON.stringify({
-          success: true,
-          status: 'SUCCESS',
-          orderId: finalOrderId,
-          transactionId: razorpayPaymentId,
-          customerName: metadata.name || 'Customer',
-          customerEmail: metadata.email || '',
-          customerMobile: metadata.mobile || '',
-          amount: metadata.amount || 0,
-          packageType: metadata.packageType || 'single'
-        }), {
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-      
-      // Otherwise check if order exists - consider it success if metadata is present
-      // This is a fallback for non-DB environments
       return new Response(JSON.stringify({
-        success: true,
-        status: 'SUCCESS',
+        success: isSuccess,
+        status: isSuccess ? 'SUCCESS' : 'FAILED',
         orderId: finalOrderId,
-        transactionId: razorpayPaymentId,
-        customerName: metadata.name || 'Customer',
-        customerEmail: metadata.email || '',
-        customerMobile: metadata.mobile || '',
-        amount: metadata.amount || 0,
-        packageType: metadata.packageType || 'single'
+        transactionId: paymentResult.rows[0]?.transaction_id || null,
+        amount: order.amount || 0,
+        customerName: order.name || 'Customer',
+        customerEmail: order.email || '',
+        customerMobile: order.mobile || '',
+        packageType: order.package_type || 'single'
       }), {
         headers: { 'Content-Type': 'application/json' }
       });
       
-    } catch (metaError) {
-      console.error('Error getting metadata:', metaError);
-      
-      // If Razorpay confirms success, return success despite errors
-      if (razorpayConfirmedSuccess) {
-        return new Response(JSON.stringify({
-          success: true,
-          status: 'SUCCESS',
-          orderId: finalOrderId,
-          transactionId: razorpayPaymentId,
-          warning: 'Payment confirmed by Razorpay despite DB error'
-        }), {
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-      
+    } catch (dbError) {
+      console.error('DB query error:', dbError?.message);
       return new Response(JSON.stringify({
         success: false,
         status: 'FAILED',
-        error: 'Unable to verify order'
+        error: 'Database error'
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }

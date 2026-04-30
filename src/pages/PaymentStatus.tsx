@@ -139,10 +139,16 @@ const PaymentStatus = () => {
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
   // Store order data from localStorage/params as fallback for email, name, mobile (ensures never N/A)
   const [orderFallback, setOrderFallback] = useState<{ email?: string; name?: string; mobile?: string } | null>(null);
-  // Prevent duplicate trackPurchase calls on re-renders
-  const trackedOrdersRef = useRef<Set<string>>(new Set());
+  // Prevent duplicate API calls - once we get success, don't re-verify
+  const verificationDoneRef = useRef<boolean>(false);
 
   useEffect(() => {
+    // Prevent duplicate API calls after success is already confirmed
+    // This fixes the issue where success page re-verifies and shows failed
+    if (verificationDoneRef.current && status === "success") {
+      console.log("Payment already verified as success, skipping re-check");
+      return;
+    }
     const checkPaymentStatus = async () => {
       // Razorpay may redirect with different parameter names
       // Check multiple possible parameter names that Razorpay might use
@@ -367,14 +373,18 @@ const PaymentStatus = () => {
           // (fatherFullName, childDob, timeOfBirth, etc.) are never N/A.
           setPaymentData(mergedPaymentData);
 
-          // Track purchase event with Meta Pixel (only once per order)
-          const amount = result.amount || 0;
-          const paymentOrderId = result.orderId || internalOrderId;
-          const pkgType = packageType || "single";
+// Track purchase event with Meta Pixel (only once per order)
+          // Use a separate ref to track which orders have been tracked
+          if (!verificationDoneRef.current) {
+            const amount = result.amount || 0;
+            const paymentOrderId = result.orderId || internalOrderId;
+            const pkgType = packageType || "single";
 
-          if (amount > 0 && !trackedOrdersRef.current.has(paymentOrderId)) {
-            trackedOrdersRef.current.add(paymentOrderId);
-            trackPurchase(amount, "INR", paymentOrderId, pkgType);
+            if (amount > 0) {
+              verificationDoneRef.current = true;
+              trackPurchase(amount, "INR", paymentOrderId, pkgType);
+              console.log("Meta Pixel tracked for:", paymentOrderId);
+            }
           }
 
           // Navigate to success URL if not already there

@@ -163,9 +163,10 @@ export const onRequest = async (context) => {
         }
       }
       
-      // Send WhatsApp
+// Send WhatsApp
       try {
         const amountInRupees = orderAmount;
+        const amountInPaise = Math.round(orderAmount * 100);
         const pin = parseInt(pinCode || '0', 10);
         const isIntraState = pin >= 200000 && pin <= 289999;
         const subtotal = +(amountInRupees / 1.18).toFixed(2);

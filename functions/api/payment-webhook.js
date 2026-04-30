@@ -9,7 +9,7 @@ import {
   d1GetNextInvoiceNumber, d1SaveInvoiceRecord, d1GetExistingInvoiceNumber,
 } from './_utils/d1-db.js';
 import { generateInvoicePDFLocal } from './_utils/generate-invoice-pdf.js';
-import { sendPaymentEmail } from './_utils/send-email.js';
+import { sendUnifiedEmail } from './_utils/email-sender.js';
 import { sendWhatsAppNotification } from './_utils/send-whatsapp.js';
 
 export async function onRequest(context) {

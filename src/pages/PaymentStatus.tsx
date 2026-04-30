@@ -1259,7 +1259,7 @@ const PaymentStatus = () => {
           </div>
         </section>
       </main>
-      <Footer />
+      <Footer/>
     </div>
   );
 };

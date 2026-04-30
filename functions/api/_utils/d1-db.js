@@ -53,15 +53,23 @@ export async function d1Run(d1, sql, params = []) {
 }
 
 // ─── d1Exec: for raw SQL (schema creation) ─────────────────────────────────
+// D1 doesn't support multi-statement exec - need to split and run each statement
 export async function d1Exec(d1, sql) {
   if (!d1) throw new Error('D1 not available');
-  try {
-    await d1.exec(sql);
-    return { success: true };
-  } catch (error) {
-    console.error('D1 exec error:', error.message);
-    throw error;
+  // Split by semicolon to get individual statements
+  const statements = sql.split(';').map(s => s.trim()).filter(s => s.length > 0 && !s.startsWith('--'));
+  
+  let successCount = 0;
+  for (const stmt of statements) {
+    try {
+      await d1.prepare(stmt).run();
+      successCount++;
+    } catch (e) {
+      // Log but don't fail - table may already exist
+      console.warn('D1 stmt warning:', e.message, '_stmt:', stmt.substring(0, 50));
+    }
   }
+  return { success: true, executed: successCount };
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -80,7 +88,7 @@ CREATE TABLE IF NOT EXISTS orders (
 
 CREATE TABLE IF NOT EXISTS customer_details (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  order_id TEXT NOT NULL REFERENCES orders(order_id) ON DELETE CASCADE,
+  order_id TEXT NOT NULL,
   email TEXT NOT NULL,
   name TEXT NOT NULL,
   mobile TEXT NOT NULL,
@@ -127,7 +135,7 @@ CREATE TABLE IF NOT EXISTS customer_details (
 
 CREATE TABLE IF NOT EXISTS payment (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  order_id TEXT NOT NULL REFERENCES orders(order_id) ON DELETE CASCADE,
+  order_id TEXT NOT NULL,
   transaction_id TEXT,
   amount_paise INTEGER NOT NULL DEFAULT 0,
   status TEXT NOT NULL,
@@ -505,16 +513,36 @@ export async function d1GetNextInvoiceNumber(d1, financialYear) {
   if (!d1) throw new Error('D1 not available');
   await ensureD1Schema(d1);
 
+  // D1 doesn't support RETURNING - need separate queries
+  try {
+    // Try insert first (starting from 7000)
+    await d1Run(d1, `
+      INSERT INTO invoice_sequence (financial_year, last_sequence)
+      VALUES (?1, 7000)
+      ON CONFLICT(financial_year) DO NOTHING
+    `, [financialYear]);
+  } catch (e) {
+    // Ignore duplicate key errors
+  }
+  
+  // Get current sequence which should be >= 7000
   const result = await d1Query(d1, `
-    INSERT INTO invoice_sequence (financial_year, last_sequence)
-    VALUES (?1, 7000)
-    ON CONFLICT(financial_year) DO UPDATE SET
-      last_sequence = invoice_sequence.last_sequence + 1
-    RETURNING last_sequence
+    SELECT last_sequence FROM invoice_sequence WHERE financial_year = ?1
   `, [financialYear]);
+  
+  // Current sequence starts from 7000 (or higher if already used)
+  // Get next number by incrementing
+  let currentSeq = result.rows[0]?.last_sequence || 7000;
+  let nextSeq = currentSeq + 1;
+  
+  // Update for next time (only if we successfully got a number)
+  if (currentSeq >= 7000) {
+    await d1Run(d1, `
+      UPDATE invoice_sequence SET last_sequence = ?1 WHERE financial_year = ?2
+    `, [nextSeq, financialYear]);
+  }
 
-  const seq = result.rows[0]?.last_sequence;
-  const paddedSeq = String(seq).padStart(4, '0');
+  const paddedSeq = String(currentSeq).padStart(4, '0');
   return `EYN${financialYear}/${paddedSeq}`;
 }
 

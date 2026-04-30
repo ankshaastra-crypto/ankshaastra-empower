@@ -5,9 +5,8 @@ import nodemailer from 'nodemailer';
 import { recordEmailDelivery, isEmailSent } from './db.js';
 
 // Check if running on Cloudflare Workers (no TCP/SMTP support)
-// Cloudflare Workers will have RESEND_API_KEY set but not SMTP_HOST
 const isCloudflareWorkers = () => {
-  return !process.env.SMTP_HOST && process.env.RESEND_API_KEY;
+  return typeof WebSocketPair !== 'undefined' || typeof navigator !== 'undefined';
 };
 
 // Send via Resend API (works on Cloudflare Workers)
@@ -154,9 +153,17 @@ const adminEmail = process.env.ADMIN_EMAIL || 'social@ankshaastra.com';
   let customerAlreadySent = false;
   let adminAlreadySent = false;
 
-// ─── Cloudflare Workers: Use Resend API instead of SMTP ────────────────────────
-  if (isCloudflareWorkers()) {
-    console.log('☁️  Cloudflare Workers detected → using Resend API');
+// ─── Cloudflare Workers: Use HTTP API instead of SMTP ───────────────────────────
+  // On Cloudflare Workers, SMTP/TCP sockets are unavailable. Prefer Resend whenever
+  // RESEND_API_KEY is configured, regardless of SMTP_* values.
+  if (isCloudflareWorkers() || process.env.RESEND_API_KEY) {
+    console.log('☁️  Cloudflare/HTTP email path selected');
+    if (!process.env.RESEND_API_KEY) {
+      return {
+        success: false,
+        error: 'Cloudflare Workers requires RESEND_API_KEY for email delivery.',
+      };
+    }
     // Templates are defined later in this function - build them here too
     const customerSubject = status === 'SUCCESS' 
       ? `Payment Successful - Order ${orderId}`
@@ -175,8 +182,24 @@ const adminEmail = process.env.ADMIN_EMAIL || 'social@ankshaastra.com';
       sendEmailViaResend({ to: customerEmail, subject: customerSubject, html: customerHtml, from: fromEmail }),
       sendEmailViaResend({ to: adminEmail, subject: adminSubject, html: adminHtml, from: fromEmail }),
     ]);
+    if (results[0].success) {
+      try {
+        await recordEmailDelivery(customerEmail, orderId, 'sent');
+      } catch {
+        /* non-fatal */
+      }
+    }
+    if (results[1].success) {
+      try {
+        await recordEmailDelivery(adminEmail, orderId, 'sent');
+      } catch {
+        /* non-fatal */
+      }
+    }
     return {
       success: results[0].success && results[1].success,
+      customerError: results[0].error || null,
+      adminError: results[1].error || null,
       customerMessageId: results[0].messageId,
       adminMessageId: results[1].messageId,
     };

@@ -132,7 +132,7 @@ export const onRequest = async (context) => {
       if (customerEmail) {
         try {
           const amountInPaise = Math.round(orderAmount * 100);
-          await sendPaymentEmail({
+          const emailResult = await sendPaymentEmail({
             customerEmail,
             orderId: finalOrderId || razorpayOrderId,
             customerName,
@@ -157,7 +157,17 @@ export const onRequest = async (context) => {
             transactionId: razorpayPaymentId,
             invoicePdfBuffer: null,
           });
-          console.log('Email sent to:', customerEmail);
+          if (emailResult?.success) {
+            console.log('✅ Email sent to:', customerEmail);
+          } else {
+            console.warn('⚠️ Email send failed:', emailResult?.error || 'Unknown email error');
+            if (emailResult?.customerError || emailResult?.adminError) {
+              console.warn('Email send details:', {
+                customerError: emailResult.customerError || null,
+                adminError: emailResult.adminError || null,
+              });
+            }
+          }
         } catch (emailError) {
           console.warn('Email error:', emailError?.message);
         }

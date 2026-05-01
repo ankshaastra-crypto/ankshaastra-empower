@@ -1,9 +1,9 @@
-// functions/api/initiate-payment.js — Cloudflare-native payment initiation
-// Stores customer form data in D1, creates Razorpay order
+// functions/api/initiate-payment.js — Payment initiation endpoint
+// Stores customer form data in Postgres/Supabase, creates Razorpay order
 
 import crypto from 'node:crypto';
 // import { setEnv } from './_utils/db-unified.js'; // Handled by adapter
-import { getD1, d1SaveOrderAndCustomer } from './_utils/d1-db.js';
+import { saveOrderAndCustomer } from './_utils/db-unified.js';
 import { validatePackageAmount } from './_utils/pricing.js';
 
 export async function onRequest(context) {
@@ -15,7 +15,6 @@ export async function onRequest(context) {
       if (typeof v === 'string') process.env[k] = v;
     }
   }
-  // setEnv handled by _adapter.js
 
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
@@ -88,7 +87,7 @@ export async function onRequest(context) {
 
     // ── Server-side price validation ────────────────────────────────────────
     // The amount the client sent MUST match the canonical price for the
-    // package, as configured via Cloudflare env vars (PACKAGE_*_PRICE).
+    // package, as configured via server env vars (PACKAGE_*_PRICE).
     // This prevents tampered clients from paying a lower amount.
     const priceCheck = validatePackageAmount(env, packageType || 'single', amount);
     if (!priceCheck.ok) {
@@ -166,18 +165,13 @@ export async function onRequest(context) {
       nameOptions: (nameOptions && nameOptions.trim()) || '',
     };
 
-    // ── Save to D1 ──────────────────────────────────────────────────────────
-    const d1 = getD1(env);
-    if (d1) {
-      try {
-        await d1SaveOrderAndCustomer(d1, orderId, verifiedAmount, packageType || 'single', customerData);
-        console.log(`✅ Order saved to D1: ${orderId} (₹${verifiedAmount})`);
-      } catch (dbError) {
-        console.error('D1 save error:', dbError?.message);
-        // Non-fatal: continue with Razorpay order creation
-      }
-    } else {
-      console.warn('⚠️ No D1 available — order not persisted');
+    // ── Save to database (Supabase/Postgres on Vercel) ─────────────────────
+    try {
+      await saveOrderAndCustomer(orderId, verifiedAmount, packageType || 'single', customerData);
+      console.log(`✅ Order saved to DB: ${orderId} (₹${verifiedAmount})`);
+    } catch (dbError) {
+      console.error('DB save error:', dbError?.message);
+      // Non-fatal: continue with Razorpay order creation
     }
 
     // ── Create Razorpay order ───────────────────────────────────────────────
@@ -218,16 +212,16 @@ export async function onRequest(context) {
 
     const result = await response.json();
 
-    // Update D1 with Razorpay order ID mapping
-    if (d1 && result.id) {
+    // Update DB with Razorpay order ID mapping
+    if (result.id) {
       try {
-        await d1SaveOrderAndCustomer(d1, orderId, verifiedAmount, packageType || 'single', {
+        await saveOrderAndCustomer(orderId, verifiedAmount, packageType || 'single', {
           ...customerData,
           razorpayOrderId: result.id,
         });
         console.log(`✅ Razorpay mapping saved: ${orderId} → ${result.id}`);
       } catch (dbError) {
-        console.error('D1 update error:', dbError?.message);
+        console.error('DB update error:', dbError?.message);
       }
     }
 

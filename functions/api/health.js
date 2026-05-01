@@ -1,15 +1,13 @@
-// functions/api/health.js — Cloudflare-native diagnostic endpoint
-// Tests D1 database connectivity and module loads.
+// functions/api/health.js — Diagnostic endpoint for Vercel.
 
 // import { setEnv } from './_utils/db-unified.js'; // Handled by adapter
-import { getD1, d1Query } from './_utils/d1-db.js';
+import { query as dbQuery } from './_utils/db-unified.js';
 import * as suppressDeprecation from './_utils/suppress-deprecation.js';
 import * as encryptionModule from './_utils/encryption.js';
 import * as rateLimiterModule from './_utils/rate-limiter.js';
 import * as dbUnifiedModule from './_utils/db-unified.js';
 import * as redisCacheModule from './_utils/redis-cache.js';
 import * as sendEmailModule from './_utils/send-email.js';
-import * as d1DbModule from './_utils/d1-db.js';
 
 export async function onRequest(context) {
   const { env } = context;
@@ -20,12 +18,11 @@ export async function onRequest(context) {
       if (typeof v === 'string') process.env[k] = v;
     }
   }
-  // setEnv handled by _adapter.js
 
   const diagnostics = {
     time: new Date().toISOString(),
     nodeVersion: process.version || '',
-    platform: 'cloudflare-pages',
+    platform: process.env.VERCEL ? 'vercel' : 'serverless',
     envVars: {
       RAZORPAY_KEY_ID: !!process.env.RAZORPAY_KEY_ID,
       RAZORPAY_KEY_SECRET: !!process.env.RAZORPAY_KEY_SECRET,
@@ -43,7 +40,7 @@ export async function onRequest(context) {
     },
     modules: {},
     dbConnected: false,
-    dbType: null,
+    dbType: 'postgres',
     dbError: null,
   };
 
@@ -54,7 +51,6 @@ export async function onRequest(context) {
     'db-unified': dbUnifiedModule,
     'redis-cache': redisCacheModule,
     'send-email': sendEmailModule,
-    'd1-db': d1DbModule,
   };
 
   const modules = [
@@ -64,7 +60,6 @@ export async function onRequest(context) {
     { name: 'db-unified', exports: ['saveOrderAndCustomer', 'savePayment', 'getOrderFull'] },
     { name: 'redis-cache', exports: ['getRedisCache'] },
     { name: 'send-email', exports: ['sendPaymentEmail'] },
-    { name: 'd1-db', exports: ['d1Query', 'd1Run'] },
   ];
 
   for (const mod of modules) {
@@ -82,20 +77,14 @@ export async function onRequest(context) {
     }
   }
 
-  // Test D1 database connectivity
-  const d1 = getD1(env);
-  if (d1) {
-    diagnostics.dbType = 'd1';
-    try {
-      const result = await d1Query(d1, 'SELECT CURRENT_TIMESTAMP as now');
-      diagnostics.dbConnected = true;
-      diagnostics.dbNow = result.rows[0]?.now;
-    } catch (e) {
-      diagnostics.dbError = e.message;
-      diagnostics.dbConnected = false;
-    }
-  } else {
-    diagnostics.dbError = 'D1 binding (env.DB) not available';
+  // Test DB connectivity via unified layer (Postgres on Vercel)
+  try {
+    const result = await dbQuery('SELECT NOW() as now', []);
+    diagnostics.dbConnected = !!(result && result.rows && result.rows.length > 0);
+    diagnostics.dbNow = result?.rows?.[0]?.now || null;
+  } catch (e) {
+    diagnostics.dbError = e.message;
+    diagnostics.dbConnected = false;
   }
 
   return new Response(JSON.stringify(diagnostics, null, 2), {

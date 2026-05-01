@@ -1,15 +1,21 @@
-// functions/api/payment-webhook.js — Cloudflare-native payment webhook
-// Uses unified DB (D1 on Cloudflare) for data persistence
+// functions/api/payment-webhook.js — Payment webhook
+// Uses unified DB for data persistence (Postgres/Supabase on Vercel)
 // Sends confirmation email with GST invoice PDF to customer + admin
 
 import crypto from 'node:crypto';
 // import { setEnv } from './_utils/db-unified.js'; // Handled by adapter
 import {
-  getD1, d1SavePayment, d1GetCustomerMetadata, d1GetOrderFull,
-  d1GetNextInvoiceNumber, d1SaveInvoiceRecord, d1GetExistingInvoiceNumber,
-} from './_utils/d1-db.js';
+  query,
+  savePayment,
+  getCustomerMetadata,
+  getOrderFull,
+  getNextInvoiceNumber,
+  saveInvoiceRecord,
+  getExistingInvoiceNumber,
+} from './_utils/db-unified.js';
+import { DB_SCHEMA } from './_utils/db.js';
 import { generateInvoicePDFLocal } from './_utils/generate-invoice-pdf.js';
-import { sendUnifiedEmail } from './_utils/email-sender.js';
+import { sendPaymentEmail } from './_utils/send-email.js';
 import { sendWhatsAppNotification } from './_utils/send-whatsapp.js';
 
 export async function onRequest(context) {
@@ -21,7 +27,6 @@ export async function onRequest(context) {
       if (typeof v === 'string') process.env[k] = v;
     }
   }
-  // setEnv is handled by adapter in _adapter.js
 
   if (request.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
@@ -111,16 +116,14 @@ export async function onRequest(context) {
     const transactionId = paymentEntity.id;
     let orderId = internalOrderId || razorpayOrderId;
 
-    // Resolve internal order ID from D1 if needed
-    const d1 = getD1(env);
-    if (!internalOrderId && razorpayOrderId && d1) {
+    // Resolve internal order ID from DB mapping if needed
+    if (!internalOrderId && razorpayOrderId) {
       try {
-        const { d1Query } = await import('./_utils/d1-db.js');
-        const mapping = await d1Query(d1,
-          'SELECT order_id FROM orders WHERE razorpay_order_id = ?1 LIMIT 1',
+        const mapping = await query(
+          `SELECT order_id FROM ${DB_SCHEMA}.orders WHERE razorpay_order_id = $1 LIMIT 1`,
           [razorpayOrderId]
         );
-        if (mapping.rows.length > 0) {
+        if (mapping?.rows?.length > 0) {
           internalOrderId = mapping.rows[0].order_id;
           orderId = internalOrderId;
           console.log(`✅ Resolved internal order ID from Razorpay mapping: ${orderId}`);
@@ -141,14 +144,14 @@ export async function onRequest(context) {
 
     // ── Fetch customer metadata ─────────────────────────────────────────────
     let metadata = {};
-    if (orderId && d1) {
+    if (orderId) {
       try {
-        metadata = await d1GetCustomerMetadata(d1, orderId, razorpayOrderId) || {};
+        metadata = await getCustomerMetadata(orderId, razorpayOrderId) || {};
         if (metadata.email) {
-          console.log(`✅ Metadata from D1 for order: ${orderId} — email: ${metadata.email}`);
+          console.log(`✅ Metadata fetched for order: ${orderId} — email: ${metadata.email}`);
         }
       } catch (dbErr) {
-        console.warn('D1 metadata fetch failed:', dbErr.message);
+        console.warn('DB metadata fetch failed:', dbErr.message);
       }
     }
 
@@ -212,21 +215,19 @@ export async function onRequest(context) {
       });
     }
 
-    // ── Save payment to D1 ──────────────────────────────────────────────────
-    if (d1) {
-      try {
-        await d1SavePayment(d1, orderId, transactionId, paymentAmount, status);
-        console.log(`✅ Payment saved to D1 — order: ${orderId}, status: ${status}`);
-      } catch (dbError) {
-        console.error('D1 save payment error:', dbError?.message);
-      }
+    // ── Save payment to DB ──────────────────────────────────────────────────
+    try {
+      await savePayment(orderId, transactionId, paymentAmount, status);
+      console.log(`✅ Payment saved to DB — order: ${orderId}, status: ${status}`);
+    } catch (dbError) {
+      console.error('DB save payment error:', dbError?.message);
     }
 
     // ── Generate PDF (SUCCESS only) ─────────────────────────────────────────
     let invoicePdfBuffer = null;
-    if (status === 'SUCCESS' && d1) {
+    if (status === 'SUCCESS') {
       try {
-        const orderData = await d1GetOrderFull(d1, orderId);
+        const orderData = await getOrderFull(orderId);
         if (orderData) {
           console.log(`📄 Generating invoice PDF for order: ${orderId}`);
 
@@ -238,10 +239,10 @@ export async function onRequest(context) {
             ? `${String(year).slice(2)}-${String(year + 1).slice(2)}`
             : `${String(year - 1).slice(2)}-${String(year).slice(2)}`;
 
-          let invoiceNumber = await d1GetExistingInvoiceNumber(d1, orderId);
+          let invoiceNumber = await getExistingInvoiceNumber(orderId);
           if (!invoiceNumber) {
-            invoiceNumber = await d1GetNextInvoiceNumber(d1, fy);
-            await d1SaveInvoiceRecord(d1, {
+            invoiceNumber = await getNextInvoiceNumber(fy);
+            await saveInvoiceRecord({
               orderId,
               invoiceNumber,
               financialYear: fy,
@@ -285,7 +286,7 @@ export async function onRequest(context) {
     if (finalCustomerEmail && status === 'SUCCESS') {
       console.log(`📧 Sending emails for order ${orderId}`);
       try {
-emailResult = await sendUnifiedEmail({
+        emailResult = await sendPaymentEmail({
           customerEmail: finalCustomerEmail,
           orderId,
           customerName: finalCustomerName,

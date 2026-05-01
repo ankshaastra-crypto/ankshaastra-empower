@@ -4,50 +4,6 @@ import './suppress-deprecation.js';
 import nodemailer from 'nodemailer';
 import { recordEmailDelivery, isEmailSent } from './db.js';
 
-// Check if running on Cloudflare Workers (no TCP/SMTP support)
-const isCloudflareWorkers = () => {
-  return typeof WebSocketPair !== 'undefined' || typeof navigator !== 'undefined';
-};
-
-// Send via Resend API (works on Cloudflare Workers)
-async function sendEmailViaResend({ to, subject, html, from }) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const senderEmail = from || process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';
-  
-  if (!apiKey) {
-    return { success: false, error: 'RESEND_API_KEY not configured' };
-  }
-  
-  try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        from: senderEmail,
-        to: [to],
-        subject: subject,
-        html: html,
-      }),
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      console.error('Resend API error:', data);
-      return { success: false, error: data.message || 'Resend API failed' };
-    }
-    
-    console.log(`✅ Resend email sent to ${to}, ID: ${data.id}`);
-    return { success: true, messageId: data.id };
-  } catch (error) {
-    console.error('Resend request error:', error.message);
-    return { success: false, error: error.message };
-  }
-}
-
 // Reuse transporter instance (singleton pattern) for better performance
 let transporterInstance = null;
 
@@ -152,58 +108,6 @@ export async function sendPaymentEmail({
 const adminEmail = process.env.ADMIN_EMAIL || 'social@ankshaastra.com';
   let customerAlreadySent = false;
   let adminAlreadySent = false;
-
-// ─── Cloudflare Workers: Use HTTP API instead of SMTP ───────────────────────────
-  // On Cloudflare Workers, SMTP/TCP sockets are unavailable. Prefer Resend whenever
-  // RESEND_API_KEY is configured, regardless of SMTP_* values.
-  if (isCloudflareWorkers() || process.env.RESEND_API_KEY) {
-    console.log('☁️  Cloudflare/HTTP email path selected');
-    if (!process.env.RESEND_API_KEY) {
-      return {
-        success: false,
-        error: 'Cloudflare Workers requires RESEND_API_KEY for email delivery.',
-      };
-    }
-    // Templates are defined later in this function - build them here too
-    const customerSubject = status === 'SUCCESS' 
-      ? `Payment Successful - Order ${orderId}`
-      : `Payment Failed - Order ${orderId}`;
-    const adminSubject = `Payment ${status === 'SUCCESS' ? 'Success' : 'Failed'} - Order ${orderId}`;
-    const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';
-    
-    // Simplified HTML for Cloudflare (skip full template to save space)
-    const customerHtml = status === 'SUCCESS'
-? `<h1>Payment Successful!</h1><p>Dear ${customerName || 'Valued Customer'},</p><p>Your payment for order ${orderId} has been processed. Amount: ₹${((amount || 0) / 100).toLocaleString('en-IN')}</p>`
-      : `<h1>Payment Failed</h1><p>Dear ${customerName || 'Valued Customer'},</p><p>Your payment for order ${orderId} could not be processed.</p>`;
-    
-    const adminHtml = `<h1>New Payment ${status === 'SUCCESS' ? 'Success' : 'Failed'}</h1><p>Order: ${orderId}</p><p>Amount: ₹${((amount || 0) / 100).toLocaleString('en-IN')}</p><p>Customer: ${customerName}</p><p>Email: ${customerEmail}</p>`;
-    
-    const results = await Promise.all([
-      sendEmailViaResend({ to: customerEmail, subject: customerSubject, html: customerHtml, from: fromEmail }),
-      sendEmailViaResend({ to: adminEmail, subject: adminSubject, html: adminHtml, from: fromEmail }),
-    ]);
-    if (results[0].success) {
-      try {
-        await recordEmailDelivery(customerEmail, orderId, 'sent');
-      } catch {
-        /* non-fatal */
-      }
-    }
-    if (results[1].success) {
-      try {
-        await recordEmailDelivery(adminEmail, orderId, 'sent');
-      } catch {
-        /* non-fatal */
-      }
-    }
-    return {
-      success: results[0].success && results[1].success,
-      customerError: results[0].error || null,
-      adminError: results[1].error || null,
-      customerMessageId: results[0].messageId,
-      adminMessageId: results[1].messageId,
-    };
-  }
 
   // ─── DEDUPLICATION CHECK ─────────────────────────────────────────────────
   // One email per order per recipient — prevents double-send from webhook + status

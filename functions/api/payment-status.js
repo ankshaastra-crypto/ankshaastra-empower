@@ -2,7 +2,8 @@
 // Returns SUCCESS if Razorpay confirms payment via redirect parameters
 // Also sends emails and WhatsApp for redundancy
 
-import { getD1, d1Query, d1Run } from './_utils/d1-db.js';
+import { query, run } from './_utils/db-unified.js';
+import { DB_SCHEMA } from './_utils/db.js';
 import { sendPaymentEmail } from './_utils/send-email.js';
 import { sendWhatsAppNotification } from './_utils/send-whatsapp.js';
 
@@ -62,66 +63,61 @@ export const onRequest = async (context) => {
         razorpayPaymentId
       });
       
-      const d1 = getD1(env);
       let orderAmount = amountFromUrl || 0;
       let existingOrder = null;
       
       // Try to find existing order by our orderId OR razorpay_order_id
-      if (d1) {
-        try {
-          // First check by our orderId
-          let orderResult = await d1Query(d1, `
-            SELECT order_id, amount, package_type, status FROM orders WHERE order_id = ?1
-          `, [finalOrderId]);
-          
-          // If not found, try by razorpay_order_id
-          if (orderResult.rows.length === 0 && razorpayOrderId) {
-            orderResult = await d1Query(d1, `
-              SELECT order_id, amount, package_type, status FROM orders WHERE razorpay_order_id = ?1
-            `, [razorpayOrderId]);
-          }
-          
-          if (orderResult.rows.length > 0) {
-            existingOrder = orderResult.rows[0];
-            orderAmount = existingOrder.amount || 0;
-            console.log('Found existing order:', existingOrder.order_id, 'amount:', orderAmount);
-          }
-        } catch (dbErr) {
-          console.warn('Order lookup error:', dbErr?.message);
+      try {
+        // First check by our orderId
+        let orderResult = await query(
+          `SELECT order_id, amount, package_type, status FROM ${DB_SCHEMA}.orders WHERE order_id = $1`,
+          [finalOrderId]
+        );
+        
+        // If not found, try by razorpay_order_id
+        if (orderResult?.rows?.length === 0 && razorpayOrderId) {
+          orderResult = await query(
+            `SELECT order_id, amount, package_type, status FROM ${DB_SCHEMA}.orders WHERE razorpay_order_id = $1`,
+            [razorpayOrderId]
+          );
         }
+        
+        if (orderResult?.rows?.length > 0) {
+          existingOrder = orderResult.rows[0];
+          orderAmount = existingOrder.amount || 0;
+          console.log('Found existing order:', existingOrder.order_id, 'amount:', orderAmount);
+        }
+      } catch (dbErr) {
+        console.warn('Order lookup error:', dbErr?.message);
       }
       
       // If order exists, update it. If not, create new
       if (existingOrder) {
         // Update status to SUCCESS
-        if (d1) {
-          try {
-            await d1Run(d1, `
-              UPDATE orders SET status = 'SUCCESS' WHERE order_id = ?1
-            `, [existingOrder.order_id]);
-          } catch (e) {
-            console.warn('Status update error:', e?.message);
-          }
+        try {
+          await run(`UPDATE ${DB_SCHEMA}.orders SET status = 'SUCCESS' WHERE order_id = $1`, [existingOrder.order_id]);
+        } catch (e) {
+          console.warn('Status update error:', e?.message);
         }
-      } else if (d1) {
+      } else {
         // Create order if doesn't exist - get amount from pricing lookup
         try {
-          await d1Run(d1, `
-            INSERT INTO orders (order_id, amount, package_type, razorpay_order_id, status)
-            VALUES (?1, ?2, ?3, ?4, 'SUCCESS')
-          `, [finalOrderId || razorpayOrderId, orderAmount, packageType, razorpayOrderId]);
+          await run(
+            `INSERT INTO ${DB_SCHEMA}.orders (order_id, amount, package_type, razorpay_order_id, status) VALUES ($1, $2, $3, $4, 'SUCCESS')`,
+            [finalOrderId || razorpayOrderId, orderAmount, packageType, razorpayOrderId]
+          );
         } catch (e) {
           console.warn('Order create error:', e?.message);
         }
       }
       
       // Record payment
-      if (d1 && finalOrderId) {
+      if (finalOrderId) {
         try {
-          await d1Run(d1, `
-            INSERT INTO payment (order_id, transaction_id, amount_paise, status)
-            VALUES (?1, ?2, ?3, 'SUCCESS')
-          `, [finalOrderId, razorpayPaymentId, Math.round(orderAmount * 100)]);
+          await run(
+            `INSERT INTO ${DB_SCHEMA}.payment (order_id, transaction_id, amount_paise, status) VALUES ($1, $2, $3, 'SUCCESS')`,
+            [finalOrderId, razorpayPaymentId, Math.round(orderAmount * 100)]
+          );
           console.log('Payment recorded:', finalOrderId, '₹', orderAmount);
         } catch (e) {
           console.warn('Payment insert error:', e?.message);
@@ -222,43 +218,32 @@ export const onRequest = async (context) => {
     }
     
     // No razorpay_payment_id - check DB for payment status
-    const d1 = getD1(env);
-    
-    if (!d1) {
-      return new Response(JSON.stringify({
-        success: false,
-        status: 'FAILED',
-        error: 'No payment confirmation'
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
     // Check order status
     try {
-      let orderResult = await d1Query(d1, `
-        SELECT o.order_id, o.amount, o.package_type, o.status AS order_status,
-               c.name, c.email, c.mobile
-        FROM orders o
-        LEFT JOIN customer_details c ON o.order_id = c.order_id
-        WHERE o.order_id = ?1
-        LIMIT 1
-      `, [finalOrderId]);
+      let orderResult = await query(
+        `SELECT o.order_id, o.amount, o.package_type, o.status AS order_status,
+                c.name, c.email, c.mobile
+         FROM ${DB_SCHEMA}.orders o
+         LEFT JOIN ${DB_SCHEMA}.customer_details c ON o.order_id = c.order_id
+         WHERE o.order_id = $1
+         LIMIT 1`,
+        [finalOrderId]
+      );
       
       // Try by razorpay_order_id
-      if (orderResult.rows.length === 0 && razorpayOrderId) {
-        orderResult = await d1Query(d1, `
-          SELECT o.order_id, o.amount, o.package_type, o.status AS order_status,
-                 c.name, c.email, c.mobile
-          FROM orders o
-          LEFT JOIN customer_details c ON o.order_id = c.order_id
-          WHERE o.razorpay_order_id = ?1
-          LIMIT 1
-        `, [razorpayOrderId]);
+      if (orderResult?.rows?.length === 0 && razorpayOrderId) {
+        orderResult = await query(
+          `SELECT o.order_id, o.amount, o.package_type, o.status AS order_status,
+                  c.name, c.email, c.mobile
+           FROM ${DB_SCHEMA}.orders o
+           LEFT JOIN ${DB_SCHEMA}.customer_details c ON o.order_id = c.order_id
+           WHERE o.razorpay_order_id = $1
+           LIMIT 1`,
+          [razorpayOrderId]
+        );
       }
       
-      if (orderResult.rows.length === 0) {
+      if (!orderResult?.rows?.length) {
         return new Response(JSON.stringify({
           success: false,
           status: 'FAILED',
@@ -272,13 +257,14 @@ export const onRequest = async (context) => {
       const orderRow = orderResult.rows[0];
       
       // Check payment table
-      const paymentResult = await d1Query(d1, `
-        SELECT transaction_id, amount_paise, status, created_at
-        FROM payment
-        WHERE order_id = ?1
-        ORDER BY created_at DESC
-        LIMIT 1
-      `, [orderRow.order_id]);
+      const paymentResult = await query(
+        `SELECT transaction_id, amount_paise, status, created_at
+         FROM ${DB_SCHEMA}.payment
+         WHERE order_id = $1
+         ORDER BY created_at DESC
+         LIMIT 1`,
+        [orderRow.order_id]
+      );
       
       let paymentStatus = orderRow.order_status;
       if (paymentResult.rows.length > 0) {

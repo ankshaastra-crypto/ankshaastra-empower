@@ -1,9 +1,9 @@
 // functions/api/_utils/pricing.js
-// Server-side authoritative pricing. Reads from Cloudflare env vars and
+// Server-side authoritative pricing. Reads from deployment env vars and
 // validates that the amount the client sent matches what we expect for the
 // package. This prevents a tampered client from paying a lower amount.
 //
-// Cloudflare Pages → Project → Settings → Environment Variables (Production):
+// Deployment provider → Project → Settings → Environment Variables (Production):
 //   PACKAGE_SINGLE_PRICE
 //   PACKAGE_PREMIUM_PRICE
 //   PACKAGE_CONSULTATION_PRICE

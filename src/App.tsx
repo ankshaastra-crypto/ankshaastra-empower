@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import Index from "@/pages/Index";
 import { adminV2Routes } from "@/admin-v2/routes";
 
@@ -20,6 +21,7 @@ const App = () => (
   <TooltipProvider>
     <Toaster />
     <Sonner />
+    <SpeedInsights />
     <BrowserRouter>
       <Suspense fallback={<div className="min-h-screen bg-background" />}>
         <Routes>

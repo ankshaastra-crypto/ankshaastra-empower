@@ -838,42 +838,85 @@ const OrderFormSection = () => {
       {/* Child's Date of Birth & Time of Birth */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label>Child's Date of Birth (DD/MM/YYYY) *</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button id="childDob" variant="outline"
-                className={cn("w-full mt-1.5 justify-start text-left font-normal h-10",
-                  !babyFormData.childDob && "text-muted-foreground",
-                  errors.childDob ? "border-destructive" : isFieldValid("childDob") ? "border-success" : ""
-                )}>
-                <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
-                {babyFormData.childDob ? format(parse(babyFormData.childDob, "yyyy-MM-dd", new Date()), "dd/MM/yyyy") : "Pick child's date of birth"}
-                {isFieldValid("childDob") && <CheckCircle2 className="w-4 h-4 text-success ml-auto" />}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single"
-                selected={babyFormData.childDob ? parse(babyFormData.childDob, "yyyy-MM-dd", new Date()) : undefined}
-                onSelect={(date) => {
-                  if (date) {
-                    setBabyFormData((prev) => ({ ...prev, childDob: formatDateToLocal(date) }));
-                    if (errors.childDob) setErrors((prev) => { const n = { ...prev }; delete n.childDob; return n; });
-                  }
+          <Label htmlFor="childDob">Child's Date of Birth *</Label>
+          {isMobile ? (
+            <div className="relative">
+              <Input
+                id="childDob"
+                type="date"
+                value={babyFormData.childDob || ""}
+                max={todayIso}
+                min="1900-01-01"
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setBabyFormData((prev) => ({ ...prev, childDob: v }));
+                  if (errors.childDob) setErrors((prev) => { const n = { ...prev }; delete n.childDob; return n; });
                 }}
-                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
-            </PopoverContent>
-          </Popover>
+                className={cn(
+                  "mt-1.5 h-12 text-base pr-9",
+                  errors.childDob ? "border-destructive" : isFieldValid("childDob") ? "border-success" : ""
+                )}
+              />
+              {isFieldValid("childDob") && <CheckCircle2 className="w-4 h-4 text-success absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />}
+            </div>
+          ) : (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button id="childDob" variant="outline"
+                  className={cn("w-full mt-1.5 justify-start text-left font-normal h-10",
+                    !babyFormData.childDob && "text-muted-foreground",
+                    errors.childDob ? "border-destructive" : isFieldValid("childDob") ? "border-success" : ""
+                  )}>
+                  <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
+                  {babyFormData.childDob ? format(parse(babyFormData.childDob, "yyyy-MM-dd", new Date()), "dd/MM/yyyy") : "Pick child's date of birth"}
+                  {isFieldValid("childDob") && <CheckCircle2 className="w-4 h-4 text-success ml-auto" />}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single"
+                  selected={babyFormData.childDob ? parse(babyFormData.childDob, "yyyy-MM-dd", new Date()) : undefined}
+                  onSelect={(date) => {
+                    if (date) {
+                      setBabyFormData((prev) => ({ ...prev, childDob: formatDateToLocal(date) }));
+                      if (errors.childDob) setErrors((prev) => { const n = { ...prev }; delete n.childDob; return n; });
+                    }
+                  }}
+                  disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                  initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+          )}
           {errors.childDob && <p className="text-destructive text-sm mt-1">{errors.childDob}</p>}
         </div>
         <div>
-          <Label htmlFor="timeOfBirth">Exact Time of Birth (HH:MM AM/PM) *</Label>
-          <div className="relative">
-            <Input id="timeOfBirth" name="timeOfBirth" value={babyFormData.timeOfBirth} onChange={handleInputChange}
-              placeholder="e.g., 10:30 AM" required
-              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.timeOfBirth ? "border-destructive" : isFieldValid("timeOfBirth") ? "border-success" : ""}`} />
-            <ValidIcon field="timeOfBirth" />
-          </div>
+          <Label htmlFor="timeOfBirth">Exact Time of Birth *</Label>
+          {isMobile ? (
+            <div className="relative">
+              <Input
+                id="timeOfBirth"
+                type="time"
+                value={timeAmPmTo24(babyFormData.timeOfBirth)}
+                onChange={(e) => {
+                  const ampm = time24ToAmPm(e.target.value);
+                  setBabyFormData((prev) => ({ ...prev, timeOfBirth: ampm }));
+                  if (errors.timeOfBirth) setErrors((prev) => { const n = { ...prev }; delete n.timeOfBirth; return n; });
+                }}
+                required
+                className={cn(
+                  "mt-1.5 h-12 text-base pr-9",
+                  errors.timeOfBirth ? "border-destructive" : isFieldValid("timeOfBirth") ? "border-success" : ""
+                )}
+              />
+              {isFieldValid("timeOfBirth") && <CheckCircle2 className="w-4 h-4 text-success absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />}
+            </div>
+          ) : (
+            <div className="relative">
+              <Input id="timeOfBirth" name="timeOfBirth" value={babyFormData.timeOfBirth} onChange={handleInputChange}
+                placeholder="e.g., 10:30 AM" required
+                className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.timeOfBirth ? "border-destructive" : isFieldValid("timeOfBirth") ? "border-success" : ""}`} />
+              <ValidIcon field="timeOfBirth" />
+            </div>
+          )}
           {errors.timeOfBirth && <p className="text-destructive text-sm mt-1">{errors.timeOfBirth}</p>}
         </div>
       </div>

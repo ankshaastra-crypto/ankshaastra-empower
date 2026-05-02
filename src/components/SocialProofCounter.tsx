@@ -28,6 +28,7 @@ const SocialProofCounter = () => {
   const [currentName, setCurrentName] = useState("");
   const [visible, setVisible] = useState(false);
   const [count, setCount] = useState(5012);
+  const [hideForForm, setHideForForm] = useState(false);
 
   useEffect(() => {
     let nameIndex = Math.floor(Math.random() * names.length);
@@ -53,6 +54,21 @@ const SocialProofCounter = () => {
       clearInterval(interval);
     };
   }, []);
+
+  // Suppress the popup while the user is filling the order form so it doesn't
+  // overlap the inputs on mobile.
+  useEffect(() => {
+    const target = document.getElementById("order-form");
+    if (!target || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([entry]) => setHideForForm(entry.isIntersecting),
+      { threshold: 0, rootMargin: "0px 0px -10% 0px" }
+    );
+    io.observe(target);
+    return () => io.disconnect();
+  }, []);
+
+  if (hideForForm) return null;
 
   return (
     <div

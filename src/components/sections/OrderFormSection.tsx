@@ -758,34 +758,56 @@ const OrderFormSection = () => {
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label>Date of Birth *</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button id={`person${personNum}Dob`} variant="outline"
-                className={cn("w-full mt-1.5 justify-start text-left font-normal h-10",
-                  !formData[`person${personNum}Dob` as keyof typeof formData] && "text-muted-foreground",
-                  errors[`person${personNum}Dob`] ? "border-destructive" : isFieldValid(`person${personNum}Dob`) ? "border-success" : ""
-                )}>
-                <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
-                {formData[`person${personNum}Dob` as keyof typeof formData]
-                  ? format(parse(formData[`person${personNum}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()), "dd MMM yyyy")
-                  : "Pick date of birth"}
-                {isFieldValid(`person${personNum}Dob`) && <CheckCircle2 className="w-4 h-4 text-success ml-auto" />}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single"
-                selected={formData[`person${personNum}Dob` as keyof typeof formData] ? parse(formData[`person${personNum}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()) : undefined}
-                onSelect={(date) => {
-                  if (date) {
-                    setFormData((prev) => ({ ...prev, [`person${personNum}Dob`]: formatDateToLocal(date) }));
-                    if (errors[`person${personNum}Dob`]) setErrors((prev) => { const n = { ...prev }; delete n[`person${personNum}Dob`]; return n; });
-                  }
+          <Label htmlFor={`person${personNum}Dob`}>Date of Birth *</Label>
+          {isMobile ? (
+            <div className="relative">
+              <Input
+                id={`person${personNum}Dob`}
+                type="date"
+                value={formData[`person${personNum}Dob` as keyof typeof formData] || ""}
+                max={todayIso}
+                min="1900-01-01"
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setFormData((prev) => ({ ...prev, [`person${personNum}Dob`]: v }));
+                  if (errors[`person${personNum}Dob`]) setErrors((prev) => { const n = { ...prev }; delete n[`person${personNum}Dob`]; return n; });
                 }}
-                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
-            </PopoverContent>
-          </Popover>
+                className={cn(
+                  "mt-1.5 h-12 text-base pr-9",
+                  errors[`person${personNum}Dob`] ? "border-destructive" : isFieldValid(`person${personNum}Dob`) ? "border-success" : ""
+                )}
+              />
+              {isFieldValid(`person${personNum}Dob`) && <CheckCircle2 className="w-4 h-4 text-success absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />}
+            </div>
+          ) : (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button id={`person${personNum}Dob`} variant="outline"
+                  className={cn("w-full mt-1.5 justify-start text-left font-normal h-10",
+                    !formData[`person${personNum}Dob` as keyof typeof formData] && "text-muted-foreground",
+                    errors[`person${personNum}Dob`] ? "border-destructive" : isFieldValid(`person${personNum}Dob`) ? "border-success" : ""
+                  )}>
+                  <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
+                  {formData[`person${personNum}Dob` as keyof typeof formData]
+                    ? format(parse(formData[`person${personNum}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()), "dd MMM yyyy")
+                    : "Pick date of birth"}
+                  {isFieldValid(`person${personNum}Dob`) && <CheckCircle2 className="w-4 h-4 text-success ml-auto" />}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single"
+                  selected={formData[`person${personNum}Dob` as keyof typeof formData] ? parse(formData[`person${personNum}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()) : undefined}
+                  onSelect={(date) => {
+                    if (date) {
+                      setFormData((prev) => ({ ...prev, [`person${personNum}Dob`]: formatDateToLocal(date) }));
+                      if (errors[`person${personNum}Dob`]) setErrors((prev) => { const n = { ...prev }; delete n[`person${personNum}Dob`]; return n; });
+                    }
+                  }}
+                  disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                  initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+          )}
           {errors[`person${personNum}Dob`] && <p className="text-destructive text-sm mt-1">{errors[`person${personNum}Dob`]}</p>}
         </div>
         <div>

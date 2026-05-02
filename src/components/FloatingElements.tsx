@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { ArrowUp, FileText } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa";
 
 const FloatingElements = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [hideForForm, setHideForForm] = useState(false);
   const showRef = useRef(false);
 
   useEffect(() => {
@@ -25,12 +25,39 @@ const FloatingElements = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Hide floating CTAs while the order form is on-screen so they don't
+  // obstruct the form fields on mobile.
+  useEffect(() => {
+    const target = document.getElementById("order-form");
+    if (!target || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      ([entry]) => setHideForForm(entry.isIntersecting),
+      { threshold: 0, rootMargin: "0px 0px -10% 0px" }
+    );
+    io.observe(target);
+    return () => io.disconnect();
+  }, []);
+
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   const scrollToPricing = () => {
     const el = document.getElementById("pricing");
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
+
+  if (hideForForm) {
+    // Keep Back-to-top accessible from the form but tuck it away on mobile;
+    // hide the "Get My Report" CTA entirely while the form is visible.
+    return showBackToTop ? (
+      <button
+        onClick={scrollToTop}
+        className="fixed bottom-6 right-4 z-40 bg-secondary text-accent p-2.5 rounded-full shadow-purple transition-all duration-300 hover:scale-110 animate-fade-in opacity-80"
+        aria-label="Back to top"
+      >
+        <ArrowUp className="w-4 h-4" />
+      </button>
+    ) : null;
+  }
 
   return (
     <>

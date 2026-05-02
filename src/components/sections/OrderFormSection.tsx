@@ -891,23 +891,44 @@ const OrderFormSection = () => {
         <div>
           <Label htmlFor="timeOfBirth">Exact Time of Birth *</Label>
           {isMobile ? (
-            <div className="relative">
-              <Input
-                id="timeOfBirth"
-                type="time"
-                value={timeAmPmTo24(babyFormData.timeOfBirth)}
-                onChange={(e) => {
-                  const ampm = time24ToAmPm(e.target.value);
-                  setBabyFormData((prev) => ({ ...prev, timeOfBirth: ampm }));
-                  if (errors.timeOfBirth) setErrors((prev) => { const n = { ...prev }; delete n.timeOfBirth; return n; });
-                }}
-                required
-                className={cn(
-                  "mt-1.5 h-12 text-base pr-9",
-                  errors.timeOfBirth ? "border-destructive" : isFieldValid("timeOfBirth") ? "border-success" : ""
+            <div className="space-y-1.5">
+              <div className="relative flex items-center gap-2">
+                <Input
+                  id="timeOfBirth"
+                  type="time"
+                  step={60}
+                  value={timeAmPmTo24(babyFormData.timeOfBirth)}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    const ampm = v ? time24ToAmPm(v) : "";
+                    setBabyFormData((prev) => ({ ...prev, timeOfBirth: ampm }));
+                    if (errors.timeOfBirth) setErrors((prev) => { const n = { ...prev }; delete n.timeOfBirth; return n; });
+                  }}
+                  className={cn(
+                    "mt-0 h-12 text-base flex-1",
+                    errors.timeOfBirth ? "border-destructive" : isFieldValid("timeOfBirth") ? "border-success" : ""
+                  )}
+                />
+                {babyFormData.timeOfBirth && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBabyFormData((prev) => ({ ...prev, timeOfBirth: "" }));
+                      if (errors.timeOfBirth) setErrors((prev) => { const n = { ...prev }; delete n.timeOfBirth; return n; });
+                    }}
+                    className="text-xs font-medium text-muted-foreground hover:text-destructive px-3 py-2 rounded-md border border-border bg-background"
+                    aria-label="Clear time"
+                  >
+                    Clear
+                  </button>
                 )}
-              />
-              {isFieldValid("timeOfBirth") && <CheckCircle2 className="w-4 h-4 text-success absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />}
+              </div>
+              {babyFormData.timeOfBirth && (
+                <p className="text-xs text-muted-foreground">
+                  Selected: <span className="font-semibold text-foreground">{babyFormData.timeOfBirth}</span>
+                  {isFieldValid("timeOfBirth") && <CheckCircle2 className="w-3.5 h-3.5 text-success inline ml-1.5 -mt-0.5" />}
+                </p>
+              )}
             </div>
           ) : (
             <div className="relative">

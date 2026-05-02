@@ -13,6 +13,33 @@ import { useToast } from "@/hooks/use-toast";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { trackInitiateCheckout } from "@/lib/metaPixel";
 import { getPackagePrice, formatPrice } from "@/lib/packagePricing";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+// Convert 24h "HH:MM" (from native time input) to "HH:MM AM/PM"
+const time24ToAmPm = (t: string): string => {
+  if (!t) return "";
+  const m = /^(\d{1,2}):(\d{2})$/.exec(t.trim());
+  if (!m) return t;
+  let h = parseInt(m[1], 10);
+  const min = m[2];
+  const meridiem = h >= 12 ? "PM" : "AM";
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${String(h).padStart(2, "0")}:${min} ${meridiem}`;
+};
+
+// Convert "HH:MM AM/PM" back to 24h "HH:MM" for native time input value
+const timeAmPmTo24 = (t: string): string => {
+  if (!t) return "";
+  const m = /^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)$/i.exec(t.trim());
+  if (!m) return "";
+  let h = parseInt(m[1], 10);
+  const min = m[2];
+  const mer = m[3].toUpperCase();
+  if (mer === "PM" && h !== 12) h += 12;
+  if (mer === "AM" && h === 12) h = 0;
+  return `${String(h).padStart(2, "0")}:${min}`;
+};
 
 interface RazorpayPaymentResponse {
   razorpay_payment_id: string;
@@ -115,6 +142,8 @@ const STEPS = [
 const OrderFormSection = () => {
   const { toast } = useToast();
   const { ref } = useScrollAnimation({ threshold: 0.1 });
+  const isMobile = useIsMobile();
+  const todayIso = new Date().toISOString().split("T")[0];
   const [formStep, setFormStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [packageType, setPackageType] = useState<"namecheck" | "single" | "premium">("single");
@@ -729,34 +758,56 @@ const OrderFormSection = () => {
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label>Date of Birth *</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button id={`person${personNum}Dob`} variant="outline"
-                className={cn("w-full mt-1.5 justify-start text-left font-normal h-10",
-                  !formData[`person${personNum}Dob` as keyof typeof formData] && "text-muted-foreground",
-                  errors[`person${personNum}Dob`] ? "border-destructive" : isFieldValid(`person${personNum}Dob`) ? "border-success" : ""
-                )}>
-                <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
-                {formData[`person${personNum}Dob` as keyof typeof formData]
-                  ? format(parse(formData[`person${personNum}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()), "dd MMM yyyy")
-                  : "Pick date of birth"}
-                {isFieldValid(`person${personNum}Dob`) && <CheckCircle2 className="w-4 h-4 text-success ml-auto" />}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single"
-                selected={formData[`person${personNum}Dob` as keyof typeof formData] ? parse(formData[`person${personNum}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()) : undefined}
-                onSelect={(date) => {
-                  if (date) {
-                    setFormData((prev) => ({ ...prev, [`person${personNum}Dob`]: formatDateToLocal(date) }));
-                    if (errors[`person${personNum}Dob`]) setErrors((prev) => { const n = { ...prev }; delete n[`person${personNum}Dob`]; return n; });
-                  }
+          <Label htmlFor={`person${personNum}Dob`}>Date of Birth *</Label>
+          {isMobile ? (
+            <div className="relative">
+              <Input
+                id={`person${personNum}Dob`}
+                type="date"
+                value={formData[`person${personNum}Dob` as keyof typeof formData] || ""}
+                max={todayIso}
+                min="1900-01-01"
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setFormData((prev) => ({ ...prev, [`person${personNum}Dob`]: v }));
+                  if (errors[`person${personNum}Dob`]) setErrors((prev) => { const n = { ...prev }; delete n[`person${personNum}Dob`]; return n; });
                 }}
-                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
-            </PopoverContent>
-          </Popover>
+                className={cn(
+                  "mt-1.5 h-12 text-base pr-9",
+                  errors[`person${personNum}Dob`] ? "border-destructive" : isFieldValid(`person${personNum}Dob`) ? "border-success" : ""
+                )}
+              />
+              {isFieldValid(`person${personNum}Dob`) && <CheckCircle2 className="w-4 h-4 text-success absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />}
+            </div>
+          ) : (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button id={`person${personNum}Dob`} variant="outline"
+                  className={cn("w-full mt-1.5 justify-start text-left font-normal h-10",
+                    !formData[`person${personNum}Dob` as keyof typeof formData] && "text-muted-foreground",
+                    errors[`person${personNum}Dob`] ? "border-destructive" : isFieldValid(`person${personNum}Dob`) ? "border-success" : ""
+                  )}>
+                  <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
+                  {formData[`person${personNum}Dob` as keyof typeof formData]
+                    ? format(parse(formData[`person${personNum}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()), "dd MMM yyyy")
+                    : "Pick date of birth"}
+                  {isFieldValid(`person${personNum}Dob`) && <CheckCircle2 className="w-4 h-4 text-success ml-auto" />}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single"
+                  selected={formData[`person${personNum}Dob` as keyof typeof formData] ? parse(formData[`person${personNum}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()) : undefined}
+                  onSelect={(date) => {
+                    if (date) {
+                      setFormData((prev) => ({ ...prev, [`person${personNum}Dob`]: formatDateToLocal(date) }));
+                      if (errors[`person${personNum}Dob`]) setErrors((prev) => { const n = { ...prev }; delete n[`person${personNum}Dob`]; return n; });
+                    }
+                  }}
+                  disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                  initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+          )}
           {errors[`person${personNum}Dob`] && <p className="text-destructive text-sm mt-1">{errors[`person${personNum}Dob`]}</p>}
         </div>
         <div>
@@ -787,42 +838,85 @@ const OrderFormSection = () => {
       {/* Child's Date of Birth & Time of Birth */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label>Child's Date of Birth (DD/MM/YYYY) *</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button id="childDob" variant="outline"
-                className={cn("w-full mt-1.5 justify-start text-left font-normal h-10",
-                  !babyFormData.childDob && "text-muted-foreground",
-                  errors.childDob ? "border-destructive" : isFieldValid("childDob") ? "border-success" : ""
-                )}>
-                <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
-                {babyFormData.childDob ? format(parse(babyFormData.childDob, "yyyy-MM-dd", new Date()), "dd/MM/yyyy") : "Pick child's date of birth"}
-                {isFieldValid("childDob") && <CheckCircle2 className="w-4 h-4 text-success ml-auto" />}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single"
-                selected={babyFormData.childDob ? parse(babyFormData.childDob, "yyyy-MM-dd", new Date()) : undefined}
-                onSelect={(date) => {
-                  if (date) {
-                    setBabyFormData((prev) => ({ ...prev, childDob: formatDateToLocal(date) }));
-                    if (errors.childDob) setErrors((prev) => { const n = { ...prev }; delete n.childDob; return n; });
-                  }
+          <Label htmlFor="childDob">Child's Date of Birth *</Label>
+          {isMobile ? (
+            <div className="relative">
+              <Input
+                id="childDob"
+                type="date"
+                value={babyFormData.childDob || ""}
+                max={todayIso}
+                min="1900-01-01"
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setBabyFormData((prev) => ({ ...prev, childDob: v }));
+                  if (errors.childDob) setErrors((prev) => { const n = { ...prev }; delete n.childDob; return n; });
                 }}
-                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
-            </PopoverContent>
-          </Popover>
+                className={cn(
+                  "mt-1.5 h-12 text-base pr-9",
+                  errors.childDob ? "border-destructive" : isFieldValid("childDob") ? "border-success" : ""
+                )}
+              />
+              {isFieldValid("childDob") && <CheckCircle2 className="w-4 h-4 text-success absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />}
+            </div>
+          ) : (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button id="childDob" variant="outline"
+                  className={cn("w-full mt-1.5 justify-start text-left font-normal h-10",
+                    !babyFormData.childDob && "text-muted-foreground",
+                    errors.childDob ? "border-destructive" : isFieldValid("childDob") ? "border-success" : ""
+                  )}>
+                  <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
+                  {babyFormData.childDob ? format(parse(babyFormData.childDob, "yyyy-MM-dd", new Date()), "dd/MM/yyyy") : "Pick child's date of birth"}
+                  {isFieldValid("childDob") && <CheckCircle2 className="w-4 h-4 text-success ml-auto" />}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single"
+                  selected={babyFormData.childDob ? parse(babyFormData.childDob, "yyyy-MM-dd", new Date()) : undefined}
+                  onSelect={(date) => {
+                    if (date) {
+                      setBabyFormData((prev) => ({ ...prev, childDob: formatDateToLocal(date) }));
+                      if (errors.childDob) setErrors((prev) => { const n = { ...prev }; delete n.childDob; return n; });
+                    }
+                  }}
+                  disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                  initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+          )}
           {errors.childDob && <p className="text-destructive text-sm mt-1">{errors.childDob}</p>}
         </div>
         <div>
-          <Label htmlFor="timeOfBirth">Exact Time of Birth (HH:MM AM/PM) *</Label>
-          <div className="relative">
-            <Input id="timeOfBirth" name="timeOfBirth" value={babyFormData.timeOfBirth} onChange={handleInputChange}
-              placeholder="e.g., 10:30 AM" required
-              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.timeOfBirth ? "border-destructive" : isFieldValid("timeOfBirth") ? "border-success" : ""}`} />
-            <ValidIcon field="timeOfBirth" />
-          </div>
+          <Label htmlFor="timeOfBirth">Exact Time of Birth *</Label>
+          {isMobile ? (
+            <div className="relative">
+              <Input
+                id="timeOfBirth"
+                type="time"
+                value={timeAmPmTo24(babyFormData.timeOfBirth)}
+                onChange={(e) => {
+                  const ampm = time24ToAmPm(e.target.value);
+                  setBabyFormData((prev) => ({ ...prev, timeOfBirth: ampm }));
+                  if (errors.timeOfBirth) setErrors((prev) => { const n = { ...prev }; delete n.timeOfBirth; return n; });
+                }}
+                required
+                className={cn(
+                  "mt-1.5 h-12 text-base pr-9",
+                  errors.timeOfBirth ? "border-destructive" : isFieldValid("timeOfBirth") ? "border-success" : ""
+                )}
+              />
+              {isFieldValid("timeOfBirth") && <CheckCircle2 className="w-4 h-4 text-success absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />}
+            </div>
+          ) : (
+            <div className="relative">
+              <Input id="timeOfBirth" name="timeOfBirth" value={babyFormData.timeOfBirth} onChange={handleInputChange}
+                placeholder="e.g., 10:30 AM" required
+                className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.timeOfBirth ? "border-destructive" : isFieldValid("timeOfBirth") ? "border-success" : ""}`} />
+              <ValidIcon field="timeOfBirth" />
+            </div>
+          )}
           {errors.timeOfBirth && <p className="text-destructive text-sm mt-1">{errors.timeOfBirth}</p>}
         </div>
       </div>

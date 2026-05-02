@@ -142,6 +142,8 @@ const STEPS = [
 const OrderFormSection = () => {
   const { toast } = useToast();
   const { ref } = useScrollAnimation({ threshold: 0.1 });
+  const isMobile = useIsMobile();
+  const todayIso = new Date().toISOString().split("T")[0];
   const [formStep, setFormStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [packageType, setPackageType] = useState<"namecheck" | "single" | "premium">("single");

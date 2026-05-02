@@ -13,6 +13,33 @@ import { useToast } from "@/hooks/use-toast";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { trackInitiateCheckout } from "@/lib/metaPixel";
 import { getPackagePrice, formatPrice } from "@/lib/packagePricing";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+// Convert 24h "HH:MM" (from native time input) to "HH:MM AM/PM"
+const time24ToAmPm = (t: string): string => {
+  if (!t) return "";
+  const m = /^(\d{1,2}):(\d{2})$/.exec(t.trim());
+  if (!m) return t;
+  let h = parseInt(m[1], 10);
+  const min = m[2];
+  const meridiem = h >= 12 ? "PM" : "AM";
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${String(h).padStart(2, "0")}:${min} ${meridiem}`;
+};
+
+// Convert "HH:MM AM/PM" back to 24h "HH:MM" for native time input value
+const timeAmPmTo24 = (t: string): string => {
+  if (!t) return "";
+  const m = /^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)$/i.exec(t.trim());
+  if (!m) return "";
+  let h = parseInt(m[1], 10);
+  const min = m[2];
+  const mer = m[3].toUpperCase();
+  if (mer === "PM" && h !== 12) h += 12;
+  if (mer === "AM" && h === 12) h = 0;
+  return `${String(h).padStart(2, "0")}:${min}`;
+};
 
 interface RazorpayPaymentResponse {
   razorpay_payment_id: string;

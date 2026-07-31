@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    
+    <!-- Critical CSS - prevent FOUC -->
+    <style>
+      html, body, #root { background-color: #F6F4FA !important; min-height: 100vh; }
+      section { background-color: #F6F4FA; }
+    </style>
+
+    <title>
+      Ankshaastra - Premium Numerology Name Correction Service | Transform Your Destiny
+    </title>
+
+    <meta
+      name="description"
+      content="Align your name's energy with your date of birth. Get personalized numerology analysis and name correction from expert Himansshu Agarwal. 5000+ reports delivered. Transform your career, relationships, and finances."
+    />
+
+    <meta
+      name="keywords"
+      content="numerology, name correction, Ankshaastra, Himansshu Agarwal, Mulank, Bhagyank, Chaldean numerology, name analysis"
+    />
+
+    <meta name="author" content="Ankshaastra" />
+
+    <!-- Google Fonts: Playfair Display + Inter (non-blocking, subset weights) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" /></noscript>
+
+    <!-- Preload LCP hero image -->
+    <link rel="preload" as="image" href="/assets/hero.webp" fetchpriority="high" />
+
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Ankshaastra - Premium Numerology Name Correction Service"
+    />
+    <meta
+      property="og:description"
+      content="Align your name's energy with your date of birth. Experience clarity, confidence, and breakthrough results with personalized numerology analysis."
+    />
+    <meta property="og:site_name" content="Ankshaastra" />
+    <meta name="google-site-verification" content="ndx6XdJlGEs23t1Mk4bGoKxBD-CAeLKIJ5f5MLHxSMQ" />
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Ankshaastra - Premium Numerology Name Correction"
+    />
+    <meta
+      name="twitter:description"
+      content="Transform your destiny with personalized numerology analysis and name correction."
+    />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://ankshaastra.com" />
+
+    <!-- Analytics loaded after page is interactive to keep first paint fast -->
+    <script>
+      (function () {
+        function loadAnalytics() {
+          // Google Tag Manager
+          (function (w, d, s, l, i) {
+            w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+            var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
+            j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+            f.parentNode.insertBefore(j, f);
+          })(window, document, 'script', 'dataLayer', 'GTM-T75GKRRV');
+
+          // Meta Pixel
+          !function (f, b, e, v, n, t, s) {
+            if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments) };
+            if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = [];
+            t = b.createElement(e); t.async = !0; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s)
+          }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+          window.fbq('init', '1151906889213802');
+          window.fbq('track', 'PageView');
+
+          // Cloudflare Web Analytics
+          var cf = document.createElement('script');
+          cf.defer = true;
+          cf.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+          cf.setAttribute('data-cf-beacon', '{"token":"a8c8fea84e2f420696ef9b1de9d6aeb7"}');
+          document.head.appendChild(cf);
+
+          // Microsoft Clarity
+          (function (c, l, a, r, i, t, y) {
+            c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
+            t = l.createElement(r);
+            t.async = 1;
+            t.src = 'https://www.clarity.ms/tag/' + i;
+            y = l.getElementsByTagName(r)[0];
+            y.parentNode.insertBefore(t, y);
+          })(window, document, 'clarity', 'script', 'x4y9tr4uwl');
+        }
+        // Defer until the browser is idle, or after load, whichever comes first
+        if ('requestIdleCallback' in window) {
+          window.addEventListener('load', function () { requestIdleCallback(loadAnalytics, { timeout: 3000 }); });
+        } else {
+          window.addEventListener('load', function () { setTimeout(loadAnalytics, 1500); });
+        }
+      })();
+    </script>
+  </head>
+
+  <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-T75GKRRV"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <noscript>
+    <img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=1151906889213802&ev=PageView&noscript=1"/>
+    </noscript>
+    <!-- End Meta Pixel Code -->
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "framework": "vite",
+
+  "rewrites": [
+    {
+      "source": "/((?!assets|favicon|robots|placeholder|_headers|_redirects|api).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

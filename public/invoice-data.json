@@ -1,0 +1,30 @@
+{
+  "company": {
+    "name": "Ankshaastra",
+    "description": "Empower Your Name",
+    "address": "Unit No. O-622, Block-E, Eye of Noida, Sector 140A, Noida-201305",
+    "phone": "9667305577",
+    "email": "social@ankshaastra.com",
+    "gstin": "09AAFFE7583B1ZD"
+  },
+  "bankDetails": {
+    "name": "Axis Bank",
+    "accountNumber": "925020055368236",
+    "ifsc": "UTIB0001837",
+    "accountHolder": "Ankshaastra Occult Experts LLP",
+    "branch": "Agra Road"
+  },
+  "upiDetails": {
+    "upiId": "razorpay.me/@ankshaastraoccultexpertsllp"
+  },
+  "notes": [
+    "Your personalized numerology report will be delivered within 24-48 hours.",
+    "Report will be sent to your registered whatsapp number / email address."
+  ],
+  "terms": [
+    "Items are non-refundable once the order is confirmed.",
+    "All prices are inclusive of taxes unless otherwise stated.",
+    "Payment must be made within the due date mentioned above.",
+    "For any queries, please contact us at social@ankshaastra.com or +91-9667305577."
+  ]
+}

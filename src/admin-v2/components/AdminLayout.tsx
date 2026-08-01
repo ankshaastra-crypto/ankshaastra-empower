@@ -4,9 +4,6 @@ import {
   LayoutDashboard, Users, Inbox, FileText, IndianRupee,
   GitBranch, BarChart3, Settings, Search, Bell, Menu, X, Sparkles, LogOut,
 } from "lucide-react";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { useFirebaseAuth } from "@/hooks/useFirebaseAuth";
 import "../theme.css";
 import CommandPalette from "./CommandPalette";
 
@@ -37,7 +34,7 @@ export default function AdminLayout() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const location = useLocation();
-  const { user } = useFirebaseAuth();
+  const user: { email?: string | null } | null = null;
   const title = TITLES[location.pathname] || "Admin";
 
   useEffect(() => {
@@ -58,7 +55,7 @@ export default function AdminLayout() {
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
-      if (auth) await signOut(auth);
+      window.location.href = "/";
     } finally {
       setLoggingOut(false);
     }

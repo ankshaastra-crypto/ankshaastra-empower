@@ -2,7 +2,6 @@ import { lazy } from "react";
 import { Route } from "react-router-dom";
 import { ToastProvider } from "./components/Toast";
 import { AdminDataProvider } from "./data/AdminDataContext";
-const ProtectedRoute = lazy(() => import("@/components/admin/ProtectedRoute"));
 const AdminLayout = lazy(() => import("./components/AdminLayout"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Clients = lazy(() => import("./pages/Clients"));
@@ -18,13 +17,11 @@ export const adminV2Routes = (
   <Route
     path="/admin/panel"
     element={
-      <ProtectedRoute>
-        <ToastProvider>
-          <AdminDataProvider>
-            <AdminLayout />
-          </AdminDataProvider>
-        </ToastProvider>
-      </ProtectedRoute>
+      <ToastProvider>
+        <AdminDataProvider>
+          <AdminLayout />
+        </AdminDataProvider>
+      </ToastProvider>
     }
   >
     <Route index element={<Dashboard />} />

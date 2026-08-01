@@ -766,7 +766,7 @@ const OrderFormSection = () => {
       )}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <Label htmlFor={`person${personNum}FirstName`}>First Name (As per Aadhar) *</Label>
+          <Label htmlFor={`person${personNum}FirstName`}>First Name *</Label>
           <div className="relative">
             <Input id={`person${personNum}FirstName`} name={`person${personNum}FirstName`}
               value={formData[`person${personNum}FirstName` as keyof typeof formData]} onChange={handleInputChange}
@@ -777,7 +777,7 @@ const OrderFormSection = () => {
           {errors[`person${personNum}FirstName`] && <p className="text-destructive text-sm mt-1">{errors[`person${personNum}FirstName`]}</p>}
         </div>
         <div>
-          <Label htmlFor={`person${personNum}MiddleName`}>Middle Name (As per Aadhar)</Label>
+          <Label htmlFor={`person${personNum}MiddleName`}>Middle Name</Label>
           <div className="relative">
             <Input id={`person${personNum}MiddleName`} name={`person${personNum}MiddleName`}
               value={formData[`person${personNum}MiddleName` as keyof typeof formData]}
@@ -793,7 +793,7 @@ const OrderFormSection = () => {
           </div>
         </div>
         <div>
-          <Label htmlFor={`person${personNum}SurName`}>Last Name (As per Aadhar) *</Label>
+          <Label htmlFor={`person${personNum}SurName`}>Last Name *</Label>
           <div className="relative">
             <Input id={`person${personNum}SurName`} name={`person${personNum}SurName`}
               value={formData[`person${personNum}SurName` as keyof typeof formData]} onChange={handleInputChange}

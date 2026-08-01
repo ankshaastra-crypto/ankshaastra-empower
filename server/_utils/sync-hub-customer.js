@@ -12,6 +12,49 @@ import { supabaseHub } from './supabase-hub.js';
 
 const SOURCE_WEBSITE = 'empower.ankshaastra.com';
 
+// FIX: this file writes the order directly into the hub's Supabase
+// `orders` table, bypassing the hub's `operations/order-ingest` API
+// entirely. That API is the only place that also triggers invoice
+// generation — a direct table insert has no equivalent, so orders created
+// here never got an automatic invoice. `triggerHubInvoice()` closes that
+// gap by calling a small dedicated hub endpoint
+// (`/api/operations/trigger-invoice`) right after the order is created,
+// using the same generate-now-else-queue logic the hub's own checkout uses.
+// Same best-effort/non-blocking philosophy as the rest of this file: if
+// this call fails, it's logged and swallowed — Empower's own
+// payment/email/WhatsApp flow must never break because of it.
+const HUB_API_BASE = (process.env.HUB_API_BASE || 'https://ankshaastra.com/api').replace(/\/$/, '');
+const HUB_API_KEY = process.env.HUB_API_KEY || process.env.OPERATIONS_API_KEY;
+
+async function triggerHubInvoice(orderId, paymentId) {
+  if (!orderId) return;
+  if (!HUB_API_KEY) {
+    console.warn('[sync-hub-customer] HUB_API_KEY not set — cannot trigger invoice generation for order:', orderId);
+    return;
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const response = await fetch(`${HUB_API_BASE}/operations/trigger-invoice`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': HUB_API_KEY,
+      },
+      body: JSON.stringify({ orderId, paymentId: paymentId || undefined }),
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeout));
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      console.error('[sync-hub-customer] trigger-invoice call failed:', response.status, text);
+    }
+  } catch (err) {
+    console.error('[sync-hub-customer] trigger-invoice call threw:', err);
+  }
+}
+
 /**
  * @param {object} params
  * @param {string} params.name           - customer full name
@@ -62,6 +105,13 @@ export async function syncOrderToHubCrm({
         console.error('[sync-hub-customer] duplicate-order check failed:', existingOrderError);
       } else if (existingOrder?.id) {
         console.log('[sync-hub-customer] Order already synced, skipping duplicate:', existingOrder.id);
+        // FIX: even on a retry where the order already exists, it may not
+        // have gotten an invoice yet (e.g. the first webhook created the
+        // order but the process died before this fix existed, or before
+        // reaching the invoice trigger below). Asking the hub to trigger
+        // invoice generation again is safe — invoice-engine.ts already
+        // no-ops if a deliverable invoice already exists for this order.
+        await triggerHubInvoice(existingOrder.id, transactionId);
         return { customerId: existingOrder.customer_id, orderId: existingOrder.id };
       }
     } catch (err) {
@@ -176,6 +226,9 @@ export async function syncOrderToHubCrm({
     } else {
       orderId = order.id;
       console.log('[sync-hub-customer] Order synced to hub CRM:', orderId);
+      // FIX: this is the missing step — nothing previously told the hub to
+      // generate an invoice for this order.
+      await triggerHubInvoice(orderId, transactionId);
     }
   } catch (err) {
     console.error('[sync-hub-customer] unexpected error inserting order:', err);

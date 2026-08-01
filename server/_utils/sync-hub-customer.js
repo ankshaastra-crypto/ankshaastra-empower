@@ -35,7 +35,15 @@ async function triggerHubInvoice(orderId, paymentId) {
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+    // FIX: was 15000ms — too short. Invoice generation on the hub does PDF
+    // creation + storage upload + QR code + customer email + admin email,
+    // all synchronously before responding. Observed real completion time
+    // was ~23s, so the old 15s timeout was aborting requests that would
+    // have succeeded — the invoice may have still been created on the hub
+    // even though this call reported failure, since aborting the client
+    // fetch doesn't necessarily stop the hub's serverless function from
+    // finishing its work.
+    const timeout = setTimeout(() => controller.abort(), 45000);
     const response = await fetch(`${HUB_API_BASE}/operations/trigger-invoice`, {
       method: 'POST',
       headers: {

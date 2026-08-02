@@ -2,7 +2,7 @@
 import './suppress-deprecation.js';
 
 import nodemailer from 'nodemailer';
-import { recordEmailDelivery, isEmailSent } from './db.js';
+import { tryReserveEmailSend, markEmailSent, releaseEmailReservation } from './db.js';
 import { getPackageDisplayName } from './package-names.js';
 
 // Reuse transporter instance (singleton pattern) for better performance
@@ -10,12 +10,10 @@ let transporterInstance = null;
 
 // Create SMTP transporter (singleton) - internal use only
 const getTransporter = () => {
-  // Validate SMTP configuration before creating transporter
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
     throw new Error('SMTP configuration is missing. Please check your environment variables (SMTP_HOST, SMTP_USER, SMTP_PASSWORD).');
   }
 
-  // Recreate transporter if config has changed or if it doesn't exist
   const currentConfig = {
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT || '587'),
@@ -23,12 +21,11 @@ const getTransporter = () => {
     pass: process.env.SMTP_PASSWORD,
   };
 
-  // Check if we need to recreate the transporter (config changed or doesn't exist)
   if (!transporterInstance) {
     const config = {
       host: currentConfig.host,
       port: currentConfig.port,
-      secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+      secure: process.env.SMTP_SECURE === 'true',
       auth: {
         user: currentConfig.user,
         pass: currentConfig.pass,
@@ -36,13 +33,13 @@ const getTransporter = () => {
       tls: {
         rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED !== 'false',
       },
-      pool: true, // Use connection pooling
-      maxConnections: 5, // Maximum number of connections
-      maxMessages: 100, // Maximum messages per connection
-      rateDelta: 1000, // Time window for rate limiting (ms)
-      rateLimit: 5, // Maximum messages per rateDelta
+      pool: true,
+      maxConnections: 5,
+      maxMessages: 100,
+      rateDelta: 1000,
+      rateLimit: 5,
     };
-    
+
     console.log('📧 Creating SMTP transporter with config:', {
       host: config.host,
       port: config.port,
@@ -50,18 +47,18 @@ const getTransporter = () => {
       user: config.auth.user,
       hasPassword: !!config.auth.pass,
     });
-    
+
     transporterInstance = nodemailer.createTransport(config);
   }
-  
+
   return transporterInstance;
 };
 
-export async function sendPaymentEmail({ 
-  to, 
-  customerEmail, 
+export async function sendPaymentEmail({
+  to,
+  customerEmail,
   orderId,
-  customerName, 
+  customerName,
   customerMobile = '',
   customerDob = '',
   customerGender = '',
@@ -101,9 +98,9 @@ export async function sendPaymentEmail({
   timeOfBirth = '',
   placeOfBirth = '',
   pinCode = '',
-  amount, 
-  packageType, 
-  status, 
+  amount,
+  packageType,
+  status,
   transactionId,
   invoicePdfBuffer = null,
 }) {
@@ -111,23 +108,31 @@ export async function sendPaymentEmail({
   let customerAlreadySent = false;
   let adminAlreadySent = false;
 
-  // ─── DEDUPLICATION CHECK ─────────────────────────────────────────────────
-  // One email per order per recipient — prevents double-send from webhook + status
-  // without blocking admin retries when only the customer email was sent.
-  try {
-    customerAlreadySent = await isEmailSent(customerEmail, orderId);
-    adminAlreadySent = await isEmailSent(adminEmail, orderId);
-    if (customerAlreadySent && adminAlreadySent) {
-      console.log(`⏭️  Emails already sent for order ${orderId} — skipping`);
-      return { success: true, skipped: true, reason: 'already_sent' };
-    }
-  } catch (dedupErr) {
-    // DB check failed — log and continue (better to send than silently drop)
-    console.warn('⚠️  Dedup check failed (sending anyway):', dedupErr.message);
+  // ─── DEDUPLICATION — ATOMIC RESERVE-THEN-SEND ────────────────────────────
+  // FIX (per client request 2026-08-02): previously this did a plain
+  // SELECT-based check (isEmailSent) before sending, and only recorded the
+  // "sent" row AFTER sending. If sendPaymentEmail() was invoked more than
+  // once for the same order in quick succession (webhook + payment-status,
+  // or a Razorpay webhook retry), every concurrent call could pass the
+  // SELECT check before any of them finished recording — so all of them
+  // sent, which is why the admin inbox got the same order 3 times.
+  //
+  // tryReserveEmailSend() does an atomic INSERT (guarded by the existing
+  // UNIQUE(email, order_id) constraint) BEFORE anything is sent. Only the
+  // call whose INSERT actually succeeds is allowed to send; every other
+  // concurrent call sees the conflict and skips. No race window remains.
+  const customerReserved = await tryReserveEmailSend(customerEmail, orderId);
+  const adminReserved = await tryReserveEmailSend(adminEmail, orderId);
+  customerAlreadySent = !customerReserved;
+  adminAlreadySent = !adminReserved;
+
+  if (!customerReserved && !adminReserved) {
+    console.log(`⏭️  Emails already reserved/sent for order ${orderId} — skipping`);
+    return { success: true, skipped: true, reason: 'already_sent' };
   }
+
   const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';
 
-  
   // Normalize values
   const finalCustomerMobile = (customerMobile && customerMobile.toString().trim()) || '';
   const finalCustomerDob = (customerDob && customerDob.toString().trim()) || '';
@@ -154,8 +159,7 @@ export async function sendPaymentEmail({
   const finalPerson3Dob = (person3Dob && person3Dob.toString().trim()) || '';
   const finalPerson3Gender = (person3Gender && person3Gender.toString().trim()) || '';
   const finalPerson3MiddleNameType = (person3MiddleNameType && person3MiddleNameType.toString().trim()) || '';
-  
-  // Baby report specific fields
+
   const finalFatherFirstName = (fatherFirstName && fatherFirstName.toString().trim()) || '';
   const finalFatherMiddleName = (fatherMiddleName && fatherMiddleName.toString().trim()) || '';
   const finalFatherMiddleNameType = (fatherMiddleNameType && fatherMiddleNameType.toString().trim()) || '';
@@ -170,8 +174,7 @@ export async function sendPaymentEmail({
   const finalTimeOfBirth = (timeOfBirth && timeOfBirth.toString().trim()) || '';
   const finalPlaceOfBirth = (placeOfBirth && placeOfBirth.toString().trim()) || '';
   const finalPinCode = (pinCode && pinCode.toString().trim()) || '';
-  
-  // Validate required parameters
+
   if (!customerEmail || !orderId) {
     console.error('❌ Missing required parameters for email');
     return {
@@ -180,7 +183,6 @@ export async function sendPaymentEmail({
     };
   }
 
-  // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(customerEmail)) {
     console.error('❌ Invalid customer email format');
@@ -189,7 +191,7 @@ export async function sendPaymentEmail({
       error: `Invalid customer email format: ${customerEmail}`,
     };
   }
-  
+
   if (!emailRegex.test(adminEmail)) {
     console.error('❌ Invalid admin email format');
     return {
@@ -198,7 +200,6 @@ export async function sendPaymentEmail({
     };
   }
 
-  // Validate FROM_EMAIL format (should be either "email@domain.com" or "Name <email@domain.com>")
   const fromEmailRegex = /^(.+?)\s*<(.+?)>$|^(.+?)$/;
   const fromEmailMatch = fromEmail.match(fromEmailRegex);
   const actualFromEmail = fromEmailMatch ? (fromEmailMatch[2] || fromEmailMatch[3] || fromEmailMatch[1]) : fromEmail;
@@ -210,7 +211,6 @@ export async function sendPaymentEmail({
     };
   }
 
-  // Validate SMTP configuration
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
     console.error('❌ SMTP configuration is missing');
     console.error('Missing variables:', {
@@ -229,23 +229,17 @@ export async function sendPaymentEmail({
     };
   }
 
-  // Determine package name based on packageType
   const packageName = getPackageDisplayName(packageType);
-  // Amount is expected in paise (smallest currency unit), convert to rupees for display
-  // Handle edge case where amount might be 0 or undefined
   const amountInRupees = amount && amount > 0 ? amount / 100 : 0;
   const amountFormatted = `₹${amountInRupees.toLocaleString('en-IN')}`;
-  
-  // Customer email template
-  const customerSubject = status === 'SUCCESS' 
+
+  const customerSubject = status === 'SUCCESS'
     ? `Payment Successful - Order ${orderId}`
     : `Payment Failed - Order ${orderId}`;
 
-
-  // GST calculation - prices are GST-INCLUSIVE, back-calculate subtotal
   const pin = parseInt(finalPinCode || '0', 10);
   const isIntraState = pin >= 200000 && pin <= 289999;
-  const totalWithGst = amountInRupees; // amount paid = GST-inclusive
+  const totalWithGst = amountInRupees;
   const subtotal = +(totalWithGst / 1.18).toFixed(2);
   const cgstRate = isIntraState ? 9 : 0;
   const sgstRate = isIntraState ? 9 : 0;
@@ -256,7 +250,6 @@ export async function sendPaymentEmail({
   const subtotalFormatted = `₹${subtotal.toLocaleString('en-IN')}`;
   const totalWithGstFormatted = `₹${totalWithGst.toLocaleString('en-IN')}`;
 
-  // GST breakdown rows for invoice
   const gstBreakdownHtml = isIntraState
     ? `
       <tr><td style="padding: 5px 10px; font-size: 12px; text-align: right;" colspan="3">CGST (${cgstRate}%):</td><td style="padding: 5px 10px; font-size: 12px; text-align: right;">₹${cgstAmount.toLocaleString('en-IN')}</td></tr>
@@ -266,11 +259,10 @@ export async function sendPaymentEmail({
       <tr><td style="padding: 5px 10px; font-size: 12px; text-align: right;" colspan="3">IGST (${igstRate}%):</td><td style="padding: 5px 10px; font-size: 12px; text-align: right;">₹${igstAmount.toLocaleString('en-IN')}</td></tr>
     `;
 
-  // Build invoice HTML section for customer success email
   const invoiceHtml = `
     <div style="margin-top: 30px; border-top: 2px solid #C9A84C; padding-top: 20px;">
       <h2 style="color: #2E1A47; text-align: center; margin-bottom: 20px; font-size: 20px;">TAX INVOICE</h2>
-      
+
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
         <tr>
           <td style="padding: 8px 0; vertical-align: top; width: 50%;">
@@ -338,7 +330,7 @@ export async function sendPaymentEmail({
     </div>
   `;
 
-  const customerHtml = status === 'SUCCESS' 
+  const customerHtml = status === 'SUCCESS'
     ? `
       <!DOCTYPE html>
       <html>
@@ -363,7 +355,7 @@ export async function sendPaymentEmail({
             <div class="success-badge">✓ Payment Confirmed</div>
             <p>Dear ${customerName || 'Valued Customer'},</p>
             <p>Thank you for your purchase! Your payment has been successfully processed.</p>
-            
+
             <div class="details">
               <div class="detail-row">
                 <strong>Order ID:</strong>
@@ -385,7 +377,7 @@ export async function sendPaymentEmail({
 
             <p>Your personalized numerology report will be delivered to this email address within 24-48 hours.</p>
             <p>If you have any questions, please contact us at <a href="tel:9667305577">9667305577</a>.</p>
-            
+
             ${invoiceHtml}
 
             <div class="footer">
@@ -420,7 +412,7 @@ export async function sendPaymentEmail({
             <div class="error-badge">✗ Payment Unsuccessful</div>
             <p>Dear ${customerName || 'Valued Customer'},</p>
             <p>We're sorry, but your payment could not be processed.</p>
-            
+
             <div class="details">
               <div class="detail-row">
                 <strong>Order ID:</strong>
@@ -437,7 +429,7 @@ export async function sendPaymentEmail({
             </div>
 
             <p>Please try again or contact us at <a href="tel:9667305577">9667305577</a> for assistance.</p>
-            
+
             <div class="footer">
               <p>Thank you for your interest in Ankshaastra!</p>
             ${invoiceHtml}
@@ -448,39 +440,32 @@ export async function sendPaymentEmail({
   </html>
   `;
 
-  // Admin email template
   const adminSubject = `Payment ${status === 'SUCCESS' ? 'Success' : 'Failed'} - Order ${orderId}`;
-  
-  // Format DOB for display (never use N/A for email content)
+
   const formatDob = (dob) => {
     if (!dob || dob.trim() === '') return 'Not provided';
     try {
       const date = new Date(dob);
-      if (isNaN(date.getTime())) return dob; // If invalid date, return as-is
+      if (isNaN(date.getTime())) return dob;
       return date.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' });
     } catch {
       return dob || 'Not provided';
     }
   };
 
-  // Helper to check if value exists
   const hasValue = (value) => {
     return value && value.toString().trim() !== '';
   };
 
-  // Build customer details section
   let customerDetailsHtml = '';
-  
-  // Determine number of persons based on package type
-  let personCount = 1; // Default to 1 person
-  
+
+  let personCount = 1;
+
   if (packageType && packageType.startsWith('namecheck-')) {
-    // Extract count from namecheck-1, namecheck-2, namecheck-3
     const countStr = packageType.split('-')[1] || '1';
     personCount = parseInt(countStr, 10) || 1;
   }
-  
-  // Helper: build name section - show First, Middle, Last as separate fields when available
+
   const buildNameSection = (firstName, middleName, surName, fullName) => {
     const hasParts = hasValue(firstName) || hasValue(middleName) || hasValue(surName);
     if (hasParts) {
@@ -494,13 +479,12 @@ export async function sendPaymentEmail({
   };
 
   if (personCount > 1) {
-    // Multiple persons - show each person with First, Middle, Last Name separately
     const persons = [
       { firstName: finalPerson1FirstName, middleName: finalPerson1MiddleName, surName: finalPerson1SurName, name: finalPerson1Name, dob: finalPerson1Dob, gender: finalPerson1Gender, middleNameType: finalPerson1MiddleNameType },
       { firstName: finalPerson2FirstName, middleName: finalPerson2MiddleName, surName: finalPerson2SurName, name: finalPerson2Name, dob: finalPerson2Dob, gender: finalPerson2Gender, middleNameType: finalPerson2MiddleNameType },
       { firstName: finalPerson3FirstName, middleName: finalPerson3MiddleName, surName: finalPerson3SurName, name: finalPerson3Name, dob: finalPerson3Dob, gender: finalPerson3Gender, middleNameType: finalPerson3MiddleNameType },
     ];
-    
+
     customerDetailsHtml = persons
       .slice(0, personCount)
       .map((person, index) => `
@@ -524,8 +508,7 @@ export async function sendPaymentEmail({
         </div>
       `)
       .join('');
-   } else if (packageType === 'single' || packageType === 'premium' || packageType === 'baby_name') {
-    // Baby Name Report / Premium - show baby-specific details
+  } else if (packageType === 'single' || packageType === 'premium' || packageType === 'baby_name') {
     customerDetailsHtml = `
       <div class="detail-row">
         <strong>Father's Full Name:</strong>
@@ -589,7 +572,6 @@ export async function sendPaymentEmail({
       ` : ''}
     `;
   } else {
-    // Single person Name Check - show First, Middle, Last Name separately when available
     customerDetailsHtml = `
       ${buildNameSection(finalPerson1FirstName, finalPerson1MiddleName, finalPerson1SurName, finalPerson1Name)}
       <div class="detail-row">
@@ -608,8 +590,7 @@ export async function sendPaymentEmail({
       ` : ''}
     `;
   }
-  
-  // Build WhatsApp-style full summary for admin email
+
   const buildAdminSummary = () => {
     const isBaby = packageType === 'single' || packageType === 'premium';
     let details = '';
@@ -697,8 +678,7 @@ export async function sendPaymentEmail({
 
   try {
     console.log(`📧 Starting email sending process for order: ${orderId}`);
-    
-    // Get transporter - this will throw if config is missing
+
     let transporter;
     try {
       transporter = getTransporter();
@@ -713,7 +693,6 @@ export async function sendPaymentEmail({
       };
     }
 
-    // Verify SMTP connection before sending
     try {
       console.log(`🔍 Verifying SMTP connection...`);
       await transporter.verify();
@@ -744,44 +723,37 @@ export async function sendPaymentEmail({
     let customerEmailResult = null;
     let customerError = null;
     let customerSuccess = customerAlreadySent;
-    
+
     try {
       if (customerAlreadySent) {
-        console.log(`⏭️  Customer email already sent for ${orderId} → ${customerEmail}`);
+        console.log(`⏭️  Customer email already reserved/sent for ${orderId} → ${customerEmail}`);
       } else {
-      // Prepare email options
-      const customerMailOptions = {
-        from: fromEmail,
-        to: customerEmail,
-        subject: customerSubject,
-        html: customerHtml,
-      };
+        const customerMailOptions = {
+          from: fromEmail,
+          to: customerEmail,
+          subject: customerSubject,
+          html: customerHtml,
+        };
 
-      // Attach invoice PDF if available
-      if (invoicePdfBuffer && status === 'SUCCESS') {
-        customerMailOptions.attachments = [{
-          filename: `Invoice_${orderId}.pdf`,
-          content: invoicePdfBuffer,
-          contentType: 'application/pdf',
-        }];
-      }
-
-      customerEmailResult = await transporter.sendMail(customerMailOptions);
-      
-      // Validate that we got a valid response
-      if (customerEmailResult && customerEmailResult.messageId) {
-        customerSuccess = true;
-        console.log(`✅ Customer email sent successfully! Message ID: ${customerEmailResult.messageId}`);
-        try {
-          const { recordEmailDelivery } = await import('./db.js');
-          await recordEmailDelivery(customerEmail, orderId, 'sent');
-        } catch {
-          /* non-fatal */
+        if (invoicePdfBuffer && status === 'SUCCESS') {
+          customerMailOptions.attachments = [{
+            filename: `Invoice_${orderId}.pdf`,
+            content: invoicePdfBuffer,
+            contentType: 'application/pdf',
+          }];
         }
-      } else {
-        customerError = new Error("Email sent but no messageId returned");
-        console.error("❌ Customer email sent but invalid response");
-      }
+
+        customerEmailResult = await transporter.sendMail(customerMailOptions);
+
+        if (customerEmailResult && customerEmailResult.messageId) {
+          customerSuccess = true;
+          console.log(`✅ Customer email sent successfully! Message ID: ${customerEmailResult.messageId}`);
+          await markEmailSent(customerEmail, orderId);
+        } else {
+          customerError = new Error("Email sent but no messageId returned");
+          console.error("❌ Customer email sent but invalid response");
+          await releaseEmailReservation(customerEmail, orderId).catch(() => {});
+        }
       }
     } catch (customerErr) {
       customerError = customerErr;
@@ -792,50 +764,46 @@ export async function sendPaymentEmail({
         responseCode: customerErr.responseCode,
         message: customerErr.message
       });
+      // Release the reservation so a future retry isn't permanently blocked.
+      await releaseEmailReservation(customerEmail, orderId).catch(() => {});
     }
 
     // Send email to admin
-console.log(`📧 Admin email prepared for orderId: ${orderId}, to: ${adminEmail}`);
+    console.log(`📧 Admin email prepared for orderId: ${orderId}, to: ${adminEmail}`);
     let adminEmailResult = null;
     let adminError = null;
     let adminSuccess = adminAlreadySent;
-    
+
     try {
       if (adminAlreadySent) {
-        console.log(`⏭️  Admin email already sent for ${orderId} → ${adminEmail}`);
+        console.log(`⏭️  Admin email already reserved/sent for ${orderId} → ${adminEmail}`);
       } else {
-      const adminMailOptions = {
-        from: fromEmail,
-        to: adminEmail,
-        subject: adminSubject,
-        html: adminHtml,
-      };
+        const adminMailOptions = {
+          from: fromEmail,
+          to: adminEmail,
+          subject: adminSubject,
+          html: adminHtml,
+        };
 
-      // Attach invoice PDF if available
-      if (invoicePdfBuffer && status === 'SUCCESS') {
-        adminMailOptions.attachments = [{
-          filename: `Invoice_${orderId}.pdf`,
-          content: invoicePdfBuffer,
-          contentType: 'application/pdf',
-        }];
-      }
-
-      adminEmailResult = await transporter.sendMail(adminMailOptions);
-      
-      // Validate that we got a valid response
-      if (adminEmailResult && adminEmailResult.messageId) {
-        adminSuccess = true;
-        console.log(`✅ Admin email sent successfully! Message ID: ${adminEmailResult.messageId}`);
-        try {
-          const { recordEmailDelivery } = await import('./db.js');
-          await recordEmailDelivery(adminEmail, orderId, 'sent');
-        } catch {
-          /* non-fatal */
+        if (invoicePdfBuffer && status === 'SUCCESS') {
+          adminMailOptions.attachments = [{
+            filename: `Invoice_${orderId}.pdf`,
+            content: invoicePdfBuffer,
+            contentType: 'application/pdf',
+          }];
         }
-      } else {
-        adminError = new Error("Email sent but no messageId returned");
-        console.error("❌ Admin email sent but invalid response");
-      }
+
+        adminEmailResult = await transporter.sendMail(adminMailOptions);
+
+        if (adminEmailResult && adminEmailResult.messageId) {
+          adminSuccess = true;
+          console.log(`✅ Admin email sent successfully! Message ID: ${adminEmailResult.messageId}`);
+          await markEmailSent(adminEmail, orderId);
+        } else {
+          adminError = new Error("Email sent but no messageId returned");
+          console.error("❌ Admin email sent but invalid response");
+          await releaseEmailReservation(adminEmail, orderId).catch(() => {});
+        }
       }
     } catch (adminErr) {
       adminError = adminErr;
@@ -846,18 +814,18 @@ console.log(`📧 Admin email prepared for orderId: ${orderId}, to: ${adminEmail
         responseCode: adminErr.responseCode,
         message: adminErr.message
       });
+      await releaseEmailReservation(adminEmail, orderId).catch(() => {});
     }
 
     console.log(`📊 Email sending summary - Customer: ${customerSuccess ? '✅' : '❌'}, Admin: ${adminSuccess ? '✅' : '❌'}`);
 
-    // Check if both emails were sent successfully
     if (!customerSuccess && !adminSuccess) {
-      const errorMsg = customerError && adminError 
+      const errorMsg = customerError && adminError
         ? `Both emails failed: Customer - ${customerError.message}, Admin - ${adminError.message}`
-        : customerError 
+        : customerError
           ? `Both emails failed: Customer - ${customerError.message}`
           : `Both emails failed: Admin - ${adminError.message}`;
-      
+
       console.error("❌ Both emails failed to send");
       return {
         success: false,
@@ -901,7 +869,6 @@ console.log(`📧 Admin email prepared for orderId: ${orderId}, to: ${adminEmail
       };
     }
 
-    // Both emails sent successfully
     return {
       success: true,
       customerMessageId: customerEmailResult?.messageId || null,
@@ -915,8 +882,7 @@ console.log(`📧 Admin email prepared for orderId: ${orderId}, to: ${adminEmail
       code: error.code,
       responseCode: error.responseCode
     });
-    
-    // Provide more helpful error messages
+
     let errorMessage = error.message;
     if (error.code === 'EAUTH') {
       if (error.responseCode === 535) {
@@ -929,7 +895,7 @@ console.log(`📧 Admin email prepared for orderId: ${orderId}, to: ${adminEmail
     } else if (error.code === 'ETIMEDOUT') {
       errorMessage = 'SMTP connection timeout. Please check your network and SMTP server settings.';
     }
-    
+
     return {
       success: false,
       error: errorMessage,

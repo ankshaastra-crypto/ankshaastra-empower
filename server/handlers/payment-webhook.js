@@ -947,9 +947,6 @@
 import '../_utils/suppress-deprecation.js';
 
 import crypto from 'node:crypto';
-import { sendPaymentEmail } from '../_utils/send-email.js';
-import { getOrderFull } from '../_utils/db.js';
-import { generateInvoicePDF } from '../_utils/supabase-server.js';
 import { rateLimiter } from '../_utils/rate-limiter.js';
 import { sendWhatsAppNotification } from '../_utils/send-whatsapp.js';
 
@@ -1277,89 +1274,13 @@ export default async function handler(req, res) {
       }
     }
 
-    // Generate PDF (SUCCESS only) — store on Supabase, attach to email
-    let invoicePdfBuffer = null;
-    if (status === 'SUCCESS') {
-      try {
-        // Ensure order exists in DB before generating invoice
-        const orderData = await getOrderFull(orderId);
-        if (orderData) {
-          console.log(`📄 Generating invoice PDF for order: ${orderId}`);
-          invoicePdfBuffer = await generateInvoicePDF(orderId, {
-            customerName: finalCustomerName,
-            customerEmail: finalCustomerEmail,
-            customerMobile: finalCustomerMobile,
-            customerCity: finalCustomerCity,
-            pinCode: finalPinCode,
-            packageType: finalPackageType,
-            transactionId,
-            amount: paymentAmount / 100,
-          });
-          console.log(`✅ Invoice PDF generated — ${invoicePdfBuffer?.length} bytes`);
-        } else {
-          console.warn(`⚠️  Order ${orderId} not found in DB — skipping PDF generation`);
-        }
-      } catch (pdfError) {
-        console.error(`❌ PDF generation failed for ${orderId}:`, pdfError.message);
-        // Non-fatal: emails still send, just without attachment
-      }
-    }
-
-    // Send confirmation emails (customer + admin) — only if email available
-    // Dedup check inside sendPaymentEmail prevents double-send with payment-status
-    let emailResult = { success: true, skipped: true };
-    if (finalCustomerEmail && status === 'SUCCESS') {
-      console.log(`📧 Webhook sending emails for order ${orderId} — customer: ${finalCustomerEmail}`);
-      emailResult = await sendPaymentEmail({
-        customerEmail:   finalCustomerEmail,
-        orderId,
-        customerName:    finalCustomerName,
-        customerMobile:  finalCustomerMobile,
-        customerDob:     finalCustomerDob,
-        customerGender:  finalCustomerGender,
-        customerCity:    finalCustomerCity,
-        person1Name:           finalPerson1Name,
-        person1FirstName:      finalPerson1FirstName,
-        person1MiddleName:     finalPerson1MiddleName,
-        person1SurName:        finalPerson1SurName,
-        person1Dob:            finalPerson1Dob,
-        person1Gender:         finalPerson1Gender,
-        person1MiddleNameType: finalPerson1MiddleNameType,
-        person2Name:           finalPerson2Name,
-        person2FirstName:      finalPerson2FirstName,
-        person2MiddleName:     finalPerson2MiddleName,
-        person2SurName:        finalPerson2SurName,
-        person2Dob:            finalPerson2Dob,
-        person2Gender:         finalPerson2Gender,
-        person2MiddleNameType: finalPerson2MiddleNameType,
-        person3Name:           finalPerson3Name,
-        person3FirstName:      finalPerson3FirstName,
-        person3MiddleName:     finalPerson3MiddleName,
-        person3SurName:        finalPerson3SurName,
-        person3Dob:            finalPerson3Dob,
-        person3Gender:         finalPerson3Gender,
-        person3MiddleNameType: finalPerson3MiddleNameType,
-        fatherFirstName:            finalFatherFirstName,
-        fatherMiddleName:           finalFatherMiddleName,
-        fatherMiddleNameType:       finalFatherMiddleNameType,
-        fatherLastName:             finalFatherLastName,
-        fatherFullName:             finalFatherFullName,
-        childMiddleName:            finalChildMiddleName,
-        childLastName:              finalChildLastName,
-        fatherFirstNameAsMiddleName: finalFatherFirstNameAsMiddleName,
-        lastNameSpellingChangeOk:    finalLastNameSpellingChangeOk,
-        nameOptions:                finalNameOptions,
-        childDob:                   finalChildDob,
-        timeOfBirth:                finalTimeOfBirth,
-        placeOfBirth:               finalPlaceOfBirth,
-        pinCode:                    finalPinCode,
-        amount:        paymentAmount,
-        packageType:   finalPackageType,
-        status,
-        transactionId: transactionId || '',
-        invoicePdfBuffer,
-      });
-    }
+    // Empower's own PDF-generation + email-sending (sendPaymentEmail) has
+    // been removed here. Now that Empower is connected to the Ankshaastra
+    // hub, the hub's CRM sync (above) generates its own invoice and sends
+    // its own confirmation email — sending both was producing 2 emails per
+    // order. This stub keeps the response JSON shape unchanged for any
+    // caller that reads `email.*` fields.
+    const emailResult = { success: true, skipped: true, reason: 'disabled: hub CRM email replaces this' };
 
     // Always send WhatsApp notifications when payment succeeds, even if email metadata is incomplete
     if (status === 'SUCCESS') {

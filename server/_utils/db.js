@@ -1,3 +1,81 @@
+// ─── reserveEmailSend ───────────────────────────────────────────────────────
+// Atomically claims the right to send this email for this order, using the
+// existing UNIQUE(email, order_id) constraint on emailDelivery.
+//
+// FIX: isEmailSent() + recordEmailDelivery() (called after sending) is a
+// check-then-act pattern with no locking — if sendPaymentEmail() is called
+// concurrently (webhook retry, or multiple trigger paths hitting the same
+// order close together), every call can pass the "not sent yet" check
+// before any of them finishes recording, so all of them send. That's what
+// caused the same invoice email going out 3 times.
+//
+// This closes the gap: the INSERT is the lock. Only ONE concurrent caller
+// can successfully insert a given (email, order_id) row — Postgres
+// guarantees that at the constraint level, not just in application code.
+// Everyone else's INSERT hits the UNIQUE constraint and is turned into a
+// no-op by ON CONFLICT DO NOTHING, so `rowCount` tells you definitively
+// whether YOU are the one who should send.
+//
+// Usage (replaces the old isEmailSent(...) check before sending):
+//   const claimed = await reserveEmailSend(email, orderId);
+//   if (!claimed) return; // someone else already sent/is sending it
+//   ...send the email...
+//   // no separate recordEmailDelivery() call needed for the success case —
+//   // the reservation row IS the sent record. Call markEmailFailed() below
+//   // only if the send throws, so a genuine failure can be retried later.
+export async function reserveEmailSend(email, orderId) {
+  const p = getPool();
+  if (!p || !email || !orderId) return false;
+  await ensureSchemaOnce();
+  try {
+    // ON CONFLICT ... DO UPDATE with a WHERE guard (rather than DO NOTHING)
+    // so this doubles as a safe retry path: if the existing row is
+    // 'failed', this claims it again and updates it to 'sent'; if the
+    // existing row is already 'sent', the WHERE clause doesn't match, no
+    // update happens, and RETURNING yields nothing — so `rowCount` still
+    // tells you definitively whether you're the one who should send.
+    const result = await p.query(
+      `INSERT INTO ${DB_SCHEMA}."emailDelivery" (email, order_id, status, sent_at)
+       VALUES ($1, $2, 'sent', NOW())
+       ON CONFLICT (email, order_id) DO UPDATE
+         SET status = 'sent', sent_at = NOW()
+         WHERE ${DB_SCHEMA}."emailDelivery".status = 'failed'
+       RETURNING id`,
+      [email, orderId]
+    );
+    return result.rowCount > 0;
+  } catch (error) {
+    console.error('reserveEmailSend error:', error.message);
+    // Fail closed on error: if we can't confirm the reservation, don't send
+    // — better to risk a rare missed email (retried by whatever caller
+    // triggers next) than to reintroduce the duplicate-send bug.
+    return false;
+  }
+}
+
+// ─── markEmailFailed ────────────────────────────────────────────────────────
+// Call this if reserveEmailSend() returned true but the actual send then
+// threw an error — flips the reservation to 'failed' so a later retry isn't
+// permanently blocked by ON CONFLICT DO NOTHING (which only skips rows that
+// are already there; it doesn't distinguish sent vs. failed on its own).
+export async function markEmailFailed(email, orderId) {
+  const p = getPool();
+  if (!p || !email || !orderId) return false;
+  try {
+    await p.query(
+      `UPDATE ${DB_SCHEMA}."emailDelivery"
+       SET status = 'failed'
+       WHERE email = $1 AND order_id = $2 AND status = 'sent'`,
+      [email, orderId]
+    );
+    return true;
+  } catch (error) {
+    console.error('markEmailFailed error:', error.message);
+    return false;
+  }
+}
+
+
 // api/_utils/db.js
 import './suppress-deprecation.js';
 import pg from 'pg';

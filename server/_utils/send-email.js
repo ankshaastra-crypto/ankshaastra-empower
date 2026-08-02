@@ -2,7 +2,7 @@
 import './suppress-deprecation.js';
 
 import nodemailer from 'nodemailer';
-import { recordEmailDelivery, isEmailSent } from './db.js';
+import { reserveEmailSend, markEmailFailed } from './db.js';
 import { getPackageDisplayName } from './package-names.js';
 
 // Reuse transporter instance (singleton pattern) for better performance
@@ -108,23 +108,38 @@ export async function sendPaymentEmail({
   invoicePdfBuffer = null,
 }) {
   const adminEmail = process.env.ADMIN_EMAIL || 'social@ankshaastra.com';
-  let customerAlreadySent = false;
-  let adminAlreadySent = false;
 
-  // ─── DEDUPLICATION CHECK ─────────────────────────────────────────────────
-  // One email per order per recipient — prevents double-send from webhook + status
-  // without blocking admin retries when only the customer email was sent.
+  // ─── ATOMIC DEDUPLICATION (reserve-then-send) ─────────────────────────────
+  // FIX: this used to be a plain check (isEmailSent) with no locking — if
+  // this function is called concurrently for the same order (webhook retry,
+  // multiple trigger paths racing each other), every call could pass the
+  // "not sent yet" check before any of them finished recording a delivery,
+  // so all of them sent. That's what caused the same invoice email going
+  // out 3 times to admin.
+  // reserveEmailSend() closes that window: the INSERT itself is the lock,
+  // enforced by Postgres's UNIQUE(email, order_id) constraint on
+  // emailDelivery — only one concurrent caller can ever be told "yes,
+  // you're the one who should send" for a given recipient+order. Everyone
+  // else gets false and skips.
+  let customerClaimed = false;
+  let adminClaimed = false;
   try {
-    customerAlreadySent = await isEmailSent(customerEmail, orderId);
-    adminAlreadySent = await isEmailSent(adminEmail, orderId);
-    if (customerAlreadySent && adminAlreadySent) {
+    customerClaimed = await reserveEmailSend(customerEmail, orderId);
+    adminClaimed = await reserveEmailSend(adminEmail, orderId);
+    if (!customerClaimed && !adminClaimed) {
       console.log(`⏭️  Emails already sent for order ${orderId} — skipping`);
       return { success: true, skipped: true, reason: 'already_sent' };
     }
   } catch (dedupErr) {
     // DB check failed — log and continue (better to send than silently drop)
-    console.warn('⚠️  Dedup check failed (sending anyway):', dedupErr.message);
+    console.warn('⚠️  Dedup reservation failed (sending anyway):', dedupErr.message);
+    customerClaimed = true;
+    adminClaimed = true;
   }
+  // The rest of this function still reads "already sent → skip" semantics —
+  // keep those variable names so nothing else below needs to change.
+  const customerAlreadySent = !customerClaimed;
+  const adminAlreadySent = !adminClaimed;
   const fromEmail = process.env.FROM_EMAIL || 'Ankshaastra <noreply@ankshaastra.com>';
 
   
@@ -772,12 +787,8 @@ export async function sendPaymentEmail({
       if (customerEmailResult && customerEmailResult.messageId) {
         customerSuccess = true;
         console.log(`✅ Customer email sent successfully! Message ID: ${customerEmailResult.messageId}`);
-        try {
-          const { recordEmailDelivery } = await import('./db.js');
-          await recordEmailDelivery(customerEmail, orderId, 'sent');
-        } catch {
-          /* non-fatal */
-        }
+        // No separate recordEmailDelivery() call needed — reserveEmailSend()
+        // already wrote the 'sent' row atomically before we got here.
       } else {
         customerError = new Error("Email sent but no messageId returned");
         console.error("❌ Customer email sent but invalid response");
@@ -792,6 +803,11 @@ export async function sendPaymentEmail({
         responseCode: customerErr.responseCode,
         message: customerErr.message
       });
+      // We claimed the reservation but the actual send failed — flip it
+      // back to 'failed' so a future retry isn't blocked forever.
+      if (!customerAlreadySent) {
+        await markEmailFailed(customerEmail, orderId).catch(() => {});
+      }
     }
 
     // Send email to admin
@@ -826,12 +842,8 @@ console.log(`📧 Admin email prepared for orderId: ${orderId}, to: ${adminEmail
       if (adminEmailResult && adminEmailResult.messageId) {
         adminSuccess = true;
         console.log(`✅ Admin email sent successfully! Message ID: ${adminEmailResult.messageId}`);
-        try {
-          const { recordEmailDelivery } = await import('./db.js');
-          await recordEmailDelivery(adminEmail, orderId, 'sent');
-        } catch {
-          /* non-fatal */
-        }
+        // No separate recordEmailDelivery() call needed — reserveEmailSend()
+        // already wrote the 'sent' row atomically before we got here.
       } else {
         adminError = new Error("Email sent but no messageId returned");
         console.error("❌ Admin email sent but invalid response");
@@ -846,6 +858,11 @@ console.log(`📧 Admin email prepared for orderId: ${orderId}, to: ${adminEmail
         responseCode: adminErr.responseCode,
         message: adminErr.message
       });
+      // We claimed the reservation but the actual send failed — flip it
+      // back to 'failed' so a future retry isn't blocked forever.
+      if (!adminAlreadySent) {
+        await markEmailFailed(adminEmail, orderId).catch(() => {});
+      }
     }
 
     console.log(`📊 Email sending summary - Customer: ${customerSuccess ? '✅' : '❌'}, Admin: ${adminSuccess ? '✅' : '❌'}`);

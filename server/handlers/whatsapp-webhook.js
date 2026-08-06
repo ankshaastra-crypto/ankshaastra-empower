@@ -97,7 +97,7 @@ async function handleIncomingText({ from, senderName, text }) {
   if (lower.includes('refund') || lower.includes('cancel')) {
     await sendWhatsApp(
       from,
-      `ℹ️ *Refund Policy*\n\nDue to the nature of personalized numerology reports, orders are non-refundable once confirmed.\n\nIf you have a concern, please email us at *social@ankshaastra.com* or call *+91-9667305577* and we'll be happy to help.\n\n_Ankshaastra — Empower Your Name_`
+      `ℹ️ *Refund Policy*\n\nDue to the nature of personalized numerology reports, orders are non-refundable once confirmed.\n\nIf you have a concern, please email us at *perfectbabyname@ankshaastra.in* or call *+91-9667305577* and we'll be happy to help.\n\n_Ankshaastra — Empower Your Name_`
     );
     return;
   }
@@ -105,7 +105,7 @@ async function handleIncomingText({ from, senderName, text }) {
   // Default auto-reply
   await sendWhatsApp(
     from,
-    `🙏 *Namaste ${senderName}!*\n\nThank you for contacting *Ankshaastra*!\n\nOur team has received your message and will respond shortly.\n\n📞 For urgent queries: *+91-9667305577*\n📧 Email: *social@ankshaastra.com*\n\n_Ankshaastra — Empower Your Name_`
+    `🙏 *Namaste ${senderName}!*\n\nThank you for contacting *Ankshaastra*!\n\nOur team has received your message and will respond shortly.\n\n📞 For urgent queries: *+91-9667305577*\n📧 Email: *perfectbabyname@ankshaastra.in*\n\n_Ankshaastra — Empower Your Name_`
   );
 }
 

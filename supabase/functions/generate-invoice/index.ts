@@ -15,7 +15,7 @@ const COMPANY = {
   description: "Empower Your Name",
   address: "Unit No. O-622, Block-E, Eye of Noida, Sector 140A, Noida-201305",
   phone: "9667305577",
-  email: "social@ankshaastra.com",
+  email: "perfectbabyname@ankshaastra.in",
   gstin: "09AAFFE7583B1ZD",
   hsnSac: "998399",
 };

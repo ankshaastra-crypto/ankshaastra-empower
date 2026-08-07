@@ -1050,7 +1050,8 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
         child_middle_name = EXCLUDED.child_middle_name,
         name_options = EXCLUDED.name_options,
         last_name_spelling_ok = EXCLUDED.last_name_spelling_ok,
-        state = EXCLUDED.state`,
+        state = EXCLUDED.state,
+        parents_profession = EXCLUDED.parents_profession`,
       [
         orderId,
         customerData.email             || '',

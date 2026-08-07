@@ -849,6 +849,7 @@ ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS name_options 
 ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS place_of_birth VARCHAR(255);
 ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS last_name_spelling_ok VARCHAR(50);
 ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS state VARCHAR(100);
+ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS parents_profession TEXT;
 ALTER TABLE ${DB_SCHEMA}.orders ADD COLUMN IF NOT EXISTS razorpay_order_id VARCHAR(255);
 `;
 

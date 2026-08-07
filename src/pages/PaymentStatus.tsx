@@ -485,7 +485,7 @@ const PaymentStatus = () => {
         let block = `\n\n*${label}:*\nName: ${fullName}`;
         if (dob) block += `\nDOB: ${dob}`;
         if (gender) block += `\nGender: ${gender}`;
-        if (middleName && middleNameType) block += `\nMiddle Name is ${middleNameType === 'yes' ? "Father's/Husband's" : 'Not Father/Husband'} name`;
+        if (middleNameType) block += `\nMiddle Name is Father's/Husband's: ${middleNameType === 'yes' ? 'Yes' : middleNameType === 'no' ? 'No' : 'N/A'}`;
         return block;
       };
       

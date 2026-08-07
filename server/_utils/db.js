@@ -1096,6 +1096,7 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
         customerData.nameOptions       || null,
         customerData.lastNameSpellingChangeOk || null,
         customerData.state             || null,
+        customerData.parentsProfession || null,
       ]
     );
 

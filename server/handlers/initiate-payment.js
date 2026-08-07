@@ -85,7 +85,7 @@ export default async function handler(req, res) {
     person3Dob, person3Gender, person1MiddleNameType, person2MiddleNameType,
     person3MiddleNameType, fatherFirstName, fatherMiddleName,
     fatherMiddleNameType, fatherLastName, childDob, timeOfBirth,
-    placeOfBirth, pinCode, fatherFullName, childLastName,
+    placeOfBirth, pinCode, parentsProfession, fatherFullName, childLastName,
     fatherFirstNameAsMiddleName, childMiddleName, nameOptions,
     lastNameSpellingChangeOk
   } = body || {};

@@ -182,6 +182,7 @@ const OrderFormSection = () => {
     placeOfBirth: "",
     state: "",
     pinCode: "",
+    parentsProfession: "",
     gender: "",
     email: "",
     whatsapp: "",

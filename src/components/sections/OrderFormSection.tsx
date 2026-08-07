@@ -426,6 +426,16 @@ const OrderFormSection = () => {
   const getFullName = (first: string, middle: string, sur: string) =>
     [first, middle, sur].filter(Boolean).join(" ").trim();
 
+  const countWords = (text: string): number =>
+    text.trim().split(/\s+/).filter((w) => w.length > 0).length;
+
+  const handleParentsProfessionChange = (value: string) => {
+    const words = value.trim().split(/\s+/).filter((w) => w.length > 0);
+    const limited = words.slice(0, 50).join(" ");
+    setBabyFormData((prev) => ({ ...prev, parentsProfession: limited }));
+    if (errors.parentsProfession) setErrors((prev) => { const n = { ...prev }; delete n.parentsProfession; return n; });
+  };
+
   const isExtrasAddonEligible = packageType === "single" || packageType === "premium";
   const isNicknameEligible = packageType === "single"; // Nickname add-on only for Perfect Baby Name
   const isAddonActive = isExtrasAddonEligible && addonExtraNames;

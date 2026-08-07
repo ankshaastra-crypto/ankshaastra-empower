@@ -307,7 +307,7 @@ const OrderFormSection = () => {
   };
 
   const validatePinCode = (pin: string): boolean => {
-    if (!pin || pin.trim() === "") return false;
+    if (!pin || pin.trim() === "") return true; // optional field
     return /^[1-9][0-9]{5}$/.test(pin.trim());
   };
 

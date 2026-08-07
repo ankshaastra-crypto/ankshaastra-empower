@@ -1389,10 +1389,11 @@ export async function getCustomerMetadata(orderId, razorpayOrderId) {
          c.father_first_as_middle AS "fatherFirstNameAsMiddleName",
          c.child_middle_name AS "childMiddleName",
          c.child_last_name AS "childLastName",
-         c.name_options AS "nameOptions",
-         c.last_name_spelling_ok AS "lastNameSpellingChangeOk",
-         o.package_type AS "packageType",
-         o.amount
+          c.name_options AS "nameOptions",
+          c.last_name_spelling_ok AS "lastNameSpellingChangeOk",
+          c.parents_profession AS "parentsProfession",
+          o.package_type AS "packageType",
+          o.amount
        FROM ${DB_SCHEMA}.customer_details c
        JOIN ${DB_SCHEMA}.orders o ON o.order_id = c.order_id
        WHERE c.order_id = $1 OR o.razorpay_order_id = $2

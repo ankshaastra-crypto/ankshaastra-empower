@@ -788,6 +788,7 @@ CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}.customer_details (
   father_first_as_middle VARCHAR(50),
   child_middle_name VARCHAR(255),
   name_options TEXT,
+  parents_profession TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(order_id)
 );

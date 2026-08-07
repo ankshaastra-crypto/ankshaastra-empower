@@ -1266,7 +1266,7 @@ const OrderFormSection = () => {
         items.push({ label: `DOB ${i}`, value: formData[`person${i}Dob` as keyof typeof formData] ? format(parse(formData[`person${i}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" });
         items.push({ label: `Gender ${i}`, value: formData[`person${i}Gender` as keyof typeof formData] });
       }
-      items.push({ label: "City of Birth", value: formData.city }, { label: "State / Province", value: formData.state }, { label: "Email", value: formData.email }, { label: "WhatsApp", value: formData.mobile });
+      items.push({ label: "City of Birth", value: formData.city }, { label: "State / Province", value: formData.state }, ...(formData.pinCode ? [{ label: "ZIP / Pincode", value: formData.pinCode }] : []), { label: "Email", value: formData.email }, { label: "WhatsApp", value: formData.mobile });
     }
     return (
       <div className="space-y-4">

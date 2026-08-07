@@ -997,7 +997,7 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
         father_first_name, father_middle_name, father_middle_name_type, father_last_name,
         child_dob, time_of_birth, place_of_birth,
         father_full_name, child_last_name, father_first_as_middle,
-        child_middle_name, name_options, last_name_spelling_ok, state
+        child_middle_name, name_options, last_name_spelling_ok, state, parents_profession
       ) VALUES (
         $1,  $2,  $3,  $4,  $5,  $6,  $7,  $8,
         $9,  $10, $11, $12, $13, $14, $15,
@@ -1006,7 +1006,7 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
         $30, $31, $32, $33,
         $34, $35, $36,
         $37, $38, $39,
-        $40, $41, $42, $43
+        $40, $41, $42, $43, $44
       )
       ON CONFLICT (order_id) DO UPDATE SET
         email = EXCLUDED.email,

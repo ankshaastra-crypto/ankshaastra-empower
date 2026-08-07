@@ -1639,6 +1639,16 @@ const OrderFormSection = () => {
                           {errors.state && <p className="text-destructive text-sm mt-1">{errors.state}</p>}
                           <p className="text-xs text-muted-foreground mt-1">Required for GST invoice compliance.</p>
                         </div>
+                        <div>
+                          <Label htmlFor="pinCode">ZIP / Pincode (optional)</Label>
+                          <div className="relative">
+                            <Input id="pinCode" name="pinCode" type="text" value={formData.pinCode} onChange={handleInputChange}
+                              placeholder="e.g. 400001" maxLength={20}
+                              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.pinCode ? "border-destructive" : isFieldValid("pinCode") ? "border-success" : ""}`} />
+                            <ValidIcon field="pinCode" />
+                          </div>
+                          {errors.pinCode && <p className="text-destructive text-sm mt-1">{errors.pinCode}</p>}
+                        </div>
                       </div>
                     </>
                   ) : (

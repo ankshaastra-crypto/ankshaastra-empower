@@ -1052,6 +1052,19 @@ const OrderFormSection = () => {
         {errors.fatherFullName && <p className="text-destructive text-sm mt-1">{errors.fatherFullName}</p>}
       </div>
 
+      {/* Parents' Profession (optional) */}
+      <div>
+        <Label htmlFor="parentsProfession">Parents' Profession (optional)</Label>
+        <Textarea
+          id="parentsProfession"
+          value={babyFormData.parentsProfession}
+          onChange={(e) => handleParentsProfessionChange(e.target.value)}
+          placeholder="e.g. Doctor, Business, IT Professional, Homemaker…"
+          className="mt-1.5 min-h-[80px] transition-all duration-300 focus:shadow-card"
+        />
+        <p className="text-xs text-muted-foreground mt-1">{countWords(babyFormData.parentsProfession)}/50 words</p>
+      </div>
+
       {/* Child's Middle Name & Last Name */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>

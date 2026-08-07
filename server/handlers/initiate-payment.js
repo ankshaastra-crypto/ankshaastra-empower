@@ -166,6 +166,7 @@ export default async function handler(req, res) {
     timeOfBirth: (timeOfBirth && timeOfBirth.trim()) || '',
     placeOfBirth: (placeOfBirth && placeOfBirth.trim()) || '',
     pinCode: (pinCode && pinCode.trim()) || '',
+    parentsProfession: (parentsProfession && parentsProfession.trim()) || '',
     fatherFullName: (fatherFullName && fatherFullName.trim()) || '',
     childLastName: (childLastName && childLastName.trim()) || '',
     fatherFirstNameAsMiddleName: (fatherFirstNameAsMiddleName && fatherFirstNameAsMiddleName.trim()) || '',

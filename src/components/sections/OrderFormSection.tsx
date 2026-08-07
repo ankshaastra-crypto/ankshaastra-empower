@@ -597,6 +597,7 @@ const OrderFormSection = () => {
         placeOfBirth: babyFormData.placeOfBirth,
         state: babyFormData.state,
         pinCode: babyFormData.pinCode,
+        parentsProfession: babyFormData.parentsProfession,
         nameOptions: mergedNameOptions,
         packageType,
       };

@@ -60,6 +60,7 @@ interface OrderPayload {
   city?: string;
   state?: string;
   pinCode?: string;
+  parentsProfession?: string;
   person1Name?: string;
   person1FirstName?: string;
   person1MiddleName?: string;

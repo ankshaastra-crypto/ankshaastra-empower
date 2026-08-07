@@ -315,13 +315,15 @@ const OrderFormSection = () => {
   const isFieldValid = useCallback((fieldName: string): boolean => {
     if (packageType === "single" || packageType === "premium") {
       const val = babyFormData[fieldName as keyof typeof babyFormData];
-      if (!val || (typeof val === "string" && !val.trim())) return false;
+      const isOptional = fieldName === "pinCode" || fieldName === "parentsProfession" || fieldName === "childMiddleName" || fieldName === "nameOptions";
+      if (!isOptional && (!val || (typeof val === "string" && !val.trim()))) return false;
+      if (isOptional && (!val || (typeof val === "string" && !val.trim()))) return true;
       switch (fieldName) {
         case "fatherFullName":
         case "childLastName":
           return validateName(val, true);
         case "childMiddleName":
-          return val.trim().length > 0 ? validateName(val, false) : false;
+          return val.trim().length > 0 ? validateName(val, false) : true;
         case "fatherFirstNameAsMiddleName":
         case "lastNameSpellingChangeOk":
           return val === "yes" || val === "no";
@@ -335,12 +337,16 @@ const OrderFormSection = () => {
           return validateCity(val);
         case "pinCode":
           return validatePinCode(val);
+        case "parentsProfession":
+          return val.trim().length <= 250;
         case "gender":
           return val.trim() !== "";
         case "email":
           return validateEmail(val);
         case "whatsapp":
           return validateMobile(val);
+        case "nameOptions":
+          return true;
         default:
           return false;
       }

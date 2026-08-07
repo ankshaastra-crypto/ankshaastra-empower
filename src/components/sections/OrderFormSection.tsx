@@ -60,6 +60,7 @@ interface OrderPayload {
   city?: string;
   state?: string;
   pinCode?: string;
+  parentsProfession?: string;
   person1Name?: string;
   person1FirstName?: string;
   person1MiddleName?: string;
@@ -181,6 +182,7 @@ const OrderFormSection = () => {
     placeOfBirth: "",
     state: "",
     pinCode: "",
+    parentsProfession: "",
     gender: "",
     email: "",
     whatsapp: "",
@@ -305,7 +307,7 @@ const OrderFormSection = () => {
   };
 
   const validatePinCode = (pin: string): boolean => {
-    if (!pin || pin.trim() === "") return false;
+    if (!pin || pin.trim() === "") return true; // optional field
     return /^[1-9][0-9]{5}$/.test(pin.trim());
   };
 
@@ -313,13 +315,15 @@ const OrderFormSection = () => {
   const isFieldValid = useCallback((fieldName: string): boolean => {
     if (packageType === "single" || packageType === "premium") {
       const val = babyFormData[fieldName as keyof typeof babyFormData];
-      if (!val || (typeof val === "string" && !val.trim())) return false;
+      const isOptional = fieldName === "pinCode" || fieldName === "parentsProfession" || fieldName === "childMiddleName" || fieldName === "nameOptions";
+      if (!isOptional && (!val || (typeof val === "string" && !val.trim()))) return false;
+      if (isOptional && (!val || (typeof val === "string" && !val.trim()))) return true;
       switch (fieldName) {
         case "fatherFullName":
         case "childLastName":
           return validateName(val, true);
         case "childMiddleName":
-          return val.trim().length > 0 ? validateName(val, false) : false;
+          return val.trim().length > 0 ? validateName(val, false) : true;
         case "fatherFirstNameAsMiddleName":
         case "lastNameSpellingChangeOk":
           return val === "yes" || val === "no";
@@ -333,20 +337,26 @@ const OrderFormSection = () => {
           return validateCity(val);
         case "pinCode":
           return validatePinCode(val);
+        case "parentsProfession":
+          return val.trim().length <= 250;
         case "gender":
           return val.trim() !== "";
         case "email":
           return validateEmail(val);
         case "whatsapp":
           return validateMobile(val);
+        case "nameOptions":
+          return true;
         default:
           return false;
       }
     } else {
       const val = formData[fieldName as keyof typeof formData];
-      if (!val || (typeof val === "string" && !val.trim())) return false;
+      const isOptional = fieldName === "pinCode";
+      if (!isOptional && (!val || (typeof val === "string" && !val.trim()))) return false;
+      if (isOptional && (!val || (typeof val === "string" && !val.trim()))) return true;
       if (fieldName.includes("FirstName") || fieldName.includes("SurName")) return validateName(val, true);
-      if (fieldName.includes("MiddleName") && !fieldName.includes("Type")) return val.trim().length > 0 ? validateName(val, false) : false;
+      if (fieldName.includes("MiddleName") && !fieldName.includes("Type")) return val.trim().length > 0 ? validateName(val, false) : true;
       if (fieldName.includes("Dob")) return validateDob(val);
       if (fieldName.includes("Gender")) return val.trim() !== "";
       if (fieldName === "mobile") return validateMobile(val);
@@ -417,6 +427,16 @@ const OrderFormSection = () => {
 
   const getFullName = (first: string, middle: string, sur: string) =>
     [first, middle, sur].filter(Boolean).join(" ").trim();
+
+  const countWords = (text: string): number =>
+    text.trim().split(/\s+/).filter((w) => w.length > 0).length;
+
+  const handleParentsProfessionChange = (value: string) => {
+    const words = value.trim().split(/\s+/).filter((w) => w.length > 0);
+    const limited = words.slice(0, 50).join(" ");
+    setBabyFormData((prev) => ({ ...prev, parentsProfession: limited }));
+    if (errors.parentsProfession) setErrors((prev) => { const n = { ...prev }; delete n.parentsProfession; return n; });
+  };
 
   const isExtrasAddonEligible = packageType === "single" || packageType === "premium";
   const isNicknameEligible = packageType === "single"; // Nickname add-on only for Perfect Baby Name
@@ -579,6 +599,7 @@ const OrderFormSection = () => {
         placeOfBirth: babyFormData.placeOfBirth,
         state: babyFormData.state,
         pinCode: babyFormData.pinCode,
+        parentsProfession: babyFormData.parentsProfession,
         nameOptions: mergedNameOptions,
         packageType,
       };
@@ -989,6 +1010,17 @@ const OrderFormSection = () => {
         <p className="text-xs text-muted-foreground mt-1">Required for GST invoice compliance.</p>
       </div>
 
+      {/* ZIP / Pincode (optional) */}
+      <div>
+        <Label htmlFor="pinCode">ZIP / Pincode (optional)</Label>
+        <div className="relative">
+          <Input id="pinCode" name="pinCode" value={babyFormData.pinCode} onChange={handleInputChange}
+            placeholder="e.g. 400001" maxLength={20}
+            className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.pinCode ? "border-destructive" : isFieldValid("pinCode") ? "border-success" : ""}`} />
+          <ValidIcon field="pinCode" />
+        </div>
+        {errors.pinCode && <p className="text-destructive text-sm mt-1">{errors.pinCode}</p>}
+      </div>
 
       {/* Gender */}
       <div>
@@ -1021,6 +1053,19 @@ const OrderFormSection = () => {
           <ValidIcon field="fatherFullName" />
         </div>
         {errors.fatherFullName && <p className="text-destructive text-sm mt-1">{errors.fatherFullName}</p>}
+      </div>
+
+      {/* Parents' Profession (optional) */}
+      <div>
+        <Label htmlFor="parentsProfession">Parents' Profession (optional)</Label>
+        <Textarea
+          id="parentsProfession"
+          value={babyFormData.parentsProfession}
+          onChange={(e) => handleParentsProfessionChange(e.target.value)}
+          placeholder="e.g. Doctor, Business, IT Professional, Homemaker…"
+          className="mt-1.5 min-h-[80px] transition-all duration-300 focus:shadow-card"
+        />
+        <p className="text-xs text-muted-foreground mt-1">{countWords(babyFormData.parentsProfession)}/50 words</p>
       </div>
 
       {/* Child's Middle Name & Last Name */}
@@ -1199,8 +1244,10 @@ const OrderFormSection = () => {
         { label: "Time of Birth", value: babyFormData.timeOfBirth },
         { label: "City of Birth", value: babyFormData.placeOfBirth },
         { label: "State / Province", value: babyFormData.state },
+        ...(babyFormData.pinCode ? [{ label: "ZIP / Pincode", value: babyFormData.pinCode }] : []),
         { label: "Gender", value: babyFormData.gender },
         { label: "Father's Full Name", value: babyFormData.fatherFullName },
+        ...(babyFormData.parentsProfession.trim() ? [{ label: "Parents' Profession", value: babyFormData.parentsProfession.trim() }] : []),
         ...(babyFormData.childMiddleName ? [{ label: "Child's Middle Name", value: babyFormData.childMiddleName }] : []),
         { label: "Child's Last Name", value: babyFormData.childLastName },
         ...(babyFormData.fatherFirstNameAsMiddleName ? [{ label: "Child's Middle Name = Father's First Name", value: babyFormData.fatherFirstNameAsMiddleName === "yes" ? "Yes" : "No" }] : []),
@@ -1221,7 +1268,7 @@ const OrderFormSection = () => {
         items.push({ label: `DOB ${i}`, value: formData[`person${i}Dob` as keyof typeof formData] ? format(parse(formData[`person${i}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" });
         items.push({ label: `Gender ${i}`, value: formData[`person${i}Gender` as keyof typeof formData] });
       }
-      items.push({ label: "City of Birth", value: formData.city }, { label: "State / Province", value: formData.state }, { label: "Email", value: formData.email }, { label: "WhatsApp", value: formData.mobile });
+      items.push({ label: "City of Birth", value: formData.city }, { label: "State / Province", value: formData.state }, ...(formData.pinCode ? [{ label: "ZIP / Pincode", value: formData.pinCode }] : []), { label: "Email", value: formData.email }, { label: "WhatsApp", value: formData.mobile });
     }
     return (
       <div className="space-y-4">
@@ -1596,6 +1643,16 @@ const OrderFormSection = () => {
                           </div>
                           {errors.state && <p className="text-destructive text-sm mt-1">{errors.state}</p>}
                           <p className="text-xs text-muted-foreground mt-1">Required for GST invoice compliance.</p>
+                        </div>
+                        <div>
+                          <Label htmlFor="pinCode">ZIP / Pincode (optional)</Label>
+                          <div className="relative">
+                            <Input id="pinCode" name="pinCode" type="text" value={formData.pinCode} onChange={handleInputChange}
+                              placeholder="e.g. 400001" maxLength={20}
+                              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.pinCode ? "border-destructive" : isFieldValid("pinCode") ? "border-success" : ""}`} />
+                            <ValidIcon field="pinCode" />
+                          </div>
+                          {errors.pinCode && <p className="text-destructive text-sm mt-1">{errors.pinCode}</p>}
                         </div>
                       </div>
                     </>

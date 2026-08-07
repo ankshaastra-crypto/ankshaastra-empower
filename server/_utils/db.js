@@ -788,6 +788,7 @@ CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}.customer_details (
   father_first_as_middle VARCHAR(50),
   child_middle_name VARCHAR(255),
   name_options TEXT,
+  parents_profession TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(order_id)
 );
@@ -848,6 +849,7 @@ ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS name_options 
 ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS place_of_birth VARCHAR(255);
 ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS last_name_spelling_ok VARCHAR(50);
 ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS state VARCHAR(100);
+ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS parents_profession TEXT;
 ALTER TABLE ${DB_SCHEMA}.orders ADD COLUMN IF NOT EXISTS razorpay_order_id VARCHAR(255);
 `;
 
@@ -995,7 +997,7 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
         father_first_name, father_middle_name, father_middle_name_type, father_last_name,
         child_dob, time_of_birth, place_of_birth,
         father_full_name, child_last_name, father_first_as_middle,
-        child_middle_name, name_options, last_name_spelling_ok, state
+        child_middle_name, name_options, last_name_spelling_ok, state, parents_profession
       ) VALUES (
         $1,  $2,  $3,  $4,  $5,  $6,  $7,  $8,
         $9,  $10, $11, $12, $13, $14, $15,
@@ -1004,7 +1006,7 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
         $30, $31, $32, $33,
         $34, $35, $36,
         $37, $38, $39,
-        $40, $41, $42, $43
+        $40, $41, $42, $43, $44
       )
       ON CONFLICT (order_id) DO UPDATE SET
         email = EXCLUDED.email,
@@ -1048,7 +1050,8 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
         child_middle_name = EXCLUDED.child_middle_name,
         name_options = EXCLUDED.name_options,
         last_name_spelling_ok = EXCLUDED.last_name_spelling_ok,
-        state = EXCLUDED.state`,
+        state = EXCLUDED.state,
+        parents_profession = EXCLUDED.parents_profession`,
       [
         orderId,
         customerData.email             || '',
@@ -1093,6 +1096,7 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
         customerData.nameOptions       || null,
         customerData.lastNameSpellingChangeOk || null,
         customerData.state             || null,
+        customerData.parentsProfession || null,
       ]
     );
 
@@ -1385,10 +1389,11 @@ export async function getCustomerMetadata(orderId, razorpayOrderId) {
          c.father_first_as_middle AS "fatherFirstNameAsMiddleName",
          c.child_middle_name AS "childMiddleName",
          c.child_last_name AS "childLastName",
-         c.name_options AS "nameOptions",
-         c.last_name_spelling_ok AS "lastNameSpellingChangeOk",
-         o.package_type AS "packageType",
-         o.amount
+          c.name_options AS "nameOptions",
+          c.last_name_spelling_ok AS "lastNameSpellingChangeOk",
+          c.parents_profession AS "parentsProfession",
+          o.package_type AS "packageType",
+          o.amount
        FROM ${DB_SCHEMA}.customer_details c
        JOIN ${DB_SCHEMA}.orders o ON o.order_id = c.order_id
        WHERE c.order_id = $1 OR o.razorpay_order_id = $2

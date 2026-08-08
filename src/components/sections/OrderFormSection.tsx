@@ -168,6 +168,7 @@ const OrderFormSection = () => {
     city: "",
     state: "",
     pinCode: "",
+    parentsProfession: "",
   });
 
   // Baby Name Report form data
@@ -315,7 +316,7 @@ const OrderFormSection = () => {
   const isFieldValid = useCallback((fieldName: string): boolean => {
     if (packageType === "single" || packageType === "premium") {
       const val = babyFormData[fieldName as keyof typeof babyFormData];
-      const isOptional = fieldName === "pinCode" || fieldName === "parentsProfession" || fieldName === "childMiddleName" || fieldName === "nameOptions";
+      const isOptional = fieldName === "pinCode" || fieldName === "childMiddleName" || fieldName === "nameOptions";
       if (!isOptional && (!val || (typeof val === "string" && !val.trim()))) return false;
       if (isOptional && (!val || (typeof val === "string" && !val.trim()))) return true;
       switch (fieldName) {
@@ -338,7 +339,7 @@ const OrderFormSection = () => {
         case "pinCode":
           return validatePinCode(val);
         case "parentsProfession":
-          return val.trim().length <= 250;
+          return val.trim().length > 0 && val.trim().length <= 250;
         case "gender":
           return val.trim() !== "";
         case "email":
@@ -364,6 +365,7 @@ const OrderFormSection = () => {
       if (fieldName === "city") return validateCity(val);
       if (fieldName === "state") return validateCity(val);
       if (fieldName === "pinCode") return validatePinCode(val);
+      if (fieldName === "parentsProfession") return val.trim().length > 0 && val.trim().length <= 250;
       return false;
     }
   }, [formData, babyFormData, packageType]);

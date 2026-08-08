@@ -496,6 +496,8 @@ const OrderFormSection = () => {
         newErrors.email = !babyFormData.email ? "Email address is required" : "Please enter a valid email address";
       if (!babyFormData.whatsapp || !validateMobile(babyFormData.whatsapp))
         newErrors.whatsapp = !babyFormData.whatsapp ? "WhatsApp number is required" : "Please enter a valid 10-digit number starting with 6-9";
+      if (!babyFormData.parentsProfession || babyFormData.parentsProfession.trim() === "")
+        newErrors.parentsProfession = "Parents' profession is required";
       if (isKundaliActive && !kundaliLanguage)
         newErrors.kundaliLanguage = "Please choose Kundli 2.0 language (English, Hindi or Gujarati)";
       if (!nameStyles || nameStyles.length === 0)
@@ -527,6 +529,8 @@ const OrderFormSection = () => {
         newErrors.city = !formData.city ? "Place of birth is required" : "Please enter between 2 and 80 characters";
       if (!formData.state || !validateCity(formData.state))
         newErrors.state = !formData.state ? "State / Province is required" : "Please enter between 2 and 60 characters";
+      if (!formData.parentsProfession || formData.parentsProfession.trim() === "")
+        newErrors.parentsProfession = "Profession is required";
     }
     return newErrors;
   };

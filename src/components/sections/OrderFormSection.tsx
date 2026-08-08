@@ -168,6 +168,7 @@ const OrderFormSection = () => {
     city: "",
     state: "",
     pinCode: "",
+    parentsProfession: "",
   });
 
   // Baby Name Report form data
@@ -315,7 +316,7 @@ const OrderFormSection = () => {
   const isFieldValid = useCallback((fieldName: string): boolean => {
     if (packageType === "single" || packageType === "premium") {
       const val = babyFormData[fieldName as keyof typeof babyFormData];
-      const isOptional = fieldName === "pinCode" || fieldName === "parentsProfession" || fieldName === "childMiddleName" || fieldName === "nameOptions";
+      const isOptional = fieldName === "pinCode" || fieldName === "childMiddleName" || fieldName === "nameOptions";
       if (!isOptional && (!val || (typeof val === "string" && !val.trim()))) return false;
       if (isOptional && (!val || (typeof val === "string" && !val.trim()))) return true;
       switch (fieldName) {
@@ -338,7 +339,7 @@ const OrderFormSection = () => {
         case "pinCode":
           return validatePinCode(val);
         case "parentsProfession":
-          return val.trim().length <= 250;
+          return val.trim().length > 0 && val.trim().length <= 250;
         case "gender":
           return val.trim() !== "";
         case "email":
@@ -364,6 +365,7 @@ const OrderFormSection = () => {
       if (fieldName === "city") return validateCity(val);
       if (fieldName === "state") return validateCity(val);
       if (fieldName === "pinCode") return validatePinCode(val);
+      if (fieldName === "parentsProfession") return val.trim().length > 0 && val.trim().length <= 250;
       return false;
     }
   }, [formData, babyFormData, packageType]);
@@ -438,6 +440,13 @@ const OrderFormSection = () => {
     if (errors.parentsProfession) setErrors((prev) => { const n = { ...prev }; delete n.parentsProfession; return n; });
   };
 
+  const handleNameCheckProfessionChange = (value: string) => {
+    const words = value.trim().split(/\s+/).filter((w) => w.length > 0);
+    const limited = words.slice(0, 50).join(" ");
+    setFormData((prev) => ({ ...prev, parentsProfession: limited }));
+    if (errors.parentsProfession) setErrors((prev) => { const n = { ...prev }; delete n.parentsProfession; return n; });
+  };
+
   const isExtrasAddonEligible = packageType === "single" || packageType === "premium";
   const isNicknameEligible = packageType === "single"; // Nickname add-on only for Perfect Baby Name
   const isAddonActive = isExtrasAddonEligible && addonExtraNames;
@@ -487,6 +496,8 @@ const OrderFormSection = () => {
         newErrors.email = !babyFormData.email ? "Email address is required" : "Please enter a valid email address";
       if (!babyFormData.whatsapp || !validateMobile(babyFormData.whatsapp))
         newErrors.whatsapp = !babyFormData.whatsapp ? "WhatsApp number is required" : "Please enter a valid 10-digit number starting with 6-9";
+      if (!babyFormData.parentsProfession || babyFormData.parentsProfession.trim() === "")
+        newErrors.parentsProfession = "Parents' profession is required";
       if (isKundaliActive && !kundaliLanguage)
         newErrors.kundaliLanguage = "Please choose Kundli 2.0 language (English, Hindi or Gujarati)";
       if (!nameStyles || nameStyles.length === 0)
@@ -518,6 +529,8 @@ const OrderFormSection = () => {
         newErrors.city = !formData.city ? "Place of birth is required" : "Please enter between 2 and 80 characters";
       if (!formData.state || !validateCity(formData.state))
         newErrors.state = !formData.state ? "State / Province is required" : "Please enter between 2 and 60 characters";
+      if (!formData.parentsProfession || formData.parentsProfession.trim() === "")
+        newErrors.parentsProfession = "Profession is required";
     }
     return newErrors;
   };
@@ -611,6 +624,7 @@ const OrderFormSection = () => {
         city: formData.city,
         state: formData.state,
         pinCode: formData.pinCode || "",
+        parentsProfession: formData.parentsProfession || "",
         name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
         dob: formData.person1Dob || "",
         gender: formData.person1Gender || "",
@@ -1055,17 +1069,19 @@ const OrderFormSection = () => {
         {errors.fatherFullName && <p className="text-destructive text-sm mt-1">{errors.fatherFullName}</p>}
       </div>
 
-      {/* Parents' Profession (optional) */}
+      {/* Parents' Profession (mandatory) */}
       <div>
-        <Label htmlFor="parentsProfession">Parents' Profession (optional)</Label>
+        <Label htmlFor="parentsProfession">Parents' Profession *</Label>
         <Textarea
           id="parentsProfession"
           value={babyFormData.parentsProfession}
           onChange={(e) => handleParentsProfessionChange(e.target.value)}
           placeholder="e.g. Doctor, Business, IT Professional, Homemaker…"
-          className="mt-1.5 min-h-[80px] transition-all duration-300 focus:shadow-card"
+          required
+          className={`mt-1.5 min-h-[80px] transition-all duration-300 focus:shadow-card ${errors.parentsProfession ? "border-destructive" : isFieldValid("parentsProfession") ? "border-success" : ""}`}
         />
         <p className="text-xs text-muted-foreground mt-1">{countWords(babyFormData.parentsProfession)}/50 words</p>
+        {errors.parentsProfession && <p className="text-destructive text-sm mt-1">{errors.parentsProfession}</p>}
       </div>
 
       {/* Child's Middle Name & Last Name */}
@@ -1268,7 +1284,7 @@ const OrderFormSection = () => {
         items.push({ label: `DOB ${i}`, value: formData[`person${i}Dob` as keyof typeof formData] ? format(parse(formData[`person${i}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" });
         items.push({ label: `Gender ${i}`, value: formData[`person${i}Gender` as keyof typeof formData] });
       }
-      items.push({ label: "City of Birth", value: formData.city }, { label: "State / Province", value: formData.state }, ...(formData.pinCode ? [{ label: "ZIP / Pincode", value: formData.pinCode }] : []), { label: "Email", value: formData.email }, { label: "WhatsApp", value: formData.mobile });
+      items.push({ label: "City of Birth", value: formData.city }, { label: "State / Province", value: formData.state }, ...(formData.pinCode ? [{ label: "ZIP / Pincode", value: formData.pinCode }] : []), ...(formData.parentsProfession?.trim() ? [{ label: "Profession", value: formData.parentsProfession.trim() }] : []), { label: "Email", value: formData.email }, { label: "WhatsApp", value: formData.mobile });
     }
     return (
       <div className="space-y-4">
@@ -1654,6 +1670,19 @@ const OrderFormSection = () => {
                           </div>
                           {errors.pinCode && <p className="text-destructive text-sm mt-1">{errors.pinCode}</p>}
                         </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="parentsProfession">Profession *</Label>
+                        <Textarea
+                          id="parentsProfession"
+                          value={formData.parentsProfession}
+                          onChange={(e) => handleNameCheckProfessionChange(e.target.value)}
+                          placeholder="e.g. Doctor, Business, IT Professional, Homemaker…"
+                          required
+                          className={`mt-1.5 min-h-[80px] transition-all duration-300 focus:shadow-card ${errors.parentsProfession ? "border-destructive" : isFieldValid("parentsProfession") ? "border-success" : ""}`}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">{countWords(formData.parentsProfession)}/50 words</p>
+                        {errors.parentsProfession && <p className="text-destructive text-sm mt-1">{errors.parentsProfession}</p>}
                       </div>
                     </>
                   ) : (

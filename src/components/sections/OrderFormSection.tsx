@@ -440,6 +440,13 @@ const OrderFormSection = () => {
     if (errors.parentsProfession) setErrors((prev) => { const n = { ...prev }; delete n.parentsProfession; return n; });
   };
 
+  const handleNameCheckProfessionChange = (value: string) => {
+    const words = value.trim().split(/\s+/).filter((w) => w.length > 0);
+    const limited = words.slice(0, 50).join(" ");
+    setFormData((prev) => ({ ...prev, parentsProfession: limited }));
+    if (errors.parentsProfession) setErrors((prev) => { const n = { ...prev }; delete n.parentsProfession; return n; });
+  };
+
   const isExtrasAddonEligible = packageType === "single" || packageType === "premium";
   const isNicknameEligible = packageType === "single"; // Nickname add-on only for Perfect Baby Name
   const isAddonActive = isExtrasAddonEligible && addonExtraNames;

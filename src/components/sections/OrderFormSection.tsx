@@ -1671,6 +1671,19 @@ const OrderFormSection = () => {
                           {errors.pinCode && <p className="text-destructive text-sm mt-1">{errors.pinCode}</p>}
                         </div>
                       </div>
+                      <div>
+                        <Label htmlFor="parentsProfession">Profession *</Label>
+                        <Textarea
+                          id="parentsProfession"
+                          value={formData.parentsProfession}
+                          onChange={(e) => handleNameCheckProfessionChange(e.target.value)}
+                          placeholder="e.g. Doctor, Business, IT Professional, Homemaker…"
+                          required
+                          className={`mt-1.5 min-h-[80px] transition-all duration-300 focus:shadow-card ${errors.parentsProfession ? "border-destructive" : isFieldValid("parentsProfession") ? "border-success" : ""}`}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">{countWords(formData.parentsProfession)}/50 words</p>
+                        {errors.parentsProfession && <p className="text-destructive text-sm mt-1">{errors.parentsProfession}</p>}
+                      </div>
                     </>
                   ) : (
                     renderBabyNameFields()

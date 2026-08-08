@@ -624,6 +624,7 @@ const OrderFormSection = () => {
         city: formData.city,
         state: formData.state,
         pinCode: formData.pinCode || "",
+        parentsProfession: formData.parentsProfession || "",
         name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
         dob: formData.person1Dob || "",
         gender: formData.person1Gender || "",
@@ -1068,17 +1069,19 @@ const OrderFormSection = () => {
         {errors.fatherFullName && <p className="text-destructive text-sm mt-1">{errors.fatherFullName}</p>}
       </div>
 
-      {/* Parents' Profession (optional) */}
+      {/* Parents' Profession (mandatory) */}
       <div>
-        <Label htmlFor="parentsProfession">Parents' Profession (optional)</Label>
+        <Label htmlFor="parentsProfession">Parents' Profession *</Label>
         <Textarea
           id="parentsProfession"
           value={babyFormData.parentsProfession}
           onChange={(e) => handleParentsProfessionChange(e.target.value)}
           placeholder="e.g. Doctor, Business, IT Professional, Homemaker…"
-          className="mt-1.5 min-h-[80px] transition-all duration-300 focus:shadow-card"
+          required
+          className={`mt-1.5 min-h-[80px] transition-all duration-300 focus:shadow-card ${errors.parentsProfession ? "border-destructive" : isFieldValid("parentsProfession") ? "border-success" : ""}`}
         />
         <p className="text-xs text-muted-foreground mt-1">{countWords(babyFormData.parentsProfession)}/50 words</p>
+        {errors.parentsProfession && <p className="text-destructive text-sm mt-1">{errors.parentsProfession}</p>}
       </div>
 
       {/* Child's Middle Name & Last Name */}
@@ -1281,7 +1284,7 @@ const OrderFormSection = () => {
         items.push({ label: `DOB ${i}`, value: formData[`person${i}Dob` as keyof typeof formData] ? format(parse(formData[`person${i}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" });
         items.push({ label: `Gender ${i}`, value: formData[`person${i}Gender` as keyof typeof formData] });
       }
-      items.push({ label: "City of Birth", value: formData.city }, { label: "State / Province", value: formData.state }, ...(formData.pinCode ? [{ label: "ZIP / Pincode", value: formData.pinCode }] : []), { label: "Email", value: formData.email }, { label: "WhatsApp", value: formData.mobile });
+      items.push({ label: "City of Birth", value: formData.city }, { label: "State / Province", value: formData.state }, ...(formData.pinCode ? [{ label: "ZIP / Pincode", value: formData.pinCode }] : []), ...(formData.parentsProfession?.trim() ? [{ label: "Profession", value: formData.parentsProfession.trim() }] : []), { label: "Email", value: formData.email }, { label: "WhatsApp", value: formData.mobile });
     }
     return (
       <div className="space-y-4">

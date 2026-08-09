@@ -720,7 +720,7 @@ const FAQSection = () => {
 };
 
 // ─── Claim Form ───────────────────────────────────────────────────────────────
-const ADDON_EXTRA_NAMES_PRICE = 737;
+const ADDON_EXTRA_NAMES_PRICE = 1367;
 const BASE_REPORT_PRICE = 3437;
 
 const ClaimFormSection = () => {

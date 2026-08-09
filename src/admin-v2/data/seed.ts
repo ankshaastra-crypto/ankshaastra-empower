@@ -113,7 +113,7 @@ export const SERVICE_PRICES: Record<ServiceType, number> = {
 };
 
 // Optional add-on (incl. GST) — available only for Perfect Baby Name & Live Video Consultation
-export const ADD_ON_PRICE = 497;
+export const ADD_ON_PRICE = 1367;
 export const ADD_ON_ELIGIBLE: ServiceType[] = ["Perfect Baby Name", "Live Video Consultation"];
 
 

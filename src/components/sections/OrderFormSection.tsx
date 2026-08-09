@@ -104,15 +104,15 @@ const NAME_CHECK_PRICING = {
 };
 
 // Optional add-on: 10+ extra numerologically aligned names (Baby Name only)
-const ADDON_EXTRA_NAMES_PRICE = 737;
+const ADDON_EXTRA_NAMES_PRICE = 1367;
 const ADDON_EXTRA_NAMES_LABEL = "10+ Extra Numerologically Aligned Names";
 
 // Optional add-on: Numerologically Aligned Nickname (Baby Name only)
-const ADDON_NICKNAME_PRICE = 737;
+const ADDON_NICKNAME_PRICE = 1367;
 const ADDON_NICKNAME_LABEL = "Numerologically Aligned Nickname";
 
 // Optional add-on: 150+ Page 10 Year Prediction Colored Kundali
-const ADDON_KUNDALI_PRICE = 499;
+const ADDON_KUNDALI_PRICE = 1367;
 const ADDON_KUNDALI_LABEL = "150+ Page 10 Year Prediction Colored Kundli 2.0";
 
 const NAME_STYLE_OPTIONS = [

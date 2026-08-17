@@ -1383,11 +1383,18 @@ const OrderFormSection = () => {
                           packageType === "namecheck"
                             ? NAME_CHECK_PRICING[nameCheckCount].price
                             : packageType === "premium"
-                              ? getPackagePrice("premium")
-                              : getPackagePrice("single")
+                              ? getPackagePrice("premium") + getRakhiDiscount("premium")
+                              : getPackagePrice("single") + getRakhiDiscount("single")
                         )}
                       </span>
                     </div>
+                    {getRakhiDiscount(packageType === "premium" ? "premium" : packageType === "namecheck" ? "namecheck" : "single") > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-secondary font-medium">🪢 {RAKHI_DISCOUNT_LABEL}</span>
+                        <span className="text-secondary font-semibold">−{formatPrice(RAKHI_DISCOUNT)}</span>
+                      </div>
+                    )}
+
                     {packageType === "namecheck" && nameCheckCount > 1 && (
                       <>
                         <div className="flex justify-between text-muted-foreground">

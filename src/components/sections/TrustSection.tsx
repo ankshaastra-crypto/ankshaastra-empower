@@ -32,7 +32,7 @@ const TrustSection = () => {
   ];
 
   const stats = [
-    { value: "12000+", label: "Families Served" },
+    { value: "14000+", label: "Families Served" },
     { value: "4.9★", label: "Average Rating" },
     { value: "99%", label: "Parents Felt Confident" },
     { value: "100%", label: "Reliable Results" },

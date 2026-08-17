@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { trackInitiateCheckout, trackLead, trackAddToCart } from "@/lib/metaPixel";
-import { getPackagePrice, formatPrice } from "@/lib/packagePricing";
+import { getPackagePrice, formatPrice, getRakhiDiscount, RAKHI_DISCOUNT, RAKHI_DISCOUNT_LABEL } from "@/lib/packagePricing";
 import { ALL_STATE_OPTIONS, STATE_DATALIST_ID } from "@/lib/statesList";
 
 interface RazorpayPaymentResponse {
@@ -1383,11 +1383,18 @@ const OrderFormSection = () => {
                           packageType === "namecheck"
                             ? NAME_CHECK_PRICING[nameCheckCount].price
                             : packageType === "premium"
-                              ? getPackagePrice("premium")
-                              : getPackagePrice("single")
+                              ? getPackagePrice("premium") + getRakhiDiscount("premium")
+                              : getPackagePrice("single") + getRakhiDiscount("single")
                         )}
                       </span>
                     </div>
+                    {getRakhiDiscount(packageType === "premium" ? "premium" : packageType === "namecheck" ? "namecheck" : "single") > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-secondary font-medium">🪢 {RAKHI_DISCOUNT_LABEL}</span>
+                        <span className="text-secondary font-semibold">−{formatPrice(RAKHI_DISCOUNT)}</span>
+                      </div>
+                    )}
+
                     {packageType === "namecheck" && nameCheckCount > 1 && (
                       <>
                         <div className="flex justify-between text-muted-foreground">
@@ -1556,7 +1563,7 @@ const OrderFormSection = () => {
                     </div>
                     <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 border border-border py-2.5 px-1 text-center">
                       <Sparkles className="w-4 h-4 text-accent" />
-                      <span className="text-[10px] md:text-[11px] font-semibold text-foreground leading-tight">12000+ Parents</span>
+                      <span className="text-[10px] md:text-[11px] font-semibold text-foreground leading-tight">14000+ Parents</span>
                     </div>
                   </div>
 

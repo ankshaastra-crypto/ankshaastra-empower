@@ -22,6 +22,18 @@
 export interface PackageTier {
   price: number;
   originalPrice: number;
+  /** Price before the Rakhi limited-period discount (only differs for single/premium) */
+  listPrice?: number;
+  /** Rakhi limited-period discount applied to this tier */
+  rakhiDiscount?: number;
+}
+
+/** Rakhi limited-period discount, auto-applied to Perfect & Complete reports */
+export const RAKHI_DISCOUNT = 473;
+export const RAKHI_DISCOUNT_LABEL = "Rakhi Special Discount (Limited Period)";
+
+export function getRakhiDiscount(packageType: PackageType): number {
+  return packageType === "single" || packageType === "premium" ? RAKHI_DISCOUNT : 0;
 }
 
 export interface NameCheckTiers {
@@ -49,6 +61,16 @@ const DEFAULTS = {
   },
 } as const;
 
+function applyRakhi(tier: PackageTier): PackageTier {
+  return {
+    ...tier,
+    listPrice: tier.price,
+    rakhiDiscount: RAKHI_DISCOUNT,
+    price: tier.price - RAKHI_DISCOUNT,
+  };
+}
+
+
 function envNumber(value: unknown, fallback: number): number {
   if (value === undefined || value === null || value === "") return fallback;
   const n = Number(value);
@@ -69,16 +91,16 @@ function readTier(
 export function getPackagePricing(): PackagePricing {
   const env = import.meta.env;
 
-  const single = readTier(
+  const single = applyRakhi(readTier(
     env.VITE_PACKAGE_SINGLE_PRICE,
     env.VITE_PACKAGE_SINGLE_ORIGINAL_PRICE,
     DEFAULTS.single,
-  );
-  const premium = readTier(
+  ));
+  const premium = applyRakhi(readTier(
     env.VITE_PACKAGE_PREMIUM_PRICE,
     env.VITE_PACKAGE_PREMIUM_ORIGINAL_PRICE,
     DEFAULTS.premium,
-  );
+  ));
   const consultation = readTier(
     env.VITE_PACKAGE_CONSULTATION_PRICE,
     env.VITE_PACKAGE_CONSULTATION_ORIGINAL_PRICE,

@@ -324,7 +324,7 @@ const HeroSection = () => {
           lineHeight: 1.7,
         }}>
           A personalised Baby Name Numerology Report crafted using Vedic principles
-          and your baby's birth details — by an expert trusted by 12000+ families.
+          and your baby's birth details — by an expert trusted by 14000+ families.
         </p>
 
         {/* Price */}
@@ -358,7 +358,7 @@ const HeroSection = () => {
 // ─── Social Proof Bar ─────────────────────────────────────────────────────────
 const SocialProofBar = () => {
   const stats = [
-    { v: "12000+", l: "Families Served" },
+    { v: "14000+", l: "Families Served" },
     { v: "4.9 ★", l: "Average Rating" },
     { v: "99%+",  l: "Parents Felt Confident" },
     { v: "10+",   l: "Years of Experience" },
@@ -545,7 +545,7 @@ const ExpertSection = () => {
               <div style={{ fontFamily: T.body, fontSize: "0.78rem", color: "rgba(253,246,236,0.55)", marginTop: 6 }}>Baby Name & Name Correction Expert</div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, width: "100%" }}>
-              {[["10+", "Years"], ["12000+", "Families"], ["99%", "Confidence"]].map(([v, l], i) => (
+              {[["10+", "Years"], ["14000+", "Families"], ["99%", "Confidence"]].map(([v, l], i) => (
                 <div key={i}>
                   <div style={{ fontFamily: T.heading, fontWeight: 700, fontSize: "1.2rem", color: T.gold }}>{v}</div>
                   <div style={{ fontFamily: T.body, fontSize: "0.7rem", color: "rgba(253,246,236,0.45)" }}>{l}</div>

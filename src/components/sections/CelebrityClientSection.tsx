@@ -1,5 +1,6 @@
 import geetaPhoto from "@/assets/geeta-tyagi.png";
 import darshanPhoto from "@/assets/darshan.jpg";
+import prashantAsset from "@/assets/prashant-sambaragi.jpg.asset.json";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { Sparkles, Tv, Film } from "lucide-react";
 
@@ -24,6 +25,19 @@ const celebrities: Celeb[] = [
       { icon: Tv, label: "Jagaddhatri (Zee TV)", role: "Jagaddhatri" },
       { icon: Tv, label: "Doli Armaano Ki", role: "Shashikala Singh Rathore" },
       { icon: Tv, label: "Aap Ke Aa Jane Se", role: "Bimla Agarwal" },
+    ],
+    objectPosition: "object-top",
+  },
+  {
+    name: "Prashant S Sambaragi",
+    photo: prashantAsset.url,
+    tagline: "South Indian Actor, Bigg Boss Kannada S8 & Entrepreneur",
+    bio: "Prashant S Sambaragi is a popular South Indian actor and entrepreneur, widely recognised as a contestant on Bigg Boss Kannada Season 8.",
+    consultedFor: "Consulted Himansshu Ji personally for name guidance.",
+    credits: [
+      { icon: Tv, label: "Bigg Boss Kannada Season 8", role: "Contestant" },
+      { icon: Film, label: "South Indian Cinema", role: "Actor" },
+      { icon: Sparkles, label: "Entrepreneur", role: "Business Owner" },
     ],
     objectPosition: "object-top",
   },

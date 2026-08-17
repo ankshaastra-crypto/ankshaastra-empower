@@ -6,7 +6,7 @@ const ExpertSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
 
   const stats = [
-    { icon: Star, value: "12000+", label: "Happy Families" },
+    { icon: Star, value: "14000+", label: "Happy Families" },
     { icon: BookOpen, value: "10+", label: "Years Research" },
     { icon: Award, value: "4.9★", label: "User Rating" },
   ];

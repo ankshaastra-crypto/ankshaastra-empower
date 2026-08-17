@@ -51,7 +51,7 @@ const GoogleReviewsBadge = () => {
     {
       icon: <FamiliesIcon className="w-5 h-5 text-accent" />,
       iconBg: "hsl(42 55% 54% / 0.12)",
-      value: "12000+",
+      value: "14000+",
       sub: "Families Served",
     },
     {

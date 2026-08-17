@@ -48,7 +48,56 @@ const TestimonialsSection = () => {
       tag: "Happy Parent",
       rating: 5,
     },
+    {
+      quote: "The report was far more detailed than I expected. Every name came with the logic, compound number and why it suited my daughter. Worth every rupee.",
+      author: "Divya Krishnan",
+      tag: "Verified Customer",
+      rating: 5,
+    },
+    {
+      quote: "Delivered within 24 hours as promised. Himansshu Ji personally answered all our doubts on call. Very professional and genuine service.",
+      author: "Ankit Bansal",
+      tag: "New Parent",
+      rating: 5,
+    },
+    {
+      quote: "We used the Name Check first for a name we shortlisted. It clearly showed why it wasn't ideal, so we upgraded to the full report. Best decision.",
+      author: "Meenakshi Iyer",
+      tag: "Happy Parent",
+      rating: 5,
+    },
+    {
+      quote: "Got the Complete Blueprint for my son. Lucky colours, direction and career insights were an eye-opener. Our whole family was impressed.",
+      author: "Vikram Singh Rathore",
+      tag: "Blueprint Customer",
+      rating: 5,
+    },
+    {
+      quote: "My in-laws wanted a traditional name, we wanted modern. The report gave us options that satisfied everyone. No more family arguments!",
+      author: "Pooja & Nikhil Deshmukh",
+      tag: "New Parents",
+      rating: 5,
+    },
+    {
+      quote: "Corrected the spelling of my elder son's name on Himansshu Ji's advice. Within months his focus in studies improved noticeably.",
+      author: "Sunita Reddy",
+      tag: "Parent of 2",
+      rating: 5,
+    },
+    {
+      quote: "Very transparent process and quick WhatsApp support. The PDF is beautifully made and easy to understand even for our parents.",
+      author: "Harshit Jain",
+      tag: "Verified Customer",
+      rating: 5,
+    },
+    {
+      quote: "I compared a few numerologists before booking. Himansshu Ji's depth of explanation was unmatched. Truly personalised, not a template.",
+      author: "Farah Khan",
+      tag: "Happy Parent",
+      rating: 5,
+    },
   ];
+
 
   const getInitials = (name: string) => {
     return name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
@@ -63,7 +112,7 @@ const TestimonialsSection = () => {
             Their Words Say It All
           </h2>
           <p className="body-md text-muted-foreground">
-            Trusted by parents seeking clarity — over 12000+ families have embarked on a new beginning with numerology.
+            Trusted by parents seeking clarity — over 14000+ families have embarked on a new beginning with numerology.
           </p>
         </div>
 

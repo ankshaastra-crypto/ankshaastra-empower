@@ -2,6 +2,7 @@ import { Star, Tv, Film } from "lucide-react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import geetaPhoto from "@/assets/geeta-tyagi.png";
 import darshanPhoto from "@/assets/darshan.jpg";
+import prashantAsset from "@/assets/prashant-sambaragi.jpg.asset.json";
 import inc91 from "@/assets/press/inc91.webp";
 import dailyhunt from "@/assets/press/dailyhunt.webp";
 import hindustanBytes from "@/assets/press/hindustan-bytes.webp";
@@ -22,6 +23,12 @@ const celebrities = [
     photo: geetaPhoto,
     tag: "TV & Film Actress",
     credit: { Icon: Tv, label: "Jagaddhatri · Doli Armaano Ki" },
+  },
+  {
+    name: "Prashant S Sambaragi",
+    photo: prashantAsset.url,
+    tag: "South Actor & Entrepreneur",
+    credit: { Icon: Tv, label: "Bigg Boss Kannada Season 8" },
   },
   {
     name: "Darshan Patil",
@@ -53,12 +60,12 @@ const SocialProofStripSection = () => {
             Trusted Across India
           </span>
           <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mt-2">
-            Celebrities, Press & <span className="text-accent">12000+ Happy Families</span>
+            Celebrities, Press & <span className="text-accent">14000+ Happy Families</span>
           </h2>
         </div>
 
         {/* Top row: rating + celebs */}
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-4 md:gap-5 mb-6">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-6">
           {/* Rating tile */}
           <div className="rounded-2xl p-5 bg-card border border-accent/30 flex flex-col items-center justify-center text-center shadow-sm">
             <div className="flex items-center gap-2 mb-2">
@@ -71,7 +78,7 @@ const SocialProofStripSection = () => {
               ))}
             </div>
             <div className="text-3xl font-heading font-bold text-accent leading-none">4.9★</div>
-            <div className="text-xs text-foreground/70 mt-1">12000+ Families Served</div>
+            <div className="text-xs text-foreground/70 mt-1">14000+ Families Served</div>
           </div>
 
           {/* Celeb tiles */}

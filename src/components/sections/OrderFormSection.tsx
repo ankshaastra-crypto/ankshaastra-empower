@@ -1563,7 +1563,7 @@ const OrderFormSection = () => {
                     </div>
                     <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 border border-border py-2.5 px-1 text-center">
                       <Sparkles className="w-4 h-4 text-accent" />
-                      <span className="text-[10px] md:text-[11px] font-semibold text-foreground leading-tight">12000+ Parents</span>
+                      <span className="text-[10px] md:text-[11px] font-semibold text-foreground leading-tight">14000+ Parents</span>
                     </div>
                   </div>
 

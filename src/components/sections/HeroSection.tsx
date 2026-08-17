@@ -92,7 +92,7 @@ const HeroSection = () => {
           <div className="mx-auto max-w-md border-t border-b border-accent/25 py-5">
             <div className="flex items-center justify-between">
               {[
-                { value: "12,000+", label: "Reports" },
+                { value: "14,000+", label: "Reports" },
                 { value: "4.9/5", label: "Rating" },
                 { value: "99%", label: "Satisfaction" },
               ].map((stat, i) => (

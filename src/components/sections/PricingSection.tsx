@@ -228,10 +228,16 @@ const PricingSection = () => {
           </span>
           <PriceDisplay price={pricing.single.price} className="text-3xl font-heading font-bold text-accent" />
         </div>
-        <span className="inline-block mt-2 bg-accent/10 text-accent text-xs font-semibold px-2 py-1 rounded-full">
-          {Math.round(((pricing.single.originalPrice - pricing.single.price) / pricing.single.originalPrice) * 100)}% OFF
-        </span>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="inline-block bg-accent/10 text-accent text-xs font-semibold px-2 py-1 rounded-full">
+            {Math.round(((pricing.single.originalPrice - pricing.single.price) / pricing.single.originalPrice) * 100)}% OFF
+          </span>
+          <span className="inline-block bg-secondary/15 text-secondary text-xs font-semibold px-2 py-1 rounded-full">
+            🪢 Rakhi Offer −{formatPrice(RAKHI_DISCOUNT)} applied
+          </span>
+        </div>
       </div>
+
 
       <ul className="space-y-2 mb-6">
         {singleFeatures.map((feature, index) => (

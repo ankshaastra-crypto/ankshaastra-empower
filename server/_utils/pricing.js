@@ -2,8 +2,9 @@
 
 // Default prices (should match VITE_PACKAGE_* in frontend)
 const DEFAULT_PRICES = {
-  single: 3437,
-  premium: 5957,
+  // Rakhi limited-period discount of Rs.473 already applied to single & premium
+  single: 2964,
+  premium: 5484,
   'namecheck-1': 473,
   'namecheck-2': 837,
   'namecheck-3': 837,

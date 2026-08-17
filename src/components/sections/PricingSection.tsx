@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Check, Clock, Lock } from "lucide-react";
 import { useState } from "react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
-import { getPackagePricing, formatPrice } from "@/lib/packagePricing";
+import { getPackagePricing, formatPrice, RAKHI_DISCOUNT } from "@/lib/packagePricing";
 import { trackViewContent } from "@/lib/metaPixel";
 import PriceDisplay from "@/components/PriceDisplay";
 import CountdownTimer from "@/components/CountdownTimer";

@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { trackInitiateCheckout, trackLead, trackAddToCart } from "@/lib/metaPixel";
-import { getPackagePrice, formatPrice } from "@/lib/packagePricing";
+import { getPackagePrice, formatPrice, getRakhiDiscount, RAKHI_DISCOUNT, RAKHI_DISCOUNT_LABEL } from "@/lib/packagePricing";
 import { ALL_STATE_OPTIONS, STATE_DATALIST_ID } from "@/lib/statesList";
 
 interface RazorpayPaymentResponse {

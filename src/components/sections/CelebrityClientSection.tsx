@@ -1,7 +1,7 @@
 import geetaPhoto from "@/assets/geeta-tyagi.png";
 import darshanPhoto from "@/assets/darshan.jpg";
 // import prashantAsset from "@/assets/prashant-sambaragi.jpg.asset.json";
-import prashantPhoto from "@/assets/prashant-sambaragi.jpg";
+import prashantPhoto from "@/assets/prashant-sambaragi.jpeg";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { Sparkles, Tv, Film } from "lucide-react";
 

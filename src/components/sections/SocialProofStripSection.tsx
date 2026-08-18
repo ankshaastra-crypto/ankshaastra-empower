@@ -2,7 +2,8 @@ import { Star, Tv, Film } from "lucide-react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import geetaPhoto from "@/assets/geeta-tyagi.png";
 import darshanPhoto from "@/assets/darshan.jpg";
-import prashantAsset from "@/assets/prashant-sambaragi.jpg.asset.json";
+// import prashantAsset from "@/assets/prashant-sambaragi.jpg.asset.json";
+import prashantPhoto from "@/assets/prashant-sambaragi.jpg";
 import inc91 from "@/assets/press/inc91.webp";
 import dailyhunt from "@/assets/press/dailyhunt.webp";
 import hindustanBytes from "@/assets/press/hindustan-bytes.webp";
@@ -26,7 +27,8 @@ const celebrities = [
   },
   {
     name: "Prashant S Sambaragi",
-    photo: prashantAsset.url,
+    // photo: prashantAsset.url,
+    photo: prashantPhoto,
     tag: "South Actor & Entrepreneur",
     credit: { Icon: Tv, label: "Bigg Boss Kannada Season 8" },
   },

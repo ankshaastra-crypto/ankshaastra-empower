@@ -1,6 +1,7 @@
 import geetaPhoto from "@/assets/geeta-tyagi.png";
 import darshanPhoto from "@/assets/darshan.jpg";
-import prashantAsset from "@/assets/prashant-sambaragi.jpg.asset.json";
+// import prashantAsset from "@/assets/prashant-sambaragi.jpg.asset.json";
+import prashantPhoto from "@/assets/prashant-sambaragi.jpg";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { Sparkles, Tv, Film } from "lucide-react";
 
@@ -30,7 +31,8 @@ const celebrities: Celeb[] = [
   },
   {
     name: "Prashant S Sambaragi",
-    photo: prashantAsset.url,
+    // photo: prashantAsset.url,
+    photo: prashantPhoto,
     tagline: "South Indian Actor, Bigg Boss Kannada S8 & Entrepreneur",
     bio: "Prashant S Sambaragi is a popular South Indian actor and entrepreneur, widely recognised as a contestant on Bigg Boss Kannada Season 8.",
     consultedFor: "Consulted Himansshu Ji personally for name guidance.",

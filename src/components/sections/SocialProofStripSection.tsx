@@ -3,7 +3,7 @@ import useScrollAnimation from "@/hooks/useScrollAnimation";
 import geetaPhoto from "@/assets/geeta-tyagi.png";
 import darshanPhoto from "@/assets/darshan.jpg";
 // import prashantAsset from "@/assets/prashant-sambaragi.jpg.asset.json";
-import prashantPhoto from "@/assets/prashant-sambaragi.jpg";
+import prashantPhoto from "@/assets/prashant-sambaragi.jpeg";
 import inc91 from "@/assets/press/inc91.webp";
 import dailyhunt from "@/assets/press/dailyhunt.webp";
 import hindustanBytes from "@/assets/press/hindustan-bytes.webp";

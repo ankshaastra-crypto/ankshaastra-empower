@@ -4,9 +4,9 @@
 const DEFAULT_PRICES = {
   single: 3437,
   premium: 5957,
-  'namecheck-1': 473,
-  'namecheck-2': 837,
-  'namecheck-3': 837,
+  'namecheck-1': 827,
+  'namecheck-2': 1457,
+  'namecheck-3': 1457,
 };
 
 export function validatePackageAmount(env, packageType, clientAmount) {

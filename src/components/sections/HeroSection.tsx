@@ -64,7 +64,7 @@ const HeroSection = () => {
               size="default"
               className="w-auto font-bold text-sm md:text-lg shadow-xl hover:scale-105 transition-transform animate-pulse-glow animate-blinker border-none px-6 py-3 md:px-8 md:py-4 bg-gold-cta text-accent-foreground"
             >
-              Get Name Check @ ₹473
+              Get Name Check @ ₹827
             </Button>
             <div className="mt-5 flex items-center justify-center">
               <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-[#D4AF37]/30 bg-gradient-to-r from-[#FDFBF7] via-[#F5E6CC] to-[#FDFBF7] shadow-[0_2px_10px_-3px_rgba(212,175,55,0.2)]">

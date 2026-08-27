@@ -69,12 +69,12 @@ function readTier(
 export function getPackagePricing(): PackagePricing {
   const env = import.meta.env;
 
-  const single = applyRakhi(readTier(
+  const single = readTier(
     env.VITE_PACKAGE_SINGLE_PRICE,
     env.VITE_PACKAGE_SINGLE_ORIGINAL_PRICE,
     DEFAULTS.single,
-  ));
-  const premium = applyRakhi(readTier(
+  );
+  const premium = readTier(
     env.VITE_PACKAGE_PREMIUM_PRICE,
     env.VITE_PACKAGE_PREMIUM_ORIGINAL_PRICE,
     DEFAULTS.premium,

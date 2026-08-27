@@ -78,7 +78,7 @@ export function getPackagePricing(): PackagePricing {
     env.VITE_PACKAGE_PREMIUM_PRICE,
     env.VITE_PACKAGE_PREMIUM_ORIGINAL_PRICE,
     DEFAULTS.premium,
-  ));
+  );
   const consultation = readTier(
     env.VITE_PACKAGE_CONSULTATION_PRICE,
     env.VITE_PACKAGE_CONSULTATION_ORIGINAL_PRICE,

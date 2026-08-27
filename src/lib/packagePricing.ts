@@ -43,9 +43,9 @@ const DEFAULTS = {
   premium: { price: 5957, originalPrice: 15051 },
   consultation: { price: 1, originalPrice: 1 },
   namecheck: {
-    1: { price: 473, originalPrice: 473 },
-    2: { price: 837, originalPrice: 946 },
-    3: { price: 837, originalPrice: 946 },
+    1: { price: 827, originalPrice: 827 },
+    2: { price: 1457, originalPrice: 1654 },
+    3: { price: 1457, originalPrice: 1654 },
   },
 } as const;
 

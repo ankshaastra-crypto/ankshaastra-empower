@@ -26,7 +26,7 @@ const celebrities = [
     credit: { Icon: Tv, label: "Jagaddhatri · Doli Armaano Ki" },
   },
   {
-    name: "Prashant S Sambaragi",
+    name: "Prashantt Sambargi",
     // photo: prashantAsset.url,
     photo: prashantPhoto,
     tag: "South Actor & Entrepreneur",

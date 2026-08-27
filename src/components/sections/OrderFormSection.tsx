@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 import { trackInitiateCheckout, trackLead, trackAddToCart } from "@/lib/metaPixel";
-import { getPackagePrice, formatPrice, getRakhiDiscount, RAKHI_DISCOUNT, RAKHI_DISCOUNT_LABEL } from "@/lib/packagePricing";
+import { getPackagePrice, formatPrice } from "@/lib/packagePricing";
 import { ALL_STATE_OPTIONS, STATE_DATALIST_ID } from "@/lib/statesList";
 
 interface RazorpayPaymentResponse {
@@ -1383,17 +1383,12 @@ const OrderFormSection = () => {
                           packageType === "namecheck"
                             ? NAME_CHECK_PRICING[nameCheckCount].price
                             : packageType === "premium"
-                              ? getPackagePrice("premium") + getRakhiDiscount("premium")
-                              : getPackagePrice("single") + getRakhiDiscount("single")
+                              ? getPackagePrice("premium")
+                              : getPackagePrice("single")
                         )}
                       </span>
                     </div>
-                    {getRakhiDiscount(packageType === "premium" ? "premium" : packageType === "namecheck" ? "namecheck" : "single") > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-secondary font-medium">🪢 {RAKHI_DISCOUNT_LABEL}</span>
-                        <span className="text-secondary font-semibold">−{formatPrice(RAKHI_DISCOUNT)}</span>
-                      </div>
-                    )}
+
 
                     {packageType === "namecheck" && nameCheckCount > 1 && (
                       <>

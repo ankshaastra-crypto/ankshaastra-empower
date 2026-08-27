@@ -47,7 +47,7 @@ const DEFAULTS = {
     2: { price: 837, originalPrice: 946 },
     3: { price: 837, originalPrice: 946 },
   },
-
+} as const;
 
 function envNumber(value: unknown, fallback: number): number {
   if (value === undefined || value === null || value === "") return fallback;

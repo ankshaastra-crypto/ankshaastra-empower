@@ -44,10 +44,10 @@ const celebrities: Celeb[] = [
     objectPosition: "object-top",
   },
   {
-    name: "Darshan Patil",
+    name: "Darsshan Patil",
     photo: darshanPhoto,
     tagline: "Film Actor & Body Double",
-    bio: "Darshan Patil is a versatile Indian film actor known for his work as a body double for leading stars, with appearances in numerous Hindi films.",
+    bio: "Darsshan Patil is a versatile Indian film actor known for his work as a body double for leading stars, with appearances in numerous Hindi films.",
     consultedFor: "Trusted Himansshu Ji's guidance for personal consultation.",
     credits: [
       { icon: Film, label: "Dhurandhar", role: "Featured Role" },

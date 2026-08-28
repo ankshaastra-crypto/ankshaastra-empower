@@ -48,7 +48,7 @@ const Header = () => {
           onClick={() => window.open("https://miraclebaby.ankshaastra.com", "_blank")}
           className="hidden md:inline-flex absolute right-4 top-1/2 -translate-y-1/2"
         >
-          C-Section Dates
+          Planned Delivery Dates
         </Button>
       </div>
     </header>

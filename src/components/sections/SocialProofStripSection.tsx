@@ -33,7 +33,7 @@ const celebrities = [
     credit: { Icon: Tv, label: "Bigg Boss Kannada Season 8" },
   },
   {
-    name: "Darshan Patil",
+    name: "Darsshan Patil",
     photo: darshanPhoto,
     tag: "Film Actor",
     credit: { Icon: Film, label: "Dhurandhar · Thumbs Up" },

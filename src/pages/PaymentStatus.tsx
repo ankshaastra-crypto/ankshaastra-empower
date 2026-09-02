@@ -457,8 +457,58 @@ const PaymentStatus = () => {
     const customerEmail = displayValue(d.customerEmail, d.email, fb?.email);
     const customerMobile = displayValue(d.customerMobile, d.mobile, fb?.mobile);
     
-    let personDetails = '';
+    // let personDetails = '';
     
+    // if (isBabyReport) {
+    //   const fatherName = firstValue(d.fatherFullName, [d.fatherFirstName, d.fatherMiddleName, d.fatherLastName].filter(Boolean).join(' '), d.customerName, d.name);
+    //   const childDob = firstValue(d.childDob, d.customerDob, d.dob, d.person1Dob);
+    //   const gender = firstValue(d.gender, d.customerGender, d.person1Gender);
+    //   const birthCity = firstValue(d.placeOfBirth, d.customerCity, d.city);
+
+    //   personDetails =
+    //     `\n\n*Child & Report Details:*` +
+    //     `\nFather's Full Name: ${displayValue(fatherName)}` +
+    //     `\nChild's Date of Birth: ${displayValue(childDob)}` +
+    //     `\nTime of Birth: ${displayValue(d.timeOfBirth)}` +
+    //     `\nBirth City: ${displayValue(birthCity)}` +
+    //     `\nPin Code: ${displayValue(d.pinCode)}` +
+    //     `\nChild's Gender: ${displayValue(gender)}` +
+    //     (hasText(d.childMiddleName) ? `\nChild's Middle Name: ${d.childMiddleName}` : '') +
+    //     (hasText(d.childLastName) ? `\nChild's Last Name: ${d.childLastName}` : '') +
+    //     `\nFather's First Name as Middle Name: ${d.fatherFirstNameAsMiddleName === 'yes' ? 'Yes' : d.fatherFirstNameAsMiddleName === 'no' ? 'No' : 'N/A'}` +
+    //     `\nPreferred Name Options: ${displayValue(d.nameOptions)}`;
+    // } else {
+    //   // Name Check packages — show each person
+    //   const buildPersonBlock = (label: string, name?: string, firstName?: string, middleName?: string, surName?: string, dob?: string, gender?: string, middleNameType?: string) => {
+    //     const fullName = name || [firstName, middleName, surName].filter(Boolean).join(' ');
+    //     if (!fullName) return '';
+    //     let block = `\n\n*${label}:*\nName: ${fullName}`;
+    //     if (dob) block += `\nDOB: ${dob}`;
+    //     if (gender) block += `\nGender: ${gender}`;
+    //     if (middleNameType) block += `\nMiddle Name is Father's/Husband's: ${middleNameType === 'yes' ? 'Yes' : middleNameType === 'no' ? 'No' : 'N/A'}`;
+    //     return block;
+    //   };
+      
+    //   personDetails = buildPersonBlock('Person 1', d.person1Name, d.person1FirstName, d.person1MiddleName, d.person1SurName, d.person1Dob, d.person1Gender, d.person1MiddleNameType);
+    //   personDetails += buildPersonBlock('Person 2', d.person2Name, d.person2FirstName, d.person2MiddleName, d.person2SurName, d.person2Dob, d.person2Gender, d.person2MiddleNameType);
+    //   personDetails += buildPersonBlock('Person 3', d.person3Name, d.person3FirstName, d.person3MiddleName, d.person3SurName, d.person3Dob, d.person3Gender, d.person3MiddleNameType);
+    //   const city = firstValue(d.customerCity, d.city);
+    //   if (city) personDetails += `\n\nCity: ${city}`;
+    //   if (d.pinCode) personDetails += `\nPin Code: ${d.pinCode}`;
+    // }
+
+    let personDetails = '';
+
+    const formatDobDisplay = (dobStr?: string) => {
+      if (!dobStr) return '';
+      const match = dobStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (match) {
+        const [, year, month, day] = match;
+        return `${day}/${month}/${year}`;
+      }
+      return dobStr;
+    };
+
     if (isBabyReport) {
       const fatherName = firstValue(d.fatherFullName, [d.fatherFirstName, d.fatherMiddleName, d.fatherLastName].filter(Boolean).join(' '), d.customerName, d.name);
       const childDob = firstValue(d.childDob, d.customerDob, d.dob, d.person1Dob);
@@ -468,7 +518,7 @@ const PaymentStatus = () => {
       personDetails =
         `\n\n*Child & Report Details:*` +
         `\nFather's Full Name: ${displayValue(fatherName)}` +
-        `\nChild's Date of Birth: ${displayValue(childDob)}` +
+        `\nChild's Date of Birth: ${childDob ? formatDobDisplay(childDob) : "N/A"}` +
         `\nTime of Birth: ${displayValue(d.timeOfBirth)}` +
         `\nBirth City: ${displayValue(birthCity)}` +
         `\nPin Code: ${displayValue(d.pinCode)}` +
@@ -482,10 +532,13 @@ const PaymentStatus = () => {
       const buildPersonBlock = (label: string, name?: string, firstName?: string, middleName?: string, surName?: string, dob?: string, gender?: string, middleNameType?: string) => {
         const fullName = name || [firstName, middleName, surName].filter(Boolean).join(' ');
         if (!fullName) return '';
-        let block = `\n\n*${label}:*\nName: ${fullName}`;
-        if (dob) block += `\nDOB: ${dob}`;
+        const fName = displayValue(firstName, name?.split(' ')[0]);
+        const mName = displayValue(middleName, '-');
+        const lName = displayValue(surName, '-');
+        const middleNameTypeText = middleNameType === 'yes' ? "Yes" : middleNameType === 'no' ? "No" : '-';
+        let block = `\n\n*${label} Details*\nFirst Name: ${fName}\nMiddle Name: ${mName}\nLast Name: ${lName}\nIs the middle name father's / husband's name?: ${middleNameTypeText}`;
+        if (dob) block += `\nDate of Birth: ${formatDobDisplay(dob)}`;
         if (gender) block += `\nGender: ${gender}`;
-        if (middleNameType) block += `\nMiddle Name is Father's/Husband's: ${middleNameType === 'yes' ? 'Yes' : middleNameType === 'no' ? 'No' : 'N/A'}`;
         return block;
       };
       

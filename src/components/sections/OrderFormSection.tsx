@@ -1665,10 +1665,10 @@ const OrderFormSection = () => {
                           <p className="text-xs text-muted-foreground mt-1">Required for GST invoice compliance.</p>
                         </div>
                         <div>
-                          <Label htmlFor="pinCode">ZIP / Pincode (optional)</Label>
+                          <Label htmlFor="pinCode">ZIP / Pincode *</Label>
                           <div className="relative">
                             <Input id="pinCode" name="pinCode" type="text" value={formData.pinCode} onChange={handleInputChange}
-                              placeholder="e.g. 400001" maxLength={20}
+                              placeholder="e.g. 400001" required maxLength={20}
                               className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.pinCode ? "border-destructive" : isFieldValid("pinCode") ? "border-success" : ""}`} />
                             <ValidIcon field="pinCode" />
                           </div>

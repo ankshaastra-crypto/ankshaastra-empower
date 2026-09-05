@@ -353,9 +353,7 @@ const OrderFormSection = () => {
       }
     } else {
       const val = formData[fieldName as keyof typeof formData];
-      const isOptional = fieldName === "pinCode";
-      if (!isOptional && (!val || (typeof val === "string" && !val.trim()))) return false;
-      if (isOptional && (!val || (typeof val === "string" && !val.trim()))) return true;
+      if (!val || (typeof val === "string" && !val.trim())) return false;
       if (fieldName.includes("FirstName") || fieldName.includes("SurName")) return validateName(val, true);
       if (fieldName.includes("MiddleName") && !fieldName.includes("Type")) return val.trim().length > 0 ? validateName(val, false) : true;
       if (fieldName.includes("Dob")) return validateDob(val);

@@ -488,6 +488,8 @@ const OrderFormSection = () => {
         newErrors.placeOfBirth = !babyFormData.placeOfBirth ? "Place of birth is required" : "Please enter between 2 and 80 characters";
       if (!babyFormData.state || !validateCity(babyFormData.state))
         newErrors.state = !babyFormData.state ? "State / Province is required" : "Please enter between 2 and 60 characters";
+      if (!babyFormData.pinCode || !validatePinCode(babyFormData.pinCode))
+        newErrors.pinCode = !babyFormData.pinCode ? "ZIP / Pincode is required" : "Please enter a valid 6-digit Indian pincode";
       if (!babyFormData.gender || babyFormData.gender.trim() === "")
         newErrors.gender = "Gender is required";
       if (!babyFormData.email || !validateEmail(babyFormData.email))

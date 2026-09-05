@@ -529,6 +529,8 @@ const OrderFormSection = () => {
         newErrors.city = !formData.city ? "Place of birth is required" : "Please enter between 2 and 80 characters";
       if (!formData.state || !validateCity(formData.state))
         newErrors.state = !formData.state ? "State / Province is required" : "Please enter between 2 and 60 characters";
+      if (!formData.pinCode || !validatePinCode(formData.pinCode))
+        newErrors.pinCode = !formData.pinCode ? "ZIP / Pincode is required" : "Please enter a valid 6-digit Indian pincode";
       if (!formData.parentsProfession || formData.parentsProfession.trim() === "")
         newErrors.parentsProfession = "Profession is required";
     }

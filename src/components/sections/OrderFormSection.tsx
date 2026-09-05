@@ -308,7 +308,7 @@ const OrderFormSection = () => {
   };
 
   const validatePinCode = (pin: string): boolean => {
-    if (!pin || pin.trim() === "") return true; // optional field
+    if (!pin || pin.trim() === "") return false;
     return /^[1-9][0-9]{5}$/.test(pin.trim());
   };
 
@@ -316,7 +316,7 @@ const OrderFormSection = () => {
   const isFieldValid = useCallback((fieldName: string): boolean => {
     if (packageType === "single" || packageType === "premium") {
       const val = babyFormData[fieldName as keyof typeof babyFormData];
-      const isOptional = fieldName === "pinCode" || fieldName === "childMiddleName" || fieldName === "nameOptions";
+      const isOptional = fieldName === "childMiddleName" || fieldName === "nameOptions";
       if (!isOptional && (!val || (typeof val === "string" && !val.trim()))) return false;
       if (isOptional && (!val || (typeof val === "string" && !val.trim()))) return true;
       switch (fieldName) {
@@ -353,9 +353,7 @@ const OrderFormSection = () => {
       }
     } else {
       const val = formData[fieldName as keyof typeof formData];
-      const isOptional = fieldName === "pinCode";
-      if (!isOptional && (!val || (typeof val === "string" && !val.trim()))) return false;
-      if (isOptional && (!val || (typeof val === "string" && !val.trim()))) return true;
+      if (!val || (typeof val === "string" && !val.trim())) return false;
       if (fieldName.includes("FirstName") || fieldName.includes("SurName")) return validateName(val, true);
       if (fieldName.includes("MiddleName") && !fieldName.includes("Type")) return val.trim().length > 0 ? validateName(val, false) : true;
       if (fieldName.includes("Dob")) return validateDob(val);
@@ -490,6 +488,8 @@ const OrderFormSection = () => {
         newErrors.placeOfBirth = !babyFormData.placeOfBirth ? "Place of birth is required" : "Please enter between 2 and 80 characters";
       if (!babyFormData.state || !validateCity(babyFormData.state))
         newErrors.state = !babyFormData.state ? "State / Province is required" : "Please enter between 2 and 60 characters";
+      if (!babyFormData.pinCode || !validatePinCode(babyFormData.pinCode))
+        newErrors.pinCode = !babyFormData.pinCode ? "ZIP / Pincode is required" : "Please enter a valid 6-digit Indian pincode";
       if (!babyFormData.gender || babyFormData.gender.trim() === "")
         newErrors.gender = "Gender is required";
       if (!babyFormData.email || !validateEmail(babyFormData.email))
@@ -529,6 +529,8 @@ const OrderFormSection = () => {
         newErrors.city = !formData.city ? "Place of birth is required" : "Please enter between 2 and 80 characters";
       if (!formData.state || !validateCity(formData.state))
         newErrors.state = !formData.state ? "State / Province is required" : "Please enter between 2 and 60 characters";
+      if (!formData.pinCode || !validatePinCode(formData.pinCode))
+        newErrors.pinCode = !formData.pinCode ? "ZIP / Pincode is required" : "Please enter a valid 6-digit Indian pincode";
       if (!formData.parentsProfession || formData.parentsProfession.trim() === "")
         newErrors.parentsProfession = "Profession is required";
     }
@@ -1024,12 +1026,12 @@ const OrderFormSection = () => {
         <p className="text-xs text-muted-foreground mt-1">Required for GST invoice compliance.</p>
       </div>
 
-      {/* ZIP / Pincode (optional) */}
+      {/* ZIP / Pincode */}
       <div>
-        <Label htmlFor="pinCode">ZIP / Pincode (optional)</Label>
+        <Label htmlFor="pinCode">ZIP / Pincode *</Label>
         <div className="relative">
           <Input id="pinCode" name="pinCode" value={babyFormData.pinCode} onChange={handleInputChange}
-            placeholder="e.g. 400001" maxLength={20}
+            placeholder="e.g. 400001" required maxLength={20}
             className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.pinCode ? "border-destructive" : isFieldValid("pinCode") ? "border-success" : ""}`} />
           <ValidIcon field="pinCode" />
         </div>
@@ -1663,10 +1665,10 @@ const OrderFormSection = () => {
                           <p className="text-xs text-muted-foreground mt-1">Required for GST invoice compliance.</p>
                         </div>
                         <div>
-                          <Label htmlFor="pinCode">ZIP / Pincode (optional)</Label>
+                          <Label htmlFor="pinCode">ZIP / Pincode *</Label>
                           <div className="relative">
                             <Input id="pinCode" name="pinCode" type="text" value={formData.pinCode} onChange={handleInputChange}
-                              placeholder="e.g. 400001" maxLength={20}
+                              placeholder="e.g. 400001" required maxLength={20}
                               className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.pinCode ? "border-destructive" : isFieldValid("pinCode") ? "border-success" : ""}`} />
                             <ValidIcon field="pinCode" />
                           </div>

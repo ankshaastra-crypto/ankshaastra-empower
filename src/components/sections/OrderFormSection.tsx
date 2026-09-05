@@ -316,7 +316,7 @@ const OrderFormSection = () => {
   const isFieldValid = useCallback((fieldName: string): boolean => {
     if (packageType === "single" || packageType === "premium") {
       const val = babyFormData[fieldName as keyof typeof babyFormData];
-      const isOptional = fieldName === "pinCode" || fieldName === "childMiddleName" || fieldName === "nameOptions";
+      const isOptional = fieldName === "childMiddleName" || fieldName === "nameOptions";
       if (!isOptional && (!val || (typeof val === "string" && !val.trim()))) return false;
       if (isOptional && (!val || (typeof val === "string" && !val.trim()))) return true;
       switch (fieldName) {

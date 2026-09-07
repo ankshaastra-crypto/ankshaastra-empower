@@ -86,6 +86,11 @@ export function getPackagePricing(): PackagePricing {
     env.VITE_PACKAGE_CONSULTATION_ORIGINAL_PRICE,
     DEFAULTS.consultation,
   );
+  const namecorrection = readTier(
+    env.VITE_PACKAGE_NAMECORRECTION_PRICE,
+    env.VITE_PACKAGE_NAMECORRECTION_ORIGINAL_PRICE,
+    DEFAULTS.namecorrection,
+  );
   const nc1 = readTier(
     env.VITE_PACKAGE_NAMECHECK_1_PRICE,
     env.VITE_PACKAGE_NAMECHECK_1_ORIGINAL_PRICE,

@@ -11,7 +11,7 @@ const PricingSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
   const pricing = getPackagePricing();
   const [selectedNameCheckPlan, setSelectedNameCheckPlan] = useState<1 | 2>(1);
-  const [activeTab, setActiveTab] = useState<"namecheck" | "single" | "premium">("namecheck");
+  const [activeTab, setActiveTab] = useState<"namecheck" | "single" | "premium" | "namecorrection">("namecheck");
 
   // Per-person effective price for the discount label
   const nameCheckPlans = {
@@ -44,6 +44,9 @@ const PricingSection = () => {
       } else if (packageType === "consultation") {
         price = pricing.consultation.price;
         contentName = "Live Consultation";
+      } else if (packageType === "namecorrection") {
+        price = pricing.namecorrection.price;
+        contentName = "Name Correction Report";
       }
       trackViewContent(price, "INR", contentName);
     }

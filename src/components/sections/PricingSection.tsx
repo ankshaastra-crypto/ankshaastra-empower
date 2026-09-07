@@ -413,13 +413,14 @@ const PricingSection = () => {
 
         {/* Mobile: 3 separate boxes */}
         <div className="md:hidden max-w-md mx-auto mb-6 px-1">
-          <div className="grid grid-cols-3 gap-2 pt-3">
+          <div className="grid grid-cols-2 gap-2 pt-3">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
               const activeStyles = "bg-accent text-accent-foreground border-accent shadow-[0_6px_20px_rgba(201,168,76,0.45)] scale-[1.03]";
               const inactiveStyles = "bg-card text-foreground border-accent/50";
               const tierGradients: Record<string, string> = {
                 Starter: "linear-gradient(135deg, #B0B7C3 0%, #6B7280 100%)",
+                Adults: "linear-gradient(135deg, #0F766E 0%, #134E4A 100%)",
                 Advanced: "linear-gradient(135deg, #C9A84C 0%, #8C6A1E 100%)",
                 Complete: "linear-gradient(135deg, #1F2937 0%, #C9A84C 100%)",
               };
@@ -454,12 +455,14 @@ const PricingSection = () => {
             {activeTab === "single" && <SingleReportCard />}
             {activeTab === "premium" && <PremiumReportCard />}
             {activeTab === "namecheck" && <NameCheckCard />}
+            {activeTab === "namecorrection" && <NameCorrectionCard />}
           </div>
         </div>
 
-        {/* Desktop: three columns */}
-        <div className="hidden md:grid grid-cols-3 gap-5 max-w-5xl mx-auto items-start">
+        {/* Desktop: 2x2 grid */}
+        <div className="hidden md:grid grid-cols-2 gap-5 max-w-4xl mx-auto items-start">
           <NameCheckCard />
+          <NameCorrectionCard />
           <SingleReportCard />
           <PremiumReportCard />
         </div>

@@ -36,12 +36,14 @@ export interface PackagePricing {
   single: PackageTier;
   premium: PackageTier;
   consultation: PackageTier;
+  namecorrection: PackageTier;
 }
 
 const DEFAULTS = {
   single: { price: 3437, originalPrice: 7500 },
   premium: { price: 5957, originalPrice: 15051 },
   consultation: { price: 1, originalPrice: 1 },
+  namecorrection: { price: 2987, originalPrice: 2987 },
   namecheck: {
     1: { price: 827, originalPrice: 827 },
     2: { price: 1457, originalPrice: 1654 },

@@ -117,6 +117,7 @@ export function getPackagePricing(): PackagePricing {
     single,
     premium,
     consultation,
+    namecorrection,
   };
 }
 
@@ -127,7 +128,8 @@ export type PackageType =
   | "namecheck"
   | "namecheck-1"
   | "namecheck-2"
-  | "namecheck-3";
+  | "namecheck-3"
+  | "namecorrection";
 
 export function getPackagePrice(packageType: PackageType): number {
   const p = getPackagePricing();

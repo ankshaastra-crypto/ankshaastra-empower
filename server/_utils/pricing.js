@@ -7,6 +7,7 @@ const DEFAULT_PRICES = {
   'namecheck-1': 827,
   'namecheck-2': 1457,
   'namecheck-3': 1457,
+  namecorrection: 2987,
 };
 
 export function validatePackageAmount(env, packageType, clientAmount) {

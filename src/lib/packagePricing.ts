@@ -36,12 +36,14 @@ export interface PackagePricing {
   single: PackageTier;
   premium: PackageTier;
   consultation: PackageTier;
+  namecorrection: PackageTier;
 }
 
 const DEFAULTS = {
   single: { price: 3437, originalPrice: 7500 },
   premium: { price: 5957, originalPrice: 15051 },
   consultation: { price: 1, originalPrice: 1 },
+  namecorrection: { price: 2987, originalPrice: 7500 },
   namecheck: {
     1: { price: 827, originalPrice: 827 },
     2: { price: 1457, originalPrice: 1654 },
@@ -84,6 +86,11 @@ export function getPackagePricing(): PackagePricing {
     env.VITE_PACKAGE_CONSULTATION_ORIGINAL_PRICE,
     DEFAULTS.consultation,
   );
+  const namecorrection = readTier(
+    env.VITE_PACKAGE_NAMECORRECTION_PRICE,
+    env.VITE_PACKAGE_NAMECORRECTION_ORIGINAL_PRICE,
+    DEFAULTS.namecorrection,
+  );
   const nc1 = readTier(
     env.VITE_PACKAGE_NAMECHECK_1_PRICE,
     env.VITE_PACKAGE_NAMECHECK_1_ORIGINAL_PRICE,
@@ -110,6 +117,7 @@ export function getPackagePricing(): PackagePricing {
     single,
     premium,
     consultation,
+    namecorrection,
   };
 }
 
@@ -120,7 +128,8 @@ export type PackageType =
   | "namecheck"
   | "namecheck-1"
   | "namecheck-2"
-  | "namecheck-3";
+  | "namecheck-3"
+  | "namecorrection";
 
 export function getPackagePrice(packageType: PackageType): number {
   const p = getPackagePricing();

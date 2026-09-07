@@ -11,7 +11,7 @@ const PricingSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
   const pricing = getPackagePricing();
   const [selectedNameCheckPlan, setSelectedNameCheckPlan] = useState<1 | 2>(1);
-  const [activeTab, setActiveTab] = useState<"namecheck" | "single" | "premium">("namecheck");
+  const [activeTab, setActiveTab] = useState<"namecheck" | "single" | "premium" | "namecorrection">("namecheck");
 
   // Per-person effective price for the discount label
   const nameCheckPlans = {
@@ -44,6 +44,9 @@ const PricingSection = () => {
       } else if (packageType === "consultation") {
         price = pricing.consultation.price;
         contentName = "Live Consultation";
+      } else if (packageType === "namecorrection") {
+        price = pricing.namecorrection.price;
+        contentName = "Name Correction Report";
       }
       trackViewContent(price, "INR", contentName);
     }
@@ -328,8 +331,69 @@ const PricingSection = () => {
     </div>
   );
 
+  const nameCorrectionFeatures = [
+    "First Name & Full Name Analysis",
+    "Compound Number Analysis",
+    "2 Corrected Name Spellings",
+    "First Alphabet Analysis",
+    "Personal Loshu Grid",
+    "Rajyog Analysis",
+  ];
+
+  const NameCorrectionCard = () => (
+    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative bg-card border-2 border-secondary/40 hover:border-secondary/70 transition-colors">
+      <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
+        <span className="bg-secondary text-secondary-foreground text-[10px] md:text-xs font-bold px-3 py-1 rounded-full shadow-md whitespace-nowrap leading-none">
+          FOR ADULTS
+        </span>
+      </div>
+
+      <div className="mb-3 pt-2">
+        <h3 className="text-xl font-heading font-bold text-foreground mb-1">Name Correction</h3>
+        <p className="text-muted-foreground text-sm">Correct your name, change your luck</p>
+      </div>
+
+      <div className="mb-4">
+        <div className="flex items-baseline gap-2">
+          {pricing.namecorrection.originalPrice > pricing.namecorrection.price && (
+            <span className="text-base text-muted-foreground line-through">
+              {formatPrice(pricing.namecorrection.originalPrice)}
+            </span>
+          )}
+          <PriceDisplay price={pricing.namecorrection.price} className="text-3xl font-heading font-bold text-secondary" />
+        </div>
+      </div>
+
+      <ul className="space-y-2 mb-5">
+        {nameCorrectionFeatures.map((feature, index) => (
+          <li key={index} className="flex items-start gap-2 group">
+            <Check className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
+            <span className="text-muted-foreground text-sm">{feature}</span>
+          </li>
+        ))}
+      </ul>
+
+      <Button
+        variant="secondary"
+        size="default"
+        className="w-full group whitespace-normal text-center px-3 leading-tight min-h-[44px] h-auto py-2"
+        onClick={() => scrollToForm("namecorrection")}
+      >
+        <span className="group-hover:scale-105 transition-transform duration-300 inline-block text-sm md:text-base">
+          Get Name Correction Report
+        </span>
+      </Button>
+
+      <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 24-48 hr</span>
+        <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Secure</span>
+      </div>
+    </div>
+  );
+
   const tabs = [
     { key: "namecheck" as const, label: "Name Check", tier: "Starter" },
+    { key: "namecorrection" as const, label: "Correction", tier: "Adults" },
     { key: "single" as const, label: "Baby Name", tier: "Advanced" },
     { key: "premium" as const, label: "Blueprint", tier: "Complete" },
   ];
@@ -350,13 +414,14 @@ const PricingSection = () => {
 
         {/* Mobile: 3 separate boxes */}
         <div className="md:hidden max-w-md mx-auto mb-6 px-1">
-          <div className="grid grid-cols-3 gap-2 pt-3">
+          <div className="grid grid-cols-2 gap-2 pt-3">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
               const activeStyles = "bg-accent text-accent-foreground border-accent shadow-[0_6px_20px_rgba(201,168,76,0.45)] scale-[1.03]";
               const inactiveStyles = "bg-card text-foreground border-accent/50";
               const tierGradients: Record<string, string> = {
                 Starter: "linear-gradient(135deg, #B0B7C3 0%, #6B7280 100%)",
+                Adults: "linear-gradient(135deg, #0F766E 0%, #134E4A 100%)",
                 Advanced: "linear-gradient(135deg, #C9A84C 0%, #8C6A1E 100%)",
                 Complete: "linear-gradient(135deg, #1F2937 0%, #C9A84C 100%)",
               };
@@ -391,12 +456,14 @@ const PricingSection = () => {
             {activeTab === "single" && <SingleReportCard />}
             {activeTab === "premium" && <PremiumReportCard />}
             {activeTab === "namecheck" && <NameCheckCard />}
+            {activeTab === "namecorrection" && <NameCorrectionCard />}
           </div>
         </div>
 
-        {/* Desktop: three columns */}
-        <div className="hidden md:grid grid-cols-3 gap-5 max-w-5xl mx-auto items-start">
+        {/* Desktop: 2x2 grid */}
+        <div className="hidden md:grid grid-cols-2 gap-5 max-w-4xl mx-auto items-start">
           <NameCheckCard />
+          <NameCorrectionCard />
           <SingleReportCard />
           <PremiumReportCard />
         </div>

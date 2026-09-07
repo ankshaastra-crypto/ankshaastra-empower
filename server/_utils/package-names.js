@@ -9,6 +9,7 @@ const PACKAGE_NAMES = {
   'namecheck-2': 'Name Check (2 Persons)',
   'namecheck-3': 'Name Check (3 Persons)',
   baby_name: 'Baby Name Numerology Report',
+  namecorrection: 'Name Correction Report',
 };
 
 export function getPackageDisplayName(packageType) {

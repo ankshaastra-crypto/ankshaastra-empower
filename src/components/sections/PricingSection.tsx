@@ -332,11 +332,12 @@ const PricingSection = () => {
   );
 
   const nameCorrectionFeatures = [
-    "Full Name Numerology Analysis",
-    "Corrected Spelling Suggestions",
-    "Signature & Usage Guidance",
-    "Mulank & Bhagyank Alignment",
-    "PDF Report by Expert",
+    "First Name & Full Name Analysis",
+    "Compound Number Analysis",
+    "2 Corrected Name Spellings",
+    "First Alphabet Analysis",
+    "Personal Loshu Grid",
+    "Rajyog Analysis",
   ];
 
   const NameCorrectionCard = () => (

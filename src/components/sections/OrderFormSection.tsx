@@ -135,7 +135,7 @@ const OrderFormSection = () => {
   const { ref } = useScrollAnimation({ threshold: 0.1 });
   const [formStep, setFormStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [packageType, setPackageType] = useState<"namecheck" | "single" | "premium">("single");
+  const [packageType, setPackageType] = useState<"namecheck" | "single" | "premium" | "namecorrection">("single");
   const [nameCheckCount, setNameCheckCount] = useState<1 | 2>(1);
   const [addonExtraNames, setAddonExtraNames] = useState<boolean>(false);
   const [addonNickname, setAddonNickname] = useState<boolean>(false);
@@ -189,6 +189,32 @@ const OrderFormSection = () => {
     whatsapp: "",
     nameOptions: "",
   });
+  // Name Correction form data
+  const [ncFormData, setNcFormData] = useState({
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    middleNameIsFathers: "",
+    lastNameChangeOk: "",
+    email: "",
+    whatsapp: "",
+    pinCode: "",
+    city: "",
+    state: "",
+    dob: "",
+    timeOfBirth: "",
+    placeOfBirth: "",
+    gender: "",
+    relFather: "",
+    relMother: "",
+    relSpouse: "",
+    fatherName: "",
+    motherName: "",
+    spouseName: "",
+    profession: "",
+    reason: "",
+  });
+
   const [nameStyles, setNameStyles] = useState<string[]>([]);
   const [additionalNotes, setAdditionalNotes] = useState<string>("");
 
@@ -223,6 +249,12 @@ const OrderFormSection = () => {
       } else if (detail === "premium") {
         setPackageType("premium");
         setAddonNickname(false);
+      } else if (detail === "namecorrection") {
+        setPackageType("namecorrection");
+        setAddonExtraNames(false);
+        setAddonNickname(false);
+        setAddonKundali(false);
+        setKundaliLanguage("");
       } else if (detail === "namecheck") {
         setPackageType("namecheck");
         setNameCheckCount(1);
@@ -314,6 +346,48 @@ const OrderFormSection = () => {
 
   // --- Field validity check for green checkmark ---
   const isFieldValid = useCallback((fieldName: string): boolean => {
+    if (packageType === "namecorrection") {
+      const val = ncFormData[fieldName as keyof typeof ncFormData];
+      const isOptional = fieldName === "middleName" || fieldName === "spouseName" || fieldName === "relSpouse";
+      if (!val || (typeof val === "string" && !val.trim())) return isOptional;
+      switch (fieldName) {
+        case "firstName":
+        case "lastName":
+        case "fatherName":
+        case "motherName":
+          return validateName(val, true);
+        case "middleName":
+        case "spouseName":
+          return validateName(val, false);
+        case "middleNameIsFathers":
+        case "lastNameChangeOk":
+          return val === "yes" || val === "no";
+        case "email":
+          return validateEmail(val);
+        case "whatsapp":
+          return validateMobile(val);
+        case "pinCode":
+          return validatePinCode(val);
+        case "city":
+        case "state":
+        case "placeOfBirth":
+          return validateCity(val);
+        case "dob":
+          return validateDob(val);
+        case "timeOfBirth":
+          return validateTime(val);
+        case "gender":
+        case "relFather":
+        case "relMother":
+          return val.trim() !== "";
+        case "profession":
+          return val.trim().length > 0 && val.trim().length <= 250;
+        case "reason":
+          return val.trim().length >= 10 && val.trim().length <= 1000;
+        default:
+          return false;
+      }
+    }
     if (packageType === "single" || packageType === "premium") {
       const val = babyFormData[fieldName as keyof typeof babyFormData];
       const isOptional = fieldName === "childMiddleName" || fieldName === "nameOptions";
@@ -366,7 +440,7 @@ const OrderFormSection = () => {
       if (fieldName === "parentsProfession") return val.trim().length > 0 && val.trim().length <= 250;
       return false;
     }
-  }, [formData, babyFormData, packageType]);
+  }, [formData, babyFormData, ncFormData, packageType]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -389,9 +463,11 @@ const OrderFormSection = () => {
     }
 
     // Update the right form state
-    if ((packageType === "single" || packageType === "premium") && name in babyFormData) {
+    if (packageType === "namecorrection" && name in ncFormData) {
+      setNcFormData((prev) => ({ ...prev, [name]: processedValue }));
+    } else if ((packageType === "single" || packageType === "premium") && name in babyFormData) {
       setBabyFormData((prev) => ({ ...prev, [name]: processedValue }));
-    } else {
+    } else if (name in formData) {
       setFormData((prev) => ({ ...prev, [name]: processedValue }));
     }
 
@@ -457,6 +533,7 @@ const OrderFormSection = () => {
 
   const getPrice = (): number => {
     if (packageType === "namecheck") return NAME_CHECK_PRICING[nameCheckCount].price;
+    if (packageType === "namecorrection") return getPackagePrice("namecorrection");
     const base = packageType === "premium" ? getPackagePrice("premium") : getPackagePrice("single");
     return (
       base +
@@ -471,7 +548,50 @@ const OrderFormSection = () => {
   // --- Step validation ---
   const validateStep2 = (): Record<string, string> => {
     const newErrors: Record<string, string> = {};
-    if (packageType === "single" || packageType === "premium") {
+    if (packageType === "namecorrection") {
+      if (!ncFormData.firstName || !validateName(ncFormData.firstName, true))
+        newErrors.firstName = "First name is required";
+      if (ncFormData.middleName && !validateName(ncFormData.middleName, false))
+        newErrors.middleName = "Name must contain only letters";
+      if (!ncFormData.lastName || !validateName(ncFormData.lastName, true))
+        newErrors.lastName = "Last name is required";
+      if (!ncFormData.middleNameIsFathers)
+        newErrors.middleNameIsFathers = "Please answer Yes or No";
+      if (!ncFormData.lastNameChangeOk)
+        newErrors.lastNameChangeOk = "Please answer Yes or No";
+      if (!ncFormData.email || !validateEmail(ncFormData.email))
+        newErrors.email = !ncFormData.email ? "Email address is required" : "Please enter a valid email address";
+      if (!ncFormData.whatsapp || !validateMobile(ncFormData.whatsapp))
+        newErrors.whatsapp = !ncFormData.whatsapp ? "WhatsApp number is required" : "Please enter a valid 10-digit number starting with 6-9";
+      if (!ncFormData.pinCode || !validatePinCode(ncFormData.pinCode))
+        newErrors.pinCode = !ncFormData.pinCode ? "PIN code is required" : "Please enter a valid 6-digit Indian pincode";
+      if (!ncFormData.city || !validateCity(ncFormData.city))
+        newErrors.city = "City is required";
+      if (!ncFormData.state || !validateCity(ncFormData.state))
+        newErrors.state = "State is required";
+      if (!ncFormData.dob || !validateDob(ncFormData.dob))
+        newErrors.dob = !ncFormData.dob ? "Date of birth is required" : "Date of birth must be a valid date in the past";
+      if (!ncFormData.timeOfBirth || !validateTime(ncFormData.timeOfBirth))
+        newErrors.timeOfBirth = !ncFormData.timeOfBirth ? "Time of birth is required" : "Please select a valid time";
+      if (!ncFormData.placeOfBirth || !validateCity(ncFormData.placeOfBirth))
+        newErrors.placeOfBirth = "Place of birth is required";
+      if (!ncFormData.gender)
+        newErrors.gender = "Gender is required";
+      if (!ncFormData.relFather)
+        newErrors.relFather = "Please select relationship quality";
+      if (!ncFormData.relMother)
+        newErrors.relMother = "Please select relationship quality";
+      if (!ncFormData.fatherName || !validateName(ncFormData.fatherName, true))
+        newErrors.fatherName = "Father's name is required";
+      if (!ncFormData.motherName || !validateName(ncFormData.motherName, true))
+        newErrors.motherName = "Mother's name is required";
+      if (ncFormData.spouseName && !validateName(ncFormData.spouseName, false))
+        newErrors.spouseName = "Name must contain only letters";
+      if (!ncFormData.profession || ncFormData.profession.trim() === "")
+        newErrors.profession = "Profession is required";
+      if (!ncFormData.reason || ncFormData.reason.trim().length < 10)
+        newErrors.reason = "Please share your reason (at least 10 characters)";
+    } else if (packageType === "single" || packageType === "premium") {
       if (!babyFormData.fatherFullName || !validateName(babyFormData.fatherFullName, true))
         newErrors.fatherFullName = "Father's full name is required";
       if (!babyFormData.childLastName || !validateName(babyFormData.childLastName, true))
@@ -556,7 +676,9 @@ const OrderFormSection = () => {
         ? `Name Check (${nameCheckCount} Name${nameCheckCount !== 1 ? "s" : ""})`
         : packageType === "premium"
           ? "Complete Baby Name Blueprint"
-          : "Perfect Baby Name Report";
+          : packageType === "namecorrection"
+            ? "Name Correction Report"
+            : "Perfect Baby Name Report";
       trackLead(price, "INR", contentName);
       trackAddToCart(price, "INR", contentName);
 
@@ -581,7 +703,41 @@ const OrderFormSection = () => {
 
     let orderPayload: OrderPayload;
 
-    if (packageType === "single" || packageType === "premium") {
+    if (packageType === "namecorrection") {
+      const ncTags = [
+        `[MIDDLE NAME IS FATHER'S: ${ncFormData.middleNameIsFathers}]`,
+        `[LAST NAME CHANGE OK: ${ncFormData.lastNameChangeOk}]`,
+        `[RELATIONSHIP - Father: ${ncFormData.relFather}, Mother: ${ncFormData.relMother}${ncFormData.relSpouse ? `, Spouse: ${ncFormData.relSpouse}` : ""}]`,
+        `[MOTHER'S NAME: ${ncFormData.motherName}]`,
+        ncFormData.spouseName ? `[SPOUSE'S NAME: ${ncFormData.spouseName}]` : "",
+        `[PROFESSION: ${ncFormData.profession.trim()}]`,
+        `[REASON: ${ncFormData.reason.trim()}]`,
+      ].filter(Boolean).join(" ");
+      orderPayload = {
+        orderId,
+        email: ncFormData.email,
+        mobile: ncFormData.whatsapp,
+        name: getFullName(ncFormData.firstName, ncFormData.middleName, ncFormData.lastName),
+        dob: ncFormData.dob,
+        gender: ncFormData.gender,
+        city: ncFormData.city,
+        state: ncFormData.state,
+        pinCode: ncFormData.pinCode,
+        timeOfBirth: ncFormData.timeOfBirth,
+        placeOfBirth: ncFormData.placeOfBirth,
+        fatherFullName: ncFormData.fatherName,
+        lastNameSpellingChangeOk: ncFormData.lastNameChangeOk || "",
+        parentsProfession: ncFormData.profession,
+        nameOptions: ncTags,
+        packageType: "namecorrection",
+        person1Name: getFullName(ncFormData.firstName, ncFormData.middleName, ncFormData.lastName),
+        person1FirstName: ncFormData.firstName,
+        person1MiddleName: ncFormData.middleName || "",
+        person1SurName: ncFormData.lastName,
+        person1Dob: ncFormData.dob,
+        person1Gender: ncFormData.gender,
+      };
+    } else if (packageType === "single" || packageType === "premium") {
       const userNameOptions = (babyFormData.nameOptions || "").trim();
       const stylesTag = nameStyles.length ? `[NAME STYLE: ${nameStyles.join(", ")}]` : "";
       const notesTag = additionalNotes.trim() ? `[NOTES: ${additionalNotes.trim()}]` : "";
@@ -1252,10 +1408,369 @@ const OrderFormSection = () => {
     </div>
   );
 
+  const RELATIONSHIP_OPTIONS = ["Excellent", "Good", "Average", "Strained", "Complicated"];
+
+  const renderNameCorrectionFields = () => {
+    const ncChange = (name: keyof typeof ncFormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setNcFormData((prev) => ({ ...prev, [name]: e.target.value }));
+      if (errors[name]) setErrors((prev) => { const n = { ...prev }; delete n[name]; return n; });
+    };
+    const ncRadio = (name: keyof typeof ncFormData) => (value: string) => {
+      setNcFormData((prev) => ({ ...prev, [name]: value }));
+      if (errors[name]) setErrors((prev) => { const n = { ...prev }; delete n[name]; return n; });
+    };
+    const ncSelect = (name: keyof typeof ncFormData) => (value: string) => {
+      setNcFormData((prev) => ({ ...prev, [name]: value }));
+      if (errors[name]) setErrors((prev) => { const n = { ...prev }; delete n[name]; return n; });
+    };
+    const ncInputCls = (field: string) =>
+      `mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors[field] ? "border-destructive" : isFieldValid(field) ? "border-success" : ""}`;
+
+    return (
+      <div className="space-y-5">
+        {/* Name */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="firstName">First Name *</Label>
+            <div className="relative">
+              <Input id="firstName" name="firstName" value={ncFormData.firstName} onChange={ncChange("firstName")}
+                placeholder="First name" required maxLength={50} className={ncInputCls("firstName")} />
+              <ValidIcon field="firstName" />
+            </div>
+            {errors.firstName && <p className="text-destructive text-sm mt-1">{errors.firstName}</p>}
+          </div>
+          <div>
+            <Label htmlFor="middleName">Middle Name</Label>
+            <div className="relative">
+              <Input id="middleName" name="middleName" value={ncFormData.middleName} onChange={ncChange("middleName")}
+                placeholder="Middle name" maxLength={50} className={ncInputCls("middleName")} />
+              <ValidIcon field="middleName" />
+            </div>
+            {errors.middleName && <p className="text-destructive text-sm mt-1">{errors.middleName}</p>}
+          </div>
+          <div>
+            <Label htmlFor="lastName">Last Name *</Label>
+            <div className="relative">
+              <Input id="lastName" name="lastName" value={ncFormData.lastName} onChange={ncChange("lastName")}
+                placeholder="Last name" required maxLength={50} className={ncInputCls("lastName")} />
+              <ValidIcon field="lastName" />
+            </div>
+            {errors.lastName && <p className="text-destructive text-sm mt-1">{errors.lastName}</p>}
+          </div>
+        </div>
+
+        {/* Middle name father's? */}
+        <div>
+          <Label>Is the middle name your father's name? *</Label>
+          <RadioGroup value={ncFormData.middleNameIsFathers} onValueChange={ncRadio("middleNameIsFathers")}
+            className="flex gap-4 mt-2">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="yes" id="ncMidFatherYes" />
+              <Label htmlFor="ncMidFatherYes" className="cursor-pointer font-normal">Yes</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="no" id="ncMidFatherNo" />
+              <Label htmlFor="ncMidFatherNo" className="cursor-pointer font-normal">No</Label>
+            </div>
+          </RadioGroup>
+          {errors.middleNameIsFathers && <p className="text-destructive text-sm mt-1">{errors.middleNameIsFathers}</p>}
+        </div>
+
+        {/* Last name change OK? */}
+        <div>
+          <Label>Are you comfortable making a change in your last name (if required)? *</Label>
+          <RadioGroup value={ncFormData.lastNameChangeOk} onValueChange={ncRadio("lastNameChangeOk")}
+            className="flex gap-4 mt-2">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="yes" id="ncLastChangeYes" />
+              <Label htmlFor="ncLastChangeYes" className="cursor-pointer font-normal">Yes</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="no" id="ncLastChangeNo" />
+              <Label htmlFor="ncLastChangeNo" className="cursor-pointer font-normal">No</Label>
+            </div>
+          </RadioGroup>
+          {errors.lastNameChangeOk && <p className="text-destructive text-sm mt-1">{errors.lastNameChangeOk}</p>}
+        </div>
+
+        {/* Contact */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="email">Email *</Label>
+            <div className="relative">
+              <Input id="email" name="email" type="email" value={ncFormData.email} onChange={ncChange("email")}
+                placeholder="your@email.com" required autoComplete="email" className={ncInputCls("email")} />
+              <ValidIcon field="email" />
+            </div>
+            {errors.email && <p className="text-destructive text-sm mt-1">{errors.email}</p>}
+          </div>
+          <div>
+            <Label htmlFor="whatsapp">WhatsApp Number *</Label>
+            <div className="relative">
+              <Input id="whatsapp" name="whatsapp" type="tel" inputMode="numeric" value={ncFormData.whatsapp}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, "").substring(0, 10);
+                  setNcFormData((prev) => ({ ...prev, whatsapp: v }));
+                  if (errors.whatsapp) setErrors((prev) => { const n = { ...prev }; delete n.whatsapp; return n; });
+                }}
+                placeholder="98765 43210" required maxLength={10} autoComplete="tel" className={ncInputCls("whatsapp")} />
+              <ValidIcon field="whatsapp" />
+            </div>
+            {errors.whatsapp && <p className="text-destructive text-sm mt-1">{errors.whatsapp}</p>}
+          </div>
+        </div>
+
+        {/* PIN / City / State (single set) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="pinCode">PIN Code *</Label>
+            <div className="relative">
+              <Input id="pinCode" name="pinCode" inputMode="numeric" value={ncFormData.pinCode}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, "").substring(0, 6);
+                  setNcFormData((prev) => ({ ...prev, pinCode: v }));
+                  if (errors.pinCode) setErrors((prev) => { const n = { ...prev }; delete n.pinCode; return n; });
+                }}
+                placeholder="6-digit pincode" required maxLength={6} className={ncInputCls("pinCode")} />
+              <ValidIcon field="pinCode" />
+            </div>
+            {errors.pinCode && <p className="text-destructive text-sm mt-1">{errors.pinCode}</p>}
+          </div>
+          <div>
+            <Label htmlFor="city">City *</Label>
+            <div className="relative">
+              <Input id="city" name="city" value={ncFormData.city} onChange={ncChange("city")}
+                placeholder="Your city" required maxLength={80} className={ncInputCls("city")} />
+              <ValidIcon field="city" />
+            </div>
+            {errors.city && <p className="text-destructive text-sm mt-1">{errors.city}</p>}
+          </div>
+          <div>
+            <Label htmlFor="state">State *</Label>
+            <div className="relative">
+              <Input id="state" name="state" list={STATE_DATALIST_ID} autoComplete="off" value={ncFormData.state} onChange={ncChange("state")}
+                placeholder="Type to search e.g. Maha…" required maxLength={60} className={ncInputCls("state")} />
+              <ValidIcon field="state" />
+            </div>
+            {errors.state && <p className="text-destructive text-sm mt-1">{errors.state}</p>}
+          </div>
+        </div>
+
+        {/* DOB & TOB */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label>Date of Birth *</Label>
+            <Popover open={openDobPicker === "ncDob"} onOpenChange={(o) => setOpenDobPicker(o ? "ncDob" : null)}>
+              <PopoverTrigger asChild>
+                <Button id="dob" variant="outline"
+                  className={cn("w-full mt-1.5 justify-start text-left font-normal h-10",
+                    !ncFormData.dob && "text-muted-foreground",
+                    errors.dob ? "border-destructive" : isFieldValid("dob") ? "border-success" : ""
+                  )}>
+                  <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
+                  {ncFormData.dob ? format(parse(ncFormData.dob, "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "Pick date of birth"}
+                  {isFieldValid("dob") && <CheckCircle2 className="w-4 h-4 text-success ml-auto" />}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single"
+                  selected={ncFormData.dob ? parse(ncFormData.dob, "yyyy-MM-dd", new Date()) : undefined}
+                  onSelect={(date) => {
+                    if (date) {
+                      setNcFormData((prev) => ({ ...prev, dob: formatDateToLocal(date) }));
+                      if (errors.dob) setErrors((prev) => { const n = { ...prev }; delete n.dob; return n; });
+                      setOpenDobPicker(null);
+                    }
+                  }}
+                  disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                  initialFocus captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+            {errors.dob && <p className="text-destructive text-sm mt-1">{errors.dob}</p>}
+          </div>
+          <div>
+            <Label>Time of Birth *</Label>
+            {(() => {
+              const { hh, mm, mer } = tobParts;
+              const updateTime = (nextHh: string, nextMm: string, nextMer: string) => {
+                setTobParts({ hh: nextHh, mm: nextMm, mer: nextMer });
+                if (nextHh && nextMm && nextMer) {
+                  setNcFormData((prev) => ({ ...prev, timeOfBirth: `${nextHh}:${nextMm} ${nextMer}` }));
+                  if (errors.timeOfBirth) setErrors((prev) => { const n = { ...prev }; delete n.timeOfBirth; return n; });
+                } else {
+                  setNcFormData((prev) => ({ ...prev, timeOfBirth: "" }));
+                }
+              };
+              const triggerCls = `h-11 ${errors.timeOfBirth ? "border-destructive" : isFieldValid("timeOfBirth") ? "border-success" : ""}`;
+              return (
+                <div className="mt-1.5 grid grid-cols-3 gap-2">
+                  <Select value={hh} onValueChange={(v) => updateTime(v, mm, mer)}>
+                    <SelectTrigger className={triggerCls} aria-label="Hour"><Clock className="w-4 h-4 opacity-60 mr-1" /><SelectValue placeholder="Hour" /></SelectTrigger>
+                    <SelectContent className="max-h-64">
+                      {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
+                        <SelectItem key={h} value={h}>{h}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={mm} onValueChange={(v) => updateTime(hh, v, mer)}>
+                    <SelectTrigger className={triggerCls} aria-label="Minute"><SelectValue placeholder="Min" /></SelectTrigger>
+                    <SelectContent className="max-h-64">
+                      {Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0")).map((mn) => (
+                        <SelectItem key={mn} value={mn}>{mn}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={mer} onValueChange={(v) => updateTime(hh, mm, v)}>
+                    <SelectTrigger className={triggerCls} aria-label="AM/PM"><SelectValue placeholder="AM/PM" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="AM">AM</SelectItem>
+                      <SelectItem value="PM">PM</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              );
+            })()}
+            {errors.timeOfBirth && <p className="text-destructive text-sm mt-1">{errors.timeOfBirth}</p>}
+          </div>
+        </div>
+
+        {/* Place of Birth */}
+        <div>
+          <Label htmlFor="placeOfBirth">Place of Birth *</Label>
+          <div className="relative">
+            <Input id="placeOfBirth" name="placeOfBirth" value={ncFormData.placeOfBirth} onChange={ncChange("placeOfBirth")}
+              placeholder="e.g. Mumbai" required maxLength={80} className={ncInputCls("placeOfBirth")} />
+            <ValidIcon field="placeOfBirth" />
+          </div>
+          {errors.placeOfBirth && <p className="text-destructive text-sm mt-1">{errors.placeOfBirth}</p>}
+        </div>
+
+        {/* Gender */}
+        <div>
+          <Label>Gender *</Label>
+          <RadioGroup value={ncFormData.gender} onValueChange={ncRadio("gender")}
+            className="flex gap-4 mt-2.5">
+            {["Male", "Female", "Other"].map((g) => (
+              <div key={g} className="flex items-center space-x-2">
+                <RadioGroupItem value={g} id={`ncGender${g}`} />
+                <Label htmlFor={`ncGender${g}`} className="cursor-pointer font-normal">{g}</Label>
+              </div>
+            ))}
+          </RadioGroup>
+          {errors.gender && <p className="text-destructive text-sm mt-1">{errors.gender}</p>}
+        </div>
+
+        {/* Relationship Quality */}
+        <div>
+          <p className="font-heading font-semibold text-foreground mb-2">Relationship Quality</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {([
+              { field: "relFather" as const, label: "With Father *" },
+              { field: "relMother" as const, label: "With Mother *" },
+              { field: "relSpouse" as const, label: "With Spouse" },
+            ]).map(({ field, label }) => (
+              <div key={field}>
+                <Label>{label}</Label>
+                <Select value={ncFormData[field]} onValueChange={ncSelect(field)}>
+                  <SelectTrigger className={`mt-1.5 ${errors[field] ? "border-destructive" : ""}`}>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RELATIONSHIP_OPTIONS.map((opt) => (
+                      <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors[field] && <p className="text-destructive text-sm mt-1">{errors[field]}</p>}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Family names */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="fatherName">Father's Name *</Label>
+            <div className="relative">
+              <Input id="fatherName" name="fatherName" value={ncFormData.fatherName} onChange={ncChange("fatherName")}
+                placeholder="Father's full name" required maxLength={80} className={ncInputCls("fatherName")} />
+              <ValidIcon field="fatherName" />
+            </div>
+            {errors.fatherName && <p className="text-destructive text-sm mt-1">{errors.fatherName}</p>}
+          </div>
+          <div>
+            <Label htmlFor="motherName">Mother's Name *</Label>
+            <div className="relative">
+              <Input id="motherName" name="motherName" value={ncFormData.motherName} onChange={ncChange("motherName")}
+                placeholder="Mother's full name" required maxLength={80} className={ncInputCls("motherName")} />
+              <ValidIcon field="motherName" />
+            </div>
+            {errors.motherName && <p className="text-destructive text-sm mt-1">{errors.motherName}</p>}
+          </div>
+          <div>
+            <Label htmlFor="spouseName">Spouse's Name</Label>
+            <div className="relative">
+              <Input id="spouseName" name="spouseName" value={ncFormData.spouseName} onChange={ncChange("spouseName")}
+                placeholder="If applicable" maxLength={80} className={ncInputCls("spouseName")} />
+              <ValidIcon field="spouseName" />
+            </div>
+            {errors.spouseName && <p className="text-destructive text-sm mt-1">{errors.spouseName}</p>}
+          </div>
+        </div>
+
+        {/* Profession */}
+        <div>
+          <Label htmlFor="profession">Profession *</Label>
+          <div className="relative">
+            <Input id="profession" name="profession" value={ncFormData.profession} onChange={ncChange("profession")}
+              placeholder="Your current profession" required maxLength={250} className={ncInputCls("profession")} />
+            <ValidIcon field="profession" />
+          </div>
+          {errors.profession && <p className="text-destructive text-sm mt-1">{errors.profession}</p>}
+        </div>
+
+        {/* Reason */}
+        <div>
+          <Label htmlFor="reason">Reason for Name Correction *</Label>
+          <Textarea id="reason" value={ncFormData.reason} onChange={ncChange("reason")}
+            placeholder="Why are you considering a name correction? Share your goals, struggles, and what you'd like to improve."
+            required maxLength={1000}
+            className={`mt-1.5 min-h-[110px] transition-all duration-300 focus:shadow-card ${errors.reason ? "border-destructive" : isFieldValid("reason") ? "border-success" : ""}`} />
+          <p className="text-xs text-muted-foreground mt-1">{ncFormData.reason.length}/1000</p>
+          {errors.reason && <p className="text-destructive text-sm mt-1">{errors.reason}</p>}
+        </div>
+      </div>
+    );
+  };
+
   // --- Review summary for step 3 ---
   const renderReviewSummary = () => {
     const items: { label: string; value: string }[] = [];
-    if (packageType === "single" || packageType === "premium") {
+    if (packageType === "namecorrection") {
+      items.push(
+        { label: "Package", value: "Name Correction Report" },
+        { label: "Name", value: getFullName(ncFormData.firstName, ncFormData.middleName, ncFormData.lastName) },
+        { label: "Middle name is father's name", value: ncFormData.middleNameIsFathers === "yes" ? "Yes" : "No" },
+        { label: "OK to change last name (if required)", value: ncFormData.lastNameChangeOk === "yes" ? "Yes" : "No" },
+        { label: "Email", value: ncFormData.email },
+        { label: "WhatsApp", value: ncFormData.whatsapp },
+        { label: "PIN Code", value: ncFormData.pinCode },
+        { label: "City", value: ncFormData.city },
+        { label: "State", value: ncFormData.state },
+        { label: "Date of Birth", value: ncFormData.dob ? format(parse(ncFormData.dob, "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" },
+        { label: "Time of Birth", value: ncFormData.timeOfBirth },
+        { label: "Place of Birth", value: ncFormData.placeOfBirth },
+        { label: "Gender", value: ncFormData.gender },
+        { label: "Relationship with Father", value: ncFormData.relFather },
+        { label: "Relationship with Mother", value: ncFormData.relMother },
+        ...(ncFormData.relSpouse ? [{ label: "Relationship with Spouse", value: ncFormData.relSpouse }] : []),
+        { label: "Father's Name", value: ncFormData.fatherName },
+        { label: "Mother's Name", value: ncFormData.motherName },
+        ...(ncFormData.spouseName ? [{ label: "Spouse's Name", value: ncFormData.spouseName }] : []),
+        { label: "Profession", value: ncFormData.profession.trim() },
+        { label: "Reason for Correction", value: ncFormData.reason.trim() },
+      );
+    } else if (packageType === "single" || packageType === "premium") {
       items.push(
         { label: "Package", value: packageType === "premium" ? "Complete Baby Name Blueprint" : "Perfect Baby Name Report" },
         { label: "Child's DOB", value: babyFormData.childDob ? format(parse(babyFormData.childDob, "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" },
@@ -1378,7 +1893,9 @@ const OrderFormSection = () => {
                           ? `Name Check (${nameCheckCount} Name${nameCheckCount !== 1 ? "s" : ""})`
                           : packageType === "premium"
                             ? "Complete Baby Name Blueprint"
-                            : "Perfect Baby Name Report"}
+                            : packageType === "namecorrection"
+                              ? "Name Correction Report"
+                              : "Perfect Baby Name Report"}
                       </span>
                       <span className="text-foreground font-medium">
                         {formatPrice(
@@ -1386,7 +1903,9 @@ const OrderFormSection = () => {
                             ? NAME_CHECK_PRICING[nameCheckCount].price
                             : packageType === "premium"
                               ? getPackagePrice("premium")
-                              : getPackagePrice("single")
+                              : packageType === "namecorrection"
+                                ? getPackagePrice("namecorrection")
+                                : getPackagePrice("single")
                         )}
                       </span>
                     </div>
@@ -1580,6 +2099,15 @@ const OrderFormSection = () => {
                           <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> Clear Yes/No Recommendation</li>
                           <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> Expert Analysis Summary</li>
                         </>
+                      ) : packageType === "namecorrection" ? (
+                        <>
+                          <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> First Name & Full Name Analysis</li>
+                          <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> Compound Number Analysis</li>
+                          <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> 2 Corrected Name Spellings</li>
+                          <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> First Alphabet Analysis</li>
+                          <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> Personal Loshu Grid</li>
+                          <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> Rajyog Analysis</li>
+                        </>
                       ) : (
                         <>
                           <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> 10+ Numerologically Aligned Names</li>
@@ -1607,7 +2135,9 @@ const OrderFormSection = () => {
                     ? `Name Check (${nameCheckCount} Name${nameCheckCount > 1 ? "s" : ""})`
                     : packageType === "premium"
                       ? "Complete Baby Name Blueprint"
-                      : "Perfect Baby Name Report"}
+                      : packageType === "namecorrection"
+                        ? "Name Correction Report"
+                        : "Perfect Baby Name Report"}
                   <span className="ml-2 text-accent font-bold">{formatPrice(getPrice())}</span>
                 </p>
               </div>
@@ -1689,9 +2219,11 @@ const OrderFormSection = () => {
                         {errors.parentsProfession && <p className="text-destructive text-sm mt-1">{errors.parentsProfession}</p>}
                       </div>
                     </>
-                  ) : (
-                    renderBabyNameFields()
-                  )}
+                   ) : packageType === "namecorrection" ? (
+                     renderNameCorrectionFields()
+                   ) : (
+                     renderBabyNameFields()
+                   )}
 
                   {/* Optional Add-On (Baby Name only) */}
                   {isExtrasAddonEligible && (

@@ -548,7 +548,50 @@ const OrderFormSection = () => {
   // --- Step validation ---
   const validateStep2 = (): Record<string, string> => {
     const newErrors: Record<string, string> = {};
-    if (packageType === "single" || packageType === "premium") {
+    if (packageType === "namecorrection") {
+      if (!ncFormData.firstName || !validateName(ncFormData.firstName, true))
+        newErrors.firstName = "First name is required";
+      if (ncFormData.middleName && !validateName(ncFormData.middleName, false))
+        newErrors.middleName = "Name must contain only letters";
+      if (!ncFormData.lastName || !validateName(ncFormData.lastName, true))
+        newErrors.lastName = "Last name is required";
+      if (!ncFormData.middleNameIsFathers)
+        newErrors.middleNameIsFathers = "Please answer Yes or No";
+      if (!ncFormData.lastNameChangeOk)
+        newErrors.lastNameChangeOk = "Please answer Yes or No";
+      if (!ncFormData.email || !validateEmail(ncFormData.email))
+        newErrors.email = !ncFormData.email ? "Email address is required" : "Please enter a valid email address";
+      if (!ncFormData.whatsapp || !validateMobile(ncFormData.whatsapp))
+        newErrors.whatsapp = !ncFormData.whatsapp ? "WhatsApp number is required" : "Please enter a valid 10-digit number starting with 6-9";
+      if (!ncFormData.pinCode || !validatePinCode(ncFormData.pinCode))
+        newErrors.pinCode = !ncFormData.pinCode ? "PIN code is required" : "Please enter a valid 6-digit Indian pincode";
+      if (!ncFormData.city || !validateCity(ncFormData.city))
+        newErrors.city = "City is required";
+      if (!ncFormData.state || !validateCity(ncFormData.state))
+        newErrors.state = "State is required";
+      if (!ncFormData.dob || !validateDob(ncFormData.dob))
+        newErrors.dob = !ncFormData.dob ? "Date of birth is required" : "Date of birth must be a valid date in the past";
+      if (!ncFormData.timeOfBirth || !validateTime(ncFormData.timeOfBirth))
+        newErrors.timeOfBirth = !ncFormData.timeOfBirth ? "Time of birth is required" : "Please select a valid time";
+      if (!ncFormData.placeOfBirth || !validateCity(ncFormData.placeOfBirth))
+        newErrors.placeOfBirth = "Place of birth is required";
+      if (!ncFormData.gender)
+        newErrors.gender = "Gender is required";
+      if (!ncFormData.relFather)
+        newErrors.relFather = "Please select relationship quality";
+      if (!ncFormData.relMother)
+        newErrors.relMother = "Please select relationship quality";
+      if (!ncFormData.fatherName || !validateName(ncFormData.fatherName, true))
+        newErrors.fatherName = "Father's name is required";
+      if (!ncFormData.motherName || !validateName(ncFormData.motherName, true))
+        newErrors.motherName = "Mother's name is required";
+      if (ncFormData.spouseName && !validateName(ncFormData.spouseName, false))
+        newErrors.spouseName = "Name must contain only letters";
+      if (!ncFormData.profession || ncFormData.profession.trim() === "")
+        newErrors.profession = "Profession is required";
+      if (!ncFormData.reason || ncFormData.reason.trim().length < 10)
+        newErrors.reason = "Please share your reason (at least 10 characters)";
+    } else if (packageType === "single" || packageType === "premium") {
       if (!babyFormData.fatherFullName || !validateName(babyFormData.fatherFullName, true))
         newErrors.fatherFullName = "Father's full name is required";
       if (!babyFormData.childLastName || !validateName(babyFormData.childLastName, true))
@@ -633,7 +676,9 @@ const OrderFormSection = () => {
         ? `Name Check (${nameCheckCount} Name${nameCheckCount !== 1 ? "s" : ""})`
         : packageType === "premium"
           ? "Complete Baby Name Blueprint"
-          : "Perfect Baby Name Report";
+          : packageType === "namecorrection"
+            ? "Name Correction Report"
+            : "Perfect Baby Name Report";
       trackLead(price, "INR", contentName);
       trackAddToCart(price, "INR", contentName);
 

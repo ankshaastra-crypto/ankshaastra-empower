@@ -1764,6 +1764,15 @@ const OrderFormSection = () => {
                           <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> Clear Yes/No Recommendation</li>
                           <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> Expert Analysis Summary</li>
                         </>
+                      ) : packageType === "namecorrection" ? (
+                        <>
+                          <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> First Name & Full Name Analysis</li>
+                          <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> Compound Number Analysis</li>
+                          <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> 2 Corrected Name Spellings</li>
+                          <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> First Alphabet Analysis</li>
+                          <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> Personal Loshu Grid</li>
+                          <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> Rajyog Analysis</li>
+                        </>
                       ) : (
                         <>
                           <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> 10+ Numerologically Aligned Names</li>
@@ -1791,7 +1800,9 @@ const OrderFormSection = () => {
                     ? `Name Check (${nameCheckCount} Name${nameCheckCount > 1 ? "s" : ""})`
                     : packageType === "premium"
                       ? "Complete Baby Name Blueprint"
-                      : "Perfect Baby Name Report"}
+                      : packageType === "namecorrection"
+                        ? "Name Correction Report"
+                        : "Perfect Baby Name Report"}
                   <span className="ml-2 text-accent font-bold">{formatPrice(getPrice())}</span>
                 </p>
               </div>

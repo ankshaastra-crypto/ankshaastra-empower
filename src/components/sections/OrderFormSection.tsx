@@ -346,6 +346,48 @@ const OrderFormSection = () => {
 
   // --- Field validity check for green checkmark ---
   const isFieldValid = useCallback((fieldName: string): boolean => {
+    if (packageType === "namecorrection") {
+      const val = ncFormData[fieldName as keyof typeof ncFormData];
+      const isOptional = fieldName === "middleName" || fieldName === "spouseName" || fieldName === "relSpouse";
+      if (!val || (typeof val === "string" && !val.trim())) return isOptional;
+      switch (fieldName) {
+        case "firstName":
+        case "lastName":
+        case "fatherName":
+        case "motherName":
+          return validateName(val, true);
+        case "middleName":
+        case "spouseName":
+          return validateName(val, false);
+        case "middleNameIsFathers":
+        case "lastNameChangeOk":
+          return val === "yes" || val === "no";
+        case "email":
+          return validateEmail(val);
+        case "whatsapp":
+          return validateMobile(val);
+        case "pinCode":
+          return validatePinCode(val);
+        case "city":
+        case "state":
+        case "placeOfBirth":
+          return validateCity(val);
+        case "dob":
+          return validateDob(val);
+        case "timeOfBirth":
+          return validateTime(val);
+        case "gender":
+        case "relFather":
+        case "relMother":
+          return val.trim() !== "";
+        case "profession":
+          return val.trim().length > 0 && val.trim().length <= 250;
+        case "reason":
+          return val.trim().length >= 10 && val.trim().length <= 1000;
+        default:
+          return false;
+      }
+    }
     if (packageType === "single" || packageType === "premium") {
       const val = babyFormData[fieldName as keyof typeof babyFormData];
       const isOptional = fieldName === "childMiddleName" || fieldName === "nameOptions";

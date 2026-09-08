@@ -2219,9 +2219,11 @@ const OrderFormSection = () => {
                         {errors.parentsProfession && <p className="text-destructive text-sm mt-1">{errors.parentsProfession}</p>}
                       </div>
                     </>
-                  ) : (
-                    renderBabyNameFields()
-                  )}
+                   ) : packageType === "namecorrection" ? (
+                     renderNameCorrectionFields()
+                   ) : (
+                     renderBabyNameFields()
+                   )}
 
                   {/* Optional Add-On (Baby Name only) */}
                   {isExtrasAddonEligible && (

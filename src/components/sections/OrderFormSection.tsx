@@ -440,7 +440,7 @@ const OrderFormSection = () => {
       if (fieldName === "parentsProfession") return val.trim().length > 0 && val.trim().length <= 250;
       return false;
     }
-  }, [formData, babyFormData, packageType]);
+  }, [formData, babyFormData, ncFormData, packageType]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -463,9 +463,11 @@ const OrderFormSection = () => {
     }
 
     // Update the right form state
-    if ((packageType === "single" || packageType === "premium") && name in babyFormData) {
+    if (packageType === "namecorrection" && name in ncFormData) {
+      setNcFormData((prev) => ({ ...prev, [name]: processedValue }));
+    } else if ((packageType === "single" || packageType === "premium") && name in babyFormData) {
       setBabyFormData((prev) => ({ ...prev, [name]: processedValue }));
-    } else {
+    } else if (name in formData) {
       setFormData((prev) => ({ ...prev, [name]: processedValue }));
     }
 
@@ -531,6 +533,7 @@ const OrderFormSection = () => {
 
   const getPrice = (): number => {
     if (packageType === "namecheck") return NAME_CHECK_PRICING[nameCheckCount].price;
+    if (packageType === "namecorrection") return getPackagePrice("namecorrection");
     const base = packageType === "premium" ? getPackagePrice("premium") : getPackagePrice("single");
     return (
       base +

@@ -703,7 +703,41 @@ const OrderFormSection = () => {
 
     let orderPayload: OrderPayload;
 
-    if (packageType === "single" || packageType === "premium") {
+    if (packageType === "namecorrection") {
+      const ncTags = [
+        `[MIDDLE NAME IS FATHER'S: ${ncFormData.middleNameIsFathers}]`,
+        `[LAST NAME CHANGE OK: ${ncFormData.lastNameChangeOk}]`,
+        `[RELATIONSHIP - Father: ${ncFormData.relFather}, Mother: ${ncFormData.relMother}${ncFormData.relSpouse ? `, Spouse: ${ncFormData.relSpouse}` : ""}]`,
+        `[MOTHER'S NAME: ${ncFormData.motherName}]`,
+        ncFormData.spouseName ? `[SPOUSE'S NAME: ${ncFormData.spouseName}]` : "",
+        `[PROFESSION: ${ncFormData.profession.trim()}]`,
+        `[REASON: ${ncFormData.reason.trim()}]`,
+      ].filter(Boolean).join(" ");
+      orderPayload = {
+        orderId,
+        email: ncFormData.email,
+        mobile: ncFormData.whatsapp,
+        name: getFullName(ncFormData.firstName, ncFormData.middleName, ncFormData.lastName),
+        dob: ncFormData.dob,
+        gender: ncFormData.gender,
+        city: ncFormData.city,
+        state: ncFormData.state,
+        pinCode: ncFormData.pinCode,
+        timeOfBirth: ncFormData.timeOfBirth,
+        placeOfBirth: ncFormData.placeOfBirth,
+        fatherFullName: ncFormData.fatherName,
+        lastNameSpellingChangeOk: ncFormData.lastNameChangeOk || "",
+        parentsProfession: ncFormData.profession,
+        nameOptions: ncTags,
+        packageType: "namecorrection",
+        person1Name: getFullName(ncFormData.firstName, ncFormData.middleName, ncFormData.lastName),
+        person1FirstName: ncFormData.firstName,
+        person1MiddleName: ncFormData.middleName || "",
+        person1SurName: ncFormData.lastName,
+        person1Dob: ncFormData.dob,
+        person1Gender: ncFormData.gender,
+      };
+    } else if (packageType === "single" || packageType === "premium") {
       const userNameOptions = (babyFormData.nameOptions || "").trim();
       const stylesTag = nameStyles.length ? `[NAME STYLE: ${nameStyles.join(", ")}]` : "";
       const notesTag = additionalNotes.trim() ? `[NOTES: ${additionalNotes.trim()}]` : "";

@@ -135,7 +135,7 @@ const OrderFormSection = () => {
   const { ref } = useScrollAnimation({ threshold: 0.1 });
   const [formStep, setFormStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [packageType, setPackageType] = useState<"namecheck" | "single" | "premium">("single");
+  const [packageType, setPackageType] = useState<"namecheck" | "single" | "premium" | "namecorrection">("single");
   const [nameCheckCount, setNameCheckCount] = useState<1 | 2>(1);
   const [addonExtraNames, setAddonExtraNames] = useState<boolean>(false);
   const [addonNickname, setAddonNickname] = useState<boolean>(false);
@@ -189,6 +189,32 @@ const OrderFormSection = () => {
     whatsapp: "",
     nameOptions: "",
   });
+  // Name Correction form data
+  const [ncFormData, setNcFormData] = useState({
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    middleNameIsFathers: "",
+    lastNameChangeOk: "",
+    email: "",
+    whatsapp: "",
+    pinCode: "",
+    city: "",
+    state: "",
+    dob: "",
+    timeOfBirth: "",
+    placeOfBirth: "",
+    gender: "",
+    relFather: "",
+    relMother: "",
+    relSpouse: "",
+    fatherName: "",
+    motherName: "",
+    spouseName: "",
+    profession: "",
+    reason: "",
+  });
+
   const [nameStyles, setNameStyles] = useState<string[]>([]);
   const [additionalNotes, setAdditionalNotes] = useState<string>("");
 
@@ -223,6 +249,12 @@ const OrderFormSection = () => {
       } else if (detail === "premium") {
         setPackageType("premium");
         setAddonNickname(false);
+      } else if (detail === "namecorrection") {
+        setPackageType("namecorrection");
+        setAddonExtraNames(false);
+        setAddonNickname(false);
+        setAddonKundali(false);
+        setKundaliLanguage("");
       } else if (detail === "namecheck") {
         setPackageType("namecheck");
         setNameCheckCount(1);

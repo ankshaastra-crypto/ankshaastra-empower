@@ -1411,7 +1411,31 @@ const OrderFormSection = () => {
   // --- Review summary for step 3 ---
   const renderReviewSummary = () => {
     const items: { label: string; value: string }[] = [];
-    if (packageType === "single" || packageType === "premium") {
+    if (packageType === "namecorrection") {
+      items.push(
+        { label: "Package", value: "Name Correction Report" },
+        { label: "Name", value: getFullName(ncFormData.firstName, ncFormData.middleName, ncFormData.lastName) },
+        { label: "Middle name is father's name", value: ncFormData.middleNameIsFathers === "yes" ? "Yes" : "No" },
+        { label: "OK to change last name (if required)", value: ncFormData.lastNameChangeOk === "yes" ? "Yes" : "No" },
+        { label: "Email", value: ncFormData.email },
+        { label: "WhatsApp", value: ncFormData.whatsapp },
+        { label: "PIN Code", value: ncFormData.pinCode },
+        { label: "City", value: ncFormData.city },
+        { label: "State", value: ncFormData.state },
+        { label: "Date of Birth", value: ncFormData.dob ? format(parse(ncFormData.dob, "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" },
+        { label: "Time of Birth", value: ncFormData.timeOfBirth },
+        { label: "Place of Birth", value: ncFormData.placeOfBirth },
+        { label: "Gender", value: ncFormData.gender },
+        { label: "Relationship with Father", value: ncFormData.relFather },
+        { label: "Relationship with Mother", value: ncFormData.relMother },
+        ...(ncFormData.relSpouse ? [{ label: "Relationship with Spouse", value: ncFormData.relSpouse }] : []),
+        { label: "Father's Name", value: ncFormData.fatherName },
+        { label: "Mother's Name", value: ncFormData.motherName },
+        ...(ncFormData.spouseName ? [{ label: "Spouse's Name", value: ncFormData.spouseName }] : []),
+        { label: "Profession", value: ncFormData.profession.trim() },
+        { label: "Reason for Correction", value: ncFormData.reason.trim() },
+      );
+    } else if (packageType === "single" || packageType === "premium") {
       items.push(
         { label: "Package", value: packageType === "premium" ? "Complete Baby Name Blueprint" : "Perfect Baby Name Report" },
         { label: "Child's DOB", value: babyFormData.childDob ? format(parse(babyFormData.childDob, "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" },
@@ -1534,7 +1558,9 @@ const OrderFormSection = () => {
                           ? `Name Check (${nameCheckCount} Name${nameCheckCount !== 1 ? "s" : ""})`
                           : packageType === "premium"
                             ? "Complete Baby Name Blueprint"
-                            : "Perfect Baby Name Report"}
+                            : packageType === "namecorrection"
+                              ? "Name Correction Report"
+                              : "Perfect Baby Name Report"}
                       </span>
                       <span className="text-foreground font-medium">
                         {formatPrice(
@@ -1542,7 +1568,9 @@ const OrderFormSection = () => {
                             ? NAME_CHECK_PRICING[nameCheckCount].price
                             : packageType === "premium"
                               ? getPackagePrice("premium")
-                              : getPackagePrice("single")
+                              : packageType === "namecorrection"
+                                ? getPackagePrice("namecorrection")
+                                : getPackagePrice("single")
                         )}
                       </span>
                     </div>

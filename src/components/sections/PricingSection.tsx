@@ -33,7 +33,7 @@ const PricingSection = () => {
       let contentName = "";
       if (packageType.startsWith("namecheck")) {
         const count = parseInt(packageType.split("-")[1]) || 1;
-        price = nameCheckPlans[count as 1 | 3]?.price ?? nameCheckPlans[1].price;
+        price = nameCheckPlans[count as 1 | 2]?.price ?? nameCheckPlans[1].price;
         contentName = `Name Check (${count} Name${count !== 1 ? "s" : ""})`;
       } else if (packageType === "single") {
         price = pricing.single.price;
@@ -99,13 +99,11 @@ const PricingSection = () => {
     "Lucky Numbers Analysis",
   ];
 
-  const premiumHighlight = "The Complete Numerology Blueprint for Your Baby's Lifetime";
-
   const NameCheckCard = () => (
     <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative bg-card border-2 border-accent/40 hover:border-accent/70 transition-colors">
       <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
         <span className="bg-secondary text-secondary-foreground text-[10px] md:text-xs font-bold px-3 py-1 rounded-full shadow-md whitespace-nowrap leading-none">
-          NOT SURE?
+          QUICK CHECK
         </span>
       </div>
 
@@ -215,7 +213,7 @@ const PricingSection = () => {
     <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow animate-border-glow bg-card">
       <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
         <span className="bg-accent text-accent-foreground text-[10px] md:text-xs font-bold px-3 py-1 rounded-full shadow-gold whitespace-nowrap leading-none">
-          MOST POPULAR
+          BEST VALUE
         </span>
       </div>
 
@@ -271,7 +269,7 @@ const PricingSection = () => {
       <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
         <span className="text-[10px] md:text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap leading-none shadow-lg"
           style={{ background: 'linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(30 10% 25%) 100%)', color: 'hsl(var(--accent))' }}>
-          ✦ COMPLETE BLUEPRINT
+          FULL BLUEPRINT
         </span>
       </div>
 
@@ -296,7 +294,7 @@ const PricingSection = () => {
 
       </div>
 
-      <ul className="space-y-2 mb-3">
+      <ul className="space-y-2 mb-6">
         {premiumFeatures.map((feature, index) => (
           <li key={index} className="flex items-start gap-2 group">
             <Check className="w-4 h-4 text-accent flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
@@ -304,14 +302,6 @@ const PricingSection = () => {
           </li>
         ))}
       </ul>
-
-      {/* Premium highlight */}
-      <div className="mb-6 rounded-xl p-3 border border-accent/30" style={{ background: 'hsl(var(--accent) / 0.08)' }}>
-        <div className="flex items-start gap-2">
-          <span className="text-lg flex-shrink-0 mt-0.5">✨</span>
-          <span className="text-sm font-bold text-accent">{premiumHighlight}</span>
-        </div>
-      </div>
 
       <Button
         size="default"
@@ -344,7 +334,7 @@ const PricingSection = () => {
     <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative bg-card border-2 border-secondary/40 hover:border-secondary/70 transition-colors">
       <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
         <span className="bg-secondary text-secondary-foreground text-[10px] md:text-xs font-bold px-3 py-1 rounded-full shadow-md whitespace-nowrap leading-none">
-          FOR ADULTS
+          FOR EXISTING NAMES
         </span>
       </div>
 
@@ -392,10 +382,10 @@ const PricingSection = () => {
   );
 
   const tabs = [
-    { key: "namecheck" as const, label: "Name Check", tier: "Starter" },
-    { key: "namecorrection" as const, label: "Correction", tier: "Adults" },
-    { key: "single" as const, label: "Baby Name", tier: "Advanced" },
-    { key: "premium" as const, label: "Blueprint", tier: "Complete" },
+    { key: "namecheck" as const, label: "Name Check", price: "₹827", tier: "Quick Check" },
+    { key: "namecorrection" as const, label: "Name Correction", price: "₹2,987", tier: "For Existing Names" },
+    { key: "single" as const, label: "Baby Name", price: "₹3,437", tier: "Best Value" },
+    { key: "premium" as const, label: "Blueprint", price: "₹5,957", tier: "Full Blueprint" },
   ];
 
   return (
@@ -420,10 +410,10 @@ const PricingSection = () => {
               const activeStyles = "bg-accent text-accent-foreground border-accent shadow-[0_6px_20px_rgba(201,168,76,0.45)] scale-[1.03]";
               const inactiveStyles = "bg-card text-foreground border-accent/50";
               const tierGradients: Record<string, string> = {
-                Starter: "linear-gradient(135deg, #B0B7C3 0%, #6B7280 100%)",
-                Adults: "linear-gradient(135deg, #0F766E 0%, #134E4A 100%)",
-                Advanced: "linear-gradient(135deg, #C9A84C 0%, #8C6A1E 100%)",
-                Complete: "linear-gradient(135deg, #1F2937 0%, #C9A84C 100%)",
+                "Quick Check": "linear-gradient(135deg, #B0B7C3 0%, #6B7280 100%)",
+                "For Existing Names": "linear-gradient(135deg, #0F766E 0%, #134E4A 100%)",
+                "Best Value": "linear-gradient(135deg, #C9A84C 0%, #8C6A1E 100%)",
+                "Full Blueprint": "linear-gradient(135deg, #1F2937 0%, #C9A84C 100%)",
               };
               return (
                 <div key={tab.key} className="relative">
@@ -440,7 +430,8 @@ const PricingSection = () => {
                       isActive ? activeStyles : inactiveStyles
                     }`}
                   >
-                    {tab.label}
+                    <span className="block">{tab.label}</span>
+                    <span className="block mt-1 text-[11px] font-semibold opacity-90">{tab.price}</span>
                   </button>
                 </div>
               );

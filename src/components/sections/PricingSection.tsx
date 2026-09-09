@@ -85,7 +85,6 @@ const PricingSection = () => {
     "Compound Number Analysis",
     "Personal Loshu Grid",
     "First Alphabet Analysis",
-    "PDF Report (50+ Pages)",
     "Call Consultation Included",
   ];
 
@@ -154,31 +153,6 @@ const PricingSection = () => {
             </button>
           );
         })}
-      </div>
-
-      {/* STEP 2: Live total */}
-      <div className="mb-4 rounded-xl bg-accent/5 border border-accent/40 p-3">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <p className="text-[11px] text-muted-foreground leading-none mb-1">You selected</p>
-            <p className="text-sm font-bold text-foreground">{selectedNameCheckPlan} Name{selectedNameCheckPlan !== 1 ? "s" : ""}</p>
-          </div>
-          <div className="text-right">
-            <div className="flex items-baseline gap-1.5 justify-end">
-              {selectedNameCheckPlan > 1 && (
-                <span className="text-xs text-muted-foreground line-through">
-                  {formatPrice(nameCheckPlans[selectedNameCheckPlan].originalPrice)}
-                </span>
-              )}
-              <PriceDisplay price={nameCheckPlans[selectedNameCheckPlan].price} className="text-xl font-heading font-bold text-secondary" />
-            </div>
-            {selectedNameCheckPlan > 1 && (
-              <span className="text-[10px] font-semibold text-accent">
-                {formatPrice(nameCheckPlans[selectedNameCheckPlan].effectivePerPerson)}/name
-              </span>
-            )}
-          </div>
-        </div>
       </div>
 
       <ul className="space-y-2 mb-5">
@@ -404,7 +378,7 @@ const PricingSection = () => {
 
         {/* Mobile: 3 separate boxes */}
         <div className="md:hidden max-w-md mx-auto mb-6 px-1">
-          <div className="grid grid-cols-2 gap-2 pt-3">
+          <div className="grid grid-cols-2 auto-rows-fr gap-2 pt-3">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
               const activeStyles = "bg-accent text-accent-foreground border-accent shadow-[0_6px_20px_rgba(201,168,76,0.45)] scale-[1.03]";
@@ -416,7 +390,7 @@ const PricingSection = () => {
                 "Full Blueprint": "linear-gradient(135deg, #1F2937 0%, #C9A84C 100%)",
               };
               return (
-                <div key={tab.key} className="relative">
+                <div key={tab.key} className="relative h-full">
                   <span
                     className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full shadow-md whitespace-nowrap leading-none"
                     style={{ background: tierGradients[tab.tier], color: "#fff" }}
@@ -426,7 +400,7 @@ const PricingSection = () => {
                   <button
                     onClick={() => setActiveTab(tab.key)}
                     aria-pressed={isActive}
-                    className={`w-full rounded-xl border-2 pt-4 pb-3 px-1 text-[12px] sm:text-sm font-bold transition-all duration-200 leading-tight ${
+                    className={`w-full h-full min-h-[72px] rounded-xl border-2 pt-4 pb-3 px-2 text-[12px] sm:text-sm font-bold transition-all duration-200 leading-tight flex flex-col items-center justify-center ${
                       isActive ? activeStyles : inactiveStyles
                     }`}
                   >

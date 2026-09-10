@@ -99,7 +99,7 @@ const PricingSection = () => {
   ];
 
   const NameCheckCard = () => (
-    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative bg-card border-2 border-accent/40 hover:border-accent/70 transition-colors">
+    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative bg-card border-2 border-accent/40 hover:border-accent/70 transition-colors h-full flex flex-col">
       <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
         <span className="bg-secondary text-secondary-foreground text-[10px] md:text-xs font-bold px-3 py-1 rounded-full shadow-md whitespace-nowrap leading-none">
           QUICK CHECK
@@ -117,7 +117,7 @@ const PricingSection = () => {
         <p className="text-sm font-bold text-foreground">How many names to check?</p>
       </div>
 
-      {/* Prominent selector — only 2 tiers: 1 name and 3 names */}
+      {/* Prominent selector — 1 name or 2 names */}
       <div className="grid grid-cols-2 gap-2 mb-4">
         {([1, 2] as const).map((num) => {
           const isActive = selectedNameCheckPlan === num;
@@ -381,7 +381,7 @@ const PricingSection = () => {
           <div className="grid grid-cols-2 auto-rows-fr gap-2 pt-3">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
-              const activeStyles = "bg-accent text-accent-foreground border-accent shadow-[0_6px_20px_rgba(201,168,76,0.45)] scale-[1.03]";
+              const activeStyles = "bg-accent text-accent-foreground border-accent shadow-[0_6px_20px_rgba(201,168,76,0.45)]";
               const inactiveStyles = "bg-card text-foreground border-accent/50";
               const tierGradients: Record<string, string> = {
                 "Quick Check": "linear-gradient(135deg, #B0B7C3 0%, #6B7280 100%)",
@@ -426,7 +426,7 @@ const PricingSection = () => {
         </div>
 
         {/* Desktop: 2x2 grid */}
-        <div className="hidden md:grid grid-cols-2 gap-5 max-w-4xl mx-auto items-start">
+        <div className="hidden md:grid grid-cols-2 gap-5 max-w-4xl mx-auto items-stretch">
           <NameCheckCard />
           <NameCorrectionCard />
           <SingleReportCard />

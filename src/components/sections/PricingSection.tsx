@@ -311,7 +311,7 @@ const PricingSection = () => {
   ];
 
   const NameCorrectionCard = () => (
-    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative bg-card border-2 border-secondary/40 hover:border-secondary/70 transition-colors">
+    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative bg-card border-2 border-secondary/40 hover:border-secondary/70 transition-colors h-full flex flex-col">
       <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
         <span className="bg-secondary text-secondary-foreground text-[10px] md:text-xs font-bold px-3 py-1 rounded-full shadow-md whitespace-nowrap leading-none">
           FOR EXISTING NAMES
@@ -334,7 +334,7 @@ const PricingSection = () => {
         </div>
       </div>
 
-      <ul className="space-y-2 mb-5">
+      <ul className="space-y-2 mb-0">
         {nameCorrectionFeatures.map((feature, index) => (
           <li key={index} className="flex items-start gap-2 group">
             <Check className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
@@ -343,20 +343,22 @@ const PricingSection = () => {
         ))}
       </ul>
 
-      <Button
-        variant="secondary"
-        size="default"
-        className="w-full group whitespace-normal text-center px-3 leading-tight min-h-[44px] h-auto py-2"
-        onClick={() => scrollToForm("namecorrection")}
-      >
-        <span className="group-hover:scale-105 transition-transform duration-300 inline-block text-sm md:text-base">
-          Get Name Correction Report
-        </span>
-      </Button>
+      <div className="mt-auto pt-5">
+        <Button
+          variant="secondary"
+          size="default"
+          className="w-full group whitespace-normal text-center px-3 leading-tight min-h-[44px] h-auto py-2"
+          onClick={() => scrollToForm("namecorrection")}
+        >
+          <span className="group-hover:scale-105 transition-transform duration-300 inline-block text-sm md:text-base">
+            Get Name Correction Report
+          </span>
+        </Button>
 
-      <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 24-48 hr</span>
-        <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Secure</span>
+        <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 24-48 hr</span>
+          <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Secure</span>
+        </div>
       </div>
     </div>
   );

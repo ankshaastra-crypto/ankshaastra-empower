@@ -243,7 +243,7 @@ const PricingSection = () => {
   );
 
   const PremiumReportCard = () => (
-    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent bg-card gold-glow">
+    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent bg-card gold-glow h-full flex flex-col">
       <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
         <span className="text-[10px] md:text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap leading-none shadow-lg"
           style={{ background: 'linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(30 10% 25%) 100%)', color: 'hsl(var(--accent))' }}>

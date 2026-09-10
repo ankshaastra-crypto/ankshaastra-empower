@@ -36,7 +36,7 @@ const FeaturesSection = () => {
     "Compound Number Analysis",
     "Personal Loshu Grid",
     "First Alphabet Analysis",
-    "PDF Report (50+ Pages)",
+    "Detailed PDF Report",
     "Call Consultation Included",
   ];
 

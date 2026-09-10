@@ -2116,7 +2116,7 @@ const OrderFormSection = () => {
                           <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> Compound Number Analysis</li>
                           <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> Personal Loshu Grid</li>
                           <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> First Alphabet Analysis</li>
-                          <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> PDF Report (50+ Pages)</li>
+                          
                         </>
                       )}
                     </ul>

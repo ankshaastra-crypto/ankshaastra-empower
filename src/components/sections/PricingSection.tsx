@@ -99,7 +99,7 @@ const PricingSection = () => {
   ];
 
   const NameCheckCard = () => (
-    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative bg-card border-2 border-accent/40 hover:border-accent/70 transition-colors">
+    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative bg-card border-2 border-accent/40 hover:border-accent/70 transition-colors h-full flex flex-col">
       <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
         <span className="bg-secondary text-secondary-foreground text-[10px] md:text-xs font-bold px-3 py-1 rounded-full shadow-md whitespace-nowrap leading-none">
           QUICK CHECK
@@ -117,7 +117,7 @@ const PricingSection = () => {
         <p className="text-sm font-bold text-foreground">How many names to check?</p>
       </div>
 
-      {/* Prominent selector — only 2 tiers: 1 name and 3 names */}
+      {/* Prominent selector — 1 name or 2 names */}
       <div className="grid grid-cols-2 gap-2 mb-4">
         {([1, 2] as const).map((num) => {
           const isActive = selectedNameCheckPlan === num;
@@ -155,7 +155,7 @@ const PricingSection = () => {
         })}
       </div>
 
-      <ul className="space-y-2 mb-5">
+      <ul className="space-y-2 mb-0">
         {nameCheckFeatures.map((feature, index) => (
           <li key={index} className="flex items-start gap-2 group">
             <Check className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
@@ -164,27 +164,29 @@ const PricingSection = () => {
         ))}
       </ul>
 
-      <Button
-        variant="secondary"
-        size="default"
-        className="w-full group"
-        onClick={() => scrollToForm(`namecheck-${selectedNameCheckPlan}`)}
-      >
-        <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
-          Continue with {selectedNameCheckPlan} Name{selectedNameCheckPlan !== 1 ? "s" : ""} • {formatPrice(nameCheckPlans[selectedNameCheckPlan].price)}
-        </span>
-      </Button>
+      <div className="mt-auto pt-5">
+        <Button
+          variant="secondary"
+          size="default"
+          className="w-full group"
+          onClick={() => scrollToForm(`namecheck-${selectedNameCheckPlan}`)}
+        >
+          <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
+            Continue with {selectedNameCheckPlan} Name{selectedNameCheckPlan !== 1 ? "s" : ""} • {formatPrice(nameCheckPlans[selectedNameCheckPlan].price)}
+          </span>
+        </Button>
 
-      <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 12-24 hr</span>
-        <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Secure</span>
+        <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 12-24 hr</span>
+          <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Secure</span>
+        </div>
       </div>
     </div>
   );
 
 
   const SingleReportCard = () => (
-    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow animate-border-glow bg-card">
+    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow animate-border-glow bg-card h-full flex flex-col">
       <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
         <span className="bg-accent text-accent-foreground text-[10px] md:text-xs font-bold px-3 py-1 rounded-full shadow-gold whitespace-nowrap leading-none">
           BEST VALUE
@@ -211,7 +213,7 @@ const PricingSection = () => {
       </div>
 
 
-      <ul className="space-y-2 mb-6">
+      <ul className="space-y-2 mb-0">
         {singleFeatures.map((feature, index) => (
           <li key={index} className="flex items-start gap-2 group">
             <Check className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
@@ -220,26 +222,28 @@ const PricingSection = () => {
         ))}
       </ul>
 
-      <Button
-        variant="hero"
-        size="default"
-        className="w-full group whitespace-normal text-center px-3 leading-tight min-h-[44px] h-auto py-2"
-        onClick={() => scrollToForm("single")}
-      >
-        <span className="group-hover:scale-105 transition-transform duration-300 inline-block text-sm md:text-base">
-          Get Perfect Baby Name Report
-        </span>
-      </Button>
+      <div className="mt-auto pt-6">
+        <Button
+          variant="hero"
+          size="default"
+          className="w-full group whitespace-normal text-center px-3 leading-tight min-h-[44px] h-auto py-2"
+          onClick={() => scrollToForm("single")}
+        >
+          <span className="group-hover:scale-105 transition-transform duration-300 inline-block text-sm md:text-base">
+            Get Perfect Baby Name Report
+          </span>
+        </Button>
 
-      <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 24-48 hr</span>
-        <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Secure</span>
+        <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 24-48 hr</span>
+          <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Secure</span>
+        </div>
       </div>
     </div>
   );
 
   const PremiumReportCard = () => (
-    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent bg-card gold-glow">
+    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent bg-card gold-glow h-full flex flex-col">
       <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
         <span className="text-[10px] md:text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap leading-none shadow-lg"
           style={{ background: 'linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(30 10% 25%) 100%)', color: 'hsl(var(--accent))' }}>
@@ -268,7 +272,7 @@ const PricingSection = () => {
 
       </div>
 
-      <ul className="space-y-2 mb-6">
+      <ul className="space-y-2 mb-0">
         {premiumFeatures.map((feature, index) => (
           <li key={index} className="flex items-start gap-2 group">
             <Check className="w-4 h-4 text-accent flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
@@ -277,20 +281,22 @@ const PricingSection = () => {
         ))}
       </ul>
 
-      <Button
-        size="default"
-        className="w-full group rounded-xl font-bold"
-        style={{ background: 'hsl(var(--foreground))', color: 'hsl(var(--background))' }}
-        onClick={() => scrollToForm("premium")}
-      >
-        <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
-          Get Complete Baby Name Blueprint
-        </span>
-      </Button>
+      <div className="mt-auto pt-6">
+        <Button
+          size="default"
+          className="w-full group rounded-xl font-bold"
+          style={{ background: 'hsl(var(--foreground))', color: 'hsl(var(--background))' }}
+          onClick={() => scrollToForm("premium")}
+        >
+          <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
+            Get Complete Baby Name Blueprint
+          </span>
+        </Button>
 
-      <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 24-48 hr</span>
-        <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Secure</span>
+        <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 24-48 hr</span>
+          <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Secure</span>
+        </div>
       </div>
     </div>
   );
@@ -305,7 +311,7 @@ const PricingSection = () => {
   ];
 
   const NameCorrectionCard = () => (
-    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative bg-card border-2 border-secondary/40 hover:border-secondary/70 transition-colors">
+    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative bg-card border-2 border-secondary/40 hover:border-secondary/70 transition-colors h-full flex flex-col">
       <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
         <span className="bg-secondary text-secondary-foreground text-[10px] md:text-xs font-bold px-3 py-1 rounded-full shadow-md whitespace-nowrap leading-none">
           FOR EXISTING NAMES
@@ -328,7 +334,7 @@ const PricingSection = () => {
         </div>
       </div>
 
-      <ul className="space-y-2 mb-5">
+      <ul className="space-y-2 mb-0">
         {nameCorrectionFeatures.map((feature, index) => (
           <li key={index} className="flex items-start gap-2 group">
             <Check className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
@@ -337,20 +343,22 @@ const PricingSection = () => {
         ))}
       </ul>
 
-      <Button
-        variant="secondary"
-        size="default"
-        className="w-full group whitespace-normal text-center px-3 leading-tight min-h-[44px] h-auto py-2"
-        onClick={() => scrollToForm("namecorrection")}
-      >
-        <span className="group-hover:scale-105 transition-transform duration-300 inline-block text-sm md:text-base">
-          Get Name Correction Report
-        </span>
-      </Button>
+      <div className="mt-auto pt-5">
+        <Button
+          variant="secondary"
+          size="default"
+          className="w-full group whitespace-normal text-center px-3 leading-tight min-h-[44px] h-auto py-2"
+          onClick={() => scrollToForm("namecorrection")}
+        >
+          <span className="group-hover:scale-105 transition-transform duration-300 inline-block text-sm md:text-base">
+            Get Name Correction Report
+          </span>
+        </Button>
 
-      <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 24-48 hr</span>
-        <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Secure</span>
+        <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 24-48 hr</span>
+          <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Secure</span>
+        </div>
       </div>
     </div>
   );
@@ -381,7 +389,7 @@ const PricingSection = () => {
           <div className="grid grid-cols-2 auto-rows-fr gap-2 pt-3">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.key;
-              const activeStyles = "bg-accent text-accent-foreground border-accent shadow-[0_6px_20px_rgba(201,168,76,0.45)] scale-[1.03]";
+              const activeStyles = "bg-accent text-accent-foreground border-accent shadow-[0_6px_20px_rgba(201,168,76,0.45)]";
               const inactiveStyles = "bg-card text-foreground border-accent/50";
               const tierGradients: Record<string, string> = {
                 "Quick Check": "linear-gradient(135deg, #B0B7C3 0%, #6B7280 100%)",
@@ -426,7 +434,7 @@ const PricingSection = () => {
         </div>
 
         {/* Desktop: 2x2 grid */}
-        <div className="hidden md:grid grid-cols-2 gap-5 max-w-4xl mx-auto items-start">
+        <div className="hidden md:grid grid-cols-2 gap-5 max-w-4xl mx-auto items-stretch">
           <NameCheckCard />
           <NameCorrectionCard />
           <SingleReportCard />

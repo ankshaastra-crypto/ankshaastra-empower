@@ -18,7 +18,7 @@ const CompareTableSection = () => {
     { feature: "10+ Numerologically Aligned Names", values: [false, true, true] },
     { feature: "First Name & Full Name Analysis", values: [false, true, true] },
     { feature: "Compound Number & Loshu Grid", values: [false, true, true] },
-    { feature: "50+ Page Personalised PDF", values: [false, true, true] },
+    { feature: "Detailed Personalised PDF", values: [false, true, true] },
     { feature: "Call Consultation", values: [false, true, true] },
     { feature: "10+ Extra Aligned Names", values: [false, false, true] },
     { feature: "Nickname Analysis", values: [false, false, true] },

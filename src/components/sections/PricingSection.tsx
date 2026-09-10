@@ -272,7 +272,7 @@ const PricingSection = () => {
 
       </div>
 
-      <ul className="space-y-2 mb-6">
+      <ul className="space-y-2 mb-0">
         {premiumFeatures.map((feature, index) => (
           <li key={index} className="flex items-start gap-2 group">
             <Check className="w-4 h-4 text-accent flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform duration-300" />
@@ -281,20 +281,22 @@ const PricingSection = () => {
         ))}
       </ul>
 
-      <Button
-        size="default"
-        className="w-full group rounded-xl font-bold"
-        style={{ background: 'hsl(var(--foreground))', color: 'hsl(var(--background))' }}
-        onClick={() => scrollToForm("premium")}
-      >
-        <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
-          Get Complete Baby Name Blueprint
-        </span>
-      </Button>
+      <div className="mt-auto pt-6">
+        <Button
+          size="default"
+          className="w-full group rounded-xl font-bold"
+          style={{ background: 'hsl(var(--foreground))', color: 'hsl(var(--background))' }}
+          onClick={() => scrollToForm("premium")}
+        >
+          <span className="group-hover:scale-105 transition-transform duration-300 inline-block">
+            Get Complete Baby Name Blueprint
+          </span>
+        </Button>
 
-      <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 24-48 hr</span>
-        <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Secure</span>
+        <div className="flex items-center justify-center gap-2 mt-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> 24-48 hr</span>
+          <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Secure</span>
+        </div>
       </div>
     </div>
   );

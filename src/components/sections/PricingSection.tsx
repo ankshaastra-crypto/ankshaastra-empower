@@ -186,7 +186,7 @@ const PricingSection = () => {
 
 
   const SingleReportCard = () => (
-    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow animate-border-glow bg-card">
+    <div className="rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-card card-hover relative border-2 border-accent gold-glow animate-border-glow bg-card h-full flex flex-col">
       <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
         <span className="bg-accent text-accent-foreground text-[10px] md:text-xs font-bold px-3 py-1 rounded-full shadow-gold whitespace-nowrap leading-none">
           BEST VALUE

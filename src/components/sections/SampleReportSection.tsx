@@ -18,7 +18,7 @@ const SampleReportSection = () => {
     { label: "Compound Number Analysis", value: "Personality: Leadership, Creativity, Compassion...", blurred: true },
     { label: "Personal Loshu Grid", value: "Complete grid mapping & interpretation...", blurred: true },
     { label: "First Alphabet Analysis", value: "Detailed alphabet vibration & energy analysis...", blurred: true },
-    { label: "PDF Report (50+ Pages)", value: "Comprehensive report with all analyses...", blurred: true },
+    { label: "Detailed PDF Report", value: "Comprehensive report with all analyses...", blurred: true },
   ];
 
   return (

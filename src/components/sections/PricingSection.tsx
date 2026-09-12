@@ -364,7 +364,7 @@ const PricingSection = () => {
   );
 
   const tabs = [
-    { key: "namecheck" as const, label: "Name Check", price: "₹1", tier: "Quick Check" },
+    { key: "namecheck" as const, label: "Name Check", price: "₹473", tier: "Quick Check" },
     { key: "namecorrection" as const, label: "Name Correction", price: "₹2,987", tier: "For Existing Names" },
     { key: "single" as const, label: "Baby Name", price: "₹3,437", tier: "Best Value" },
     { key: "premium" as const, label: "Blueprint", price: "₹5,957", tier: "Full Blueprint" },

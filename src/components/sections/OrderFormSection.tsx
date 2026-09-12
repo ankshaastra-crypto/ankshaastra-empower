@@ -99,7 +99,7 @@ interface OrderPayload {
 
 // Name Check pricing configuration
 const NAME_CHECK_PRICING = {
-  1: { price: 827, originalPrice: 827, savings: 0 },
+  1: { price: 1, originalPrice: 1, savings: 0 },
   2: { price: 1457, originalPrice: 1654, savings: 197 },
 };
 

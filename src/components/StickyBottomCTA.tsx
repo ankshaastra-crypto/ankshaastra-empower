@@ -45,10 +45,10 @@ const StickyBottomCTA = () => {
             <p className="text-sm font-heading font-semibold text-foreground">
               Get Your Baby Name Report
             </p>
-            <p className="text-xs text-muted-foreground">Starting at just ₹1 · Delivered in 12-24 hrs</p>
+            <p className="text-xs text-muted-foreground">Starting at just ₹473 · Delivered in 12-24 hrs</p>
           </div>
           <p className="sm:hidden text-xs text-muted-foreground font-medium">
-            Reports starting at ₹1
+            Reports starting at ₹473
           </p>
           <Button
             onClick={scrollToForm}

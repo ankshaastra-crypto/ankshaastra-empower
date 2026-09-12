@@ -46,8 +46,8 @@ const DEFAULTS = {
   namecorrection: { price: 2987, originalPrice: 7500 },
   namecheck: {
     1: { price: 473, originalPrice: 827 },
-    2: { price: 1457, originalPrice: 1654 },
-    3: { price: 1457, originalPrice: 1654 },
+    2: { price: 827, originalPrice: 1457 },
+    3: { price: 827, originalPrice: 1457 },
   },
 } as const;
 

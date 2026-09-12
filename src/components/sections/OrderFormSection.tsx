@@ -100,7 +100,7 @@ interface OrderPayload {
 // Name Check pricing configuration
 const NAME_CHECK_PRICING = {
   1: { price: 473, originalPrice: 827, savings: 354 },
-  2: { price: 1457, originalPrice: 1654, savings: 197 },
+  2: { price: 827, originalPrice: 1457, savings: 630 },
 };
 
 // Optional add-on: 10+ extra numerologically aligned names (Baby Name only)

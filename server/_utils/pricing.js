@@ -5,8 +5,8 @@ const DEFAULT_PRICES = {
   single: 3437,
   premium: 5957,
   'namecheck-1': 473,
-  'namecheck-2': 1457,
-  'namecheck-3': 1457,
+  'namecheck-2': 827,
+  'namecheck-3': 827,
   namecorrection: 2987,
 };
 

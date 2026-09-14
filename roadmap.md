@@ -4,3 +4,7 @@
 - [x] Name Correction order form fields: name trio, father's-name Y/N, last-name-change Y/N, email, WhatsApp, PIN/City/State (single set), DOB, TOB, Place of Birth, gender, relationship quality (father/mother/spouse), father/mother/spouse names, profession, reason textarea
 - [x] Merge duplicate pincode/city/state — only ONE PIN Code + City + State set, place of birth stays separate
 - [x] Update package tags and remove the Complete Blueprint highlight box
+- [x] Remove the Name Correction card and two-name Name Check option
+- [x] Redesign the three package cards in the selected boutique editorial style
+- [x] Set Name Check delivery to 12 hours and both baby-name reports to 24 hours
+- [x] Replace the “More Than Just a Beautiful Name” cards with the three requested analyses

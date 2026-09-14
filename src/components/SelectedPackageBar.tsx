@@ -3,14 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, X } from "lucide-react";
 import { formatPrice, getPackagePricing } from "@/lib/packagePricing";
 
-type PkgKey = "single" | "premium" | "namecorrection" | "namecheck-1" | "namecheck-2";
+type PkgKey = "single" | "premium" | "namecheck-1";
 
 const LABELS: Record<PkgKey, string> = {
   single: "Perfect Baby Name Report",
   premium: "Complete Baby Name Blueprint",
-  namecorrection: "Name Correction Report",
   "namecheck-1": "Name Check (1 Name)",
-  "namecheck-2": "Name Check (2 Names)",
 };
 
 const STORAGE_KEY = "selectedPackage";
@@ -55,9 +53,7 @@ const SelectedPackageBar = () => {
   let price = 0;
   if (pkg === "single") price = pricing.single.price;
   else if (pkg === "premium") price = pricing.premium.price;
-  else if (pkg === "namecorrection") price = pricing.namecorrection.price;
   else if (pkg === "namecheck-1") price = pricing.nameCheckTiers[1].price;
-  else if (pkg === "namecheck-2") price = pricing.nameCheckTiers[2].price;
 
   const goToForm = () => {
     const el = document.getElementById("order-form");

@@ -82,7 +82,7 @@ const HeroSection = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 mt-4 text-xs text-muted-foreground">
               <span>✦ 10+ Numerologically Aligned Names</span>
               <span className="hidden sm:inline">·</span>
-              <span>✦ Delivered within 24–48 Hours</span>
+              <span>✦ Reports delivered within 24 Hours</span>
               <span className="hidden sm:inline">·</span>
               <span>✦ First Name, Full Name & Compound Number Analysis</span>
             </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Stars, BookOpen, Baby, MessageCircle, CheckCircle, ChevronDown } from "lucide-react";
+import { Crown, Grid3X3, Hash, CheckCircle, ChevronDown } from "lucide-react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 
 const FeaturesSection = () => {
@@ -8,24 +8,19 @@ const FeaturesSection = () => {
 
   const features = [
     {
-      icon: Baby,
-      title: "10+ Meaningful, Numerologically Aligned Name Options",
-      text: "Receive 10+ carefully curated name suggestions — each numerologically compatible with your baby's birth date, Mulank, and Bhagyank for lifelong harmony.",
+      icon: Crown,
+      title: "Rajyog Analysis",
+      text: "Discover the powerful number combinations in your baby's chart that can support recognition, prosperity, leadership and favourable opportunities through life.",
     },
     {
-      icon: Stars,
-      title: "Numerology & Vedic Compatibility Check",
-      text: "Each name is evaluated using Life Path Number, Destiny Number, and Compound Number analysis — ensuring deep vibrational alignment.",
+      icon: Grid3X3,
+      title: "Loshu Grid Analysis",
+      text: "A personalised Loshu Grid maps present and missing numbers to reveal natural strengths, emotional patterns, learning style and areas that may need balance.",
     },
     {
-      icon: BookOpen,
-      title: "Clear Explanation With Each Suggestion",
-      text: "No jargon. Every name comes with a simple, easy-to-understand explanation of why it works for your child's unique energy.",
-    },
-    {
-      icon: MessageCircle,
-      title: "Personalised to Your Baby's Birth Details",
-      text: "Your report is hand-crafted by Himansshu Agarwal Ji — not automated, not generic. Every word is written specifically for your child.",
+      icon: Hash,
+      title: "First, Full & Compound Number Analysis",
+      text: "The first name, complete name and compound number are studied together to understand identity, public vibration and long-term alignment with the birth date.",
     },
   ];
 
@@ -58,7 +53,7 @@ const FeaturesSection = () => {
         </div>
 
         {/* Desktop: grid cards | Mobile: accordion */}
-        <div className="hidden md:grid grid-cols-2 gap-8 max-w-6xl mx-auto mb-12">
+        <div className="hidden md:grid grid-cols-3 gap-6 max-w-6xl mx-auto mb-12">
           {features.map((feature, index) => (
             <div
               key={index}

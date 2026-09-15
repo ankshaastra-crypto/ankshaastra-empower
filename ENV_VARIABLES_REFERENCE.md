@@ -345,8 +345,8 @@ You must set **two** copies of each price (or accept the defaults):
 | `VITE_PACKAGE_SINGLE_ORIGINAL_PRICE`           | —                                        | 7500    | Strikethrough "before" price             |
 | `VITE_PACKAGE_PREMIUM_PRICE`                   | `PACKAGE_PREMIUM_PRICE`                  | 8927    | Report + Live Video Session              |
 | `VITE_PACKAGE_PREMIUM_ORIGINAL_PRICE`          | —                                        | 18218   | Strikethrough "before" price             |
-| `VITE_PACKAGE_NAMECHECK_1_PRICE`               | `PACKAGE_NAMECHECK_1_PRICE`              | 293     | Name Check (1 name)                      |
-| `VITE_PACKAGE_NAMECHECK_1_ORIGINAL_PRICE`      | —                                        | 293     |                                          |
+| `VITE_PACKAGE_NAMECHECK_1_PRICE`               | `PACKAGE_NAMECHECK_1_PRICE`              | 473     | Name Check                               |
+| `VITE_PACKAGE_NAMECHECK_1_ORIGINAL_PRICE`      | —                                        | 1100    |                                          |
 | `VITE_PACKAGE_NAMECHECK_2_PRICE`               | `PACKAGE_NAMECHECK_2_PRICE`              | 528     | Name Check (2 names)                     |
 | `VITE_PACKAGE_NAMECHECK_2_ORIGINAL_PRICE`      | —                                        | 586     |                                          |
 | `VITE_PACKAGE_NAMECHECK_3_PRICE`               | `PACKAGE_NAMECHECK_3_PRICE`              | 747     | Name Check (3 names)                     |

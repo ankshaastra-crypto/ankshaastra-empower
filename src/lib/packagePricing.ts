@@ -45,7 +45,7 @@ const DEFAULTS = {
   consultation: { price: 1, originalPrice: 1 },
   namecorrection: { price: 2987, originalPrice: 7500 },
   namecheck: {
-    1: { price: 473, originalPrice: 827 },
+    1: { price: 473, originalPrice: 1100 },
     2: { price: 827, originalPrice: 1457 },
     3: { price: 827, originalPrice: 1457 },
   },

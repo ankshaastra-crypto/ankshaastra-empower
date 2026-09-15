@@ -1,11 +1,4 @@
 import { Star } from "lucide-react";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 
 const TestimonialsSection = () => {
@@ -103,6 +96,8 @@ const TestimonialsSection = () => {
     return name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
   };
 
+  const movingTestimonials = [...testimonials, ...testimonials];
+
   return (
     <section ref={ref} className={`section-padding section-hidden bg-background ${isVisible ? 'section-visible' : ''}`}>
       <div className="container mx-auto px-4">
@@ -116,13 +111,12 @@ const TestimonialsSection = () => {
           </p>
         </div>
 
-        <div className="max-w-6xl mx-auto">
-          <Carousel opts={{ align: "start", loop: true }} className="w-full">
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {testimonials.map((testimonial, index) => (
-                <CarouselItem key={index} className="pl-2 md:pl-4 basis-[85%] sm:basis-1/2 lg:basis-1/3">
-                  <div className="mt-2">
-                    <div className="rounded-xl md:rounded-2xl p-4 md:p-6 shadow-card card-hover group relative h-full transition-all duration-300 hover:shadow-card-hover bg-card border border-border">
+        <div className="marquee-shell -mx-4 py-2" aria-label="Customer testimonials">
+          <div className="marquee-track marquee-track-testimonials">
+              {movingTestimonials.map((testimonial, index) => (
+                <article key={`${testimonial.author}-${index}`} className="w-[82vw] max-w-sm shrink-0 px-2 md:w-[390px] md:px-3">
+                    <div className="relative h-full min-h-[245px] overflow-hidden border border-border bg-card p-5 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-card-hover md:p-6">
+                      <span className="absolute right-4 top-1 font-heading text-6xl text-accent/10">“</span>
                       {/* Star Rating */}
                       <div className="flex gap-0.5 mb-3">
                         {Array.from({ length: testimonial.rating }).map((_, i) => (
@@ -150,15 +144,9 @@ const TestimonialsSection = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
-                </CarouselItem>
+                </article>
               ))}
-            </CarouselContent>
-            <div className="flex justify-center gap-4 mt-6 md:mt-8">
-              <CarouselPrevious className="relative static translate-y-0 bg-secondary hover:bg-secondary/80 border-accent/20 text-accent transition-all duration-300 hover:scale-110" />
-              <CarouselNext className="relative static translate-y-0 bg-secondary hover:bg-secondary/80 border-accent/20 text-accent transition-all duration-300 hover:scale-110" />
-            </div>
-          </Carousel>
+          </div>
         </div>
       </div>
     </section>

@@ -1,64 +1,24 @@
-## Architecture
+# Premium report-card refresh
 
-```
-Supabase (orders table) → Edge Function (sync) → Firestore
-                                                      ↓
-                                            React Admin Dashboard
-                                            (Firebase Auth + Firestore queries)
-```
+## What will change
+- Use the three uploaded report covers for Name Check, Perfect Baby Name Report, and Complete Baby Name Blueprint.
+- Redesign all three package cards around the provided reference: cover art, compact badge, rating and sold count, offer pricing, strong action button, and a clearly separated “What’s Inside” area.
+- Show the requested offers exactly:
+  - Name Check: ₹473, ₹1,100 original, Save ₹627 (57% OFF), 4.9 stars, 18k sold, 12-hour delivery.
+  - Perfect Baby Name: ₹3,437, ₹7,500 original, Save ₹4,063 (54% OFF), 5.0 stars, 14k sold, 24-hour delivery.
+  - Complete Baby Name: ₹5,957, ₹15,051 original, Save ₹9,094 (60% OFF), 5.0 stars, 8k sold, 24-hour delivery.
+- Keep only these three packages and ensure the selected package opens the matching form.
+- Add a diagonal “10+ Years Experience” strip at the top-left of the opening section.
+- Turn “As Featured In” logos and testimonials into continuously moving horizontal lines that pause for interaction and respect reduced-motion settings.
+- Add Rajyog Analysis, Loshu Grid Analysis, and First & Full Name Analysis beneath the philosophy copy, using polished decorative panels rather than plain cards.
 
-## Phase 1: Firebase Setup
-- Install `firebase` npm package
-- Create Firebase config file with publishable keys
-- Store Firebase Admin credentials as secrets (for edge function)
-- Set up Firebase Auth for admin login
+## Visual treatment
+- Preserve the existing warm ivory, gold, charcoal, Playfair Display, and Inter design system.
+- Give cards richer hierarchy through framed cover imagery, subtle gold details, layered borders, restrained shadows, and purposeful hover movement.
+- Keep mobile cards compact and readable, with stable image proportions and no overflow.
 
-## Phase 2: Data Sync (Supabase → Firestore)
-- Create a Supabase Edge Function `sync-to-firestore` that:
-  - Reads orders from Supabase
-  - Writes/updates documents in Firestore `orders` collection
-- Can be triggered manually from dashboard or via scheduled cron
-
-## Phase 3: Firestore Schema
-```
-orders/{order_id}
-  ├── customer_name
-  ├── customer_email
-  ├── customer_mobile
-  ├── customer_city
-  ├── package_type (service_type)
-  ├── amount
-  ├── status (pending / delivered / follow-up)
-  ├── payment_status
-  ├── order_date
-  ├── source (ads / organic / referral)
-  ├── notes: string
-  ├── tags: string[] (hot_lead / cold_lead)
-  ├── follow_up_date
-  ├── person details (1-3)
-  ├── baby name details
-  └── synced_at
-```
-
-## Phase 4: Admin Dashboard Pages
-- `/admin/login` — Firebase Auth login
-- `/admin/dashboard` — Main dashboard with:
-  - **Overview metrics**: Total orders, revenue, pending vs completed
-  - **Orders table**: Paginated, searchable, sortable
-  - **Filters**: Date range, service type, payment status, source, status
-  - **Actions**: Update status, add notes, mark follow-up, export CSV
-  - **WhatsApp button** per customer
-  - **Tag system** (hot/cold lead)
-
-## Phase 5: Auth & Security
-- Firebase Auth email/password for admin
-- Protected routes — only authenticated admins can access
-- Firestore security rules (read/write only for authenticated admins)
-
-## Prerequisites from you:
-1. **Firebase project** — You'll need to create one at console.firebase.google.com
-2. **Firebase config** — The publishable config object (apiKey, authDomain, projectId, etc.)
-3. **Firebase Admin Service Account Key** — JSON key for the edge function to write to Firestore
-4. **Create an admin user** in Firebase Auth console
-
-Shall I proceed?
+## Technical details
+- Upload the supplied report covers through the project asset flow and reference their generated asset pointers.
+- Use semantic theme tokens for all new colors and effects.
+- Replace manual testimonial navigation with an auto-moving, looping track while retaining touch/drag accessibility.
+- Verify the build, desktop layout, mobile layout, package selection, and form transition in the live preview.

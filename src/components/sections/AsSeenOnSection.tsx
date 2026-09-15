@@ -27,8 +27,22 @@ const AsSeenOnSection = () => {
       <div className="marquee-shell border-y border-accent/20 bg-card/60 py-5" aria-label="Featured publications">
         <div className="marquee-track marquee-track-featured">
           {movingOutlets.map((outlet, index) => (
-            <div key={`${outlet.name}-${index}`} className="flex w-48 shrink-0 items-center justify-center px-5 md:w-60">
-              <img src={outlet.logo} alt={index < outlets.length ? `${outlet.name} logo` : ""} aria-hidden={index >= outlets.length} loading="lazy" width="160" height="56" className="h-10 w-auto object-contain opacity-90 transition-opacity duration-300 hover:opacity-100 md:h-12" />
+            <div key={`${outlet.name}-${index}`} className="media-logo-tile flex w-48 shrink-0 items-center justify-center px-5 md:w-60">
+              <img
+                src={outlet.logo}
+                alt={index < outlets.length ? `${outlet.name} logo` : ""}
+                aria-hidden={index >= outlets.length}
+                loading="lazy"
+                width="160"
+                height="56"
+                className="h-11 max-w-[160px] w-auto object-contain md:h-14"
+                onError={(event) => {
+                  event.currentTarget.hidden = true;
+                  const fallback = event.currentTarget.nextElementSibling;
+                  if (fallback instanceof HTMLElement) fallback.hidden = false;
+                }}
+              />
+              <span hidden className="font-heading text-base font-bold text-foreground">{outlet.name}</span>
             </div>
           ))}
         </div>

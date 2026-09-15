@@ -18,3 +18,5 @@
 - [x] Add mobile package-switch buttons and keep all three cards aligned on desktop
 - [x] Replace the diagonal experience ribbon with a compact gold seal
 - [x] Expand the Himansshu Agarwal biography
+- [x] Replace the experience badge and opening statistics with one top trust strip
+- [x] Restore visible media logos and widen the framed page layout

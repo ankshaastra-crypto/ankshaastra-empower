@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import Header from "@/components/Header";
 import ScrollProgress from "@/components/ScrollProgress";
+import TrustStrip from "@/components/TrustStrip";
 import HeroSection from "@/components/sections/HeroSection";
 import SectionDivider from "@/components/SectionDivider";
 
@@ -75,6 +76,7 @@ const Index = () => {
   return (
     <main className="min-h-screen bg-background pb-[80px] md:pb-0">
       <ScrollProgress />
+      <TrustStrip />
       <Header />
       <Suspense fallback={null}>
         <FloatingElements />

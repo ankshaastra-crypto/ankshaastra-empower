@@ -8,10 +8,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="min-h-[85vh] md:min-h-screen flex items-center pt-14 pb-4 md:pt-20 md:pb-10 relative overflow-hidden bg-background">
-      <div className="experience-ribbon" aria-label="10 plus years experience">
-        <span>10+ Years Experience</span>
-      </div>
+    <section className="min-h-[85vh] md:min-h-screen flex items-center pt-24 pb-4 md:pt-28 md:pb-10 relative overflow-hidden bg-background">
       <img
         src={heroBg}
         alt=""
@@ -68,48 +65,12 @@ const HeroSection = () => {
             >
               Get Name Check @ ₹473
             </Button>
-            <div className="mt-5 flex items-center justify-center">
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-accent/30 bg-accent/10 shadow-card">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-accent">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-                <span className="text-[11px] md:text-xs font-bold uppercase tracking-[0.15em] text-accent">
-                  100% Accuracy Assured
-                </span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-accent">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-              </div>
-            </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-3 mt-4 text-xs text-muted-foreground">
               <span>✦ 10+ Numerologically Aligned Names</span>
               <span className="hidden sm:inline">·</span>
               <span>✦ Reports delivered within 24 Hours</span>
               <span className="hidden sm:inline">·</span>
               <span>✦ First Name, Full Name & Compound Number Analysis</span>
-            </div>
-          </div>
-
-
-          <div className="mx-auto max-w-md border-t border-b border-accent/25 py-5">
-            <div className="flex items-center justify-between">
-              {[
-                { value: "14,000+", label: "Reports" },
-                { value: "4.9/5", label: "Rating" },
-                { value: "99%", label: "Satisfaction" },
-              ].map((stat, i) => (
-                <div
-                  key={i}
-                  className={`flex-1 text-center px-2 ${i < 2 ? "border-r border-accent/25" : ""}`}
-                >
-                  <div className="font-heading font-semibold text-accent text-2xl md:text-3xl leading-none">
-                    {stat.value}
-                  </div>
-                  <div className="text-[10px] md:text-[11px] uppercase tracking-widest text-foreground/70 mt-1.5">
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>

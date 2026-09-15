@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check, Clock, Lock, Sparkles, Star } from "lucide-react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
@@ -29,6 +30,7 @@ type PackageCardProps = {
 const PricingSection = () => {
   const { ref } = useScrollAnimation({ threshold: 0.1 });
   const pricing = getPackagePricing();
+  const [activePackage, setActivePackage] = useState<PackageType>("single");
 
   const scrollToForm = (packageType: PackageType) => {
     const price = packageType === "namecheck-1"
@@ -111,10 +113,22 @@ const PricingSection = () => {
           <CountdownTimer />
         </div>
 
-        <div className="mx-auto grid max-w-6xl grid-cols-1 items-stretch gap-7 md:grid-cols-3 md:gap-5">
-          <PackageCard badge="Quick Check" title="Name Check" description="Check whether one chosen name aligns with the person's birth date and numerological profile." price={pricing.nameCheckTiers[1].price} originalPrice={1100} savings={627} discount={57} rating="4.9" sold="18k" cover="/assets/reports/name-check.webp" coverAlt="Name Check Report cover" features={["Quick Name Compatibility Check", "Mulank & Bhagyank Overview", "Clear Yes/No Recommendation", "Expert Analysis Summary"]} delivery="12 Hours" action={() => scrollToForm("namecheck-1")} />
-          <PackageCard badge="Best Value" title="Perfect Baby Name Report" description="A hand-crafted naming analysis with aligned options and clear numerological guidance." price={pricing.single.price} originalPrice={7500} savings={4063} discount={54} rating="5.0" sold="14k" cover="/assets/reports/perfect-baby-name.webp" coverAlt="Perfect Baby Name Report cover" features={["10+ Numerologically Aligned Names", "Existing Name Correction Included", "Mulank & Bhagyank Analysis", "First, Full & Compound Number Analysis", "Personal Loshu Grid", "Call Consultation Included"]} delivery="24 Hours" featured action={() => scrollToForm("single")} />
-          <PackageCard badge="Full Blueprint" title="Complete Baby Name Blueprint" description="Expanded naming choices and deeper guidance for your baby's lifelong alignment." price={pricing.premium.price} originalPrice={15051} savings={9094} discount={60} rating="5.0" sold="8k" cover="/assets/reports/complete-baby.webp" coverAlt="Complete Baby Name Blueprint cover" features={["Everything in Perfect Baby Name Report", "10+ Extra Aligned Names", "Nickname Analysis", "Ideal Career Path Analysis", "Lucky Direction (Feng Shui)", "Lucky Colors & Numbers Analysis"]} delivery="24 Hours" action={() => scrollToForm("premium")} />
+        <div className="mx-auto mb-6 grid max-w-2xl grid-cols-3 gap-1 rounded-md border border-accent/25 bg-card p-1 md:hidden" aria-label="Choose a package">
+          {([
+            ["namecheck-1", "Name Check"],
+            ["single", "Perfect Baby"],
+            ["premium", "Blueprint"],
+          ] as const).map(([value, label]) => (
+            <Button key={value} type="button" variant={activePackage === value ? "default" : "ghost"} className="h-auto min-h-11 whitespace-normal px-2 py-2 text-xs leading-tight" onClick={() => setActivePackage(value)} aria-pressed={activePackage === value}>
+              {label}
+            </Button>
+          ))}
+        </div>
+
+        <div className="mx-auto grid max-w-7xl grid-cols-1 items-stretch gap-5 md:grid-cols-3">
+          <div className={activePackage === "namecheck-1" ? "block" : "hidden md:block"}><PackageCard badge="Quick Check" title="Name Check" description="Check whether one chosen name aligns with the person's birth date and numerological profile." price={pricing.nameCheckTiers[1].price} originalPrice={1100} savings={627} discount={57} rating="4.9" sold="18k" cover="/assets/reports/name-check.webp" coverAlt="Name Check Report cover" features={["Quick Name Compatibility Check", "Mulank & Bhagyank Overview", "Clear Yes/No Recommendation", "Expert Analysis Summary"]} delivery="12 Hours" action={() => scrollToForm("namecheck-1")} /></div>
+          <div className={activePackage === "single" ? "block" : "hidden md:block"}><PackageCard badge="Best Value" title="Perfect Baby Name Report" description="A hand-crafted naming analysis with aligned options and clear numerological guidance." price={pricing.single.price} originalPrice={7500} savings={4063} discount={54} rating="5.0" sold="14k" cover="/assets/reports/perfect-baby-name.webp" coverAlt="Perfect Baby Name Report cover" features={["10+ Numerologically Aligned Names", "Existing Name Correction Included", "Mulank & Bhagyank Analysis", "First, Full & Compound Number Analysis", "Personal Loshu Grid", "Call Consultation Included"]} delivery="24 Hours" featured action={() => scrollToForm("single")} /></div>
+          <div className={activePackage === "premium" ? "block" : "hidden md:block"}><PackageCard badge="Full Blueprint" title="Complete Baby Name Blueprint" description="Expanded naming choices and deeper guidance for your baby's lifelong alignment." price={pricing.premium.price} originalPrice={15051} savings={9094} discount={60} rating="5.0" sold="8k" cover="/assets/reports/complete-baby.webp" coverAlt="Complete Baby Name Blueprint cover" features={["Everything in Perfect Baby Name Report", "10+ Extra Aligned Names", "Nickname Analysis", "Ideal Career Path Analysis", "Lucky Direction (Feng Shui)", "Lucky Colors & Numbers Analysis"]} delivery="24 Hours" action={() => scrollToForm("premium")} /></div>
         </div>
       </div>
     </section>

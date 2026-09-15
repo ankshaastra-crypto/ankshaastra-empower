@@ -13,3 +13,8 @@
 - [x] Add the “10+ Years Experience” diagonal opening-section ribbon
 - [x] Make featured publications and testimonials move automatically
 - [x] Place Rajyog, Loshu Grid, and First & Full Name analysis beneath the philosophy
+- [x] Remove the duplicate review block and duplicate featured-publications strip
+- [x] Add India Times Online and India Breaking Buzz to the color media slider
+- [x] Add mobile package-switch buttons and keep all three cards aligned on desktop
+- [x] Replace the diagonal experience ribbon with a compact gold seal
+- [x] Expand the Himansshu Agarwal biography

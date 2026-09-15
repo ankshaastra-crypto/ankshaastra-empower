@@ -40,9 +40,14 @@ const ExpertSection = () => {
               Himansshu Agarwal Ji
             </h2>
 
-            <p className="text-sm md:text-base text-muted-foreground leading-relaxed mb-4">
-              A widely recognized <span className="text-accent font-semibold">Name Correction Expert</span> and <span className="text-accent font-semibold">Celebrity Astro-Numerologist</span> with <span className="text-accent font-semibold">10 years of experience</span> in spelling numerologically aligned names and <span className="text-accent font-semibold">Lal Kitab Remedy Specialist</span>. Through <span className="font-semibold text-foreground">Ankshaastra</span>, he has guided thousands of families in choosing names aligned with their child's date of birth.
-            </p>
+            <div className="mb-5 space-y-3 text-sm leading-relaxed text-muted-foreground md:text-base">
+              <p>
+                A widely recognized <span className="font-semibold text-accent">Name Correction Expert</span> and <span className="font-semibold text-accent">Celebrity Astro-Numerologist</span> with over 10 years of experience, he specializes in numerologically aligned name spelling and name correction. Through <span className="font-semibold text-foreground">Ankshaastra</span>, he has guided thousands of families in choosing meaningful and numerologically compatible names based on their child’s date of birth, helping create a harmonious connection between the name and birth details.
+              </p>
+              <p>
+                He is also a <span className="font-semibold text-accent">Lal Kitab Remedy Specialist</span>, offering personalized guidance based on traditional Lal Kitab principles. His expertise has been trusted by families, professionals, entrepreneurs, and celebrities seeking guidance in numerology, name correction, and remedies. Through Ankshaastra, his aim is to make these ancient sciences simple, practical, and accessible to everyone.
+              </p>
+            </div>
 
             {/* Stats Row */}
             <div className="grid grid-cols-3 gap-2 md:gap-3">

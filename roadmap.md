@@ -8,3 +8,8 @@
 - [x] Redesign the three package cards in the selected boutique editorial style
 - [x] Set Name Check delivery to 12 hours and both baby-name reports to 24 hours
 - [x] Replace the “More Than Just a Beautiful Name” cards with the three requested analyses
+- [x] Add the three supplied report covers and premium reference-style pricing cards
+- [x] Add exact savings, ratings, and sold counts to all three package cards
+- [x] Add the “10+ Years Experience” diagonal opening-section ribbon
+- [x] Make featured publications and testimonials move automatically
+- [x] Place Rajyog, Loshu Grid, and First & Full Name analysis beneath the philosophy

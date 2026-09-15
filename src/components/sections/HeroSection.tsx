@@ -9,11 +9,13 @@ const HeroSection = () => {
 
   return (
     <section className="min-h-[85vh] md:min-h-screen flex items-center pt-14 pb-4 md:pt-20 md:pb-10 relative overflow-hidden bg-background">
+      <div className="experience-ribbon" aria-label="10 plus years experience">
+        <span>10+ Years Experience</span>
+      </div>
       <img
         src={heroBg}
         alt=""
         aria-hidden="true"
-        fetchPriority="high"
         decoding="async"
         width={1600}
         height={1066}
@@ -67,14 +69,14 @@ const HeroSection = () => {
               Get Name Check @ ₹473
             </Button>
             <div className="mt-5 flex items-center justify-center">
-              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-[#D4AF37]/30 bg-gradient-to-r from-[#FDFBF7] via-[#F5E6CC] to-[#FDFBF7] shadow-[0_2px_10px_-3px_rgba(212,175,55,0.2)]">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-[#B8860B]">
+              <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-accent/30 bg-accent/10 shadow-card">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-accent">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
-                <span className="text-[11px] md:text-xs font-bold uppercase tracking-[0.15em] text-[#8C734D]">
+                <span className="text-[11px] md:text-xs font-bold uppercase tracking-[0.15em] text-accent">
                   100% Accuracy Assured
                 </span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-[#B8860B]">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-accent">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
               </div>

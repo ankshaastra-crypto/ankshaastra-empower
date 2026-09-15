@@ -22,7 +22,6 @@ const PricingSection = lazy(() => import("@/components/sections/PricingSection")
 const OrderFormSection = lazy(() => import("@/components/sections/OrderFormSection"));
 const FAQSection = lazy(() => import("@/components/sections/FAQSection"));
 const Footer = lazy(() => import("@/components/Footer"));
-const GoogleReviewsBadge = lazy(() => import("@/components/sections/GoogleReviewsBadge"));
 const AsSeenOnSection = lazy(() => import("@/components/sections/AsSeenOnSection"));
 const TestimonialsSection = lazy(() => import("@/components/sections/TestimonialsSection"));
 
@@ -95,8 +94,7 @@ const Index = () => {
         <div className="section-frame section-dark"><div className="section-frame-inner"><PhilosophySection /></div></div>
         {/* 4 — Pricing (light) */}
         <div className="section-frame"><div className="section-frame-inner"><PricingSection /></div></div>
-        {/* 5 — Google Reviews (dark) */}
-        <div className="section-frame section-dark"><div className="section-frame-inner"><GoogleReviewsBadge /></div></div>
+        {/* 5 — Customer stories */}
         <div className="section-frame"><div className="section-frame-inner"><TestimonialsSection /></div></div>
         {/* 6 — YouTube (light) */}
         <div className="section-frame"><div className="section-frame-inner"><YouTubeSection /></div></div>

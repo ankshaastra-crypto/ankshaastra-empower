@@ -4,10 +4,6 @@ import geetaPhoto from "@/assets/geeta-tyagi.png";
 import darshanPhoto from "@/assets/darshan.jpg";
 // import prashantAsset from "@/assets/prashant-sambaragi.jpg.asset.json";
 import prashantPhoto from "@/assets/prashant-sambaragi.jpeg";
-import inc91 from "@/assets/press/inc91.webp";
-import dailyhunt from "@/assets/press/dailyhunt.webp";
-import hindustanBytes from "@/assets/press/hindustan-bytes.webp";
-import unseenTimes from "@/assets/press/unseen-times.webp";
 
 const GoogleIcon = ({ className }: { className?: string }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none">
@@ -38,13 +34,6 @@ const celebrities = [
     tag: "Film Actor",
     credit: { Icon: Film, label: "Dhurandhar · Thumbs Up" },
   },
-];
-
-const outlets = [
-  { name: "Inc91", logo: inc91 },
-  { name: "DailyHunt", logo: dailyhunt },
-  { name: "Hindustan Bytes", logo: hindustanBytes },
-  { name: "Unseen Times", logo: unseenTimes },
 ];
 
 const SocialProofStripSection = () => {
@@ -112,26 +101,6 @@ const SocialProofStripSection = () => {
               </div>
             </article>
           ))}
-        </div>
-
-        {/* Press strip */}
-        <div className="max-w-5xl mx-auto rounded-2xl border border-accent/20 bg-card/60 backdrop-blur-sm px-4 py-4 md:py-5 mb-6">
-          <div className="flex flex-wrap items-center justify-center gap-x-2 md:gap-x-6">
-            <span className="text-[11px] md:text-xs font-semibold tracking-[0.2em] uppercase text-accent mr-2">
-              As Featured In
-            </span>
-            {outlets.map((o) => (
-              <img
-                key={o.name}
-                src={o.logo}
-                alt={`${o.name} logo`}
-                loading="lazy"
-                width="140"
-                height="40"
-                className="h-7 md:h-9 w-auto object-contain opacity-80 hover:opacity-100 transition-opacity"
-              />
-            ))}
-          </div>
         </div>
 
       </div>

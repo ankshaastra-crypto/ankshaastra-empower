@@ -51,7 +51,7 @@ const SocialProofStripSection = () => {
             Trusted Across India
           </span>
           <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mt-2">
-            Celebrities, Press & <span className="text-accent">14000+ Happy Families</span>
+            Celebrities, Press & <span className="text-accent">48k Global Consultations</span>
           </h2>
         </div>
 
@@ -69,7 +69,7 @@ const SocialProofStripSection = () => {
               ))}
             </div>
             <div className="text-3xl font-heading font-bold text-accent leading-none">4.9★</div>
-            <div className="text-xs text-foreground/70 mt-1">14000+ Families Served</div>
+            <div className="text-xs text-foreground/70 mt-1">48k Global Consultations</div>
           </div>
 
           {/* Celeb tiles */}

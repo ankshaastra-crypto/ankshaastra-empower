@@ -20,3 +20,5 @@
 - [x] Expand the Himansshu Agarwal biography
 - [x] Replace the experience badge and opening statistics with one top trust strip
 - [x] Restore visible media logos and widen the framed page layout
+- [x] Keep package prices synchronized and replace 14k proof labels with 48k global consultations
+- [x] Make the top trust strip move continuously on mobile and desktop

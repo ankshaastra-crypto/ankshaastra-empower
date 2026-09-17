@@ -1,14 +1,13 @@
 import expertPhoto from "@/assets/himansshu.webp";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
-import { Award, BookOpen, Star } from "lucide-react";
 
 const ExpertSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
 
   const stats = [
-    { icon: Star, value: "48k", label: "Global Consultations" },
-    { icon: BookOpen, value: "10+", label: "Years Research" },
-    { icon: Award, value: "4.9★", label: "User Rating" },
+    { value: "48k", label: "Global Consultations" },
+    { value: "10+", label: "Years Research" },
+    { value: "4.9★", label: "User Rating" },
   ];
 
   return (
@@ -50,12 +49,11 @@ const ExpertSection = () => {
             </div>
 
             {/* Stats Row */}
-            <div className="grid grid-cols-3 gap-2 md:gap-3">
+            <div className="grid grid-cols-3 border-y border-accent/35">
               {stats.map((stat, i) => (
-                <div key={i} className="text-center p-2.5 md:p-3 rounded-xl border border-accent/20" style={{ backgroundColor: 'rgba(201,168,76,0.06)' }}>
-                  <stat.icon className="w-4 h-4 text-accent mx-auto mb-1" />
-                  <div className="text-base md:text-xl font-heading font-bold text-foreground leading-tight">{stat.value}</div>
-                  <div className="text-[10px] md:text-xs text-muted-foreground">{stat.label}</div>
+                <div key={stat.label} className={`py-4 text-center md:py-5 ${i > 0 ? "border-l border-accent/35" : ""}`}>
+                  <div className="font-heading text-2xl font-bold leading-none text-foreground md:text-3xl">{stat.value}</div>
+                  <div className="mt-1.5 px-1 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground md:text-[11px]">{stat.label}</div>
                 </div>
               ))}
             </div>

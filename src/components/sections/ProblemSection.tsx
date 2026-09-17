@@ -1,4 +1,3 @@
-import { Baby, Search, HeartCrack, Frown } from "lucide-react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
 
 const ProblemSection = () => {
@@ -8,22 +7,22 @@ const ProblemSection = () => {
 
   const struggles = [
     {
-      icon: Baby,
+      number: "01",
       title: "Overwhelmed by Choices",
       text: "With thousands of baby names out there, choosing the 'perfect' one can feel paralyzing. Too many opinions, too little clarity.",
     },
     {
-      icon: Search,
+      number: "02",
       title: "Worried About Compatibility",
       text: "You wonder: Does this name match my baby's birthdate? Will it support their destiny? The uncertainty is real.",
     },
     {
-      icon: HeartCrack,
+      number: "03",
       title: "Family Pressure & Conflicts",
       text: "Everyone has a suggestion — grandparents, relatives, friends. You want to honour tradition while making the right choice.",
     },
     {
-      icon: Frown,
+      number: "04",
       title: "Fear of Getting It Wrong",
       text: "A name is forever. The weight of this decision keeps you up at night. You need clarity, not more confusion.",
     },
@@ -47,26 +46,22 @@ const ProblemSection = () => {
           </p>
         </div>
 
-        <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-5xl mx-auto stagger-children ${isVisible ? 'section-visible' : ''}`}>
+        <div className={`mx-auto max-w-5xl border-y border-accent/35 stagger-children ${isVisible ? 'section-visible' : ''}`}>
           {struggles.map((item, index) => (
-            <div
+            <article
               key={index}
-              className="rounded-2xl p-5 md:p-8 shadow-card card-hover group transition-all duration-300 bg-card"
+              className="grid grid-cols-[40px_1fr] gap-3 border-b border-accent/20 py-5 last:border-b-0 md:grid-cols-[64px_260px_1fr] md:items-baseline md:gap-6 md:py-7"
             >
-              <div className="flex items-start gap-4 md:gap-5">
-                <div className="flex-shrink-0 w-11 h-11 md:w-14 md:h-14 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all duration-300" style={{ backgroundColor: 'rgba(201,168,76,0.1)' }}>
-                  <item.icon className="w-5 h-5 md:w-7 md:h-7 text-accent" />
-                </div>
-                <div>
-                  <h3 className="text-lg md:text-xl font-heading font-semibold mb-1.5 md:mb-2 group-hover:text-accent transition-colors duration-300 text-foreground">
+              <span className="font-heading text-sm text-accent">{item.number}</span>
+              <div className="col-start-2 md:col-auto">
+                  <h3 className="font-heading text-lg font-semibold text-foreground md:text-xl">
                     {item.title}
                   </h3>
-                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+              </div>
+                  <p className="col-start-2 text-sm leading-relaxed text-muted-foreground md:col-auto md:text-base">
                     {item.text}
                   </p>
-                </div>
-              </div>
-            </div>
+            </article>
           ))}
         </div>
 

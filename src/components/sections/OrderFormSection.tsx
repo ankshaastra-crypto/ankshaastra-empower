@@ -2068,18 +2068,15 @@ const OrderFormSection = () => {
                   </Button>
 
                   {/* Trust badges row */}
-                  <div className="mt-4 grid grid-cols-3 gap-2">
-                    <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 border border-border py-2.5 px-1 text-center">
-                      <Shield className="w-4 h-4 text-secondary" />
-                      <span className="text-[10px] md:text-[11px] font-semibold text-foreground leading-tight">256-bit Secure</span>
+                  <div className="mt-4 grid grid-cols-3 border-y border-accent/25 text-center">
+                    <div className="flex min-h-12 items-center justify-center px-1 py-2">
+                      <span className="text-[9px] font-semibold uppercase tracking-wider text-foreground md:text-[10px]">256-bit Secure</span>
                     </div>
-                    <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 border border-border py-2.5 px-1 text-center">
-                      <Clock className="w-4 h-4 text-accent" />
-                      <span className="text-[10px] md:text-[11px] font-semibold text-foreground leading-tight">24-48hr Delivery</span>
+                    <div className="flex min-h-12 items-center justify-center border-x border-accent/25 px-1 py-2">
+                      <span className="text-[9px] font-semibold uppercase tracking-wider text-foreground md:text-[10px]">24-48hr Delivery</span>
                     </div>
-                    <div className="flex flex-col items-center gap-1 rounded-lg bg-muted/50 border border-border py-2.5 px-1 text-center">
-                      <Sparkles className="w-4 h-4 text-accent" />
-                      <span className="text-[10px] md:text-[11px] font-semibold text-foreground leading-tight">48k Global Consultations</span>
+                    <div className="flex min-h-12 items-center justify-center px-1 py-2">
+                      <span className="text-[9px] font-semibold uppercase tracking-wider text-foreground md:text-[10px]">48k Global Consultations</span>
                     </div>
                   </div>
 

@@ -560,12 +560,11 @@ section {
   display: flex;
   align-items: center;
   gap: 13px;
-  overflow-x: auto;
-  padding: 0 14px;
-  scrollbar-width: none;
+  width: max-content;
   white-space: nowrap;
+  will-change: transform;
+  animation: trust-strip-marquee 28s linear infinite;
 }
-.trust-strip-track::-webkit-scrollbar { display: none; }
 .trust-strip-item {
   display: inline-flex;
   align-items: center;
@@ -576,13 +575,17 @@ section {
   text-transform: uppercase;
 }
 .trust-strip-separator { color: hsl(var(--accent) / 0.5); }
+@keyframes trust-strip-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
 .media-logo-tile {
   min-height: 72px;
   background: hsl(var(--card));
 }
 @media (min-width: 768px) {
   .trust-strip { height: 38px; }
-  .trust-strip-track { justify-content: center; gap: 18px; padding: 0 24px; }
+  .trust-strip-track { gap: 18px; animation-duration: 38s; }
   .trust-strip-item { gap: 18px; font-size: 11px; }
 }
 
@@ -607,6 +610,7 @@ section {
 @media (prefers-reduced-motion: reduce) {
   .marquee-track { animation: none; }
   .marquee-shell { overflow-x: auto; mask-image: none; -webkit-mask-image: none; }
+  .trust-strip-track { animation: none; }
   .report-package-card:hover { transform: none; }
 }
 

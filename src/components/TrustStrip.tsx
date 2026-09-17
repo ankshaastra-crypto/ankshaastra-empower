@@ -7,13 +7,15 @@ const trustPoints = [
   "100% Accuracy Assured",
 ];
 
+const movingTrustPoints = [...trustPoints, ...trustPoints];
+
 const TrustStrip = () => (
   <aside className="trust-strip fixed inset-x-0 top-0 z-[60]" aria-label="Ankshaastra trust highlights">
     <div className="trust-strip-track">
-      {trustPoints.map((point, index) => (
-        <span key={point} className="trust-strip-item">
+      {movingTrustPoints.map((point, index) => (
+        <span key={`${point}-${index}`} className="trust-strip-item" aria-hidden={index >= trustPoints.length ? true : undefined}>
           {point}
-          {index < trustPoints.length - 1 && <span aria-hidden="true" className="trust-strip-separator">|</span>}
+          <span aria-hidden="true" className="trust-strip-separator">|</span>
         </span>
       ))}
     </div>

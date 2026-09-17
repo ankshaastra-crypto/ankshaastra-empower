@@ -1,4 +1,6 @@
 
+
+
 // // api/_utils/db.js
 // import './suppress-deprecation.js';
 // import pg from 'pg';
@@ -10,7 +12,6 @@
 // let pool = null;
 // let schemaChecked = false;
 
-// // ─── Legacy migration (drop old orders table if it has no order_id column) ────
 // const LEGACY_MIGRATION_SQL = `
 // DO $$
 // BEGIN
@@ -26,7 +27,6 @@
 // END $$;
 // `;
 
-// // ─── Full schema (CREATE TABLE IF NOT EXISTS — safe to run repeatedly) ─────────
 // const SCHEMA_SQL = `
 // CREATE SCHEMA IF NOT EXISTS ${DB_SCHEMA};
 
@@ -83,6 +83,7 @@
 //   father_first_as_middle VARCHAR(50),
 //   child_middle_name VARCHAR(255),
 //   name_options TEXT,
+//   parents_profession TEXT,
 //   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 //   UNIQUE(order_id)
 // );
@@ -112,13 +113,11 @@
 // CREATE INDEX IF NOT EXISTS idx_orders_created_at ON ${DB_SCHEMA}.orders(created_at);
 // CREATE INDEX IF NOT EXISTS idx_orders_status ON ${DB_SCHEMA}.orders(status);
 
-// -- Invoice sequence counter (one row per financial year)
 // CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}.invoice_sequence (
 //   financial_year VARCHAR(10) PRIMARY KEY,
 //   last_sequence  INTEGER NOT NULL DEFAULT 0
 // );
 
-// -- Invoice records (one row per order)
 // CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}.invoices (
 //   id             SERIAL PRIMARY KEY,
 //   order_id       VARCHAR(100) NOT NULL UNIQUE,
@@ -136,9 +135,6 @@
 // CREATE INDEX IF NOT EXISTS idx_invoices_financial_year ON ${DB_SCHEMA}.invoices(financial_year);
 // `;
 
-// // ─── Column migration: ADD missing columns to EXISTING tables ─────────────────
-// // This fixes the "column does not exist" error on live DBs created before
-// // these columns were added. ALTER TABLE ADD COLUMN IF NOT EXISTS is idempotent.
 // const COLUMN_MIGRATION_SQL = `
 // ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS father_full_name VARCHAR(255);
 // ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS child_last_name VARCHAR(255);
@@ -148,10 +144,10 @@
 // ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS place_of_birth VARCHAR(255);
 // ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS last_name_spelling_ok VARCHAR(50);
 // ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS state VARCHAR(100);
+// ALTER TABLE ${DB_SCHEMA}.customer_details ADD COLUMN IF NOT EXISTS parents_profession TEXT;
 // ALTER TABLE ${DB_SCHEMA}.orders ADD COLUMN IF NOT EXISTS razorpay_order_id VARCHAR(255);
 // `;
 
-// // Create invoice tables if they don't exist yet (separate from SCHEMA_SQL for safety)
 // const INVOICE_TABLE_SQL = `
 // CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}.invoice_sequence (
 //   financial_year VARCHAR(10) PRIMARY KEY,
@@ -175,7 +171,6 @@
 
 // const REQUIRED_TABLES = ['orders', 'customer_details', 'payment', 'emailDelivery'];
 
-// // ─── ensureSchemaOnce ──────────────────────────────────────────────────────────
 // export async function ensureSchemaOnce(force = false) {
 //   if (!force && schemaChecked) return;
 //   const p = getPool();
@@ -185,7 +180,6 @@
 //   }
 
 //   try {
-//     // Check which tables already exist
 //     const tbl = await p.query(
 //       `SELECT table_name FROM information_schema.tables
 //        WHERE table_schema = $1 AND table_name = ANY($2::text[])`,
@@ -195,7 +189,6 @@
 //     const allPresent = REQUIRED_TABLES.every((name) => found.has(name));
 
 //     if (!allPresent) {
-//       // Tables missing — run full schema creation
 //       await p.query(LEGACY_MIGRATION_SQL);
 //       const statements = SCHEMA_SQL.split(';').map(s => s.trim()).filter(Boolean);
 //       for (const stmt of statements) {
@@ -204,22 +197,17 @@
 //       console.log(`✅ DB schema initialized (${DB_SCHEMA})`);
 //     }
 
-//     // Always run column migration — adds missing columns to existing tables
-//     // ALTER TABLE ... ADD COLUMN IF NOT EXISTS is safe to run every time
 //     const colStatements = COLUMN_MIGRATION_SQL.split(';').map(s => s.trim()).filter(Boolean);
 //     for (const stmt of colStatements) {
 //       await p.query(stmt + ';');
 //     }
 //     console.log(`✅ DB column migration complete`);
 
-//     // Create invoice tables (idempotent)
 //     const invoiceStmts = INVOICE_TABLE_SQL.split(';').map(s => s.trim()).filter(Boolean);
 //     for (const stmt of invoiceStmts) {
 //       await p.query(stmt + ';');
 //     }
 
-//     // Seed invoice_sequence starting point: 6999 means next invoice = 7000
-//     // ON CONFLICT DO NOTHING — never resets an existing sequence
 //     await p.query(
 //       `INSERT INTO ${DB_SCHEMA}.invoice_sequence (financial_year, last_sequence)
 //        SELECT fy, 6999
@@ -233,18 +221,15 @@
 //     schemaChecked = true;
 //   } catch (err) {
 //     console.error('ensureSchema error:', err.message);
-//     // Don't block — try to continue anyway
 //     schemaChecked = true;
 //   }
 // }
 
-// // ─── getPool ──────────────────────────────────────────────────────────────────
 // export function getPool() {
 //   if (!pool) {
 //     let connectionString = process.env.DATABASE_URL;
 //     if (!connectionString) return null;
 
-//     // Strip sslmode from URI — use explicit ssl object (pooler-friendly)
 //     connectionString = connectionString.replace(/[?&]sslmode=[^&]*/g, '');
 //     connectionString = connectionString.replace(/\?$/, '').replace(/\?&/, '?');
 
@@ -262,7 +247,6 @@
 //   return pool;
 // }
 
-// // ─── query ────────────────────────────────────────────────────────────────────
 // export async function query(text, params) {
 //   const p = getPool();
 //   if (!p) return null;
@@ -274,8 +258,6 @@
 //   }
 // }
 
-// // ─── saveOrderAndCustomer ────────────────────────────────────────────────────
-// // Called from initiate-payment — saves order + all customer form fields
 // export async function saveOrderAndCustomer(orderId, amount, packageType, customerData) {
 //   const p = getPool();
 //   if (!p) return false;
@@ -288,7 +270,6 @@
 //   try {
 //     await client.query('BEGIN');
 
-//     // Upsert order with optional Razorpay order mapping
 //     await client.query(
 //       `INSERT INTO ${ord} (order_id, amount, package_type, razorpay_order_id, status)
 //        VALUES ($1, $2, $3, $4, 'PENDING')
@@ -299,7 +280,6 @@
 //       [orderId, amount, packageType || 'single', customerData.razorpayOrderId || null]
 //     );
 
-//     // Upsert customer details — all 41 columns, all 41 values
 //     await client.query(
 //       `INSERT INTO ${cust} (
 //         order_id, email, name, mobile, dob, gender, city, pin_code,
@@ -312,7 +292,7 @@
 //         father_first_name, father_middle_name, father_middle_name_type, father_last_name,
 //         child_dob, time_of_birth, place_of_birth,
 //         father_full_name, child_last_name, father_first_as_middle,
-//         child_middle_name, name_options, last_name_spelling_ok, state
+//         child_middle_name, name_options, last_name_spelling_ok, state, parents_profession
 //       ) VALUES (
 //         $1,  $2,  $3,  $4,  $5,  $6,  $7,  $8,
 //         $9,  $10, $11, $12, $13, $14, $15,
@@ -321,7 +301,7 @@
 //         $30, $31, $32, $33,
 //         $34, $35, $36,
 //         $37, $38, $39,
-//         $40, $41, $42, $43
+//         $40, $41, $42, $43, $44
 //       )
 //       ON CONFLICT (order_id) DO UPDATE SET
 //         email = EXCLUDED.email,
@@ -365,51 +345,53 @@
 //         child_middle_name = EXCLUDED.child_middle_name,
 //         name_options = EXCLUDED.name_options,
 //         last_name_spelling_ok = EXCLUDED.last_name_spelling_ok,
-//         state = EXCLUDED.state`,
+//         state = EXCLUDED.state,
+//         parents_profession = EXCLUDED.parents_profession`,
 //       [
 //         orderId,
 //         customerData.email             || '',
 //         customerData.name              || 'Customer',
 //         customerData.mobile            || '',
-//         customerData.dob               || null,   // $5
-//         customerData.gender            || null,   // $6
-//         customerData.city              || null,   // $7
-//         customerData.pinCode           || null,   // $8
-//         customerData.person1Name       || null,   // $9
-//         customerData.person1FirstName  || null,   // $10
-//         customerData.person1MiddleName || null,   // $11
-//         customerData.person1MiddleNameType || null, // $12
-//         customerData.person1SurName    || null,   // $13
-//         customerData.person1Dob        || null,   // $14
-//         customerData.person1Gender     || null,   // $15
-//         customerData.person2Name       || null,   // $16
-//         customerData.person2FirstName  || null,   // $17
-//         customerData.person2MiddleName || null,   // $18
-//         customerData.person2MiddleNameType || null, // $19
-//         customerData.person2SurName    || null,   // $20
-//         customerData.person2Dob        || null,   // $21
-//         customerData.person2Gender     || null,   // $22
-//         customerData.person3Name       || null,   // $23
-//         customerData.person3FirstName  || null,   // $24
-//         customerData.person3MiddleName || null,   // $25
-//         customerData.person3MiddleNameType || null, // $26
-//         customerData.person3SurName    || null,   // $27
-//         customerData.person3Dob        || null,   // $28
-//         customerData.person3Gender     || null,   // $29
-//         customerData.fatherFirstName   || null,   // $30
-//         customerData.fatherMiddleName  || null,   // $31
-//         customerData.fatherMiddleNameType || null, // $32
-//         customerData.fatherLastName    || null,   // $33
-//         customerData.childDob          || null,   // $34
-//         customerData.timeOfBirth       || null,   // $35
-//         customerData.placeOfBirth      || null,   // $36
-//         customerData.fatherFullName    || null,   // $37
-//         customerData.childLastName     || null,   // $38
-//         customerData.fatherFirstNameAsMiddleName || null, // $39
-//         customerData.childMiddleName   || null,   // $40
-//         customerData.nameOptions       || null,   // $41
-//         customerData.lastNameSpellingChangeOk || null, // $42
-//         customerData.state             || null,   // $43
+//         customerData.dob               || null,
+//         customerData.gender            || null,
+//         customerData.city              || null,
+//         customerData.pinCode           || null,
+//         customerData.person1Name       || null,
+//         customerData.person1FirstName  || null,
+//         customerData.person1MiddleName || null,
+//         customerData.person1MiddleNameType || null,
+//         customerData.person1SurName    || null,
+//         customerData.person1Dob        || null,
+//         customerData.person1Gender     || null,
+//         customerData.person2Name       || null,
+//         customerData.person2FirstName  || null,
+//         customerData.person2MiddleName || null,
+//         customerData.person2MiddleNameType || null,
+//         customerData.person2SurName    || null,
+//         customerData.person2Dob        || null,
+//         customerData.person2Gender     || null,
+//         customerData.person3Name       || null,
+//         customerData.person3FirstName  || null,
+//         customerData.person3MiddleName || null,
+//         customerData.person3MiddleNameType || null,
+//         customerData.person3SurName    || null,
+//         customerData.person3Dob        || null,
+//         customerData.person3Gender     || null,
+//         customerData.fatherFirstName   || null,
+//         customerData.fatherMiddleName  || null,
+//         customerData.fatherMiddleNameType || null,
+//         customerData.fatherLastName    || null,
+//         customerData.childDob          || null,
+//         customerData.timeOfBirth       || null,
+//         customerData.placeOfBirth      || null,
+//         customerData.fatherFullName    || null,
+//         customerData.childLastName     || null,
+//         customerData.fatherFirstNameAsMiddleName || null,
+//         customerData.childMiddleName   || null,
+//         customerData.nameOptions       || null,
+//         customerData.lastNameSpellingChangeOk || null,
+//         customerData.state             || null,
+//         customerData.parentsProfession || null,
 //       ]
 //     );
 
@@ -425,7 +407,6 @@
 //   }
 // }
 
-// // ─── savePayment ──────────────────────────────────────────────────────────────
 // export async function savePayment(orderId, transactionId, amountPaise, status) {
 //   const p = getPool();
 //   if (!p) return false;
@@ -455,8 +436,8 @@
 //   }
 // }
 
-// // ─── isEmailSent ────────────────────────────────────────────────────────────────
-// // Check if email already sent for this order+recipient (deduplication)
+// // Informational check only — kept for any read-only status reporting.
+// // NOT safe for deduplication by itself; use tryReserveEmailSend() for that.
 // export async function isEmailSent(email, orderId) {
 //   const p = getPool();
 //   if (!p || !email || !orderId) return false;
@@ -469,11 +450,79 @@
 //     return result.rowCount > 0;
 //   } catch (error) {
 //     console.error('isEmailSent check failed:', error.message);
-//     return false; // Fail open — don't block email
+//     return false;
 //   }
 // }
 
-// // ─── recordEmailDelivery ───────────────────────────────────────────────────────
+// // Atomic reservation: INSERT guarded by UNIQUE(email, order_id). Only the
+// // caller whose INSERT succeeds is allowed to send.
+// // FAIL-CLOSED on any DB error or missing DB config — on error we do NOT
+// // send. Previously this returned true ("send anyway") on error, and under
+// // concurrent load (webhook + payment-status firing together) that caused
+// // every concurrent caller to send, producing duplicate emails. A missed
+// // email (recoverable) is safer than a duplicate (looks unprofessional).
+// export async function tryReserveEmailSend(email, orderId) {
+//   const p = getPool();
+//   if (!p || !email || !orderId) return false;
+
+//   try {
+//     await ensureSchemaOnce();
+//   } catch {
+//     // Schema check failing doesn't mean the table is missing — still try
+//     // the reservation insert below.
+//   }
+
+//   try {
+//     const result = await p.query(
+//       `INSERT INTO ${DB_SCHEMA}."emailDelivery" (email, order_id, status, sent_at)
+//        VALUES ($1, $2, 'pending', NOW())
+//        ON CONFLICT (email, order_id) DO NOTHING
+//        RETURNING id`,
+//       [email, orderId]
+//     );
+//     return result.rowCount > 0;
+//   } catch (error) {
+//     console.error('tryReserveEmailSend failed — skipping send to avoid duplicate:', error.message);
+//     return false;
+//   }
+// }
+
+// // Call after a reserved email has actually been sent successfully.
+// export async function markEmailSent(email, orderId) {
+//   const p = getPool();
+//   if (!p || !email || !orderId) return false;
+//   try {
+//     await p.query(
+//       `UPDATE ${DB_SCHEMA}."emailDelivery" SET status = 'sent', sent_at = NOW()
+//        WHERE email = $1 AND order_id = $2`,
+//       [email, orderId]
+//     );
+//     return true;
+//   } catch (error) {
+//     console.error('markEmailSent error:', error.message);
+//     return false;
+//   }
+// }
+
+// // If sending fails after a successful reservation, remove the pending row so
+// // a future retry for this order isn't permanently blocked.
+// export async function releaseEmailReservation(email, orderId) {
+//   const p = getPool();
+//   if (!p || !email || !orderId) return false;
+//   try {
+//     await p.query(
+//       `DELETE FROM ${DB_SCHEMA}."emailDelivery"
+//        WHERE email = $1 AND order_id = $2 AND status = 'pending'`,
+//       [email, orderId]
+//     );
+//     return true;
+//   } catch (error) {
+//     console.error('releaseEmailReservation error:', error.message);
+//     return false;
+//   }
+// }
+
+// // Kept for any other call sites still using the old pattern directly.
 // export async function recordEmailDelivery(email, orderId, deliveryStatus = 'sent') {
 //   const p = getPool();
 //   if (!p || !email || !orderId) return false;
@@ -482,7 +531,7 @@
 //     await p.query(
 //       `INSERT INTO ${DB_SCHEMA}."emailDelivery" (email, order_id, status, sent_at)
 //        VALUES ($1, $2, $3, NOW())
-//        ON CONFLICT (email, order_id) DO NOTHING`,
+//        ON CONFLICT (email, order_id) DO UPDATE SET status = EXCLUDED.status, sent_at = NOW()`,
 //       [email, orderId, deliveryStatus]
 //     );
 //     return true;
@@ -492,7 +541,6 @@
 //   }
 // }
 
-// // ─── getOrders ────────────────────────────────────────────────────────────────
 // export async function getOrders() {
 //   const p = getPool();
 //   if (!p) return [];
@@ -536,7 +584,6 @@
 //   }
 // }
 
-// // ─── getOrderFull ─────────────────────────────────────────────────────────────
 // export async function getOrderFull(orderId) {
 //   const p = getPool();
 //   if (!p || !orderId) return null;
@@ -637,10 +684,11 @@
 //          c.father_first_as_middle AS "fatherFirstNameAsMiddleName",
 //          c.child_middle_name AS "childMiddleName",
 //          c.child_last_name AS "childLastName",
-//          c.name_options AS "nameOptions",
-//          c.last_name_spelling_ok AS "lastNameSpellingChangeOk",
-//          o.package_type AS "packageType",
-//          o.amount
+//           c.name_options AS "nameOptions",
+//           c.last_name_spelling_ok AS "lastNameSpellingChangeOk",
+//           c.parents_profession AS "parentsProfession",
+//           o.package_type AS "packageType",
+//           o.amount
 //        FROM ${DB_SCHEMA}.customer_details c
 //        JOIN ${DB_SCHEMA}.orders o ON o.order_id = c.order_id
 //        WHERE c.order_id = $1 OR o.razorpay_order_id = $2
@@ -656,17 +704,12 @@
 //   }
 // }
 
-// // ─── getNextInvoiceNumber ─────────────────────────────────────────────────────
-// // Atomically increments the sequence for the given financial year and returns
-// // a GST-compliant invoice number: EYN{FY}/{NNNN} e.g. EYN26-27/7001
-// // Max 16 chars: "EYN26-27/7001" = 13 chars ✅
 // export async function getNextInvoiceNumber(financialYear) {
 //   const p = getPool();
 //   if (!p) throw new Error('Database not configured');
 
 //   await ensureSchemaOnce();
 
-//   // Atomic increment using UPDATE ... RETURNING (no race conditions)
 //   const result = await p.query(
 //     `INSERT INTO ${DB_SCHEMA}.invoice_sequence (financial_year, last_sequence)
 //      VALUES ($1, 7000)
@@ -677,12 +720,10 @@
 //   );
 
 //   const seq = result.rows[0].last_sequence;
-//   const paddedSeq = String(seq).padStart(4, '0'); // 4 digits minimum
-//   return `EYN${financialYear}/${paddedSeq}`; // e.g. EYN26-27/7000
+//   const paddedSeq = String(seq).padStart(4, '0');
+//   return `EYN${financialYear}/${paddedSeq}`;
 // }
 
-// // ─── saveInvoiceRecord ────────────────────────────────────────────────────────
-// // Saves invoice metadata to the invoices table for record-keeping
 // export async function saveInvoiceRecord({ orderId, invoiceNumber, financialYear, customerName, customerEmail, amount, packageType, transactionId }) {
 //   const p = getPool();
 //   if (!p) return false;
@@ -694,7 +735,7 @@
 //       `INSERT INTO ${DB_SCHEMA}.invoices
 //          (order_id, invoice_number, financial_year, customer_name, customer_email, amount, package_type, transaction_id)
 //        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-//        ON CONFLICT (order_id) DO NOTHING`, // Never overwrite existing invoice record
+//        ON CONFLICT (order_id) DO NOTHING`,
 //       [orderId, invoiceNumber, financialYear, customerName || '', customerEmail || '', amount || 0, packageType || 'single', transactionId || null]
 //     );
 //     return true;
@@ -703,6 +744,7 @@
 //     return false;
 //   }
 // }
+
 
 
 
@@ -981,7 +1023,8 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
        ON CONFLICT (order_id) DO UPDATE SET
          amount = EXCLUDED.amount,
          package_type = EXCLUDED.package_type,
-         razorpay_order_id = COALESCE(EXCLUDED.razorpay_order_id, ${DB_SCHEMA}.orders.razorpay_order_id)`,
+         razorpay_order_id = COALESCE(EXCLUDED.razorpay_order_id, ${DB_SCHEMA}.orders.razorpay_order_id),
+         status = CASE WHEN ${ord}.status = 'FORM_FILLED' THEN 'PENDING' ELSE ${ord}.status END`,
       [orderId, amount, packageType || 'single', customerData.razorpayOrderId || null]
     );
 
@@ -1107,6 +1150,162 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
     await client.query('ROLLBACK');
     console.error('saveOrderAndCustomer error:', error.message);
     throw error;
+  } finally {
+    client.release();
+  }
+}
+
+// Lightweight, best-effort save triggered when a customer reaches the
+// Review step (Step 1 -> Step 2) but hasn't paid yet. Deliberately
+// separate from saveOrderAndCustomer above (not shared/refactored) so this
+// new, best-effort code path can never affect the existing payment-save
+// logic that every real order already depends on.
+//
+// Uses ON CONFLICT DO NOTHING on the orders row — if a row for this
+// orderId somehow already exists (e.g. a retry), this never downgrades an
+// already-further-along order back down. The later saveOrderAndCustomer
+// call (final Pay click) safely upgrades FORM_FILLED -> PENDING itself.
+export async function saveFormProgress(orderId, packageType, customerData) {
+  const p = getPool();
+  if (!p) return false;
+
+  await ensureSchemaOnce();
+
+  const client = await p.connect();
+  const ord  = `${DB_SCHEMA}.orders`;
+  const cust = `${DB_SCHEMA}.customer_details`;
+  try {
+    await client.query('BEGIN');
+
+    await client.query(
+      `INSERT INTO ${ord} (order_id, amount, package_type, status)
+       VALUES ($1, $2, $3, 'FORM_FILLED')
+       ON CONFLICT (order_id) DO NOTHING`,
+      [orderId, customerData.amount || 0, packageType || 'single']
+    );
+
+    await client.query(
+      `INSERT INTO ${cust} (
+        order_id, email, name, mobile, dob, gender, city, pin_code,
+        person1_name, person1_first_name, person1_middle_name, person1_middle_name_type,
+        person1_sur_name, person1_dob, person1_gender,
+        person2_name, person2_first_name, person2_middle_name, person2_middle_name_type,
+        person2_sur_name, person2_dob, person2_gender,
+        person3_name, person3_first_name, person3_middle_name, person3_middle_name_type,
+        person3_sur_name, person3_dob, person3_gender,
+        father_first_name, father_middle_name, father_middle_name_type, father_last_name,
+        child_dob, time_of_birth, place_of_birth,
+        father_full_name, child_last_name, father_first_as_middle,
+        child_middle_name, name_options, last_name_spelling_ok, state, parents_profession
+      ) VALUES (
+        $1,  $2,  $3,  $4,  $5,  $6,  $7,  $8,
+        $9,  $10, $11, $12, $13, $14, $15,
+        $16, $17, $18, $19, $20, $21, $22,
+        $23, $24, $25, $26, $27, $28, $29,
+        $30, $31, $32, $33,
+        $34, $35, $36,
+        $37, $38, $39,
+        $40, $41, $42, $43, $44
+      )
+      ON CONFLICT (order_id) DO UPDATE SET
+        email = EXCLUDED.email,
+        name = EXCLUDED.name,
+        mobile = EXCLUDED.mobile,
+        dob = EXCLUDED.dob,
+        gender = EXCLUDED.gender,
+        city = EXCLUDED.city,
+        pin_code = EXCLUDED.pin_code,
+        person1_name = EXCLUDED.person1_name,
+        person1_first_name = EXCLUDED.person1_first_name,
+        person1_middle_name = EXCLUDED.person1_middle_name,
+        person1_middle_name_type = EXCLUDED.person1_middle_name_type,
+        person1_sur_name = EXCLUDED.person1_sur_name,
+        person1_dob = EXCLUDED.person1_dob,
+        person1_gender = EXCLUDED.person1_gender,
+        person2_name = EXCLUDED.person2_name,
+        person2_first_name = EXCLUDED.person2_first_name,
+        person2_middle_name = EXCLUDED.person2_middle_name,
+        person2_middle_name_type = EXCLUDED.person2_middle_name_type,
+        person2_sur_name = EXCLUDED.person2_sur_name,
+        person2_dob = EXCLUDED.person2_dob,
+        person2_gender = EXCLUDED.person2_gender,
+        person3_name = EXCLUDED.person3_name,
+        person3_first_name = EXCLUDED.person3_first_name,
+        person3_middle_name = EXCLUDED.person3_middle_name,
+        person3_middle_name_type = EXCLUDED.person3_middle_name_type,
+        person3_sur_name = EXCLUDED.person3_sur_name,
+        person3_dob = EXCLUDED.person3_dob,
+        person3_gender = EXCLUDED.person3_gender,
+        father_first_name = EXCLUDED.father_first_name,
+        father_middle_name = EXCLUDED.father_middle_name,
+        father_middle_name_type = EXCLUDED.father_middle_name_type,
+        father_last_name = EXCLUDED.father_last_name,
+        child_dob = EXCLUDED.child_dob,
+        time_of_birth = EXCLUDED.time_of_birth,
+        place_of_birth = EXCLUDED.place_of_birth,
+        father_full_name = EXCLUDED.father_full_name,
+        child_last_name = EXCLUDED.child_last_name,
+        father_first_as_middle = EXCLUDED.father_first_as_middle,
+        child_middle_name = EXCLUDED.child_middle_name,
+        name_options = EXCLUDED.name_options,
+        last_name_spelling_ok = EXCLUDED.last_name_spelling_ok,
+        state = EXCLUDED.state,
+        parents_profession = EXCLUDED.parents_profession`,
+      [
+        orderId,
+        customerData.email             || '',
+        customerData.name              || 'Customer',
+        customerData.mobile            || '',
+        customerData.dob               || null,
+        customerData.gender            || null,
+        customerData.city              || null,
+        customerData.pinCode           || null,
+        customerData.person1Name       || null,
+        customerData.person1FirstName  || null,
+        customerData.person1MiddleName || null,
+        customerData.person1MiddleNameType || null,
+        customerData.person1SurName    || null,
+        customerData.person1Dob        || null,
+        customerData.person1Gender     || null,
+        customerData.person2Name       || null,
+        customerData.person2FirstName  || null,
+        customerData.person2MiddleName || null,
+        customerData.person2MiddleNameType || null,
+        customerData.person2SurName    || null,
+        customerData.person2Dob        || null,
+        customerData.person2Gender     || null,
+        customerData.person3Name       || null,
+        customerData.person3FirstName  || null,
+        customerData.person3MiddleName || null,
+        customerData.person3MiddleNameType || null,
+        customerData.person3SurName    || null,
+        customerData.person3Dob        || null,
+        customerData.person3Gender     || null,
+        customerData.fatherFirstName   || null,
+        customerData.fatherMiddleName  || null,
+        customerData.fatherMiddleNameType || null,
+        customerData.fatherLastName    || null,
+        customerData.childDob          || null,
+        customerData.timeOfBirth       || null,
+        customerData.placeOfBirth      || null,
+        customerData.fatherFullName    || null,
+        customerData.childLastName     || null,
+        customerData.fatherFirstNameAsMiddleName || null,
+        customerData.childMiddleName   || null,
+        customerData.nameOptions       || null,
+        customerData.lastNameSpellingChangeOk || null,
+        customerData.state             || null,
+        customerData.parentsProfession || null,
+      ]
+    );
+
+    await client.query('COMMIT');
+    console.log(`📝 Form progress saved: ${orderId}`);
+    return true;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('saveFormProgress error:', error.message);
+    return false; // best-effort — never throw, this must not break the form
   } finally {
     client.release();
   }
@@ -1449,4 +1648,3 @@ export async function saveInvoiceRecord({ orderId, invoiceNumber, financialYear,
     return false;
   }
 }
-

@@ -1,25 +1,28 @@
 // Shared package display names — keep in sync with OrderFormSection / PricingSection
 
 const PACKAGE_NAMES = {
+  'name-check': 'Name Check',
+  'perfect-baby-name-report': 'Perfect Baby Name Report',
+  'complete-baby-name-blueprint': 'Complete Baby Name Blueprint',
+  // Read-only aliases keep historical orders understandable.
+  namecheck: 'Name Check',
+  'namecheck-1': 'Name Check',
   single: 'Perfect Baby Name Report',
   premium: 'Complete Baby Name Blueprint',
-  consultation: 'Website Testing',
-  namecheck: 'Name Check Report',
-  'namecheck-1': 'Name Check (1 Person)',
-  'namecheck-2': 'Name Check (2 Persons)',
-  'namecheck-3': 'Name Check (3 Persons)',
-  baby_name: 'Baby Name Numerology Report',
-  namecorrection: 'Name Correction Report',
 };
 
 export function getPackageDisplayName(packageType) {
-  if (!packageType) return 'Numerology Report';
+  if (!packageType) return 'Name Check';
   if (PACKAGE_NAMES[packageType]) return PACKAGE_NAMES[packageType];
-  if (packageType.startsWith('namecheck-')) {
-    const count = packageType.split('-')[1] || '1';
-    return `Name Check (${count} Person${count !== '1' ? 's' : ''})`;
-  }
   return packageType;
+}
+
+export function normalizePackageType(packageType) {
+  const key = String(packageType || '').trim().toLowerCase();
+  if (key === 'name-check' || key === 'namecheck' || key === 'namecheck-1') return 'name-check';
+  if (key === 'perfect-baby-name-report' || key === 'single') return 'perfect-baby-name-report';
+  if (key === 'complete-baby-name-blueprint' || key === 'premium') return 'complete-baby-name-blueprint';
+  return null;
 }
 
 export { PACKAGE_NAMES };

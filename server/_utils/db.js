@@ -780,11 +780,13 @@ CREATE SCHEMA IF NOT EXISTS ${DB_SCHEMA};
 CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}.orders (
   order_id VARCHAR(100) PRIMARY KEY,
   amount DECIMAL(12, 2) NOT NULL,
-  package_type VARCHAR(50) NOT NULL DEFAULT 'single',
+  package_type VARCHAR(50) NOT NULL DEFAULT 'name-check',
   razorpay_order_id VARCHAR(255) UNIQUE,
   status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE ${DB_SCHEMA}.orders ALTER COLUMN package_type SET DEFAULT 'name-check';
 
 CREATE TABLE IF NOT EXISTS ${DB_SCHEMA}.customer_details (
   id SERIAL PRIMARY KEY,
@@ -1025,7 +1027,7 @@ export async function saveOrderAndCustomer(orderId, amount, packageType, custome
          package_type = EXCLUDED.package_type,
          razorpay_order_id = COALESCE(EXCLUDED.razorpay_order_id, ${DB_SCHEMA}.orders.razorpay_order_id),
          status = CASE WHEN ${ord}.status = 'FORM_FILLED' THEN 'PENDING' ELSE ${ord}.status END`,
-      [orderId, amount, packageType || 'single', customerData.razorpayOrderId || null]
+      [orderId, amount, packageType || 'name-check', customerData.razorpayOrderId || null]
     );
 
     await client.query(
@@ -1181,7 +1183,7 @@ export async function saveFormProgress(orderId, packageType, customerData) {
       `INSERT INTO ${ord} (order_id, amount, package_type, status)
        VALUES ($1, $2, $3, 'FORM_FILLED')
        ON CONFLICT (order_id) DO NOTHING`,
-      [orderId, customerData.amount || 0, packageType || 'single']
+      [orderId, customerData.amount || 0, packageType || 'name-check']
     );
 
     await client.query(
@@ -1324,7 +1326,7 @@ export async function savePayment(orderId, transactionId, amountPaise, status) {
     const amountRupees = (amountPaise || 0) / 100;
     await p.query(
       `INSERT INTO ${ord} (order_id, amount, package_type, status)
-       VALUES ($1, $2, 'single', $3)
+       VALUES ($1, $2, 'name-check', $3)
        ON CONFLICT (order_id) DO UPDATE SET status = EXCLUDED.status`,
       [orderId, amountRupees, status]
     );
@@ -1640,7 +1642,7 @@ export async function saveInvoiceRecord({ orderId, invoiceNumber, financialYear,
          (order_id, invoice_number, financial_year, customer_name, customer_email, amount, package_type, transaction_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT (order_id) DO NOTHING`,
-      [orderId, invoiceNumber, financialYear, customerName || '', customerEmail || '', amount || 0, packageType || 'single', transactionId || null]
+      [orderId, invoiceNumber, financialYear, customerName || '', customerEmail || '', amount || 0, packageType || 'name-check', transactionId || null]
     );
     return true;
   } catch (error) {

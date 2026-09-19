@@ -26,8 +26,6 @@ export interface PackageTier {
 
 export interface NameCheckTiers {
   1: PackageTier;
-  2: PackageTier;
-  3: PackageTier;
 }
 
 export interface PackagePricing {
@@ -35,19 +33,13 @@ export interface PackagePricing {
   nameCheckTiers: NameCheckTiers;
   single: PackageTier;
   premium: PackageTier;
-  consultation: PackageTier;
-  namecorrection: PackageTier;
 }
 
 const DEFAULTS = {
   single: { price: 3437, originalPrice: 7500 },
   premium: { price: 5957, originalPrice: 15051 },
-  consultation: { price: 1, originalPrice: 1 },
-  namecorrection: { price: 2987, originalPrice: 7500 },
   namecheck: {
     1: { price: 473, originalPrice: 1100 },
-    2: { price: 827, originalPrice: 1457 },
-    3: { price: 827, originalPrice: 1457 },
   },
 } as const;
 
@@ -81,70 +73,40 @@ export function getPackagePricing(): PackagePricing {
     env.VITE_PACKAGE_PREMIUM_ORIGINAL_PRICE,
     DEFAULTS.premium,
   );
-  const consultation = readTier(
-    env.VITE_PACKAGE_CONSULTATION_PRICE,
-    env.VITE_PACKAGE_CONSULTATION_ORIGINAL_PRICE,
-    DEFAULTS.consultation,
-  );
-  const namecorrection = readTier(
-    env.VITE_PACKAGE_NAMECORRECTION_PRICE,
-    env.VITE_PACKAGE_NAMECORRECTION_ORIGINAL_PRICE,
-    DEFAULTS.namecorrection,
-  );
   const nc1 = readTier(
     env.VITE_PACKAGE_NAMECHECK_1_PRICE,
     env.VITE_PACKAGE_NAMECHECK_1_ORIGINAL_PRICE,
     DEFAULTS.namecheck[1],
   );
-  const nc2 = readTier(
-    env.VITE_PACKAGE_NAMECHECK_2_PRICE,
-    env.VITE_PACKAGE_NAMECHECK_2_ORIGINAL_PRICE,
-    DEFAULTS.namecheck[2],
-  );
-  const nc3 = readTier(
-    env.VITE_PACKAGE_NAMECHECK_3_PRICE,
-    env.VITE_PACKAGE_NAMECHECK_3_ORIGINAL_PRICE,
-    DEFAULTS.namecheck[3],
-  );
-
   if (import.meta.env.DEV) {
-    console.log("📦 Package Pricing:", { single, premium, namecheck: { 1: nc1, 2: nc2, 3: nc3 } });
+    console.log("📦 Package Pricing:", { single, premium, namecheck: nc1 });
   }
 
   return {
     namecheck: nc1,
-    nameCheckTiers: { 1: nc1, 2: nc2, 3: nc3 },
+    nameCheckTiers: { 1: nc1 },
     single,
     premium,
-    consultation,
-    namecorrection,
   };
 }
 
 export type PackageType =
-  | "single"
-  | "premium"
-  | "consultation"
-  | "namecheck"
-  | "namecheck-1"
-  | "namecheck-2"
-  | "namecheck-3"
-  | "namecorrection";
+  | "name-check"
+  | "perfect-baby-name-report"
+  | "complete-baby-name-blueprint";
 
 export function getPackagePrice(packageType: PackageType): number {
   const p = getPackagePricing();
-  if (packageType === "namecheck" || packageType === "namecheck-1") return p.nameCheckTiers[1].price;
-  if (packageType === "namecheck-2") return p.nameCheckTiers[2].price;
-  if (packageType === "namecheck-3") return p.nameCheckTiers[3].price;
-  return p[packageType].price;
+  if (packageType === "name-check") return p.nameCheckTiers[1].price;
+  if (packageType === "perfect-baby-name-report") return p.single.price;
+  return p.premium.price;
 }
 
 export function getPackageOriginalPrice(packageType: PackageType): number {
   const p = getPackagePricing();
-  if (packageType === "namecheck" || packageType === "namecheck-1") return p.nameCheckTiers[1].originalPrice;
-  if (packageType === "namecheck-2") return p.nameCheckTiers[2].originalPrice;
-  if (packageType === "namecheck-3") return p.nameCheckTiers[3].originalPrice;
-  return p[packageType].originalPrice;
+  if (packageType === "name-check") return p.nameCheckTiers[1].originalPrice;
+  if (packageType === "perfect-baby-name-report") return p.single.originalPrice;
+  return p.premium.originalPrice;
 }
 
 export function formatPrice(price: number): string {

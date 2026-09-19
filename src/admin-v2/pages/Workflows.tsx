@@ -7,7 +7,7 @@ interface FlowNode { id: string; label: string; kind: NodeKind; tools?: string; 
 
 const FLOWS: { id: string; name: string; avgDays: number; nodes: FlowNode[] }[] = [
   {
-    id: "name-check", name: "Name Check Flow (₹293)", avgDays: 1,
+    id: "name-check", name: "Name Check Flow (₹473)", avgDays: 1,
     nodes: [
       { id: "n1", label: "Inquiry Received", kind: "input", time: "5 min", checklist: ["Save contact", "Confirm payment"] },
       { id: "n2", label: "Name & DOB Collected", kind: "input", time: "5 min", checklist: ["Full name", "DOB"] },
@@ -18,7 +18,7 @@ const FLOWS: { id: string; name: string; avgDays: number; nodes: FlowNode[] }[] 
     ],
   },
   {
-    id: "perfect-baby", name: "Perfect Baby Name Flow (₹3,437)", avgDays: 2,
+    id: "perfect-baby", name: "Perfect Baby Name Report Flow (₹3,437)", avgDays: 1,
     nodes: [
       { id: "b1", label: "Parents' Details", kind: "input", time: "10 min" },
       { id: "b2", label: "Child DOB / Time / Place", kind: "input", time: "10 min" },
@@ -33,7 +33,7 @@ const FLOWS: { id: string; name: string; avgDays: number; nodes: FlowNode[] }[] 
     ],
   },
   {
-    id: "live-consult", name: "Live Video Consultation Flow (₹8,927)", avgDays: 3,
+    id: "complete-blueprint", name: "Complete Baby Name Blueprint Flow (₹5,957)", avgDays: 1,
     nodes: [
       { id: "p1", label: "Parents' Details", kind: "input", time: "10 min" },
       { id: "p2", label: "Child DOB / Time / Place", kind: "input", time: "10 min" },

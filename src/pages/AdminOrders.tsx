@@ -62,6 +62,19 @@ interface OrderRow {
   payment_created_at: string | null;
 }
 
+const packageLabels: Record<string, string> = {
+  "name-check": "Name Check",
+  "perfect-baby-name-report": "Perfect Baby Name Report",
+  "complete-baby-name-blueprint": "Complete Baby Name Blueprint",
+  namecheck: "Name Check",
+  "namecheck-1": "Name Check",
+  single: "Perfect Baby Name Report",
+  premium: "Complete Baby Name Blueprint",
+};
+
+const formatPackage = (value: string | null | undefined) =>
+  value ? packageLabels[value] || value : "—";
+
 const DetailRow = ({
   label,
   value,
@@ -189,7 +202,7 @@ const AdminOrders = () => {
                     </TableCell>
                     <TableCell>{formatAmount(row.amount)}</TableCell>
                     <TableCell className="capitalize">
-                      {row.package_type || "—"}
+                      {formatPackage(row.package_type)}
                     </TableCell>
                     <TableCell>
                       <span
@@ -227,7 +240,7 @@ const AdminOrders = () => {
                 <div className="space-y-0">
                   <DetailRow label="Order ID" value={selectedOrder.order_id} />
                   <DetailRow label="Amount" value={formatAmount(selectedOrder.amount)} />
-                  <DetailRow label="Package" value={selectedOrder.package_type} />
+                   <DetailRow label="Package" value={formatPackage(selectedOrder.package_type)} />
                   <DetailRow label="Status" value={selectedOrder.order_status} />
                   <DetailRow label="Created" value={formatDate(selectedOrder.order_created_at)} />
                 </div>

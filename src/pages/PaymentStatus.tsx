@@ -86,7 +86,12 @@ interface InvoiceTemplateData {
 
 const packageNames: Record<string, string> = {
   namecheck: "Name Check",
-  "namecheck-1": "Name Check (1 Person)",
+  "name-check": "Name Check",
+  "perfect-baby-name-report": "Perfect Baby Name Report",
+  "complete-baby-name-blueprint": "Complete Baby Name Blueprint",
+  "namecheck-1": "Name Check",
+  single: "Perfect Baby Name Report",
+  premium: "Complete Baby Name Blueprint",
   "namecheck-2": "Name Check (2 Persons)",
   "namecheck-3": "Name Check (3 Persons)",
   single: "Perfect Baby Name Report",
@@ -190,7 +195,7 @@ const PaymentStatus = () => {
       const finalName = storedOrderData?.name || name || "";
       const finalMobile = storedOrderData?.mobile || searchParams.get("mobile") || "";
       const finalPackageType =
-        storedOrderData?.packageType || packageType || "single";
+        storedOrderData?.packageType || packageType || "name-check";
 
       // Store fallback data for invoice/display (ensures email never shows N/A)
       setOrderFallback(finalEmail || finalName || finalMobile ? { email: finalEmail, name: finalName, mobile: finalMobile } : null);
@@ -378,7 +383,7 @@ const PaymentStatus = () => {
           if (!verificationDoneRef.current) {
             const amount = result.amount || 0;
             const paymentOrderId = result.orderId || internalOrderId;
-            const pkgType = packageType || "single";
+            const pkgType = packageType || "name-check";
 
             if (amount > 0) {
               verificationDoneRef.current = true;
@@ -446,7 +451,7 @@ const PaymentStatus = () => {
   }, [searchParams]); // Only searchParams to ensure we check payment when URL changes
 
   const buildWhatsAppUrl = useCallback((d: PaymentData, fb: typeof orderFallback) => {
-    const pkg = packageNames[d.packageType || "single"] || d.packageType || "Numerology Report";
+    const pkg = packageNames[d.packageType || "name-check"] || d.packageType || "Name Check";
     // Baby report: packageType is 'single' or 'premium'
     const isBabyReport = d.packageType === 'single' || d.packageType === 'premium' || d.packageType === 'baby' || d.packageType === 'babyname';
     const firstValue = (...values: Array<string | undefined | null>) =>
@@ -597,7 +602,7 @@ const PaymentStatus = () => {
     });
 
     const packageName =
-      packageNames[data.packageType || "single"] || "Single Report";
+      packageNames[data.packageType || "name-check"] || "Name Check";
     const amount = data.amount || 0;
     // GST-inclusive: back-calculate subtotal
     const subtotal = +(amount / 1.18).toFixed(2);

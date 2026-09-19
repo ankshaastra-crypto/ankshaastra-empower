@@ -1367,6 +1367,7 @@ import '../_utils/suppress-deprecation.js';
 import crypto from 'node:crypto';
 import { rateLimiter } from '../_utils/rate-limiter.js';
 import { sendWhatsAppNotification } from '../_utils/send-whatsapp.js';
+import { normalizePackageType } from '../_utils/package-names.js';
 
 export default async function handler(req, res) {
   // Apply rate limiting
@@ -1601,7 +1602,7 @@ export default async function handler(req, res) {
     const finalCustomerDob     = str(metadata.dob);
     const finalCustomerGender  = str(metadata.gender);
     const finalCustomerCity    = str(metadata.city);
-    const finalPackageType     = str(metadata.packageType) || 'single';
+    const finalPackageType     = normalizePackageType(str(metadata.packageType)) || 'name-check';
     const finalPinCode         = str(metadata.pinCode);
 
     // Person fields

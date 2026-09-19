@@ -1,8 +1,8 @@
 // Mock/seed data for Ankshaastra Admin V2
 export type ServiceType =
   | "Name Check"
-  | "Perfect Baby Name"
-  | "Live Video Consultation";
+  | "Perfect Baby Name Report"
+  | "Complete Baby Name Blueprint";
 
 
 export type ReportStatus =
@@ -99,7 +99,7 @@ const CITIES: [string, string][] = [
   ["Ahmedabad","Gujarat"],["Surat","Gujarat"],["Lucknow","Uttar Pradesh"],
   ["Kolkata","West Bengal"],["Indore","Madhya Pradesh"],["Bhopal","Madhya Pradesh"]
 ];
-const SERVICES: ServiceType[] = ["Name Check","Perfect Baby Name","Live Video Consultation"];
+const SERVICES: ServiceType[] = ["Name Check", "Perfect Baby Name Report", "Complete Baby Name Blueprint"];
 const STATUSES: ReportStatus[] = ["Pending Analysis","Analysis Done","Report Written","Sent to Client","Follow-up Pending","Closed"];
 const PAYMENT_STATUSES: PaymentStatus[] = ["Paid","Paid","Paid","Pending","Partial"];
 const SOURCES: InquirySource[] = ["Instagram","Website","WhatsApp","Referral","Facebook"];
@@ -107,14 +107,14 @@ const METHODS: PaymentMethod[] = ["Online"];
 
 // All prices INCLUDING 18% GST
 export const SERVICE_PRICES: Record<ServiceType, number> = {
-  "Name Check": 293,
-  "Perfect Baby Name": 3437,
-  "Live Video Consultation": 8927,
+  "Name Check": 473,
+  "Perfect Baby Name Report": 3437,
+  "Complete Baby Name Blueprint": 5957,
 };
 
 // Optional add-on (incl. GST) — available only for Perfect Baby Name & Live Video Consultation
 export const ADD_ON_PRICE = 1367;
-export const ADD_ON_ELIGIBLE: ServiceType[] = ["Perfect Baby Name", "Live Video Consultation"];
+export const ADD_ON_ELIGIBLE: ServiceType[] = ["Perfect Baby Name Report", "Complete Baby Name Blueprint"];
 
 
 const NOTE_SAMPLES = [

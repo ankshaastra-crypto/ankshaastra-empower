@@ -23,3 +23,4 @@
 - [x] Keep package prices synchronized and replace 14k proof labels with 48k global consultations
 - [x] Make the top trust strip move continuously on mobile and desktop
 - [x] Replace generic rounded icon boxes with open editorial rows and ruled statistics
+- [x] Standardize frontend, payments, database defaults, and admin views to the three current services only

@@ -44,14 +44,11 @@ type OrderRow = {
 };
 
 const PACKAGE_TO_SERVICE: Record<string, ServiceType> = {
-  single: "Perfect Baby Name",
-  perfect: "Perfect Baby Name",
-  perfect_baby_name: "Perfect Baby Name",
-  baby_name: "Perfect Baby Name",
-  premium: "Live Video Consultation",
-  live: "Live Video Consultation",
-  live_video: "Live Video Consultation",
-  consultation: "Live Video Consultation",
+  "perfect-baby-name-report": "Perfect Baby Name Report",
+  single: "Perfect Baby Name Report",
+  "complete-baby-name-blueprint": "Complete Baby Name Blueprint",
+  premium: "Complete Baby Name Blueprint",
+  "name-check": "Name Check",
   namecheck: "Name Check",
   "namecheck-1": "Name Check",
   "namecheck-2": "Name Check",
@@ -63,8 +60,8 @@ function mapService(pkg: string | null | undefined): ServiceType {
   if (!pkg) return "Name Check";
   const key = pkg.toLowerCase().trim();
   if (PACKAGE_TO_SERVICE[key]) return PACKAGE_TO_SERVICE[key];
-  if (key.includes("live") || key.includes("video") || key.includes("consult") || key.includes("premium")) return "Live Video Consultation";
-  if (key.includes("perfect") || key.includes("baby") || key === "single") return "Perfect Baby Name";
+  if (key === "complete-baby-name-blueprint" || key === "premium") return "Complete Baby Name Blueprint";
+  if (key === "perfect-baby-name-report" || key === "single") return "Perfect Baby Name Report";
   return "Name Check";
 }
 
@@ -116,7 +113,7 @@ function deriveDisplayName(o: OrderRow, service: ServiceType): string {
   if (service === "Name Check" && (o.person1_name || o.person1_first_name)) {
     return o.person1_name || o.person1_first_name || "Unnamed";
   }
-  if (service === "Perfect Baby Name" || service === "Live Video Consultation") {
+  if (service === "Perfect Baby Name Report" || service === "Complete Baby Name Blueprint") {
     const parts = [o.father_first_name, o.father_middle_name, o.father_last_name]
       .filter(Boolean)
       .join(" ")

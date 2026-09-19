@@ -35,7 +35,7 @@ export default function Analytics() {
     { name: "Delivered", value: Math.max(delivered, 1), fill: "hsl(38 92% 50%)" },
   ];
 
-  const services: ServiceType[] = ["Name Check", "Perfect Baby Name", "Live Video Consultation"];
+  const services: ServiceType[] = ["Name Check", "Perfect Baby Name Report", "Complete Baby Name Blueprint"];
   const monthsKeys = metrics.monthlyRevenue.slice(-6).map((m) => m.month);
   const popularStacked = monthsKeys.map((month) => {
     const row: any = { month };
@@ -109,8 +109,8 @@ export default function Analytics() {
                 <Tooltip contentStyle={tooltipStyle} />
                 <Legend wrapperStyle={{ fontSize: 11, color: "hsl(220 10% 42%)" }} />
                 <Bar dataKey="Name Check" stackId="a" fill="hsl(38 92% 50%)" />
-                <Bar dataKey="Perfect Baby Name" stackId="a" fill="hsl(245 60% 57%)" />
-                <Bar dataKey="Live Video Consultation" stackId="a" fill="hsl(174 60% 38%)" />
+                <Bar dataKey="Perfect Baby Name Report" stackId="a" fill="hsl(245 60% 57%)" />
+                <Bar dataKey="Complete Baby Name Blueprint" stackId="a" fill="hsl(174 60% 38%)" />
               </BarChart>
             </ResponsiveContainer>
           </Card>

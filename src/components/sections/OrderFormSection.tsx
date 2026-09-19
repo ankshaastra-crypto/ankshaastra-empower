@@ -4510,8 +4510,8 @@ const OrderFormSection = () => {
     return orderIdRef.current;
   };
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [packageType, setPackageType] = useState<"namecheck" | "single" | "premium">("single");
-  const [nameCheckCount, setNameCheckCount] = useState<1 | 2>(1);
+  const [packageType, setPackageType] = useState<"name-check" | "perfect-baby-name-report" | "complete-baby-name-blueprint">("perfect-baby-name-report");
+  const nameCheckCount = 1 as const;
   const [addonExtraNames, setAddonExtraNames] = useState<boolean>(false);
   const [addonNickname, setAddonNickname] = useState<boolean>(false);
   const [addonKundali, setAddonKundali] = useState<boolean>(false);
@@ -4582,29 +4582,19 @@ const OrderFormSection = () => {
   useEffect(() => {
     const handleSetPackageType = (e: CustomEvent) => {
       const detail = e.detail as string;
-      if (detail.startsWith("namecheck-")) {
-        setPackageType("namecheck");
-        const parsed = parseInt(detail.split("-")[1]);
-        const count = (parsed === 2 ? 2 : 1) as 1 | 2;
-        setNameCheckCount(count);
+      if (detail === "name-check") {
+        setPackageType("name-check");
         setAddonExtraNames(false);
         setAddonNickname(false);
         setAddonKundali(false);
         setKundaliLanguage("");
-      } else if (detail === "single") {
-        setPackageType("single");
+      } else if (detail === "perfect-baby-name-report") {
+        setPackageType("perfect-baby-name-report");
         setAddonKundali(false);
         setKundaliLanguage("");
-      } else if (detail === "premium") {
-        setPackageType("premium");
+      } else if (detail === "complete-baby-name-blueprint") {
+        setPackageType("complete-baby-name-blueprint");
         setAddonNickname(false);
-      } else if (detail === "namecheck") {
-        setPackageType("namecheck");
-        setNameCheckCount(1);
-        setAddonExtraNames(false);
-        setAddonNickname(false);
-        setAddonKundali(false);
-        setKundaliLanguage("");
       }
       setFormStep(1);
       // scroll to form immediately (no smooth delay) so user lands on details instantly
@@ -4689,7 +4679,7 @@ const OrderFormSection = () => {
 
   // --- Field validity check for green checkmark ---
   const isFieldValid = useCallback((fieldName: string): boolean => {
-    if (packageType === "single" || packageType === "premium") {
+    if (packageType !== "name-check") {
       const val = babyFormData[fieldName as keyof typeof babyFormData];
       const isOptional = fieldName === "pinCode" || fieldName === "childMiddleName" || fieldName === "nameOptions";
       if (!isOptional && (!val || (typeof val === "string" && !val.trim()))) return false;
@@ -4766,7 +4756,7 @@ const OrderFormSection = () => {
     }
 
     // Update the right form state
-    if ((packageType === "single" || packageType === "premium") && name in babyFormData) {
+    if (packageType !== "name-check" && name in babyFormData) {
       setBabyFormData((prev) => ({ ...prev, [name]: processedValue }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: processedValue }));
@@ -4822,8 +4812,8 @@ const OrderFormSection = () => {
     if (errors.parentsProfession) setErrors((prev) => { const n = { ...prev }; delete n.parentsProfession; return n; });
   };
 
-  const isExtrasAddonEligible = packageType === "single" || packageType === "premium";
-  const isNicknameEligible = packageType === "single"; // Nickname add-on only for Perfect Baby Name
+  const isExtrasAddonEligible = packageType !== "name-check";
+  const isNicknameEligible = packageType === "perfect-baby-name-report";
   const isAddonActive = isExtrasAddonEligible && addonExtraNames;
   const isNicknameActive = isNicknameEligible && addonNickname;
   // Kundli 2.0 add-on removed from all packages
@@ -4833,8 +4823,8 @@ const OrderFormSection = () => {
   const isAddonEligible = isExtrasAddonEligible;
 
   const getPrice = (): number => {
-    if (packageType === "namecheck") return NAME_CHECK_PRICING[nameCheckCount].price;
-    const base = packageType === "premium" ? getPackagePrice("premium") : getPackagePrice("single");
+    if (packageType === "name-check") return NAME_CHECK_PRICING[1].price;
+    const base = packageType === "complete-baby-name-blueprint" ? getPackagePrice("complete-baby-name-blueprint") : getPackagePrice("perfect-baby-name-report");
     return (
       base +
       (isAddonActive ? ADDON_EXTRA_NAMES_PRICE : 0) +
@@ -4843,12 +4833,12 @@ const OrderFormSection = () => {
     );
   };
 
-  const getRequiredPersonCount = (): number => (packageType === "namecheck" ? nameCheckCount : 1);
+  const getRequiredPersonCount = (): number => 1;
 
   // --- Step validation ---
   const validateStep2 = (): Record<string, string> => {
     const newErrors: Record<string, string> = {};
-    if (packageType === "single" || packageType === "premium") {
+    if (packageType !== "name-check") {
       if (!babyFormData.fatherFullName || !validateName(babyFormData.fatherFullName, true))
         newErrors.fatherFullName = "Father's full name is required";
       if (!babyFormData.childLastName || !validateName(babyFormData.childLastName, true))
@@ -4925,9 +4915,9 @@ const OrderFormSection = () => {
 
       // Track Lead (form submitted) and AddToCart (cart assembled)
       const price = getPrice();
-      const contentName = packageType === "namecheck"
-        ? `Name Check (${nameCheckCount} Name${nameCheckCount !== 1 ? "s" : ""})`
-        : packageType === "premium"
+      const contentName = packageType === "name-check"
+        ? "Name Check"
+        : packageType === "complete-baby-name-blueprint"
           ? "Complete Baby Name Blueprint"
           : "Perfect Baby Name Report";
       trackLead(price, "INR", contentName);
@@ -4958,7 +4948,7 @@ const OrderFormSection = () => {
   const buildOrderPayload = (): OrderPayload => {
     const orderId = getOrGenerateOrderId();
 
-    if (packageType === "single" || packageType === "premium") {
+    if (packageType !== "name-check") {
       const userNameOptions = (babyFormData.nameOptions || "").trim();
       const stylesTag = nameStyles.length ? `[NAME STYLE: ${nameStyles.join(", ")}]` : "";
       const notesTag = additionalNotes.trim() ? `[NOTES: ${additionalNotes.trim()}]` : "";
@@ -5008,7 +4998,7 @@ const OrderFormSection = () => {
       name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
       dob: formData.person1Dob || "",
       gender: formData.person1Gender || "",
-      packageType: `namecheck-${nameCheckCount}`,
+      packageType: "name-check",
       person1Name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
       person1FirstName: formData.person1FirstName || "",
       person1MiddleName: formData.person1MiddleName || "",
@@ -5077,7 +5067,7 @@ const OrderFormSection = () => {
   useEffect(() => {
     if (formStep !== 1) return;
 
-    const isBaby = packageType === "single" || packageType === "premium";
+    const isBaby = packageType !== "name-check";
     const email = isBaby ? babyFormData.email : formData.email;
     const mobile = isBaby ? babyFormData.whatsapp : formData.mobile;
     const hasEmail = !!email && email.includes("@") && email.includes(".");
@@ -5719,9 +5709,9 @@ const OrderFormSection = () => {
   // --- Review summary for step 3 ---
   const renderReviewSummary = () => {
     const items: { label: string; value: string }[] = [];
-    if (packageType === "single" || packageType === "premium") {
+    if (packageType !== "name-check") {
       items.push(
-        { label: "Package", value: packageType === "premium" ? "Complete Baby Name Blueprint" : "Perfect Baby Name Report" },
+        { label: "Package", value: packageType === "complete-baby-name-blueprint" ? "Complete Baby Name Blueprint" : "Perfect Baby Name Report" },
         { label: "Child's DOB", value: babyFormData.childDob ? format(parse(babyFormData.childDob, "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" },
         { label: "Time of Birth", value: babyFormData.timeOfBirth },
         { label: "City of Birth", value: babyFormData.placeOfBirth },
@@ -5744,7 +5734,7 @@ const OrderFormSection = () => {
         ...(isKundaliActive ? [{ label: "Add-on", value: `${ADDON_KUNDALI_LABEL} - ${kundaliLanguage} (+${formatPrice(ADDON_KUNDALI_PRICE)})` }] : []),
       );
     } else {
-      items.push({ label: "Package", value: `Name Check (${nameCheckCount} Name${nameCheckCount > 1 ? "s" : ""})` });
+      items.push({ label: "Package", value: "Name Check" });
       for (let i = 1; i <= nameCheckCount; i++) {
         items.push({ label: `Name ${i}`, value: getFullName(formData[`person${i}FirstName` as keyof typeof formData], formData[`person${i}MiddleName` as keyof typeof formData], formData[`person${i}SurName` as keyof typeof formData]) });
         items.push({ label: `DOB ${i}`, value: formData[`person${i}Dob` as keyof typeof formData] ? format(parse(formData[`person${i}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" });
@@ -5838,25 +5828,25 @@ const OrderFormSection = () => {
                   <div className="space-y-4 pb-6 border-b border-border">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">
-                        {packageType === "namecheck"
-                          ? `Name Check (${nameCheckCount} Name${nameCheckCount !== 1 ? "s" : ""})`
-                          : packageType === "premium"
+                        {packageType === "name-check"
+                          ? "Name Check"
+                          : packageType === "complete-baby-name-blueprint"
                             ? "Complete Baby Name Blueprint"
                             : "Perfect Baby Name Report"}
                       </span>
                       <span className="text-foreground font-medium">
                         {formatPrice(
-                          packageType === "namecheck"
-                            ? NAME_CHECK_PRICING[nameCheckCount].price
-                            : packageType === "premium"
-                              ? getPackagePrice("premium")
-                              : getPackagePrice("single")
+                          packageType === "name-check"
+                            ? NAME_CHECK_PRICING[1].price
+                            : packageType === "complete-baby-name-blueprint"
+                              ? getPackagePrice("complete-baby-name-blueprint")
+                              : getPackagePrice("perfect-baby-name-report")
                         )}
                       </span>
                     </div>
 
 
-                    {packageType === "namecheck" && nameCheckCount > 1 && (
+                    {false && (
                       <>
                         <div className="flex justify-between text-muted-foreground">
                           <span>Original Price</span>
@@ -6037,7 +6027,7 @@ const OrderFormSection = () => {
                   <div className="mt-6 pt-6 border-t border-border">
                     <p className="font-semibold text-foreground mb-3">What's Included:</p>
                     <ul className="space-y-2">
-                      {packageType === "namecheck" ? (
+                      {packageType === "name-check" ? (
                         <>
                           <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> Quick Name Compatibility Check</li>
                           <li className="flex items-center gap-2 text-sm text-muted-foreground"><Check className="w-4 h-4 text-secondary" /> Mulank & Bhagyank Overview</li>
@@ -6067,9 +6057,9 @@ const OrderFormSection = () => {
               <div className="mb-6 rounded-xl border border-border bg-card p-4">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Selected Package</p>
                 <p className="text-sm md:text-base font-semibold text-foreground">
-                  {packageType === "namecheck"
-                    ? `Name Check (${nameCheckCount} Name${nameCheckCount > 1 ? "s" : ""})`
-                    : packageType === "premium"
+                  {packageType === "name-check"
+                    ? "Name Check"
+                    : packageType === "complete-baby-name-blueprint"
                       ? "Complete Baby Name Blueprint"
                       : "Perfect Baby Name Report"}
                   <span className="ml-2 text-accent font-bold">{formatPrice(getPrice())}</span>
@@ -6078,7 +6068,7 @@ const OrderFormSection = () => {
 
               {formStep === 1 && (
                 <div className="space-y-6">
-                  {packageType === "namecheck" ? (
+                  {packageType === "name-check" ? (
                     <>
                       {Array.from({ length: nameCheckCount }, (_, i) => i + 1).map((personNum) =>
                         renderPersonFields(personNum, nameCheckCount > 1)

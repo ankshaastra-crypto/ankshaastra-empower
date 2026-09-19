@@ -65,7 +65,7 @@ export default function Clients() {
               className="w-full rounded-lg border border-border bg-card py-2 pl-9 pr-3 text-sm outline-none transition-colors focus:border-primary"
             />
           </div>
-          <Select value={service} onChange={setService} options={["Name Check", "Perfect Baby Name", "Live Video Consultation"]} placeholder="All Services" />
+          <Select value={service} onChange={setService} options={["Name Check", "Perfect Baby Name Report", "Complete Baby Name Blueprint"]} placeholder="Choose Service" />
           <Select value={status} onChange={setStatus} options={["Pending Analysis", "Analysis Done", "Report Written", "Sent to Client", "Follow-up Pending", "Closed"]} placeholder="All Status" />
           <Select value={payment} onChange={setPayment} options={["Paid", "Pending"]} placeholder="All Payment" />
         </div>

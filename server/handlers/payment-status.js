@@ -392,6 +392,7 @@ import { decryptCustomerData } from '../_utils/encryption.js';
 import { rateLimiter } from '../_utils/rate-limiter.js';
 import { savePayment, getCustomerMetadata } from '../_utils/db.js';
 import { sendWhatsAppNotification } from '../_utils/send-whatsapp.js';
+import { normalizePackageType } from '../_utils/package-names.js';
 
 export default async function handler(req, res) {
   await rateLimiter(req, res, () => {});
@@ -562,7 +563,7 @@ export default async function handler(req, res) {
     const customerEmail  = get('email');
     const customerName   = get('name') || 'Customer';
     const customerMobile = get('mobile');
-    const packageType    = get('packageType') || get('package') || 'single';
+    const packageType    = normalizePackageType(get('packageType') || get('package')) || 'name-check';
     const customerDob    = get('dob');
     const customerGender = get('gender');
     const customerCity   = get('city');

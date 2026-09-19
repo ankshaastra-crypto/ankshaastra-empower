@@ -70,7 +70,7 @@ async function handleTestEmail(req, res) {
     customerCity: 'Test City',
     orderId,
     amount: 100,
-    packageType: 'consultation',
+    packageType: 'name-check',
     status: 'SUCCESS',
     transactionId: 'TEST_TRANSACTION',
   });

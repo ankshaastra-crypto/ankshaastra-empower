@@ -10,7 +10,7 @@
 CREATE TABLE IF NOT EXISTS orders (
   order_id VARCHAR(100) PRIMARY KEY,
   amount DECIMAL(12, 2) NOT NULL,
-  package_type VARCHAR(50) NOT NULL DEFAULT 'single',
+  package_type VARCHAR(50) NOT NULL DEFAULT 'name-check',
   status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

@@ -55,10 +55,9 @@ export default function Settings() {
           </div>
           <div className="space-y-2">
             {[
-              { name: "Name Check", price: 293, days: 1, note: "Quick numerology check" },
-              { name: "Perfect Baby Name", price: 3437, days: 2, note: "Detailed baby name report" },
-              { name: "Live Video Consultation", price: 8927, days: 3, note: "Includes report + 1:1 session" },
-              { name: "Add-on (Detailed Analysis)", price: 497, days: 0, note: "Optional · Perfect Baby Name & Live Consultation only" },
+              { name: "Name Check", price: 473, days: 1, note: "Quick numerology check" },
+              { name: "Perfect Baby Name Report", price: 3437, days: 1, note: "Detailed baby name report" },
+              { name: "Complete Baby Name Blueprint", price: 5957, days: 1, note: "Complete baby naming blueprint" },
             ].map((s) => (
               <div key={s.name} className="grid grid-cols-1 items-center gap-2 rounded-lg border border-border p-3 sm:grid-cols-4">
                 <div className="font-medium text-foreground">{s.name}</div>
@@ -79,7 +78,7 @@ export default function Settings() {
         <Card>
           <h3 className="mb-3 font-semibold text-foreground">Report Templates</h3>
           <div className="space-y-2">
-            {["Name Check Quick Report", "Perfect Baby Name Report", "Live Consultation Report", "Detailed Add-on Analysis"].map((t) => (
+            {["Name Check", "Perfect Baby Name Report", "Complete Baby Name Blueprint"].map((t) => (
               <div key={t} className="flex items-center justify-between rounded-lg border border-border p-3">
                 <span className="text-sm font-medium text-foreground">{t}</span>
                 <Badge tone="gold">Active</Badge>

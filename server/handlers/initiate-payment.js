@@ -41,6 +41,15 @@ async function loadUtils() {
     errors.redis = e.message;
   }
 
+  try {
+    const { normalizePackageType } = await import('../_utils/package-names.js');
+    const { validatePackageAmount } = await import('../_utils/pricing.js');
+    results.normalizePackageType = normalizePackageType;
+    results.validatePackageAmount = validatePackageAmount;
+  } catch (e) {
+    errors.packageValidation = e.message;
+  }
+
   return { results, errors };
 }
 
@@ -114,6 +123,14 @@ export default async function handler(req, res) {
   if (!mobileRegex.test(mobile.trim())) {
     return res.status(400).json({ success: false, error: 'Invalid mobile' });
   }
+  const normalizedPackageType = utils.normalizePackageType?.(packageType);
+  if (!normalizedPackageType) {
+    return res.status(400).json({ success: false, error: 'Please select a valid service' });
+  }
+  const amountCheck = utils.validatePackageAmount?.(process.env, normalizedPackageType, amount);
+  if (!amountCheck?.ok) {
+    return res.status(400).json({ success: false, error: 'The selected service price is invalid' });
+  }
 
   // ─── Step 3: Check Razorpay env vars ───────────────────────────────────────
   const razorpayKeyId = process.env.RAZORPAY_KEY_ID;
@@ -136,7 +153,7 @@ export default async function handler(req, res) {
     gender: (gender && gender.trim()) || '',
     city: (city && city.trim()) || '',
     state: (state && state.trim()) || '',
-    packageType: (packageType && packageType.trim()) || 'single',
+    packageType: normalizedPackageType,
     person1Name: (person1Name && person1Name.trim()) || name.trim(),
     person1FirstName: (person1FirstName && person1FirstName.trim()) || '',
     person1MiddleName: (person1MiddleName && person1MiddleName.trim()) || '',
@@ -178,7 +195,7 @@ export default async function handler(req, res) {
   // ─── Step 5: Save to DB (non-blocking) ─────────────────────────────────────
   if (utils.saveOrderAndCustomer) {
     try {
-      await utils.saveOrderAndCustomer(orderId, amount, packageType || 'single', customerData);
+      await utils.saveOrderAndCustomer(orderId, amount, normalizedPackageType, customerData);
     } catch (dbError) {
       console.error('DB save error:', dbError?.message || dbError);
     }
@@ -249,7 +266,7 @@ export default async function handler(req, res) {
     // Persist mapping from internal order ID to Razorpay order ID
     if (utils.saveOrderAndCustomer) {
       try {
-        await utils.saveOrderAndCustomer(orderId, amount, packageType || 'single', {
+        await utils.saveOrderAndCustomer(orderId, amount, normalizedPackageType, {
           ...customerData,
           razorpayOrderId: result.id,
         });

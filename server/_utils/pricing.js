@@ -2,25 +2,23 @@
 
 // Default prices (should match VITE_PACKAGE_* in frontend)
 const DEFAULT_PRICES = {
-  single: 3437,
-  premium: 5957,
-  'namecheck-1': 473,
-  'namecheck-2': 827,
-  'namecheck-3': 827,
-  namecorrection: 2987,
+  'name-check': 473,
+  'perfect-baby-name-report': 3437,
+  'complete-baby-name-blueprint': 5957,
 };
 
 export function validatePackageAmount(env, packageType, clientAmount) {
-  const key = packageType || 'single';
+  const key = packageType || 'name-check';
   const envKey = `PACKAGE_${key.toUpperCase().replace(/-/g, '_')}_PRICE`;
   
   // Try to get from env first, fall back to defaults
-  let expectedAmount = DEFAULT_PRICES[key] || DEFAULT_PRICES.single;
+  let expectedAmount = DEFAULT_PRICES[key];
+  if (!expectedAmount) {
+    return { ok: false, expected: null, received: parseInt(clientAmount, 10) };
+  }
   
   if (env && env[envKey]) {
     expectedAmount = parseInt(env[envKey], 10);
-  } else if (env && env.PACKAGE_SINGLE_PRICE) {
-    expectedAmount = parseInt(env.PACKAGE_SINGLE_PRICE, 10);
   }
 
   const clientParsed = parseInt(clientAmount, 10);
@@ -40,6 +38,6 @@ export function validatePackageAmount(env, packageType, clientAmount) {
 }
 
 export function getPackagePrice(packageType) {
-  const key = packageType || 'single';
-  return DEFAULT_PRICES[key] || DEFAULT_PRICES.single;
+  const key = packageType || 'name-check';
+  return DEFAULT_PRICES[key] || null;
 }

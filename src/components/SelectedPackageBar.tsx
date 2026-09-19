@@ -3,12 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, X } from "lucide-react";
 import { formatPrice, getPackagePricing } from "@/lib/packagePricing";
 
-type PkgKey = "single" | "premium" | "namecheck-1";
+type PkgKey = "name-check" | "perfect-baby-name-report" | "complete-baby-name-blueprint";
 
 const LABELS: Record<PkgKey, string> = {
-  single: "Perfect Baby Name Report",
-  premium: "Complete Baby Name Blueprint",
-  "namecheck-1": "Name Check (1 Name)",
+  "name-check": "Name Check",
+  "perfect-baby-name-report": "Perfect Baby Name Report",
+  "complete-baby-name-blueprint": "Complete Baby Name Blueprint",
 };
 
 const STORAGE_KEY = "selectedPackage";
@@ -27,10 +27,7 @@ const SelectedPackageBar = () => {
 
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail as string;
-      if (detail === "namecheck") {
-        setPkg("namecheck-1");
-        sessionStorage.setItem(STORAGE_KEY, "namecheck-1");
-      } else if (detail in LABELS) {
+      if (detail in LABELS) {
         setPkg(detail as PkgKey);
         sessionStorage.setItem(STORAGE_KEY, detail);
       }
@@ -51,9 +48,9 @@ const SelectedPackageBar = () => {
 
   const pricing = getPackagePricing();
   let price = 0;
-  if (pkg === "single") price = pricing.single.price;
-  else if (pkg === "premium") price = pricing.premium.price;
-  else if (pkg === "namecheck-1") price = pricing.nameCheckTiers[1].price;
+  if (pkg === "perfect-baby-name-report") price = pricing.single.price;
+  else if (pkg === "complete-baby-name-blueprint") price = pricing.premium.price;
+  else if (pkg === "name-check") price = pricing.nameCheckTiers[1].price;
 
   const goToForm = () => {
     const el = document.getElementById("order-form");

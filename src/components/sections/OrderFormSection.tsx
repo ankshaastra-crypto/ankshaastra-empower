@@ -11610,6 +11610,29 @@ const OrderFormSection = () => {
 
   // ===================== RENDER HELPERS =====================
 
+  const renderBabyContactDetails = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {[
+        { id: "whatsapp", label: "WhatsApp Number *", type: "tel", placeholder: "Enter 10-digit WhatsApp number", maxLen: 10, inputMode: "numeric" as const, autoComplete: "tel" },
+        { id: "email", label: "Email Address *", type: "email", placeholder: "Enter email address", maxLen: undefined, inputMode: "email" as const, autoComplete: "email" },
+      ].map((f) => (
+        <div key={f.id}>
+          <Label htmlFor={f.id}>{f.label}</Label>
+          <div className="relative">
+            <Input id={f.id} name={f.id} type={f.type}
+              inputMode={f.inputMode}
+              autoComplete={f.autoComplete}
+              value={babyFormData[f.id as keyof typeof babyFormData]} onChange={handleInputChange}
+              placeholder={f.placeholder} required maxLength={f.maxLen}
+              className={`mt-1.5 pr-9 h-12 text-base transition-all duration-300 focus:shadow-card ${errors[f.id] ? "border-destructive" : isFieldValid(f.id) ? "border-success" : ""}`} />
+            <ValidIcon field={f.id} />
+          </div>
+          {errors[f.id] && <p className="text-destructive text-sm mt-1">{errors[f.id]}</p>}
+        </div>
+      ))}
+    </div>
+  );
+
   const renderPersonFields = (personNum: number, showHeader: boolean = false) => (
     <div
       key={personNum}
@@ -11748,6 +11771,8 @@ const OrderFormSection = () => {
 
   const renderBabyNameFields = () => (
     <div className="space-y-4">
+      {renderBabyContactDetails()}
+
       {/* Child's Date of Birth & Time of Birth */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -12051,29 +12076,6 @@ const OrderFormSection = () => {
           className="mt-1.5 min-h-[90px] transition-all duration-300 focus:shadow-card"
         />
         <p className="text-xs text-muted-foreground mt-1">{additionalNotes.length}/500</p>
-      </div>
-
-
-      {/* Contact Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[
-          { id: "email", label: "Email Address *", type: "email", placeholder: "Enter email address", maxLen: undefined, inputMode: "email" as const, autoComplete: "email" },
-          { id: "whatsapp", label: "WhatsApp Number *", type: "tel", placeholder: "Enter 10-digit WhatsApp number", maxLen: 10, inputMode: "numeric" as const, autoComplete: "tel" },
-        ].map((f) => (
-          <div key={f.id}>
-            <Label htmlFor={f.id}>{f.label}</Label>
-            <div className="relative">
-              <Input id={f.id} name={f.id} type={f.type}
-                inputMode={f.inputMode}
-                autoComplete={f.autoComplete}
-                value={babyFormData[f.id as keyof typeof babyFormData]} onChange={handleInputChange}
-                placeholder={f.placeholder} required maxLength={f.maxLen}
-                className={`mt-1.5 pr-9 h-12 text-base transition-all duration-300 focus:shadow-card ${errors[f.id] ? "border-destructive" : isFieldValid(f.id) ? "border-success" : ""}`} />
-              <ValidIcon field={f.id} />
-            </div>
-            {errors[f.id] && <p className="text-destructive text-sm mt-1">{errors[f.id]}</p>}
-          </div>
-        ))}
       </div>
     </div>
   );
@@ -12442,9 +12444,6 @@ const OrderFormSection = () => {
                 <div className="space-y-6">
                   {packageType === "name-check" ? (
                     <>
-                      {Array.from({ length: nameCheckCount }, (_, i) => i + 1).map((personNum) =>
-                        renderPersonFields(personNum, nameCheckCount > 1)
-                      )}
                       {/* Contact Details */}
                       <div className="space-y-4 pt-2">
                         <p className="font-semibold text-foreground">Contact Details</p>
@@ -12468,6 +12467,11 @@ const OrderFormSection = () => {
                           </div>
                           {errors.email && <p className="text-destructive text-sm mt-1">{errors.email}</p>}
                         </div>
+                      </div>
+                      {Array.from({ length: nameCheckCount }, (_, i) => i + 1).map((personNum) =>
+                        renderPersonFields(personNum, nameCheckCount > 1)
+                      )}
+                      <div className="space-y-4 pt-2">
                         <div>
 
                           <Label htmlFor="city">City of Birth *</Label>

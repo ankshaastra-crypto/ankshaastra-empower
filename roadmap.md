@@ -24,3 +24,4 @@
 - [x] Make the top trust strip move continuously on mobile and desktop
 - [x] Replace generic rounded icon boxes with open editorial rows and ruled statistics
 - [x] Standardize frontend, payments, database defaults, and admin views to the three current services only
+- [x] Add Celebrity Astro-Numerologist to the top strip, start the live ticker at 48k, and place phone and email first in every order form

@@ -1,5 +1,6 @@
 const trustPoints = [
   "10+ Years Experience",
+  "Celebrity Astro-Numerologist",
   "48k Global Consultations",
   "4.9 Star Average Rating",
   "Wide Media Coverage",

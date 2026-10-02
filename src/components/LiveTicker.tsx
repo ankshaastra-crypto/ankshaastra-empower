@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const START_COUNT = 14047;
+const START_COUNT = 48047;
 
 const LiveTicker = () => {
   const [count, setCount] = useState(START_COUNT);

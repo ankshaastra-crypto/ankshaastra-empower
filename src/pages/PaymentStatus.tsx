@@ -94,8 +94,6 @@ const packageNames: Record<string, string> = {
   premium: "Complete Baby Name Blueprint",
   "namecheck-2": "Name Check (2 Persons)",
   "namecheck-3": "Name Check (3 Persons)",
-  single: "Perfect Baby Name Report",
-  premium: "Complete Baby Name Blueprint",
   consultation: "Website Testing",
   family: "Family Package (3 Reports)",
   baby: "Perfect Baby Name Report",

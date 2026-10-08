@@ -10799,12 +10799,6 @@ interface OrderPayload {
   nameOptions?: string;
 }
 
-// Name Check pricing configuration
-const NAME_CHECK_PRICING = {
-  1: { price: 827, originalPrice: 827, savings: 0 },
-  2: { price: 1457, originalPrice: 1654, savings: 197 },
-};
-
 // Optional add-on: 10+ extra numerologically aligned names (Baby Name only)
 const ADDON_EXTRA_NAMES_PRICE = 1367;
 const ADDON_EXTRA_NAMES_LABEL = "10+ Extra Numerologically Aligned Names";
@@ -11161,7 +11155,7 @@ const OrderFormSection = () => {
   const isAddonEligible = isExtrasAddonEligible;
 
   const getPrice = (): number => {
-    if (packageType === "name-check") return NAME_CHECK_PRICING[1].price;
+    if (packageType === "name-check") return getPackagePrice("name-check");
     const base = packageType === "complete-baby-name-blueprint" ? getPackagePrice("complete-baby-name-blueprint") : getPackagePrice("perfect-baby-name-report");
     return (
       base +
@@ -12211,7 +12205,7 @@ const OrderFormSection = () => {
                       <span className="text-foreground font-medium">
                         {formatPrice(
                           packageType === "name-check"
-                            ? NAME_CHECK_PRICING[1].price
+                            ? getPackagePrice("name-check")
                             : packageType === "complete-baby-name-blueprint"
                               ? getPackagePrice("complete-baby-name-blueprint")
                               : getPackagePrice("perfect-baby-name-report")
@@ -12219,19 +12213,6 @@ const OrderFormSection = () => {
                       </span>
                     </div>
 
-
-                    {false && (
-                      <>
-                        <div className="flex justify-between text-muted-foreground">
-                          <span>Original Price</span>
-                          <span className="line-through">{formatPrice(NAME_CHECK_PRICING[nameCheckCount].originalPrice)}</span>
-                        </div>
-                        <div className="flex justify-between text-secondary">
-                          <span>You Save</span>
-                          <span>{formatPrice(NAME_CHECK_PRICING[nameCheckCount].savings * nameCheckCount)}</span>
-                        </div>
-                      </>
-                    )}
 
                     {/* Add-on toggles inside Order Summary */}
                     {isExtrasAddonEligible && (

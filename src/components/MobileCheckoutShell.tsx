@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { ChevronLeft, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,10 @@ interface MobileCheckoutShellProps {
 
 export default function MobileCheckoutShell({ children, open, onOpenChange, step, onBack, onContinue, submitting, price }: MobileCheckoutShellProps) {
   const mobile = useIsMobile();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (mobile && open) scrollRef.current?.scrollTo({ top: 0 });
+  }, [mobile, open, step]);
   if (!mobile) return <>{children}</>;
 
   return (
@@ -50,7 +54,7 @@ export default function MobileCheckoutShell({ children, open, onOpenChange, step
               {[1, 2].map((item) => <span key={item} className={cn("h-1 flex-1 rounded-full", item === step ? "bg-accent" : item < step ? "bg-foreground" : "bg-muted")} />)}
             </div>
           </header>
-          <div className="mobile-checkout-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-6" data-checkout-scroll>
+          <div ref={scrollRef} className="mobile-checkout-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-6" data-checkout-scroll>
             {children}
           </div>
           <footer className="mobile-checkout-footer shrink-0 border-t border-border bg-card px-5 pt-4">

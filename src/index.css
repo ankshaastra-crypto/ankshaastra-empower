@@ -635,3 +635,53 @@ section {
   .section-frame { margin: 14px 12px; border-radius: 32px; }
   .section-frame > .section-frame-inner { border-radius: 30px; }
 }
+
+/* Mobile checkout uses the existing fields inside a focused bottom sheet. */
+.mobile-checkout-sheet { font-family: 'Lato', system-ui, sans-serif; }
+.mobile-checkout-footer { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+.mobile-checkout-sheet #order-form { padding: 0; background: hsl(var(--card)); }
+.mobile-checkout-sheet #order-form > .container { padding: 0; }
+.mobile-checkout-sheet #order-form > .container > div > :is(h2, p),
+.mobile-checkout-sheet #order-form > .container > div > .mb-8,
+.mobile-checkout-sheet .checkout-inline-actions,
+.mobile-checkout-sheet .checkout-inline-payment { display: none; }
+.mobile-checkout-sheet #order-form label { line-height: 1.5; }
+.mobile-checkout-sheet #order-form input:not([type="radio"]):not([type="checkbox"]),
+.mobile-checkout-sheet #order-form [role="combobox"],
+.mobile-checkout-sheet #order-form button[id$="Dob"] {
+  height: 54px;
+  padding-left: 14px;
+  padding-right: 14px;
+  border-radius: 12px;
+  background: hsl(var(--card));
+  font-size: 16px;
+}
+.mobile-checkout-sheet #order-form input:not([type="radio"]):not([type="checkbox"]) { padding-right: 36px; }
+.mobile-checkout-sheet #order-form textarea { border-radius: 12px; background: hsl(var(--card)); }
+.mobile-checkout-sheet #order-form [role="radiogroup"] { display: flex; flex-wrap: wrap; gap: 10px; }
+.mobile-checkout-sheet #order-form [role="radiogroup"] > div {
+  position: relative;
+  flex: 1 1 80px;
+  min-height: 50px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+}
+.mobile-checkout-sheet #order-form [role="radiogroup"] > div:has([data-state="checked"]) {
+  border-color: hsl(var(--foreground));
+  background: hsl(var(--accent) / 0.12);
+}
+.mobile-checkout-sheet #order-form [role="radiogroup"] [role="radio"] { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 12px; }
+.mobile-checkout-sheet #order-form [role="radiogroup"] [role="radio"] > span { display: none; }
+.mobile-checkout-sheet #order-form [role="radiogroup"] label { pointer-events: none; margin: 0; }
+.mobile-checkout-sheet #order-form .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 22px; }
+.mobile-checkout-sheet #order-form .sticky { position: static; padding: 16px; border-radius: 12px; box-shadow: none; }
+.mobile-checkout-sheet #order-form .justify-between > span { min-width: 0; overflow-wrap: anywhere; }
+.mobile-checkout-sheet #order-form .justify-between > span + span { text-align: right; margin-left: 12px; }
+@media (prefers-reduced-motion: no-preference) {
+  .mobile-checkout-sheet[data-state="open"] { animation: checkout-sheet-enter 220ms ease-out; }
+  @keyframes checkout-sheet-enter { from { transform: translateY(100%); } to { transform: translateY(0); } }
+}

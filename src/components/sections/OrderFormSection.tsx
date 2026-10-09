@@ -23414,6 +23414,8 @@ import { trackInitiateCheckout, trackLead, trackAddToCart } from "@/lib/metaPixe
 import { getPackagePrice, formatPrice } from "@/lib/packagePricing";
 import { ALL_STATE_OPTIONS, STATE_DATALIST_ID } from "@/lib/statesList";
 
+import MobileCheckoutShell from "@/components/MobileCheckoutShell";
+
 interface RazorpayPaymentResponse {
   razorpay_payment_id: string;
   razorpay_order_id: string;
@@ -23525,6 +23527,7 @@ const OrderFormSection = () => {
   const { toast } = useToast();
   const { ref } = useScrollAnimation({ threshold: 0.1 });
   const [formStep, setFormStep] = useState(1);
+  const [checkoutOpen, setCheckoutOpen] = useState(true);
   // Generated once per form session and reused for BOTH the early
   // "form filled" save (below, in goToStep) and the final payment order
   // (handleSubmit) — so both writes land on the exact same DB row instead
@@ -23609,6 +23612,7 @@ const OrderFormSection = () => {
   useEffect(() => {
     const handleSetPackageType = (e: CustomEvent) => {
       const detail = e.detail as string;
+      setCheckoutOpen(true);
       if (detail === "name-check") {
         setPackageType("name-check");
         setAddonExtraNames(false);
@@ -24868,6 +24872,15 @@ const OrderFormSection = () => {
 
   // ===================== MAIN RENDER =====================
   return (
+    <MobileCheckoutShell
+      open={checkoutOpen}
+      onOpenChange={setCheckoutOpen}
+      step={formStep}
+      onBack={() => formStep === 2 ? goToStep(1) : setCheckoutOpen(false)}
+      onContinue={() => formStep === 1 ? goToStep(2) : void handleSubmit()}
+      submitting={isSubmitting}
+      price={formatPrice(price)}
+    >
     <section className="section-padding bg-background" id="order-form" ref={ref}>
       <datalist id={STATE_DATALIST_ID}>
         {ALL_STATE_OPTIONS.map((s) => (<option key={s} value={s} />))}
@@ -25046,7 +25059,7 @@ const OrderFormSection = () => {
                     </div>
                   </div>
 
-                  <Button variant="hero" size="lg" className="w-full mt-6 group" onClick={handleSubmit} disabled={isSubmitting}>
+                  <Button variant="hero" size="lg" className="checkout-inline-payment w-full mt-6 group" onClick={handleSubmit} disabled={isSubmitting}>
                     {isSubmitting ? (
                       <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Processing...</>
                     ) : (
@@ -25371,7 +25384,7 @@ const OrderFormSection = () => {
                     </div>
                   )}
 
-                  <div className="flex gap-3 pt-4">
+                  <div className="checkout-inline-actions flex gap-3 pt-4">
                     <Button variant="outline" size="lg" onClick={() => { const el = document.getElementById("pricing"); if (el) el.scrollIntoView({ behavior: "smooth" }); }} className="flex-1">
                       <ChevronLeft className="w-5 h-5 mr-1" /> Back
                     </Button>
@@ -25386,6 +25399,7 @@ const OrderFormSection = () => {
         </div>
       </div>
     </section>
+    </MobileCheckoutShell>
   );
 };
 

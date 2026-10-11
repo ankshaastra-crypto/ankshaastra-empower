@@ -23519,8 +23519,9 @@ const NAME_STYLE_OPTIONS = [
 ];
 
 const STEPS = [
-  { id: 1, label: "Details" },
-  { id: 2, label: "Review & Pay" },
+  { id: 1, label: "Contact" },
+  { id: 2, label: "Report details" },
+  { id: 3, label: "Review & Pay" },
 ];
 
 const OrderFormSection = () => {
@@ -23932,8 +23933,12 @@ const OrderFormSection = () => {
   };
 
   const goToStep = (step: number) => {
-    if (step === 2 && formStep === 1) {
-      const stepErrors = validateStep2();
+    if (step === formStep + 1 && formStep < 3) {
+      const allErrors = validateStep2();
+      const contactKeys = packageType === "name-check" ? ["mobile", "email"] : ["whatsapp", "email"];
+      const stepErrors = Object.fromEntries(Object.entries(allErrors).filter(([key]) =>
+        formStep === 1 ? contactKeys.includes(key) : true
+      ));
       if (Object.keys(stepErrors).length > 0) {
         setErrors(stepErrors);
         const firstErrorField = Object.keys(stepErrors)[0];
@@ -23943,6 +23948,12 @@ const OrderFormSection = () => {
         return;
       }
       setErrors({});
+
+      if (formStep === 1) {
+        setFormStep(2);
+        scrollToFormTop();
+        return;
+      }
 
       // Track Lead (form submitted) and AddToCart (cart assembled)
       const price = getPrice();
@@ -23960,7 +23971,7 @@ const OrderFormSection = () => {
       // does not block moving to Step 2 even if this save fails.
       void saveFormProgress(buildOrderPayload());
 
-      setFormStep(2);
+      setFormStep(3);
       scrollToFormTop();
     } else if (step < formStep) {
       setFormStep(step);
@@ -24119,7 +24130,7 @@ const OrderFormSection = () => {
   };
 
   useEffect(() => {
-    if (formStep !== 1) return;
+    if (formStep === 3) return;
     if (!hasSavableContact()) return; // nothing worth saving yet
 
     // Flushes immediately (skipping the debounce) the moment the tab is
@@ -24159,7 +24170,7 @@ const OrderFormSection = () => {
   // and reads the always-fresh refs above so the data it saves is current.
   useEffect(() => {
     return () => {
-      if (latestFormStepRef.current === 1 && hasSavableContact()) {
+      if (latestFormStepRef.current < 3 && hasSavableContact()) {
         if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
         void saveFormProgress(buildOrderPayload());
       }
@@ -24468,7 +24479,6 @@ const OrderFormSection = () => {
 
   const renderBabyNameFields = () => (
     <div className="space-y-4">
-      {renderBabyContactDetails()}
 
       {/* Child's Date of Birth & Time of Birth */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -24876,8 +24886,8 @@ const OrderFormSection = () => {
       open={checkoutOpen}
       onOpenChange={setCheckoutOpen}
       step={formStep}
-      onBack={() => formStep === 2 ? goToStep(1) : setCheckoutOpen(false)}
-      onContinue={() => formStep === 1 ? goToStep(2) : void handleSubmit()}
+      onBack={() => formStep > 1 ? goToStep(formStep - 1) : setCheckoutOpen(false)}
+      onContinue={() => formStep < 3 ? goToStep(formStep + 1) : void handleSubmit()}
       submitting={isSubmitting}
       price={formatPrice(price)}
     >
@@ -24888,15 +24898,15 @@ const OrderFormSection = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="heading-lg text-foreground mb-1.5 md:mb-2 text-center">
-            {formStep === 1 ? "Enter Your Details" : "Review & Pay"}
+            {formStep === 1 ? "Contact Details" : formStep === 2 ? "Report Details" : "Review & Pay"}
           </h2>
           <p className="text-muted-foreground text-sm md:text-base mb-6 md:mb-8 text-center">
-            {formStep === 1 ? "We'll use this to create your personalized report" : "Confirm your details and proceed to secure payment"}
+            {formStep < 3 ? "" : "Confirm your details and proceed to secure payment"}
           </p>
 
           <ProgressBar />
 
-          {formStep === 2 ? (
+          {formStep === 3 ? (
             /* Review & Pay */
             <div className="grid lg:grid-cols-5 gap-6 lg:gap-12">
               <div className="lg:col-span-3">
@@ -25133,12 +25143,12 @@ const OrderFormSection = () => {
                 </p>
               </div>
 
-              {formStep === 1 && (
+              {formStep < 3 && (
                 <div className="space-y-6">
                   {packageType === "name-check" ? (
                     <>
                       {/* Contact Details */}
-                      <div className="space-y-4 pt-2">
+                      <div hidden={formStep !== 1} className="space-y-4 pt-2">
                         <p className="font-semibold text-foreground">Contact Details</p>
                         <div>
                           <Label htmlFor="mobile">WhatsApp Number *</Label>
@@ -25161,6 +25171,7 @@ const OrderFormSection = () => {
                           {errors.email && <p className="text-destructive text-sm mt-1">{errors.email}</p>}
                         </div>
                       </div>
+                      <div hidden={formStep !== 2} className="space-y-6">
                       {Array.from({ length: nameCheckCount }, (_, i) => i + 1).map((personNum) =>
                         renderPersonFields(personNum, nameCheckCount > 1)
                       )}
@@ -25211,11 +25222,16 @@ const OrderFormSection = () => {
                         <p className="text-xs text-muted-foreground mt-1">{countWords(formData.parentsProfession)}/50 words</p>
                         {errors.parentsProfession && <p className="text-destructive text-sm mt-1">{errors.parentsProfession}</p>}
                       </div>
+                      </div>
                     </>
                   ) : (
-                    renderBabyNameFields()
+                    <>
+                      <div hidden={formStep !== 1}>{renderBabyContactDetails()}</div>
+                      <div hidden={formStep !== 2}>{renderBabyNameFields()}</div>
+                    </>
                   )}
 
+                  <div hidden={formStep !== 2} className="space-y-6">
                   {/* Optional Add-On (Baby Name only) */}
                   {isExtrasAddonEligible && (
                     <div
@@ -25384,12 +25400,13 @@ const OrderFormSection = () => {
                     </div>
                   )}
 
+                  </div>
                   <div className="checkout-inline-actions flex gap-3 pt-4">
-                    <Button variant="outline" size="lg" onClick={() => { const el = document.getElementById("pricing"); if (el) el.scrollIntoView({ behavior: "smooth" }); }} className="flex-1">
+                    <Button variant="outline" size="lg" onClick={() => { if (formStep > 1) goToStep(formStep - 1); else document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" }); }} className="flex-1">
                       <ChevronLeft className="w-5 h-5 mr-1" /> Back
                     </Button>
-                    <Button variant="hero" size="lg" onClick={() => goToStep(2)} className="flex-[2]">
-                      Review Order <ChevronRight className="w-5 h-5 ml-1" />
+                    <Button variant="hero" size="lg" onClick={() => goToStep(formStep + 1)} className="flex-[2]">
+                      {formStep === 1 ? "Continue" : "Review Order"} <ChevronRight className="w-5 h-5 ml-1" />
                     </Button>
                   </div>
                 </div>

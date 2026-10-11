@@ -27,3 +27,4 @@
 - [x] Add Celebrity Astro-Numerologist to the top strip, start the live ticker at 48k, and place phone and email first in every order form
 - [x] Remove duplicate ₹827 form pricing and verify Name Check selection and review totals at ₹473
 - [x] Restyle mobile checkout as a reference-inspired bottom sheet while retaining every field and existing validation
+- [ ] Organize checkout into Contact → Report details → Review & Pay, preserving all fields

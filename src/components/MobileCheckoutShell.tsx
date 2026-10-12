@@ -10,13 +10,14 @@ interface MobileCheckoutShellProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   step: number;
+  steps: { label: string; title: string }[];
   onBack: () => void;
   onContinue: () => void;
   submitting: boolean;
   price: string;
 }
 
-export default function MobileCheckoutShell({ children, open, onOpenChange, step, onBack, onContinue, submitting, price }: MobileCheckoutShellProps) {
+export default function MobileCheckoutShell({ children, open, onOpenChange, step, steps, onBack, onContinue, submitting, price }: MobileCheckoutShellProps) {
   const mobile = useIsMobile();
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -40,9 +41,9 @@ export default function MobileCheckoutShell({ children, open, onOpenChange, step
                 <ChevronLeft className="h-6 w-6" />
               </Button>
               <div className="min-w-0 flex-1">
-                <p className="mb-1 text-sm text-muted-foreground">Step {step} of 3</p>
+                <p className="mb-1 text-sm text-muted-foreground">Step {step} of {steps.length}</p>
                 <DialogPrimitive.Title className="font-body text-xl font-bold leading-tight">
-                  {step === 1 ? "Where should we send it?" : step === 2 ? "Your report details" : "Review & pay"}
+                  {steps[step - 1]?.title}
                 </DialogPrimitive.Title>
               </div>
               <DialogPrimitive.Close asChild>
@@ -50,8 +51,8 @@ export default function MobileCheckoutShell({ children, open, onOpenChange, step
               </DialogPrimitive.Close>
             </div>
             <DialogPrimitive.Description className="sr-only">Enter your details and review your selected report before payment.</DialogPrimitive.Description>
-            <div className="mt-5 flex gap-2" aria-label={`Step ${step} of 3`}>
-              {[1, 2, 3].map((item) => <span key={item} className={cn("h-1 flex-1 rounded-full", item === step ? "bg-accent" : item < step ? "bg-foreground" : "bg-muted")} />)}
+            <div className="mt-5 flex gap-2" aria-label={`Step ${step} of ${steps.length}`}>
+              {steps.map((_, index) => <span key={index} className={cn("h-1 flex-1 rounded-full", index + 1 === step ? "bg-accent" : index + 1 < step ? "bg-foreground" : "bg-muted")} />)}
             </div>
           </header>
           <div ref={scrollRef} className="mobile-checkout-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-6" data-checkout-scroll>
@@ -59,7 +60,7 @@ export default function MobileCheckoutShell({ children, open, onOpenChange, step
           </div>
           <footer className="mobile-checkout-footer shrink-0 border-t border-border bg-card px-5 pt-4">
             <Button variant="hero" size="lg" className="w-full rounded-full shadow-none hover:scale-100" onClick={onContinue} disabled={submitting}>
-              {submitting ? <><Loader2 className="h-5 w-5 animate-spin" /> Processing...</> : step < 3 ? "Continue" : `Proceed to Pay ${price}`}
+              {submitting ? <><Loader2 className="h-5 w-5 animate-spin" /> Processing...</> : step < steps.length ? "Continue" : `Proceed to Pay ${price}`}
             </Button>
           </footer>
         </DialogPrimitive.Content>

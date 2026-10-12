@@ -28,3 +28,4 @@
 - [x] Remove duplicate ₹827 form pricing and verify Name Check selection and review totals at ₹473
 - [x] Restyle mobile checkout as a reference-inspired bottom sheet while retaining every field and existing validation
 - [x] Organize checkout into Contact → Report details → Review & Pay, preserving all fields
+- [x] Organize baby-name checkout into five requested steps, with mandatory details and optional preferences

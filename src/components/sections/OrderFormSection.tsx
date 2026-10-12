@@ -23518,10 +23518,17 @@ const NAME_STYLE_OPTIONS = [
   "Mix of All",
 ];
 
-const STEPS = [
-  { id: 1, label: "Contact" },
-  { id: 2, label: "Report details" },
-  { id: 3, label: "Review & Pay" },
+const BABY_STEPS = [
+  { id: 1, label: "Parents", title: "Parent & Contact Details" },
+  { id: 2, label: "Birth", title: "Child's Birth Details" },
+  { id: 3, label: "Name", title: "Child's Name Details" },
+  { id: 4, label: "Preferences", title: "Name Preferences & Additional Options" },
+  { id: 5, label: "Review", title: "Review & Pay" },
+];
+const NAME_CHECK_STEPS = [
+  { id: 1, label: "Contact", title: "Contact Details" },
+  { id: 2, label: "Report details", title: "Report Details" },
+  { id: 3, label: "Review & Pay", title: "Review & Pay" },
 ];
 
 const OrderFormSection = () => {
@@ -23542,6 +23549,8 @@ const OrderFormSection = () => {
   };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [packageType, setPackageType] = useState<"name-check" | "perfect-baby-name-report" | "complete-baby-name-blueprint">("perfect-baby-name-report");
+  const STEPS = packageType === "name-check" ? NAME_CHECK_STEPS : BABY_STEPS;
+  const reviewStep = STEPS.length;
   const nameCheckCount = 1 as const;
   const [addonExtraNames, setAddonExtraNames] = useState<boolean>(false);
   const [addonNickname, setAddonNickname] = useState<boolean>(false);
@@ -23713,7 +23722,7 @@ const OrderFormSection = () => {
   const isFieldValid = useCallback((fieldName: string): boolean => {
     if (packageType !== "name-check") {
       const val = babyFormData[fieldName as keyof typeof babyFormData];
-      const isOptional = fieldName === "pinCode" || fieldName === "childMiddleName" || fieldName === "nameOptions";
+      const isOptional = fieldName === "childMiddleName" || fieldName === "nameOptions";
       if (!isOptional && (!val || (typeof val === "string" && !val.trim()))) return false;
       if (isOptional && (!val || (typeof val === "string" && !val.trim()))) return true;
       switch (fieldName) {
@@ -23782,6 +23791,9 @@ const OrderFormSection = () => {
     }
     if (name === "city" || name === "placeOfBirth") {
       processedValue = value.substring(0, 80);
+    }
+    if (name === "pinCode" && packageType !== "name-check") {
+      processedValue = value.replace(/\D/g, "").substring(0, 6);
     }
     if (name === "state") {
       processedValue = value.substring(0, 60);
@@ -23887,7 +23899,11 @@ const OrderFormSection = () => {
         newErrors.placeOfBirth = !babyFormData.placeOfBirth ? "Place of birth is required" : "Please enter between 2 and 80 characters";
       if (!babyFormData.state || !validateCity(babyFormData.state))
         newErrors.state = !babyFormData.state ? "State / Province is required" : "Please enter between 2 and 60 characters";
-      if (!babyFormData.gender || babyFormData.gender.trim() === "")
+      if (!babyFormData.pinCode || !validatePinCode(babyFormData.pinCode))
+        newErrors.pinCode = "Please enter the child's six-digit birth pincode";
+      if (babyFormData.childMiddleName && !validateName(babyFormData.childMiddleName, false))
+        newErrors.childMiddleName = "Please enter a valid middle name";
+      if (!["Male", "Female", "Other"].includes(babyFormData.gender))
         newErrors.gender = "Gender is required";
       if (!babyFormData.email || !validateEmail(babyFormData.email))
         newErrors.email = !babyFormData.email ? "Email address is required" : "Please enter a valid email address";
@@ -23897,9 +23913,7 @@ const OrderFormSection = () => {
         newErrors.parentsProfession = "Parents' profession is required";
       if (isKundaliActive && !kundaliLanguage)
         newErrors.kundaliLanguage = "Please choose Kundli 2.0 language (English, Hindi or Gujarati)";
-      if (!nameStyles || nameStyles.length === 0)
-        newErrors.nameStyles = "Please select at least one name style";
-      else if (nameStyles.length > 2)
+      if (nameStyles.length > 2)
         newErrors.nameStyles = "Please select a maximum of 2 name styles";
     } else {
       const requiredPersons = getRequiredPersonCount();
@@ -23933,11 +23947,18 @@ const OrderFormSection = () => {
   };
 
   const goToStep = (step: number) => {
-    if (step === formStep + 1 && formStep < 3) {
+    if (step === formStep + 1 && formStep < reviewStep) {
       const allErrors = validateStep2();
-      const contactKeys = packageType === "name-check" ? ["mobile", "email"] : ["whatsapp", "email"];
+      const babyStepFields: Record<number, string[]> = {
+        1: ["fatherFullName", "parentsProfession", "whatsapp", "email"],
+        2: ["childDob", "timeOfBirth", "placeOfBirth", "state", "pinCode", "gender"],
+        3: ["childMiddleName", "fatherFirstNameAsMiddleName", "childLastName", "lastNameSpellingChangeOk"],
+        4: ["nameStyles", "kundaliLanguage"],
+      };
       const stepErrors = Object.fromEntries(Object.entries(allErrors).filter(([key]) =>
-        formStep === 1 ? contactKeys.includes(key) : true
+        packageType === "name-check"
+          ? formStep === 1 ? ["mobile", "email"].includes(key) : true
+          : (babyStepFields[formStep] ?? []).includes(key)
       ));
       if (Object.keys(stepErrors).length > 0) {
         setErrors(stepErrors);
@@ -23949,8 +23970,8 @@ const OrderFormSection = () => {
       }
       setErrors({});
 
-      if (formStep === 1) {
-        setFormStep(2);
+      if (step < reviewStep) {
+        setFormStep(step);
         scrollToFormTop();
         return;
       }
@@ -23971,7 +23992,7 @@ const OrderFormSection = () => {
       // does not block moving to Step 2 even if this save fails.
       void saveFormProgress(buildOrderPayload());
 
-      setFormStep(3);
+      setFormStep(reviewStep);
       scrollToFormTop();
     } else if (step < formStep) {
       setFormStep(step);
@@ -24130,7 +24151,7 @@ const OrderFormSection = () => {
   };
 
   useEffect(() => {
-    if (formStep === 3) return;
+    if (formStep === reviewStep) return;
     if (!hasSavableContact()) return; // nothing worth saving yet
 
     // Flushes immediately (skipping the debounce) the moment the tab is
@@ -24170,7 +24191,7 @@ const OrderFormSection = () => {
   // and reads the always-fresh refs above so the data it saves is current.
   useEffect(() => {
     return () => {
-      if (latestFormStepRef.current < 3 && hasSavableContact()) {
+      if (latestFormStepRef.current < reviewStep && hasSavableContact()) {
         if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
         void saveFormProgress(buildOrderPayload());
       }
@@ -24322,7 +24343,7 @@ const OrderFormSection = () => {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {[
         { id: "whatsapp", label: "WhatsApp Number *", type: "tel", placeholder: "Enter 10-digit WhatsApp number", maxLen: 10, inputMode: "numeric" as const, autoComplete: "tel" },
-        { id: "email", label: "Email Address *", type: "email", placeholder: "Enter email address", maxLen: undefined, inputMode: "email" as const, autoComplete: "email" },
+        { id: "email", label: "Email ID *", type: "email", placeholder: "Enter email address", maxLen: undefined, inputMode: "email" as const, autoComplete: "email" },
       ].map((f) => (
         <div key={f.id}>
           <Label htmlFor={f.id}>{f.label}</Label>
@@ -24477,9 +24498,42 @@ const OrderFormSection = () => {
     </div>
   );
 
-  const renderBabyNameFields = () => (
+  const renderBabyParentDetails = () => (
     <div className="space-y-4">
+      {/* Father's Full Name */}
+      <div>
+        <Label htmlFor="fatherFullName">Father's Full Name *</Label>
+        <div className="relative">
+          <Input id="fatherFullName" name="fatherFullName"
+            value={babyFormData.fatherFullName} onChange={handleInputChange}
+            placeholder="Enter father's full name" required
+            className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.fatherFullName ? "border-destructive" : isFieldValid("fatherFullName") ? "border-success" : ""}`} />
+          <ValidIcon field="fatherFullName" />
+        </div>
+        {errors.fatherFullName && <p className="text-destructive text-sm mt-1">{errors.fatherFullName}</p>}
+      </div>
 
+      {/* Parents' Profession (mandatory) */}
+      <div>
+        <Label htmlFor="parentsProfession">Parent's Occupation *</Label>
+        <Textarea
+          id="parentsProfession"
+          value={babyFormData.parentsProfession}
+          onChange={(e) => handleParentsProfessionChange(e.target.value)}
+          placeholder="e.g. Doctor, Business, IT Professional, Homemaker…"
+          required
+          className={`mt-1.5 min-h-[80px] transition-all duration-300 focus:shadow-card ${errors.parentsProfession ? "border-destructive" : isFieldValid("parentsProfession") ? "border-success" : ""}`}
+        />
+        <p className="text-xs text-muted-foreground mt-1">{countWords(babyFormData.parentsProfession)}/50 words</p>
+        {errors.parentsProfession && <p className="text-destructive text-sm mt-1">{errors.parentsProfession}</p>}
+      </div>
+
+      {renderBabyContactDetails()}
+    </div>
+  );
+
+  const renderBabyBirthDetails = () => (
+    <div className="space-y-4">
       {/* Child's Date of Birth & Time of Birth */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -24559,9 +24613,9 @@ const OrderFormSection = () => {
         </div>
       </div>
 
-      {/* City of Birth */}
+      {/* Child's City of Birth */}
       <div>
-        <Label htmlFor="placeOfBirth">City of Birth *</Label>
+        <Label htmlFor="placeOfBirth">Child's City of Birth *</Label>
         <div className="relative">
           <Input id="placeOfBirth" name="placeOfBirth" value={babyFormData.placeOfBirth} onChange={handleInputChange}
             placeholder="e.g. Mumbai" required maxLength={80}
@@ -24573,7 +24627,7 @@ const OrderFormSection = () => {
 
       {/* State / Province (mandatory for GST invoice) */}
       <div>
-        <Label htmlFor="state">State / Province *</Label>
+        <Label htmlFor="state">Child's State of Birth *</Label>
         <div className="relative">
           <Input id="state" name="state" list={STATE_DATALIST_ID} autoComplete="off" value={babyFormData.state} onChange={handleInputChange}
             placeholder="Type to search e.g. Maha…" required maxLength={60}
@@ -24584,12 +24638,12 @@ const OrderFormSection = () => {
         <p className="text-xs text-muted-foreground mt-1">Required for GST invoice compliance.</p>
       </div>
 
-      {/* ZIP / Pincode (optional) */}
+      {/* Child's Birth Pincode * */}
       <div>
-        <Label htmlFor="pinCode">ZIP / Pincode (optional)</Label>
+        <Label htmlFor="pinCode">Child's Birth Pincode *</Label>
         <div className="relative">
           <Input id="pinCode" name="pinCode" value={babyFormData.pinCode} onChange={handleInputChange}
-            placeholder="e.g. 400001" maxLength={20}
+            placeholder="e.g. 400001" required inputMode="numeric" maxLength={6}
             className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.pinCode ? "border-destructive" : isFieldValid("pinCode") ? "border-success" : ""}`} />
           <ValidIcon field="pinCode" />
         </div>
@@ -24616,36 +24670,11 @@ const OrderFormSection = () => {
         {errors.gender && <p className="text-destructive text-sm mt-1">{errors.gender}</p>}
       </div>
 
-      {/* Father's Full Name */}
-      <div>
-        <Label htmlFor="fatherFullName">Father's Full Name *</Label>
-        <div className="relative">
-          <Input id="fatherFullName" name="fatherFullName"
-            value={babyFormData.fatherFullName} onChange={handleInputChange}
-            placeholder="Enter father's full name" required
-            className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.fatherFullName ? "border-destructive" : isFieldValid("fatherFullName") ? "border-success" : ""}`} />
-          <ValidIcon field="fatherFullName" />
-        </div>
-        {errors.fatherFullName && <p className="text-destructive text-sm mt-1">{errors.fatherFullName}</p>}
-      </div>
+    </div>
+  );
 
-      {/* Parents' Profession (mandatory) */}
-      <div>
-        <Label htmlFor="parentsProfession">Parents' Profession *</Label>
-        <Textarea
-          id="parentsProfession"
-          value={babyFormData.parentsProfession}
-          onChange={(e) => handleParentsProfessionChange(e.target.value)}
-          placeholder="e.g. Doctor, Business, IT Professional, Homemaker…"
-          required
-          className={`mt-1.5 min-h-[80px] transition-all duration-300 focus:shadow-card ${errors.parentsProfession ? "border-destructive" : isFieldValid("parentsProfession") ? "border-success" : ""}`}
-        />
-        <p className="text-xs text-muted-foreground mt-1">{countWords(babyFormData.parentsProfession)}/50 words</p>
-        {errors.parentsProfession && <p className="text-destructive text-sm mt-1">{errors.parentsProfession}</p>}
-      </div>
-
-      {/* Child's Middle Name & Last Name */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  const renderBabyChildNameDetails = () => (
+    <div className="space-y-4">
         <div>
           <Label htmlFor="childMiddleName">Child's Middle Name</Label>
           <div className="relative">
@@ -24656,19 +24685,6 @@ const OrderFormSection = () => {
             <ValidIcon field="childMiddleName" />
           </div>
         </div>
-        <div>
-          <Label htmlFor="childLastName">Child's Last Name *</Label>
-          <div className="relative">
-            <Input id="childLastName" name="childLastName"
-              value={babyFormData.childLastName} onChange={handleInputChange}
-              placeholder="Enter child's last name" required
-              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.childLastName ? "border-destructive" : isFieldValid("childLastName") ? "border-success" : ""}`} />
-            <ValidIcon field="childLastName" />
-          </div>
-          {errors.childLastName && <p className="text-destructive text-sm mt-1">{errors.childLastName}</p>}
-        </div>
-      </div>
-
       {/* Is Child's Middle Name = Father's First Name */}
       <div>
         <Label>Is the father's first name used as the child's middle name? *</Label>
@@ -24692,6 +24708,17 @@ const OrderFormSection = () => {
         {errors.fatherFirstNameAsMiddleName && <p className="text-destructive text-sm mt-1">{errors.fatherFirstNameAsMiddleName}</p>}
       </div>
 
+        <div>
+          <Label htmlFor="childLastName">Child's Last Name *</Label>
+          <div className="relative">
+            <Input id="childLastName" name="childLastName"
+              value={babyFormData.childLastName} onChange={handleInputChange}
+              placeholder="Enter child's last name" required
+              className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.childLastName ? "border-destructive" : isFieldValid("childLastName") ? "border-success" : ""}`} />
+            <ValidIcon field="childLastName" />
+          </div>
+          {errors.childLastName && <p className="text-destructive text-sm mt-1">{errors.childLastName}</p>}
+        </div>
       {/* Comfortable changing spelling of last name */}
       <div>
         <Label>Are you comfortable changing the spelling of the last name (if required)? *</Label>
@@ -24716,9 +24743,14 @@ const OrderFormSection = () => {
       </div>
 
 
+    </div>
+  );
+
+  const renderBabyPreferences = () => (
+    <div className="space-y-4">
       {/* Name Style (Mandatory, multi-select, max 2) */}
       <div>
-        <Label>Preferred Name Style *</Label>
+        <Label>Preferred Name Style (Optional)</Label>
         <p className="text-xs text-muted-foreground mt-0.5 mb-2">
           Select up to 2 styles you'd like us to consider.
         </p>
@@ -24855,8 +24887,11 @@ const OrderFormSection = () => {
         <div className="absolute top-5 left-0 right-0 h-0.5 bg-border" />
         <div className="absolute top-5 left-0 h-0.5 bg-accent transition-all duration-500" style={{ width: `${((formStep - 1) / (STEPS.length - 1)) * 100}%` }} />
         {STEPS.map((step) => (
-          <div key={step.id} className="flex flex-col items-center relative z-10">
-            <button
+          <div key={step.id} className="flex min-w-0 flex-1 flex-col items-center relative z-10">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={`Step ${step.id}: ${step.title}`}
               type="button"
               onClick={() => step.id < formStep && goToStep(step.id)}
               disabled={step.id > formStep}
@@ -24870,8 +24905,8 @@ const OrderFormSection = () => {
               )}
             >
               {step.id < formStep ? <Check className="w-5 h-5" /> : step.id}
-            </button>
-            <span className={cn("text-xs mt-2 font-medium transition-colors", step.id <= formStep ? "text-foreground" : "text-muted-foreground")}>
+            </Button>
+            <span className={cn("text-xs mt-2 text-center font-medium transition-colors", step.id <= formStep ? "text-foreground" : "text-muted-foreground")}>
               {step.label}
             </span>
           </div>
@@ -24886,8 +24921,9 @@ const OrderFormSection = () => {
       open={checkoutOpen}
       onOpenChange={setCheckoutOpen}
       step={formStep}
+      steps={STEPS}
       onBack={() => formStep > 1 ? goToStep(formStep - 1) : setCheckoutOpen(false)}
-      onContinue={() => formStep < 3 ? goToStep(formStep + 1) : void handleSubmit()}
+      onContinue={() => formStep < reviewStep ? goToStep(formStep + 1) : void handleSubmit()}
       submitting={isSubmitting}
       price={formatPrice(price)}
     >
@@ -24898,15 +24934,15 @@ const OrderFormSection = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="heading-lg text-foreground mb-1.5 md:mb-2 text-center">
-            {formStep === 1 ? "Contact Details" : formStep === 2 ? "Report Details" : "Review & Pay"}
+            {STEPS[formStep - 1]?.title}
           </h2>
           <p className="text-muted-foreground text-sm md:text-base mb-6 md:mb-8 text-center">
-            {formStep < 3 ? "" : "Confirm your details and proceed to secure payment"}
+            {formStep < reviewStep ? "" : "Confirm your details and proceed to secure payment"}
           </p>
 
           <ProgressBar />
 
-          {formStep === 3 ? (
+          {formStep === reviewStep ? (
             /* Review & Pay */
             <div className="grid lg:grid-cols-5 gap-6 lg:gap-12">
               <div className="lg:col-span-3">
@@ -25143,7 +25179,7 @@ const OrderFormSection = () => {
                 </p>
               </div>
 
-              {formStep < 3 && (
+              {formStep < reviewStep && (
                 <div className="space-y-6">
                   {packageType === "name-check" ? (
                     <>
@@ -25226,12 +25262,14 @@ const OrderFormSection = () => {
                     </>
                   ) : (
                     <>
-                      <div hidden={formStep !== 1}>{renderBabyContactDetails()}</div>
-                      <div hidden={formStep !== 2}>{renderBabyNameFields()}</div>
+                      <div hidden={formStep !== 1}>{renderBabyParentDetails()}</div>
+                      <div hidden={formStep !== 2}>{renderBabyBirthDetails()}</div>
+                      <div hidden={formStep !== 3}>{renderBabyChildNameDetails()}</div>
+                      <div hidden={formStep !== 4}>{renderBabyPreferences()}</div>
                     </>
                   )}
 
-                  <div hidden={formStep !== 2} className="space-y-6">
+                  <div hidden={formStep !== (packageType === "name-check" ? 2 : 4)} className="space-y-6">
                   {/* Optional Add-On (Baby Name only) */}
                   {isExtrasAddonEligible && (
                     <div
@@ -25406,7 +25444,7 @@ const OrderFormSection = () => {
                       <ChevronLeft className="w-5 h-5 mr-1" /> Back
                     </Button>
                     <Button variant="hero" size="lg" onClick={() => goToStep(formStep + 1)} className="flex-[2]">
-                      {formStep === 1 ? "Continue" : "Review Order"} <ChevronRight className="w-5 h-5 ml-1" />
+                      {formStep === reviewStep - 1 ? "Review Order" : "Continue"} <ChevronRight className="w-5 h-5 ml-1" />
                     </Button>
                   </div>
                 </div>

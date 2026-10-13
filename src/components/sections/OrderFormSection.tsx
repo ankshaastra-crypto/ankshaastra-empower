@@ -23526,9 +23526,10 @@ const BABY_STEPS = [
   { id: 5, label: "Review", title: "Review & Pay" },
 ];
 const NAME_CHECK_STEPS = [
-  { id: 1, label: "Contact", title: "Contact Details" },
-  { id: 2, label: "Report details", title: "Report Details" },
-  { id: 3, label: "Review & Pay", title: "Review & Pay" },
+  { id: 1, label: "Name", title: "Name Details" },
+  { id: 2, label: "Birth", title: "Birth Details" },
+  { id: 3, label: "Parents", title: "Parent & Contact Details" },
+  { id: 4, label: "Review", title: "Review & Pay" },
 ];
 
 const OrderFormSection = () => {
@@ -23560,6 +23561,8 @@ const OrderFormSection = () => {
   // Name Check form data
   const [formData, setFormData] = useState({
     name: "",
+    fatherFullName: "",
+    lastNameSpellingChangeOk: "",
     person1FirstName: "",
     person1MiddleName: "",
     person1MiddleNameType: "",
@@ -23759,7 +23762,7 @@ const OrderFormSection = () => {
       }
     } else {
       const val = formData[fieldName as keyof typeof formData];
-      const isOptional = fieldName === "pinCode";
+      const isOptional = fieldName === "person1MiddleName";
       if (!isOptional && (!val || (typeof val === "string" && !val.trim()))) return false;
       if (isOptional && (!val || (typeof val === "string" && !val.trim()))) return true;
       if (fieldName.includes("FirstName") || fieldName.includes("SurName")) return validateName(val, true);
@@ -23926,12 +23929,18 @@ const OrderFormSection = () => {
         const mtk = `person${i}MiddleNameType` as keyof typeof formData;
         if (!formData[fk] || !validateName(formData[fk], true)) newErrors[fk] = `Name ${i} first name is required`;
         if (!formData[sk] || !validateName(formData[sk], true)) newErrors[sk] = `Name ${i} last name is required`;
-        if (formData[mk] && formData[mk].trim() !== "" && (!formData[mtk] || formData[mtk].trim() === ""))
-          newErrors[mtk] = "Please specify if middle name is father's/husband's name";
+        if (!formData[mtk]) newErrors[mtk] = "Please specify if the middle name is the father's name";
+        if (formData[mk] && !validateName(formData[mk], false)) newErrors[mk] = "Please enter a valid middle name";
         if (!formData[dk] || !validateDob(formData[dk]))
           newErrors[dk] = !formData[dk] ? `Name ${i} date of birth is required` : `Date of birth must be in the past`;
         if (!formData[gk] || formData[gk].trim() === "") newErrors[gk] = `Name ${i} gender is required`;
       }
+      if (!formData.fatherFullName || !validateName(formData.fatherFullName, true))
+        newErrors.fatherFullName = "Father's full name is required";
+      if (!["yes", "no"].includes(formData.lastNameSpellingChangeOk))
+        newErrors.lastNameSpellingChangeOk = "Please specify if you are comfortable changing last name spelling";
+      if (!formData.pinCode || !validatePinCode(formData.pinCode))
+        newErrors.pinCode = "Please enter a valid six-digit birth pincode";
       if (!formData.mobile || !validateMobile(formData.mobile))
         newErrors.mobile = !formData.mobile ? "WhatsApp number is required" : "Please enter a valid 10-digit number starting with 6-9";
       if (!formData.email || !validateEmail(formData.email))
@@ -23955,9 +23964,14 @@ const OrderFormSection = () => {
         3: ["childMiddleName", "fatherFirstNameAsMiddleName", "childLastName", "lastNameSpellingChangeOk"],
         4: ["nameStyles", "kundaliLanguage"],
       };
+      const nameCheckStepFields: Record<number, string[]> = {
+        1: ["person1FirstName", "person1MiddleName", "person1MiddleNameType", "person1SurName", "lastNameSpellingChangeOk"],
+        2: ["person1Dob", "person1Gender", "city", "state", "pinCode"],
+        3: ["fatherFullName", "parentsProfession", "mobile", "email"],
+      };
       const stepErrors = Object.fromEntries(Object.entries(allErrors).filter(([key]) =>
         packageType === "name-check"
-          ? formStep === 1 ? ["mobile", "email"].includes(key) : true
+          ? (nameCheckStepFields[formStep] ?? []).includes(key)
           : (babyStepFields[formStep] ?? []).includes(key)
       ));
       if (Object.keys(stepErrors).length > 0) {
@@ -24058,6 +24072,8 @@ const OrderFormSection = () => {
       state: formData.state,
       pinCode: formData.pinCode || "",
       parentsProfession: formData.parentsProfession || "",
+      fatherFullName: formData.fatherFullName,
+      lastNameSpellingChangeOk: formData.lastNameSpellingChangeOk,
       name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
       dob: formData.person1Dob || "",
       gender: formData.person1Gender || "",
@@ -24362,7 +24378,7 @@ const OrderFormSection = () => {
     </div>
   );
 
-  const renderPersonFields = (personNum: number, showHeader: boolean = false) => (
+  const renderPersonFields = (personNum: number, showHeader: boolean = false, section: "name" | "birth" = "name") => (
     <div
       key={personNum}
       className={
@@ -24379,6 +24395,7 @@ const OrderFormSection = () => {
           <p className="font-heading font-bold text-lg text-foreground">Name {personNum} Details</p>
         </>
       )}
+      {section === "name" && <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <Label htmlFor={`person${personNum}FirstName`}>First Name *</Label>
@@ -24396,13 +24413,7 @@ const OrderFormSection = () => {
           <div className="relative">
             <Input id={`person${personNum}MiddleName`} name={`person${personNum}MiddleName`}
               value={formData[`person${personNum}MiddleName` as keyof typeof formData]}
-              onChange={(e) => {
-                handleInputChange(e);
-                if (!e.target.value.trim()) {
-                  setFormData((prev) => ({ ...prev, [`person${personNum}MiddleNameType`]: "" }));
-                  setErrors((prev) => { const n = { ...prev }; delete n[`person${personNum}MiddleNameType`]; return n; });
-                }
-              }}
+              onChange={handleInputChange}
               placeholder="Middle name (optional)" className="mt-1.5 pr-9 transition-all duration-300 focus:shadow-card" />
             <ValidIcon field={`person${personNum}MiddleName`} />
           </div>
@@ -24419,9 +24430,8 @@ const OrderFormSection = () => {
           {errors[`person${personNum}SurName`] && <p className="text-destructive text-sm mt-1">{errors[`person${personNum}SurName`]}</p>}
         </div>
       </div>
-      {formData[`person${personNum}MiddleName` as keyof typeof formData]?.trim() && (
         <div>
-          <Label>Is the middle name father's / husband's name? *</Label>
+          <Label>Is the middle name the father's name? *</Label>
           <RadioGroup
             value={formData[`person${personNum}MiddleNameType` as keyof typeof formData]}
             onValueChange={(value) => {
@@ -24441,8 +24451,21 @@ const OrderFormSection = () => {
           </RadioGroup>
           {errors[`person${personNum}MiddleNameType`] && <p className="text-destructive text-sm mt-1">{errors[`person${personNum}MiddleNameType`]}</p>}
         </div>
-      )}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <Label>Comfortable changing last name spelling? *</Label>
+        <RadioGroup value={formData.lastNameSpellingChangeOk} onValueChange={(value) => {
+          setFormData((prev) => ({ ...prev, lastNameSpellingChangeOk: value }));
+          setErrors((prev) => { const next = { ...prev }; delete next.lastNameSpellingChangeOk; return next; });
+        }} className="flex gap-4 mt-2">
+          {["yes", "no"].map((value) => <div key={value} className="flex items-center space-x-2">
+            <RadioGroupItem value={value} id={`nameCheckLastName-${value}`} />
+            <Label htmlFor={`nameCheckLastName-${value}`} className="cursor-pointer font-normal">{value === "yes" ? "Yes" : "No"}</Label>
+          </div>)}
+        </RadioGroup>
+        {errors.lastNameSpellingChangeOk && <p className="text-destructive text-sm mt-1">{errors.lastNameSpellingChangeOk}</p>}
+      </div>
+      </div>}
+      {section === "birth" && <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label>Date of Birth *</Label>
           <Popover open={openDobPicker === `person${personNum}Dob`} onOpenChange={(o) => setOpenDobPicker(o ? `person${personNum}Dob` : null)}>
@@ -24494,7 +24517,7 @@ const OrderFormSection = () => {
           {isFieldValid(`person${personNum}Gender`) && <CheckCircle2 className="w-4 h-4 text-success inline ml-2" />}
           {errors[`person${personNum}Gender`] && <p className="text-destructive text-sm mt-1">{errors[`person${personNum}Gender`]}</p>}
         </div>
-      </div>
+      </div>}
     </div>
   );
 
@@ -24847,7 +24870,10 @@ const OrderFormSection = () => {
         ...(isKundaliActive ? [{ label: "Add-on", value: `${ADDON_KUNDALI_LABEL} - ${kundaliLanguage} (+${formatPrice(ADDON_KUNDALI_PRICE)})` }] : []),
       );
     } else {
-      items.push({ label: "Package", value: "Name Check" });
+      items.push({ label: "Package", value: "Name Check" },
+        { label: "Father's Full Name", value: formData.fatherFullName },
+        { label: "Middle name is father's name", value: formData.person1MiddleNameType },
+        { label: "Comfortable changing last name spelling", value: formData.lastNameSpellingChangeOk });
       for (let i = 1; i <= nameCheckCount; i++) {
         items.push({ label: `Name ${i}`, value: getFullName(formData[`person${i}FirstName` as keyof typeof formData], formData[`person${i}MiddleName` as keyof typeof formData], formData[`person${i}SurName` as keyof typeof formData]) });
         items.push({ label: `DOB ${i}`, value: formData[`person${i}Dob` as keyof typeof formData] ? format(parse(formData[`person${i}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" });
@@ -25183,9 +25209,19 @@ const OrderFormSection = () => {
                 <div className="space-y-6">
                   {packageType === "name-check" ? (
                     <>
-                      {/* Contact Details */}
-                      <div hidden={formStep !== 1} className="space-y-4 pt-2">
-                        <p className="font-semibold text-foreground">Contact Details</p>
+                      <div hidden={formStep !== 1}>{renderPersonFields(1, false, "name")}</div>
+                      <div hidden={formStep !== 3} className="space-y-4 pt-2">
+                        <div>
+                          <Label htmlFor="fatherFullName">Father's Full Name *</Label>
+                          <Input id="fatherFullName" name="fatherFullName" value={formData.fatherFullName} onChange={handleInputChange} required placeholder="Enter father's full name" className={cn("mt-1.5", errors.fatherFullName && "border-destructive")} />
+                          {errors.fatherFullName && <p className="text-destructive text-sm mt-1">{errors.fatherFullName}</p>}
+                        </div>
+                        <div>
+                          <Label htmlFor="parentsProfession">Parent's Occupation *</Label>
+                          <Textarea id="parentsProfession" value={formData.parentsProfession} onChange={(e) => handleNameCheckProfessionChange(e.target.value)} required placeholder="e.g. Doctor, Business, IT Professional" className={cn("mt-1.5", errors.parentsProfession && "border-destructive")} />
+                          <p className="text-xs text-muted-foreground mt-1">{countWords(formData.parentsProfession)}/50 words</p>
+                          {errors.parentsProfession && <p className="text-destructive text-sm mt-1">{errors.parentsProfession}</p>}
+                        </div>
                         <div>
                           <Label htmlFor="mobile">WhatsApp Number *</Label>
                           <div className="relative">
@@ -25208,9 +25244,7 @@ const OrderFormSection = () => {
                         </div>
                       </div>
                       <div hidden={formStep !== 2} className="space-y-6">
-                      {Array.from({ length: nameCheckCount }, (_, i) => i + 1).map((personNum) =>
-                        renderPersonFields(personNum, nameCheckCount > 1)
-                      )}
+                      {renderPersonFields(1, false, "birth")}
                       <div className="space-y-4 pt-2">
                         <div>
 
@@ -25224,7 +25258,7 @@ const OrderFormSection = () => {
                           {errors.city && <p className="text-destructive text-sm mt-1">{errors.city}</p>}
                         </div>
                         <div>
-                          <Label htmlFor="state">State / Province *</Label>
+                          <Label htmlFor="state">State of Birth *</Label>
                           <div className="relative">
                             <Input id="state" name="state" type="text" list={STATE_DATALIST_ID} autoComplete="off" value={formData.state} onChange={handleInputChange}
                               placeholder="Type to search e.g. Maha…" required maxLength={60}
@@ -25235,28 +25269,15 @@ const OrderFormSection = () => {
                           <p className="text-xs text-muted-foreground mt-1">Required for GST invoice compliance.</p>
                         </div>
                         <div>
-                          <Label htmlFor="pinCode">ZIP / Pincode (optional)</Label>
+                          <Label htmlFor="pinCode">Birth Pincode *</Label>
                           <div className="relative">
                             <Input id="pinCode" name="pinCode" type="text" value={formData.pinCode} onChange={handleInputChange}
-                              placeholder="e.g. 400001" maxLength={20}
+                              placeholder="e.g. 400001" required inputMode="numeric" maxLength={6}
                               className={`mt-1.5 pr-9 transition-all duration-300 focus:shadow-card ${errors.pinCode ? "border-destructive" : isFieldValid("pinCode") ? "border-success" : ""}`} />
                             <ValidIcon field="pinCode" />
                           </div>
                           {errors.pinCode && <p className="text-destructive text-sm mt-1">{errors.pinCode}</p>}
                         </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="parentsProfession">Profession *</Label>
-                        <Textarea
-                          id="parentsProfession"
-                          value={formData.parentsProfession}
-                          onChange={(e) => handleNameCheckProfessionChange(e.target.value)}
-                          placeholder="e.g. Doctor, Business, IT Professional, Homemaker…"
-                          required
-                          className={`mt-1.5 min-h-[80px] transition-all duration-300 focus:shadow-card ${errors.parentsProfession ? "border-destructive" : isFieldValid("parentsProfession") ? "border-success" : ""}`}
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">{countWords(formData.parentsProfession)}/50 words</p>
-                        {errors.parentsProfession && <p className="text-destructive text-sm mt-1">{errors.parentsProfession}</p>}
                       </div>
                       </div>
                     </>

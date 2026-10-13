@@ -29,3 +29,5 @@
 - [x] Restyle mobile checkout as a reference-inspired bottom sheet while retaining every field and existing validation
 - [x] Organize checkout into Contact → Report details → Review & Pay, preserving all fields
 - [x] Organize baby-name checkout into five requested steps, with mandatory details and optional preferences
+- [ ] Organize Name Check into Name → Birth → Parent/contact → Review with required fields
+- [ ] Restore payment initiation and verify checkout — waiting for payment provider credentials

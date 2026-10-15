@@ -23428,6 +23428,7 @@ interface RazorpayPaymentResponse {
 interface RazorpayCheckoutOptions {
   key: string;
   order_id: string;
+  modal?: { ondismiss: () => void };
   handler: (response: RazorpayPaymentResponse) => void;
   prefill: {
     name: string;
@@ -24217,6 +24218,7 @@ const OrderFormSection = () => {
 
   // --- Submit (only from step 3) ---
   const handleSubmit = async () => {
+    if (isSubmitting) return;
     setIsSubmitting(true);
     const price = getPrice();
     const orderId = getOrGenerateOrderId();
@@ -24239,7 +24241,13 @@ const OrderFormSection = () => {
           ...orderPayload,
           addons: { extraNames: !!isAddonActive, nickname: !!isNicknameActive },
         }),
+        signal: AbortSignal.timeout(15000),
       });
+      if (response.status === 404) {
+        toast({ title: "Payment unavailable", description: "Payment is not connected on this site yet. Please contact support.", variant: "destructive" });
+        setIsSubmitting(false);
+        return;
+      }
       const result = await response.json() as {
         success: boolean;
         orderId: string;
@@ -24274,6 +24282,7 @@ const OrderFormSection = () => {
         const options: RazorpayCheckoutOptions = {
           key: razorpayKeyId,
           order_id: razorpayOrderId,
+          modal: { ondismiss: () => setIsSubmitting(false) },
           handler: (response: RazorpayPaymentResponse) => {
             const callbackParams = new URLSearchParams({
               orderId: result.orderId,
@@ -24341,8 +24350,9 @@ const OrderFormSection = () => {
           document.body.appendChild(script);
         }
       }
-    } catch {
-      toast({ title: "Network Error", description: "Failed to connect to payment server. Please try again.", variant: "destructive" });
+    } catch (error) {
+      const timedOut = error instanceof DOMException && (error.name === "TimeoutError" || error.name === "AbortError");
+      toast({ title: timedOut ? "Payment request timed out" : "Network Error", description: timedOut ? "The payment service took too long to respond. Please try again." : "Failed to connect to payment server. Please try again.", variant: "destructive" });
       setIsSubmitting(false);
     }
   };

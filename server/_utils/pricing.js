@@ -47,7 +47,7 @@
 
 // Default prices (used only if no env variable is set)
 const DEFAULT_PRICES = {
-  'name-check': 473,
+  'name-check': 1,
   'perfect-baby-name-report': 3437,
   'complete-baby-name-blueprint': 5957,
 };

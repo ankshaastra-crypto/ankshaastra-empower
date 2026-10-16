@@ -23451,6 +23451,58 @@ declare global {
   }
 }
 
+// ---- Mobile UPI app-switch safety net -------------------------------------
+// GPay/PhonePe open as a separate app. When the user returns, the browser may
+// have reloaded the page and Razorpay's JS handler never fires. We remember the
+// pending order and send the customer to /payment-status when they come back.
+const PENDING_KEY = "pendingRzpOrder";
+const IS_MOBILE_UA = () =>
+  typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+interface PendingRzpOrder {
+  orderId: string;
+  razorpayOrderId: string;
+  email: string;
+  name: string;
+  mobile: string;
+  package: string;
+  ts: number;
+  left: boolean;
+}
+
+const readPendingOrder = (): PendingRzpOrder | null => {
+  try {
+    const raw = localStorage.getItem(PENDING_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    if (!p?.ts || Date.now() - p.ts > 30 * 60 * 1000) {
+      localStorage.removeItem(PENDING_KEY);
+      return null;
+    }
+    return p;
+  } catch {
+    return null;
+  }
+};
+const writePendingOrder = (p: PendingRzpOrder) => {
+  try { localStorage.setItem(PENDING_KEY, JSON.stringify(p)); } catch { /* ignore */ }
+};
+const clearPendingOrder = () => {
+  try { localStorage.removeItem(PENDING_KEY); } catch { /* ignore */ }
+};
+const goToPaymentStatus = (p: PendingRzpOrder) => {
+  clearPendingOrder();
+  const q = new URLSearchParams({
+    orderId: p.orderId,
+    email: p.email,
+    name: p.name,
+    mobile: p.mobile,
+    package: p.package,
+    razorpay_order_id: p.razorpayOrderId,
+  });
+  window.location.href = `/payment-status?${q.toString()}`;
+};
+
 interface OrderPayload {
   orderId: string;
   email: string;
@@ -23666,6 +23718,30 @@ const OrderFormSection = () => {
     s.src = "https://checkout.razorpay.com/v1/checkout.js";
     s.async = true;
     document.body.appendChild(s);
+  }, []);
+
+  // Mobile: user came back from GPay/UPI app -> go to payment status page.
+  useEffect(() => {
+    if (typeof window === "undefined" || !IS_MOBILE_UA()) return;
+    const check = () => {
+      const p = readPendingOrder();
+      if (p?.left) goToPaymentStatus(p);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        const p = readPendingOrder();
+        if (p && !p.left) writePendingOrder({ ...p, left: true });
+      } else {
+        check();
+      }
+    };
+    check();
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pageshow", check);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pageshow", check);
+    };
   }, []);
 
   // --- Validation functions ---
@@ -24281,11 +24357,26 @@ const OrderFormSection = () => {
           return;
         }
 
+        // Mobile: payment hua ya nahi, server se har 3 sec me poochte raho
+        let pollId: number | undefined;
+        const stopPolling = () => { if (pollId) { window.clearInterval(pollId); pollId = undefined; } };
+
         const options: RazorpayCheckoutOptions = {
           key: razorpayKeyId,
           order_id: razorpayOrderId,
-          modal: { ondismiss: () => { setIsSubmitting(false); setCheckoutOpen(true); } },
+          modal: {
+            ondismiss: () => {
+              stopPolling();
+              const p = readPendingOrder();
+              if (IS_MOBILE_UA() && p?.left) { goToPaymentStatus(p); return; }
+              clearPendingOrder();
+              setIsSubmitting(false);
+              setCheckoutOpen(true);
+            },
+          },
           handler: (response: RazorpayPaymentResponse) => {
+            stopPolling();
+            clearPendingOrder();
             const callbackParams = new URLSearchParams({
               orderId: result.orderId,
               email: orderPayload.email || "",
@@ -24332,6 +24423,8 @@ const OrderFormSection = () => {
 
         const rzp = new Razorpay(options);
         rzp.on("payment.failed", (response: RazorpayPaymentResponse) => {
+          stopPolling();
+          clearPendingOrder();
           toast({
             title: "Payment Failed",
             description: response.error?.description || "Your payment could not be processed. Please try again.",
@@ -24341,8 +24434,45 @@ const OrderFormSection = () => {
         });
 
         // Mobile: Radix Dialog Razorpay ke taps block karta hai, isliye pehle band karo
-setCheckoutOpen(false);
-window.setTimeout(() => rzp.open(), 200);
+writePendingOrder({
+          orderId: result.orderId,
+          razorpayOrderId,
+          email: orderPayload.email || "",
+          name: orderPayload.name || "",
+          mobile: orderPayload.mobile || "",
+          package: orderPayload.packageType || packageType,
+          ts: Date.now(),
+          left: false,
+        });
+        setCheckoutOpen(false);
+        window.setTimeout(() => rzp.open(), 200);
+
+        if (IS_MOBILE_UA()) {
+          const startedAt = Date.now();
+          pollId = window.setInterval(async () => {
+            if (Date.now() - startedAt > 10 * 60 * 1000) { stopPolling(); return; }
+            try {
+              const r = await fetch(
+                `/api/razorpay-callback?check=1&razorpay_order_id=${encodeURIComponent(razorpayOrderId)}`,
+                { cache: "no-store" }
+              );
+              const j = await r.json();
+              if (j?.paid) {
+                stopPolling();
+                goToPaymentStatus({
+                  orderId: result.orderId,
+                  razorpayOrderId,
+                  email: orderPayload.email || "",
+                  name: orderPayload.name || "",
+                  mobile: orderPayload.mobile || "",
+                  package: orderPayload.packageType || packageType,
+                  ts: Date.now(),
+                  left: true,
+                });
+              }
+            } catch { /* network blip - next tick retries */ }
+          }, 3000);
+        }
       };
 
       // Use the preloaded Razorpay script if available; otherwise load on demand.

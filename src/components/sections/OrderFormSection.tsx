@@ -24282,7 +24282,7 @@ const OrderFormSection = () => {
         const options: RazorpayCheckoutOptions = {
           key: razorpayKeyId,
           order_id: razorpayOrderId,
-          modal: { ondismiss: () => setIsSubmitting(false) },
+          modal: { ondismiss: () => { setIsSubmitting(false); setCheckoutOpen(true); } },
           handler: (response: RazorpayPaymentResponse) => {
             const callbackParams = new URLSearchParams({
               orderId: result.orderId,
@@ -24324,7 +24324,9 @@ const OrderFormSection = () => {
           setIsSubmitting(false);
         });
 
-        rzp.open();
+        // Mobile: Radix Dialog Razorpay ke taps block karta hai, isliye pehle band karo
+setCheckoutOpen(false);
+window.setTimeout(() => rzp.open(), 200);
       };
 
       // Use the preloaded Razorpay script if available; otherwise load on demand.

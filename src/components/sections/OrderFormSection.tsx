@@ -23503,6 +23503,20 @@ const goToPaymentStatus = (p: PendingRzpOrder) => {
   window.location.href = `/payment-status?${q.toString()}`;
 };
 
+// Server se poochho: is order ka payment ho gaya? (read-only check)
+const checkPendingPaid = async (p: PendingRzpOrder): Promise<boolean> => {
+  try {
+    const r = await fetch(
+      `/api/razorpay-callback?check=1&razorpay_order_id=${encodeURIComponent(p.razorpayOrderId)}`,
+      { cache: "no-store" }
+    );
+    const j = await r.json();
+    return j?.paid === true;
+  } catch {
+    return false;
+  }
+};
+
 interface OrderPayload {
   orderId: string;
   email: string;
@@ -23720,27 +23734,39 @@ const OrderFormSection = () => {
     document.body.appendChild(s);
   }, []);
 
-  // Mobile: user came back from GPay/UPI app -> go to payment status page.
+  // Mobile: user came back from GPay/UPI app (page may have reloaded).
+  // Pending order ho to server se check karte raho; paid hote hi success page.
   useEffect(() => {
     if (typeof window === "undefined" || !IS_MOBILE_UA()) return;
-    const check = () => {
-      const p = readPendingOrder();
-      if (p?.left) goToPaymentStatus(p);
+    let timer: number | undefined;
+    const stop = () => { if (timer) { window.clearInterval(timer); timer = undefined; } };
+    const startVerify = () => {
+      stop();
+      if (!readPendingOrder()) return;
+      let tries = 0;
+      const tick = async () => {
+        const p = readPendingOrder();
+        if (!p || ++tries > 40) { stop(); return; }
+        if (await checkPendingPaid(p)) { stop(); goToPaymentStatus(p); }
+      };
+      tick();
+      timer = window.setInterval(tick, 2500);
     };
     const onVisibility = () => {
       if (document.visibilityState === "hidden") {
         const p = readPendingOrder();
         if (p && !p.left) writePendingOrder({ ...p, left: true });
       } else {
-        check();
+        startVerify();
       }
     };
-    check();
+    startVerify();
     document.addEventListener("visibilitychange", onVisibility);
-    window.addEventListener("pageshow", check);
+    window.addEventListener("pageshow", startVerify);
     return () => {
+      stop();
       document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener("pageshow", check);
+      window.removeEventListener("pageshow", startVerify);
     };
   }, []);
 
@@ -24368,10 +24394,16 @@ const OrderFormSection = () => {
             ondismiss: () => {
               stopPolling();
               const p = readPendingOrder();
-              if (IS_MOBILE_UA() && p?.left) { goToPaymentStatus(p); return; }
-              clearPendingOrder();
-              setIsSubmitting(false);
-              setCheckoutOpen(true);
+              const reopenForm = () => {
+                clearPendingOrder();
+                setIsSubmitting(false);
+                setCheckoutOpen(true);
+              };
+              if (IS_MOBILE_UA() && p?.left) {
+                checkPendingPaid(p).then((paid) => (paid ? goToPaymentStatus(p) : reopenForm()));
+                return;
+              }
+              reopenForm();
             },
           },
           handler: (response: RazorpayPaymentResponse) => {

@@ -23429,6 +23429,8 @@ interface RazorpayCheckoutOptions {
   key: string;
   order_id: string;
   modal?: { ondismiss: () => void };
+  callback_url?: string;
+  redirect?: boolean;
   handler: (response: RazorpayPaymentResponse) => void;
   prefill: {
     name: string;
@@ -24305,6 +24307,20 @@ const OrderFormSection = () => {
             contact: orderPayload.mobile || "",
           },
           theme: { color: "#C9A961" },
+          // Mobile (GPay/UPI app switch): Razorpay server-side redirect use karo,
+          // taaki app se wapas aane par bhi payment-status page khule.
+          ...(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+            ? {
+                redirect: true,
+                callback_url: `${window.location.origin}/api/razorpay-callback?${new URLSearchParams({
+                  orderId: result.orderId,
+                  email: orderPayload.email || "",
+                  name: orderPayload.name || "",
+                  mobile: orderPayload.mobile || "",
+                  package: orderPayload.packageType || packageType,
+                }).toString()}`,
+              }
+            : {}),
         };
 
         const Razorpay = window.Razorpay;

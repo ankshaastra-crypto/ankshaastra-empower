@@ -39,7 +39,7 @@ const DEFAULTS = {
   single: { price: 3437, originalPrice: 7500 },
   premium: { price: 5957, originalPrice: 15051 },
   namecheck: {
-    1: { price: 1, originalPrice: 1100 },
+    473: { price: 1, originalPrice: 1100 },
   },
 } as const;
 

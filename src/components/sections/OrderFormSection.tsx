@@ -23631,7 +23631,6 @@ const OrderFormSection = () => {
   const [formData, setFormData] = useState({
     name: "",
     fatherFullName: "",
-    lastNameSpellingChangeOk: "",
     person1FirstName: "",
     person1MiddleName: "",
     person1MiddleNameType: "",
@@ -24042,8 +24041,6 @@ const OrderFormSection = () => {
       }
       if (!formData.fatherFullName || !validateName(formData.fatherFullName, true))
         newErrors.fatherFullName = "Father's full name is required";
-      if (!["yes", "no"].includes(formData.lastNameSpellingChangeOk))
-        newErrors.lastNameSpellingChangeOk = "Please specify if you are comfortable changing last name spelling";
       if (!formData.pinCode || !validatePinCode(formData.pinCode))
         newErrors.pinCode = "Please enter a valid six-digit birth pincode";
       if (!formData.mobile || !validateMobile(formData.mobile))
@@ -24070,7 +24067,7 @@ const OrderFormSection = () => {
         4: ["nameStyles", "kundaliLanguage"],
       };
       const nameCheckStepFields: Record<number, string[]> = {
-        1: ["person1FirstName", "person1MiddleName", "person1MiddleNameType", "person1SurName", "lastNameSpellingChangeOk"],
+        1: ["person1FirstName", "person1MiddleName", "person1MiddleNameType", "person1SurName"],
         2: ["person1Dob", "person1Gender", "city", "state", "pinCode"],
         3: ["fatherFullName", "parentsProfession", "mobile", "email"],
       };
@@ -24178,7 +24175,6 @@ const OrderFormSection = () => {
       pinCode: formData.pinCode || "",
       parentsProfession: formData.parentsProfession || "",
       fatherFullName: formData.fatherFullName,
-      lastNameSpellingChangeOk: formData.lastNameSpellingChangeOk,
       name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
       dob: formData.person1Dob || "",
       gender: formData.person1Gender || "",
@@ -24641,19 +24637,6 @@ writePendingOrder({
           </RadioGroup>
           {errors[`person${personNum}MiddleNameType`] && <p className="text-destructive text-sm mt-1">{errors[`person${personNum}MiddleNameType`]}</p>}
         </div>
-      <div>
-        <Label>Comfortable changing last name spelling? *</Label>
-        <RadioGroup value={formData.lastNameSpellingChangeOk} onValueChange={(value) => {
-          setFormData((prev) => ({ ...prev, lastNameSpellingChangeOk: value }));
-          setErrors((prev) => { const next = { ...prev }; delete next.lastNameSpellingChangeOk; return next; });
-        }} className="flex gap-4 mt-2">
-          {["yes", "no"].map((value) => <div key={value} className="flex items-center space-x-2">
-            <RadioGroupItem value={value} id={`nameCheckLastName-${value}`} />
-            <Label htmlFor={`nameCheckLastName-${value}`} className="cursor-pointer font-normal">{value === "yes" ? "Yes" : "No"}</Label>
-          </div>)}
-        </RadioGroup>
-        {errors.lastNameSpellingChangeOk && <p className="text-destructive text-sm mt-1">{errors.lastNameSpellingChangeOk}</p>}
-      </div>
       </div>}
       {section === "birth" && <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -25062,8 +25045,7 @@ writePendingOrder({
     } else {
       items.push({ label: "Package", value: "Name Check" },
         { label: "Father's Full Name", value: formData.fatherFullName },
-        { label: "Middle name is father's name", value: formData.person1MiddleNameType },
-        { label: "Comfortable changing last name spelling", value: formData.lastNameSpellingChangeOk });
+        { label: "Middle name is father's name", value: formData.person1MiddleNameType });
       for (let i = 1; i <= nameCheckCount; i++) {
         items.push({ label: `Name ${i}`, value: getFullName(formData[`person${i}FirstName` as keyof typeof formData], formData[`person${i}MiddleName` as keyof typeof formData], formData[`person${i}SurName` as keyof typeof formData]) });
         items.push({ label: `DOB ${i}`, value: formData[`person${i}Dob` as keyof typeof formData] ? format(parse(formData[`person${i}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" });

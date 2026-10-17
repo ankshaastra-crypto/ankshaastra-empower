@@ -24637,19 +24637,6 @@ writePendingOrder({
           </RadioGroup>
           {errors[`person${personNum}MiddleNameType`] && <p className="text-destructive text-sm mt-1">{errors[`person${personNum}MiddleNameType`]}</p>}
         </div>
-      <div>
-        <Label>Comfortable changing last name spelling? *</Label>
-        <RadioGroup value={formData.lastNameSpellingChangeOk} onValueChange={(value) => {
-          setFormData((prev) => ({ ...prev, lastNameSpellingChangeOk: value }));
-          setErrors((prev) => { const next = { ...prev }; delete next.lastNameSpellingChangeOk; return next; });
-        }} className="flex gap-4 mt-2">
-          {["yes", "no"].map((value) => <div key={value} className="flex items-center space-x-2">
-            <RadioGroupItem value={value} id={`nameCheckLastName-${value}`} />
-            <Label htmlFor={`nameCheckLastName-${value}`} className="cursor-pointer font-normal">{value === "yes" ? "Yes" : "No"}</Label>
-          </div>)}
-        </RadioGroup>
-        {errors.lastNameSpellingChangeOk && <p className="text-destructive text-sm mt-1">{errors.lastNameSpellingChangeOk}</p>}
-      </div>
       </div>}
       {section === "birth" && <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -25058,8 +25045,7 @@ writePendingOrder({
     } else {
       items.push({ label: "Package", value: "Name Check" },
         { label: "Father's Full Name", value: formData.fatherFullName },
-        { label: "Middle name is father's name", value: formData.person1MiddleNameType },
-        { label: "Comfortable changing last name spelling", value: formData.lastNameSpellingChangeOk });
+        { label: "Middle name is father's name", value: formData.person1MiddleNameType });
       for (let i = 1; i <= nameCheckCount; i++) {
         items.push({ label: `Name ${i}`, value: getFullName(formData[`person${i}FirstName` as keyof typeof formData], formData[`person${i}MiddleName` as keyof typeof formData], formData[`person${i}SurName` as keyof typeof formData]) });
         items.push({ label: `DOB ${i}`, value: formData[`person${i}Dob` as keyof typeof formData] ? format(parse(formData[`person${i}Dob` as keyof typeof formData], "yyyy-MM-dd", new Date()), "dd MMM yyyy") : "" });

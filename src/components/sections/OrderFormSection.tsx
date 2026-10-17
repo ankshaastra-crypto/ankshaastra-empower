@@ -23631,7 +23631,6 @@ const OrderFormSection = () => {
   const [formData, setFormData] = useState({
     name: "",
     fatherFullName: "",
-    lastNameSpellingChangeOk: "",
     person1FirstName: "",
     person1MiddleName: "",
     person1MiddleNameType: "",
@@ -24042,8 +24041,6 @@ const OrderFormSection = () => {
       }
       if (!formData.fatherFullName || !validateName(formData.fatherFullName, true))
         newErrors.fatherFullName = "Father's full name is required";
-      if (!["yes", "no"].includes(formData.lastNameSpellingChangeOk))
-        newErrors.lastNameSpellingChangeOk = "Please specify if you are comfortable changing last name spelling";
       if (!formData.pinCode || !validatePinCode(formData.pinCode))
         newErrors.pinCode = "Please enter a valid six-digit birth pincode";
       if (!formData.mobile || !validateMobile(formData.mobile))
@@ -24070,7 +24067,7 @@ const OrderFormSection = () => {
         4: ["nameStyles", "kundaliLanguage"],
       };
       const nameCheckStepFields: Record<number, string[]> = {
-        1: ["person1FirstName", "person1MiddleName", "person1MiddleNameType", "person1SurName", "lastNameSpellingChangeOk"],
+        1: ["person1FirstName", "person1MiddleName", "person1MiddleNameType", "person1SurName"],
         2: ["person1Dob", "person1Gender", "city", "state", "pinCode"],
         3: ["fatherFullName", "parentsProfession", "mobile", "email"],
       };
@@ -24178,7 +24175,6 @@ const OrderFormSection = () => {
       pinCode: formData.pinCode || "",
       parentsProfession: formData.parentsProfession || "",
       fatherFullName: formData.fatherFullName,
-      lastNameSpellingChangeOk: formData.lastNameSpellingChangeOk,
       name: getFullName(formData.person1FirstName, formData.person1MiddleName, formData.person1SurName),
       dob: formData.person1Dob || "",
       gender: formData.person1Gender || "",

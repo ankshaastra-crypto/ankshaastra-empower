@@ -1,6 +1,7 @@
 # Architecture rules
 
 - General package browsing uses `packageNavigation.ts` so popup and sticky buttons reset the mobile package switch and tolerate lazy section loading.
+- Pass the first selected service into the lazy order form as a prop; do not replay selection on a timer, which can fire before its listener mounts.
 
 - All order-form base prices must use `src/lib/packagePricing.ts` helpers, never a local price table, so selection, review, and payment totals cannot diverge from package cards; server validation defaults must match those base prices.
 - Mobile checkout wraps the existing order-form content in an accessible modal shell; keep field state and validation in the order form so mobile and desktop cannot diverge.

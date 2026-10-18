@@ -23602,7 +23602,7 @@ const NAME_CHECK_STEPS = [
   { id: 4, label: "Review", title: "Review & Pay" },
 ];
 
-const OrderFormSection = () => {
+const OrderFormSection = ({ initialPackage = "name-check" }: { initialPackage?: string }) => {
   const { toast } = useToast();
   const { ref } = useScrollAnimation({ threshold: 0.1 });
   const [formStep, setFormStep] = useState(1);
@@ -23619,7 +23619,9 @@ const OrderFormSection = () => {
     return orderIdRef.current;
   };
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [packageType, setPackageType] = useState<"name-check" | "perfect-baby-name-report" | "complete-baby-name-blueprint">("name-check");
+  const [packageType, setPackageType] = useState<"name-check" | "perfect-baby-name-report" | "complete-baby-name-blueprint">(
+    initialPackage === "perfect-baby-name-report" || initialPackage === "complete-baby-name-blueprint" ? initialPackage : "name-check"
+  );
   const STEPS = packageType === "name-check" ? NAME_CHECK_STEPS : BABY_STEPS;
   const reviewStep = STEPS.length;
   const nameCheckCount = 1 as const;

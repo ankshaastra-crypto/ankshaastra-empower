@@ -57,19 +57,8 @@ const GatedOrderForm = () => {
     return () => window.removeEventListener("setPackageType", handler as EventListener);
   }, []);
 
-  // Once the form is mounted, re-dispatch the captured packageType
-  // so the OrderFormSection's own listener picks it up.
-  useEffect(() => {
-    if (!revealed || !pendingDetail) return;
-    const t = setTimeout(() => {
-      window.dispatchEvent(new CustomEvent("setPackageType", { detail: pendingDetail }));
-      setPendingDetail(null);
-    }, 0);
-    return () => clearTimeout(t);
-  }, [revealed, pendingDetail]);
-
   if (!revealed) return null;
-  return <OrderFormSection />;
+  return <OrderFormSection initialPackage={pendingDetail ?? "name-check"} />;
 };
 
 const Index = () => {

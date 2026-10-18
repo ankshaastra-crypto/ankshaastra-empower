@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { openNameCheck } from "@/lib/packageNavigation";
+import { showPackages } from "@/lib/packageNavigation";
 const heroBg = "/assets/hero.webp";
 
 const HeroSection = () => {
-  const scrollToForm = openNameCheck;
+  const scrollToPackages = showPackages;
 
   return (
     <section className="min-h-[85vh] md:min-h-screen flex items-center pt-24 pb-4 md:pt-28 md:pb-10 relative overflow-hidden bg-background">
@@ -57,7 +57,7 @@ const HeroSection = () => {
 
           <div className="my-8 md:my-10 relative inline-block">
             <Button
-              onClick={scrollToForm}
+              onClick={scrollToPackages}
               size="default"
               className="w-auto font-bold text-sm md:text-lg shadow-xl hover:scale-105 transition-transform animate-pulse-glow animate-blinker border-none px-6 py-3 md:px-8 md:py-4 bg-gold-cta text-accent-foreground"
             >

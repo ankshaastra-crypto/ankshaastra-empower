@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ShoppingBag } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
+import { showPackages } from "@/lib/packageNavigation";
 
 const WHATSAPP_URL =
   "https://wa.me/919667305577?text=Hi%2C%20I%20want%20to%20know%20more%20about%20baby%20name%20reports";
@@ -33,10 +34,7 @@ const FloatingElements = () => {
 
   const hideBuyBar = formActive || pricingVisible;
 
-  const scrollToPricing = () => {
-    const el = document.getElementById("pricing");
-    if (el) el.scrollIntoView({ behavior: "smooth" });
-  };
+  const scrollToPricing = showPackages;
 
   return (
     <>
@@ -71,10 +69,10 @@ const FloatingElements = () => {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Chat on WhatsApp"
-          className="fixed right-4 z-50 w-14 h-14 rounded-full bg-[#25D366] shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95"
+          className={`fixed right-4 z-50 w-14 h-14 rounded-full bg-[hsl(var(--whatsapp))] shadow-lg ${pricingVisible ? "hidden md:flex" : "flex"} items-center justify-center hover:scale-110 transition-transform active:scale-95`}
           style={{ bottom: "calc(env(safe-area-inset-bottom) + 80px)" }}
         >
-          <FaWhatsapp className="w-8 h-8 text-white" />
+          <FaWhatsapp className="w-8 h-8 text-[hsl(var(--whatsapp-foreground))]" />
         </a>
       )}
     </>

@@ -61,7 +61,6 @@ const TabReturnToast = () => {
               href={WA_URL}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => setShow(false)}
               className="inline-flex items-center gap-1.5 bg-[#25D366] text-white text-xs font-bold rounded-md px-3 py-1.5 hover:opacity-90 transition"
             >
               <FaWhatsapp className="w-3.5 h-3.5" /> Talk to Your Coach

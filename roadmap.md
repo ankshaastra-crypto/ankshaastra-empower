@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Repair exit-popup package/WhatsApp links and default general CTAs to Name Check
+- [x] Verify Name Check spelling-question removal and mobile-first navigation
+
 - [x] Add new "Name Correction" package (₹2,987) — 4th pricing card (mobile: 4th tab, desktop: clean layout), based on user's reference screenshot
 - [x] Name Correction order form fields: name trio, father's-name Y/N, last-name-change Y/N, email, WhatsApp, PIN/City/State (single set), DOB, TOB, Place of Birth, gender, relationship quality (father/mother/spouse), father/mother/spouse names, profession, reason textarea
 - [x] Merge duplicate pincode/city/state — only ONE PIN Code + City + State set, place of birth stays separate

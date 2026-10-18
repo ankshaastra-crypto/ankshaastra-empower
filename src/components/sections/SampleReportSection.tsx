@@ -1,14 +1,12 @@
 import { FileText, Lock, Eye, Star, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
+import { showPackages } from "@/lib/packageNavigation";
 
 const SampleReportSection = () => {
   const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
 
-  const scrollToForm = () => {
-    const formSection = document.getElementById("pricing");
-    if (formSection) formSection.scrollIntoView({ behavior: "smooth" });
-  };
+  const scrollToForm = showPackages;
 
   const reportItems = [
     { label: "10+ Numerologically Aligned Names", value: "Aarav, Vivaan, Reyansh, Arjun, Aditya, Dhruv...", blurred: false },

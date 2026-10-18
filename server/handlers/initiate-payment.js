@@ -501,24 +501,21 @@ export default async function handler(req, res) {
     lastNameSpellingChangeOk: (lastNameSpellingChangeOk && lastNameSpellingChangeOk.trim()) || '',
   };
 
-  // ─── Step 5: Save to DB (non-blocking) ─────────────────────────────────────
-  if (utils.saveOrderAndCustomer) {
-    try {
-      await utils.saveOrderAndCustomer(orderId, amount, normalizedPackageType, customerData);
-    } catch (dbError) {
-      console.error('DB save error:', dbError?.message || dbError);
-    }
-  }
-
-  // ─── Step 6: Redis cache (non-blocking) ────────────────────────────────────
-  if (utils.getRedisCache) {
-    try {
-      const cache = utils.getRedisCache();
-      await cache.set(`order:${orderId}`, customerData, 3600);
-    } catch (redisError) {
-      console.error('Redis cache error:', redisError?.message || redisError);
-    }
-  }
+  // ─── Step 5+6: Save to DB and Redis cache — started now but NOT awaited ───
+  // These run in parallel with the Razorpay order creation below, so the
+  // customer sees the payment popup in ~1s instead of waiting for the DB
+  // round-trips first. They are awaited (allSettled) before the response is
+  // sent, so no data is lost and the serverless function doesn't freeze early.
+  const dbSavePromise = utils.saveOrderAndCustomer
+    ? Promise.resolve()
+        .then(() => utils.saveOrderAndCustomer(orderId, amount, normalizedPackageType, customerData))
+        .catch((dbError) => console.error('DB save error:', dbError?.message || dbError))
+    : Promise.resolve();
+  const redisPromise = utils.getRedisCache
+    ? Promise.resolve()
+        .then(() => utils.getRedisCache().set(`order:${orderId}`, customerData, 3600))
+        .catch((redisError) => console.error('Redis cache error:', redisError?.message || redisError))
+    : Promise.resolve();
 
   // ─── Step 7: Encrypt customer data ─────────────────────────────────────────
   let encryptedData = '';
@@ -572,28 +569,35 @@ export default async function handler(req, res) {
 
     const result = await response.json();
 
-    // Persist mapping from internal order ID to Razorpay order ID
+    // Persist mapping from internal order ID to Razorpay order ID — these
+    // also run in parallel with each other (and with the pre-saves above),
+    // then everything is awaited together just before responding.
+    const postSavePromises = [];
     if (utils.saveOrderAndCustomer) {
-      try {
-        await utils.saveOrderAndCustomer(orderId, amount, normalizedPackageType, {
-          ...customerData,
-          razorpayOrderId: result.id,
-        });
-      } catch (dbError) {
-        console.error('DB save error after Razorpay order creation:', dbError?.message || dbError);
-      }
+      postSavePromises.push(
+        Promise.resolve()
+          .then(() => utils.saveOrderAndCustomer(orderId, amount, normalizedPackageType, {
+            ...customerData,
+            razorpayOrderId: result.id,
+          }))
+          .catch((dbError) => console.error('DB save error after Razorpay order creation:', dbError?.message || dbError))
+      );
+    }
+    if (utils.getRedisCache && result.id) {
+      postSavePromises.push(
+        Promise.resolve()
+          .then(async () => {
+            const cache = utils.getRedisCache();
+            await cache.set(`order:${orderId}`, customerData, 3600);
+            await cache.set(`razorpayOrder:${result.id}`, customerData, 3600);
+          })
+          .catch((redisError) => console.error('Redis cache error after Razorpay order creation:', redisError?.message || redisError))
+      );
     }
 
-    // Cache both internal and Razorpay order keys, if available
-    if (utils.getRedisCache && result.id) {
-      try {
-        const cache = utils.getRedisCache();
-        await cache.set(`order:${orderId}`, customerData, 3600);
-        await cache.set(`razorpayOrder:${result.id}`, customerData, 3600);
-      } catch (redisError) {
-        console.error('Redis cache error after Razorpay order creation:', redisError?.message || redisError);
-      }
-    }
+    // Wait for all background saves to finish (they've been running in
+    // parallel with the Razorpay call, so this is usually instant).
+    await Promise.allSettled([dbSavePromise, redisPromise, ...postSavePromises]);
 
     return res.status(200).json({
       success: true,

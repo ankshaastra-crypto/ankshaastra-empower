@@ -949,6 +949,7 @@ import './suppress-deprecation.js';
 import nodemailer from 'nodemailer';
 import { tryReserveEmailSend, markEmailSent, releaseEmailReservation } from './db.js';
 import { getPackageDisplayName } from './package-names.js';
+import { getEmailService } from './email-service.js';
 
 // Reuse transporter instance (singleton pattern) for better performance
 let transporterInstance = null;
@@ -1175,6 +1176,7 @@ export async function sendPaymentEmail({
   }
 
   const packageName = getPackageDisplayName(packageType);
+  const emailService = getEmailService(packageType);
   const amountInRupees = amount && amount > 0 ? amount / 100 : 0;
   const amountFormatted = `₹${amountInRupees.toLocaleString('en-IN')}`;
 
@@ -1453,7 +1455,7 @@ export async function sendPaymentEmail({
         </div>
       `)
       .join('');
-  } else if (packageType === 'single' || packageType === 'premium' || packageType === 'baby_name') {
+  } else if (emailService.isBaby) {
     customerDetailsHtml = `
       <div class="detail-row">
         <strong>Father's Full Name:</strong>
@@ -1537,7 +1539,7 @@ export async function sendPaymentEmail({
   }
 
   const buildAdminSummary = () => {
-    const isBaby = packageType === 'single' || packageType === 'premium';
+    const isBaby = emailService.isBaby;
     let details = '';
     if (isBaby) {
       const fatherName = finalFatherFullName || [finalFatherFirstName, finalFatherMiddleName, finalFatherLastName].filter(Boolean).join(' ') || '';
@@ -1609,10 +1611,10 @@ export async function sendPaymentEmail({
           <div class="details">
             <h2 style="color: #2E1A47; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #2E1A47; padding-bottom: 10px;">Order Details (Form Filled)</h2>
             ${customerDetailsHtml}
-            <div class="wa-summary">
+            ${emailService.isBaby ? `<div class="wa-summary">
               <h3 style="color: #2E1A47; margin: 0 0 10px 0; font-size: 14px;">📋 Baby/Child Report Details</h3>
               ${buildAdminSummary()}
-            </div>
+            </div>` : ''}
           </div>
 
         </div>

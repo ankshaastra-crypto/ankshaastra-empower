@@ -1,5 +1,7 @@
 # Architecture rules
 
+- Email detail sections use the shared email service classifier for current and historical package keys, so Name Check cannot receive a baby-only summary.
+
 - Prefetch checkout when the pricing section approaches the viewport, not on a fixed startup timer, so mobile initial loading prioritizes visible content.
 
 - General package browsing uses `packageNavigation.ts` so popup and sticky buttons reset the mobile package switch and tolerate lazy section loading.

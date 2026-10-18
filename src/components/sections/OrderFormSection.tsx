@@ -23997,7 +23997,7 @@ const OrderFormSection = ({ initialPackage = "name-check" }: { initialPackage?: 
         newErrors.fatherFullName = "Father's full name is required";
       if (!babyFormData.childLastName || !validateName(babyFormData.childLastName, true))
         newErrors.childLastName = "Child's last name is required";
-      if (!babyFormData.fatherFirstNameAsMiddleName || babyFormData.fatherFirstNameAsMiddleName.trim() === "")
+      if (babyFormData.childMiddleName.trim() !== "" && (!babyFormData.fatherFirstNameAsMiddleName || babyFormData.fatherFirstNameAsMiddleName.trim() === ""))
         newErrors.fatherFirstNameAsMiddleName = "Please specify if child's middle name is father's first name";
       if (!babyFormData.lastNameSpellingChangeOk || babyFormData.lastNameSpellingChangeOk.trim() === "")
         newErrors.lastNameSpellingChangeOk = "Please specify if you're comfortable changing the spelling of the last name (if required)";
@@ -24036,7 +24036,7 @@ const OrderFormSection = ({ initialPackage = "name-check" }: { initialPackage?: 
         const mtk = `person${i}MiddleNameType` as keyof typeof formData;
         if (!formData[fk] || !validateName(formData[fk], true)) newErrors[fk] = `Name ${i} first name is required`;
         if (!formData[sk] || !validateName(formData[sk], true)) newErrors[sk] = `Name ${i} last name is required`;
-        if (!formData[mtk]) newErrors[mtk] = "Please specify if the middle name is the father's name";
+        if (formData[mk] && formData[mk].trim() !== "" && !formData[mtk]) newErrors[mtk] = "Please specify if the middle name is the father's name";
         if (formData[mk] && !validateName(formData[mk], false)) newErrors[mk] = "Please enter a valid middle name";
         if (!formData[dk] || !validateDob(formData[dk]))
           newErrors[dk] = !formData[dk] ? `Name ${i} date of birth is required` : `Date of birth must be in the past`;
@@ -24626,7 +24626,7 @@ writePendingOrder({
           {errors[`person${personNum}SurName`] && <p className="text-destructive text-sm mt-1">{errors[`person${personNum}SurName`]}</p>}
         </div>
       </div>
-        <div>
+        {Boolean((formData[`person${personNum}MiddleName` as keyof typeof formData] || "").trim()) && <div>
           <Label>Is the middle name the father's name? *</Label>
           <RadioGroup
             value={formData[`person${personNum}MiddleNameType` as keyof typeof formData]}
@@ -24646,7 +24646,7 @@ writePendingOrder({
             </div>
           </RadioGroup>
           {errors[`person${personNum}MiddleNameType`] && <p className="text-destructive text-sm mt-1">{errors[`person${personNum}MiddleNameType`]}</p>}
-        </div>
+        </div>}
       </div>}
       {section === "birth" && <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -24891,8 +24891,8 @@ writePendingOrder({
             <ValidIcon field="childMiddleName" />
           </div>
         </div>
-      {/* Is Child's Middle Name = Father's First Name */}
-      <div>
+      {/* Is Child's Middle Name = Father's First Name — only when a middle name is entered */}
+      {babyFormData.childMiddleName.trim() !== "" && <div>
         <Label>Is the father's first name used as the child's middle name? *</Label>
         <RadioGroup
           value={babyFormData.fatherFirstNameAsMiddleName}
@@ -24912,7 +24912,7 @@ writePendingOrder({
           </div>
         </RadioGroup>
         {errors.fatherFirstNameAsMiddleName && <p className="text-destructive text-sm mt-1">{errors.fatherFirstNameAsMiddleName}</p>}
-      </div>
+      </div>}
 
         <div>
           <Label htmlFor="childLastName">Child's Last Name *</Label>

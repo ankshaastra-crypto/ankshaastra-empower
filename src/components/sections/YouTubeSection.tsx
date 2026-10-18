@@ -38,12 +38,15 @@ const YouTubeFacade = ({ id, title, playlistId }: YouTubeFacadeProps) => {
       className="w-full h-full p-0 relative bg-primary flex items-center justify-center group cursor-pointer"
       aria-label={`Play: ${title}`}
     >
-      <img
+      {!playlistId && <img
         src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`}
         alt={title}
         className="absolute inset-0 w-full h-full object-cover opacity-80"
         loading="lazy"
-      />
+        width={480}
+        height={360}
+      />}
+      {playlistId && <span className="absolute top-4 inset-x-4 whitespace-normal text-base font-heading text-primary-foreground">{title}</span>}
       <div className="relative z-10 w-16 h-16 md:w-20 md:h-20 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-lg group-hover:opacity-90 transition-opacity">
         <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 md:w-9 md:h-9 ml-1">
           <path d="M8 5v14l11-7z" />

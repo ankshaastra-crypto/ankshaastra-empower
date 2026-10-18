@@ -1,11 +1,9 @@
 import { Button } from "@/components/ui/button";
+import { openNameCheck } from "@/lib/packageNavigation";
 const heroBg = "/assets/hero.webp";
 
 const HeroSection = () => {
-  const scrollToForm = () => {
-    const target = document.getElementById("pricing");
-    if (target) target.scrollIntoView({ behavior: "smooth" });
-  };
+  const scrollToForm = openNameCheck;
 
   return (
     <section className="min-h-[85vh] md:min-h-screen flex items-center pt-24 pb-4 md:pt-28 md:pb-10 relative overflow-hidden bg-background">

@@ -48,6 +48,8 @@ html, body, #root {
     /* Validation success */
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
+    --whatsapp: 142 70% 49%;
+    --whatsapp-foreground: 0 0% 100%;
 
     /* Custom Variables */
     --neelkanth: 0 0% 17%;
@@ -92,6 +94,7 @@ html, body, #root {
 
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: 110px;
     background-color: hsl(var(--background));
   }
 

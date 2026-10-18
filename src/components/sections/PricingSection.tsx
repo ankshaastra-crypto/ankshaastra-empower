@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { DEFAULT_PACKAGE } from "@/lib/packageNavigation";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check, Clock, Lock, Sparkles, Star } from "lucide-react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
@@ -30,7 +31,13 @@ type PackageCardProps = {
 const PricingSection = () => {
   const { ref } = useScrollAnimation({ threshold: 0.1 });
   const pricing = getPackagePricing();
-  const [activePackage, setActivePackage] = useState<PackageType>("perfect-baby-name-report");
+  const [activePackage, setActivePackage] = useState<PackageType>(DEFAULT_PACKAGE);
+
+  useEffect(() => {
+    const reset = () => setActivePackage(DEFAULT_PACKAGE);
+    window.addEventListener("showPackages", reset);
+    return () => window.removeEventListener("showPackages", reset);
+  }, []);
 
   const scrollToForm = (packageType: PackageType) => {
     const price = packageType === "name-check"

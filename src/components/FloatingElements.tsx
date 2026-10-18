@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ShoppingBag } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
+import { showPackages } from "@/lib/packageNavigation";
 
 const WHATSAPP_URL =
   "https://wa.me/919667305577?text=Hi%2C%20I%20want%20to%20know%20more%20about%20baby%20name%20reports";
@@ -33,10 +34,7 @@ const FloatingElements = () => {
 
   const hideBuyBar = formActive || pricingVisible;
 
-  const scrollToPricing = () => {
-    const el = document.getElementById("pricing");
-    if (el) el.scrollIntoView({ behavior: "smooth" });
-  };
+  const scrollToPricing = showPackages;
 
   return (
     <>

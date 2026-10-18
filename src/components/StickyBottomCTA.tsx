@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
+import { showPackages } from "@/lib/packageNavigation";
 
 const StickyBottomCTA = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -25,10 +26,7 @@ const StickyBottomCTA = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const scrollToForm = () => {
-    const formSection = document.getElementById("pricing");
-    if (formSection) formSection.scrollIntoView({ behavior: "smooth" });
-  };
+  const scrollToForm = showPackages;
 
   if (!isVisible) return null;
 

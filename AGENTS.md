@@ -1,6 +1,7 @@
 # Architecture rules
 
 - Email detail sections use the shared email service classifier for current and historical package keys, so Name Check cannot receive a baby-only summary.
+- Payment initiation persists the complete order once with its gateway ID and only uses configured optional caching; await persistence and log durations only to avoid duplicate row contention without detaching durable writes.
 
 - Prefetch checkout when the pricing section approaches the viewport, not on a fixed startup timer, so mobile initial loading prioritizes visible content.
 

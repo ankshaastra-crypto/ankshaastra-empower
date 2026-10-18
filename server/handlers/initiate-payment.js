@@ -501,24 +501,21 @@ export default async function handler(req, res) {
     lastNameSpellingChangeOk: (lastNameSpellingChangeOk && lastNameSpellingChangeOk.trim()) || '',
   };
 
-  // ─── Step 5: Save to DB (non-blocking) ─────────────────────────────────────
-  if (utils.saveOrderAndCustomer) {
-    try {
-      await utils.saveOrderAndCustomer(orderId, amount, normalizedPackageType, customerData);
-    } catch (dbError) {
-      console.error('DB save error:', dbError?.message || dbError);
-    }
-  }
-
-  // ─── Step 6: Redis cache (non-blocking) ────────────────────────────────────
-  if (utils.getRedisCache) {
-    try {
-      const cache = utils.getRedisCache();
-      await cache.set(`order:${orderId}`, customerData, 3600);
-    } catch (redisError) {
-      console.error('Redis cache error:', redisError?.message || redisError);
-    }
-  }
+  // ─── Step 5+6: Save to DB and Redis cache — started now but NOT awaited ───
+  // These run in parallel with the Razorpay order creation below, so the
+  // customer sees the payment popup in ~1s instead of waiting for the DB
+  // round-trips first. They are awaited (allSettled) before the response is
+  // sent, so no data is lost and the serverless function doesn't freeze early.
+  const dbSavePromise = utils.saveOrderAndCustomer
+    ? Promise.resolve()
+        .then(() => utils.saveOrderAndCustomer(orderId, amount, normalizedPackageType, customerData))
+        .catch((dbError) => console.error('DB save error:', dbError?.message || dbError))
+    : Promise.resolve();
+  const redisPromise = utils.getRedisCache
+    ? Promise.resolve()
+        .then(() => utils.getRedisCache().set(`order:${orderId}`, customerData, 3600))
+        .catch((redisError) => console.error('Redis cache error:', redisError?.message || redisError))
+    : Promise.resolve();
 
   // ─── Step 7: Encrypt customer data ─────────────────────────────────────────
   let encryptedData = '';

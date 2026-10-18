@@ -37,4 +37,5 @@
 - [x] Organize baby-name checkout into five requested steps, with mandatory details and optional preferences
 - [x] Organize Name Check into Name → Birth → Parent/contact → Review with required fields
 - [x] Prevent indefinite payment requests and allow retry after closing checkout
-- [ ] Restore payment initiation and verify checkout — missing payment endpoint and Razorpay credentials; secure credential request declined
+- [ ] Diagnose remaining payment-opening delay — payment handler changes are locked by the user's instruction; production timing needs verification
+- [ ] Diagnose Name Check admin email showing baby-name fields and correct email-only classification where verified

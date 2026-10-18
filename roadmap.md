@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Update second YouTube item to supplied playlist and clarify mobile package choices
+- [x] Check mobile navigation, form next/back, video destination, and local loading speed at four widths; payment remains blocked and real video playback is unverified
+
 - [x] Repair exit-popup package/WhatsApp links and default general CTAs to Name Check
 - [x] Verify Name Check spelling-question removal and mobile-first navigation
 

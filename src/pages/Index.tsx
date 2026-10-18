@@ -38,13 +38,23 @@ const GatedOrderForm = () => {
   const [revealed, setRevealed] = useState(false);
   const [pendingDetail, setPendingDetail] = useState<string | null>(null);
 
-  // Prefetch the OrderFormSection chunk as soon as the page mounts so that
-  // when the user clicks a package the form is already in memory and appears instantly.
+  // Warm checkout only when the visitor approaches package selection.
   useEffect(() => {
-    const t = setTimeout(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
       import("@/components/sections/OrderFormSection").catch(() => {});
-    }, 1200);
-    return () => clearTimeout(t);
+      observer.disconnect();
+    }, { rootMargin: "400px" });
+    const observePricing = () => {
+      const pricing = document.getElementById("pricing");
+      if (!pricing) return;
+      observer.observe(pricing);
+      mutationObserver.disconnect();
+    };
+    const mutationObserver = new MutationObserver(observePricing);
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
+    observePricing();
+    return () => { observer.disconnect(); mutationObserver.disconnect(); };
   }, []);
 
   useEffect(() => {

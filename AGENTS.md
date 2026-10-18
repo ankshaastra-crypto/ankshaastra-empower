@@ -1,5 +1,7 @@
 # Architecture rules
 
+- Prefetch checkout when the pricing section approaches the viewport, not on a fixed startup timer, so mobile initial loading prioritizes visible content.
+
 - General package browsing uses `packageNavigation.ts` so popup and sticky buttons reset the mobile package switch and tolerate lazy section loading.
 - Pass the first selected service into the lazy order form as a prop; do not replay selection on a timer, which can fire before its listener mounts.
 

@@ -1,12 +1,14 @@
 import { useState, useCallback } from "react";
 import useScrollAnimation from "@/hooks/useScrollAnimation";
+import { Button } from "@/components/ui/button";
 
 interface YouTubeFacadeProps {
   id: string;
   title: string;
+  playlistId?: string;
 }
 
-const YouTubeFacade = ({ id, title }: YouTubeFacadeProps) => {
+const YouTubeFacade = ({ id, title, playlistId }: YouTubeFacadeProps) => {
   const [loaded, setLoaded] = useState(false);
 
   const handleClick = useCallback(() => setLoaded(true), []);
@@ -14,7 +16,9 @@ const YouTubeFacade = ({ id, title }: YouTubeFacadeProps) => {
   if (loaded) {
     return (
       <iframe
-        src={`https://www.youtube-nocookie.com/embed/${id}?rel=0&autoplay=1&controls=1&modestbranding=1`}
+        src={playlistId
+          ? `https://www.youtube-nocookie.com/embed/videoseries?list=${playlistId}&autoplay=1&controls=1&rel=0`
+          : `https://www.youtube-nocookie.com/embed/${id}?rel=0&autoplay=1&controls=1&modestbranding=1`}
         title={title}
         className="w-full h-full absolute inset-0"
         frameBorder="0"
@@ -27,9 +31,11 @@ const YouTubeFacade = ({ id, title }: YouTubeFacadeProps) => {
   }
 
   return (
-    <button
+    <Button
+      type="button"
+      variant="ghost"
       onClick={handleClick}
-      className="w-full h-full relative bg-black/80 flex items-center justify-center group cursor-pointer"
+      className="w-full h-full p-0 relative bg-primary flex items-center justify-center group cursor-pointer"
       aria-label={`Play: ${title}`}
     >
       <img
@@ -38,12 +44,12 @@ const YouTubeFacade = ({ id, title }: YouTubeFacadeProps) => {
         className="absolute inset-0 w-full h-full object-cover opacity-80"
         loading="lazy"
       />
-      <div className="relative z-10 w-16 h-16 md:w-20 md:h-20 rounded-full bg-red-600 flex items-center justify-center shadow-lg group-hover:bg-red-700 transition-colors">
-        <svg viewBox="0 0 24 24" fill="white" className="w-7 h-7 md:w-9 md:h-9 ml-1">
+      <div className="relative z-10 w-16 h-16 md:w-20 md:h-20 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-lg group-hover:opacity-90 transition-opacity">
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 md:w-9 md:h-9 ml-1">
           <path d="M8 5v14l11-7z" />
         </svg>
       </div>
-    </button>
+    </Button>
   );
 };
 
@@ -52,7 +58,7 @@ const YouTubeSection = () => {
 
   const videos = [
     { id: "yF9ufbKJYcs", title: "The Truth About Numerology: Myths, Facts & Hidden Secrets" },
-    { id: "1ilCeIyAVsI", title: "Dhoni vs Kohli का Numerology सच!" },
+    { id: "1ilCeIyAVsI", title: "Numerology Playlist", playlistId: "PLDhfjEK16nWdplh_UjWHyurYlWvfciFBV" },
     { id: "WB17QfVWPlE", title: "2026 में World War 3 या पैसों की बारिश?" }
   ];
 
@@ -90,7 +96,7 @@ const YouTubeSection = () => {
                 <div className="absolute inset-0 rounded-xl md:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 gold-card-shadow" />
 
                 <div className="aspect-video rounded-lg overflow-hidden bg-black/50 mb-2">
-                  <YouTubeFacade id={video.id} title={video.title} />
+                  <YouTubeFacade id={video.id} title={video.title} playlistId={video.playlistId} />
                 </div>
               </div>
             ))}

@@ -120,7 +120,8 @@ const PricingSection = () => {
           <CountdownTimer />
         </div>
 
-        <div className="mx-auto mb-6 grid max-w-2xl grid-cols-3 gap-1 rounded-md border border-accent/25 bg-card p-1 md:hidden" aria-label="Choose a package">
+        <p className="mb-3 text-center text-sm font-semibold text-foreground md:hidden">Choose your package</p>
+        <div className="mx-auto mb-3 grid max-w-2xl grid-cols-3 gap-1 rounded-md border border-accent/25 bg-card p-1 md:hidden" aria-label="Choose a package">
           {([
             ["name-check", "Name Check"],
             ["perfect-baby-name-report", "Perfect Baby"],
@@ -131,6 +132,8 @@ const PricingSection = () => {
             </Button>
           ))}
         </div>
+
+        <p className="mb-6 text-center text-xs text-muted-foreground md:hidden">Tap a package above to compare all 3 options</p>
 
         <div className="mx-auto grid max-w-7xl grid-cols-1 items-stretch gap-5 md:grid-cols-3">
           <div className={activePackage === "name-check" ? "block" : "hidden md:block"}><PackageCard badge="Quick Check" title="Name Check" description="Check whether one chosen name aligns with the person's birth date and numerological profile." price={pricing.nameCheckTiers[1].price} originalPrice={1100} savings={627} discount={57} rating="4.9" sold="18k" cover="/assets/reports/name-check.webp" coverAlt="Name Check Report cover" features={["Quick Name Compatibility Check", "Mulank & Bhagyank Overview", "Clear Yes/No Recommendation", "Expert Analysis Summary"]} delivery="12 Hours" action={() => scrollToForm("name-check")} /></div>

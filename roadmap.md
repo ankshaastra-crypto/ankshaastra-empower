@@ -37,5 +37,6 @@
 - [x] Organize baby-name checkout into five requested steps, with mandatory details and optional preferences
 - [x] Organize Name Check into Name → Birth → Parent/contact → Review with required fields
 - [x] Prevent indefinite payment requests and allow retry after closing checkout
-- [ ] Reduce remaining payment-opening delay — response still awaits persistence; handler edits require user permission and production timing remains unverified
+- [x] Remove duplicate payment-initiation saves and unconfigured Redis waits with user permission; verify complete order data is saved once before responding using mocked gateway tests
+- [ ] Verify live payment opening speed and affected admin email — requires the updated code on the user's external deployment and production duration logs; no real payment executed
 - [x] Correct shared email classification and verify synthetic emails for all three services; screenshot's exact template is absent from this checkout, so the deployed email source remains unverified

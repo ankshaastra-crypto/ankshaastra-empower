@@ -362,8 +362,11 @@ async function loadUtils() {
 }
 
 export default async function handler(req, res) {
+  const startedAt = performance.now();
+  const timings = {};
   // ─── Step 0: Load utilities lazily ─────────────────────────────────────────
   const { results: utils, errors: loadErrors } = await loadUtils();
+  timings.utilitiesMs = Math.round(performance.now() - startedAt);
 
   if (Object.keys(loadErrors).length > 0) {
     console.error('Module load errors:', loadErrors);
@@ -501,21 +504,8 @@ export default async function handler(req, res) {
     lastNameSpellingChangeOk: (lastNameSpellingChangeOk && lastNameSpellingChangeOk.trim()) || '',
   };
 
-  // ─── Step 5+6: Save to DB and Redis cache — started now but NOT awaited ───
-  // These run in parallel with the Razorpay order creation below, so the
-  // customer sees the payment popup in ~1s instead of waiting for the DB
-  // round-trips first. They are awaited (allSettled) before the response is
-  // sent, so no data is lost and the serverless function doesn't freeze early.
-  const dbSavePromise = utils.saveOrderAndCustomer
-    ? Promise.resolve()
-        .then(() => utils.saveOrderAndCustomer(orderId, amount, normalizedPackageType, customerData))
-        .catch((dbError) => console.error('DB save error:', dbError?.message || dbError))
-    : Promise.resolve();
-  const redisPromise = utils.getRedisCache
-    ? Promise.resolve()
-        .then(() => utils.getRedisCache().set(`order:${orderId}`, customerData, 3600))
-        .catch((redisError) => console.error('Redis cache error:', redisError?.message || redisError))
-    : Promise.resolve();
+  // Save once after the gateway ID is known; duplicate transactions compete
+  // for the same order row and repeat all customer-field writes.
 
   // ─── Step 7: Encrypt customer data ─────────────────────────────────────────
   let encryptedData = '';
@@ -546,6 +536,7 @@ export default async function handler(req, res) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
 
+    const gatewayStartedAt = performance.now();
     const response = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',
       signal: controller.signal,
@@ -568,10 +559,11 @@ export default async function handler(req, res) {
     }
 
     const result = await response.json();
+    timings.gatewayMs = Math.round(performance.now() - gatewayStartedAt);
+    const persistenceStartedAt = performance.now();
 
-    // Persist mapping from internal order ID to Razorpay order ID — these
-    // also run in parallel with each other (and with the pre-saves above),
-    // then everything is awaited together just before responding.
+    // Keep the complete customer record and gateway mapping durable before
+    // responding. Optional cache writes run together, only when configured.
     const postSavePromises = [];
     if (utils.saveOrderAndCustomer) {
       postSavePromises.push(
@@ -583,21 +575,25 @@ export default async function handler(req, res) {
           .catch((dbError) => console.error('DB save error after Razorpay order creation:', dbError?.message || dbError))
       );
     }
-    if (utils.getRedisCache && result.id) {
+    if (utils.getRedisCache && process.env.REDIS_URL && result.id) {
       postSavePromises.push(
         Promise.resolve()
           .then(async () => {
             const cache = utils.getRedisCache();
-            await cache.set(`order:${orderId}`, customerData, 3600);
-            await cache.set(`razorpayOrder:${result.id}`, customerData, 3600);
+            await Promise.all([
+              cache.set(`order:${orderId}`, customerData, 3600),
+              cache.set(`razorpayOrder:${result.id}`, customerData, 3600),
+            ]);
           })
           .catch((redisError) => console.error('Redis cache error after Razorpay order creation:', redisError?.message || redisError))
       );
     }
 
-    // Wait for all background saves to finish (they've been running in
-    // parallel with the Razorpay call, so this is usually instant).
-    await Promise.allSettled([dbSavePromise, redisPromise, ...postSavePromises]);
+    await Promise.allSettled(postSavePromises);
+    timings.persistenceMs = Math.round(performance.now() - persistenceStartedAt);
+    timings.totalMs = Math.round(performance.now() - startedAt);
+    // Duration-only diagnostics: no customer data, IDs or gateway credentials.
+    console.info('Checkout initiation timings', timings);
 
     return res.status(200).json({
       success: true,

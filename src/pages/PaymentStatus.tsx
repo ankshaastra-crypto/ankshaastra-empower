@@ -376,19 +376,33 @@ const PaymentStatus = () => {
           // (fatherFullName, childDob, timeOfBirth, etc.) are never N/A.
           setPaymentData(mergedPaymentData);
 
-// Track purchase event with Meta Pixel (only once per order)
-          // Use a separate ref to track which orders have been tracked
-          if (!verificationDoneRef.current) {
-            const amount = result.amount || 0;
-            const paymentOrderId = result.orderId || internalOrderId;
-            const pkgType = packageType || "name-check";
+// Track purchase (har order ke liye sirf ek baar)
+const amount = result.amount || 0;
+const paymentOrderId = result.orderId || internalOrderId;
+const pkgType = packageType || "name-check";
+const pixelKey = `pixel_purchase_${paymentOrderId}`;
 
-            if (amount > 0) {
-              verificationDoneRef.current = true;
-              trackPurchase(amount, "INR", paymentOrderId, pkgType);
-              console.log("Meta Pixel tracked for:", paymentOrderId);
-            }
-          }
+if (amount > 0 && paymentOrderId && !localStorage.getItem(pixelKey)) {
+  const firePurchase = () => {
+    if (localStorage.getItem(pixelKey)) return;
+    localStorage.setItem(pixelKey, "1");
+    trackPurchase(amount, "INR", paymentOrderId, pkgType);
+  };
+
+  if (document.visibilityState === "visible") {
+    firePurchase();
+  } else {
+    // Background tab (user abhi UPI app me hai) - wapas aane par fire karo
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        document.removeEventListener("visibilitychange", onVisible);
+        firePurchase();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+  }
+}
+verificationDoneRef.current = true;
 
           // Navigate to success URL if not already there
           if (!location.pathname.includes("/success")) {

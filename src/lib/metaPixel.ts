@@ -1,7 +1,7 @@
 /**
  * Meta Pixel (Facebook Pixel) tracking utility
  * 
- * Make sure to replace 'YOUR_PIXEL_ID' in index.html with your actual Meta Pixel ID
+ * The Pixel itself (ID 1151906889213802) is installed in index.html
  */
 
 // Extend Window interface to include fbq
@@ -10,7 +10,8 @@ declare global {
     fbq: (
       action: string,
       event: string,
-      params?: Record<string, unknown>
+      params?: Record<string, unknown>,
+      options?: { eventID?: string }
     ) => void;
   }
 }
@@ -19,13 +20,15 @@ declare global {
  * Track a custom event with Meta Pixel
  * @param eventName - The name of the event (e.g., 'Purchase', 'AddToCart', 'InitiateCheckout')
  * @param params - Optional parameters for the event (e.g., { value: 100, currency: 'INR' })
+ * @param eventID - Optional unique event ID (used by Meta to de-duplicate browser + server events)
  */
 export const trackMetaEvent = (
   eventName: string,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  eventID?: string
 ): void => {
   if (typeof window !== 'undefined' && window.fbq) {
-    window.fbq('track', eventName, params);
+    window.fbq('track', eventName, params, eventID ? { eventID } : undefined);
   } else {
     console.warn('Meta Pixel not loaded. Event not tracked:', eventName);
   }
@@ -109,7 +112,7 @@ export const trackAddToCart = (
  * Track a purchase event
  * @param value - The purchase value
  * @param currency - The currency code (default: 'INR')
- * @param orderId - Optional order ID
+ * @param orderId - Optional order ID (also used as the eventID: purchase_<orderId>)
  * @param packageType - Optional package type
  */
 export const trackPurchase = (
@@ -121,6 +124,7 @@ export const trackPurchase = (
   const params: Record<string, unknown> = {
     value,
     currency,
+    content_type: 'product',
   };
 
   if (orderId) {
@@ -128,7 +132,8 @@ export const trackPurchase = (
     params.content_name = packageType || 'Numerology Report';
   }
 
-  trackMetaEvent('Purchase', params);
+  // eventID must match the server-side (CAPI) event_id so Meta counts it only once
+  trackMetaEvent('Purchase', params, orderId ? `purchase_${orderId}` : undefined);
 };
 
 /**

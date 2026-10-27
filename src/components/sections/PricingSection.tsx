@@ -91,6 +91,7 @@ const PricingSection = () => {
             <div className="mt-4 rounded-lg border-2 border-accent bg-gold-cta px-3 py-3 text-center text-accent-foreground shadow-lg">
               <p className="text-[11px] font-bold uppercase tracking-[0.2em]">🪔 Diwali Special · Free Gift</p>
               <p className="mt-1 font-heading text-base font-bold leading-snug md:text-lg">FREE Customized 140+ Page Kundli</p>
+              <p className="mt-1 text-[11px] font-bold uppercase tracking-wide">Worth ₹1,100 — Absolutely Free</p>
             </div>
           )}
 

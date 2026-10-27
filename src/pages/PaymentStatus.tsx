@@ -1410,7 +1410,6 @@ interface PaymentData {
   state?: string;
   parentsProfession?: string;
   lastNameSpellingChangeOk?: string;
-  city?: string;
   data?: unknown;
 }
 

@@ -25,6 +25,7 @@ type PackageCardProps = {
   cover: string;
   coverAlt: string;
   featured?: boolean;
+  diwaliGift?: boolean;
   action: () => void;
 };
 
@@ -57,7 +58,7 @@ const PricingSection = () => {
     setTimeout(() => tryScroll(), 50);
   };
 
-  const PackageCard = ({ badge, title, description, price, originalPrice, savings, discount, features, delivery, rating, sold, cover, coverAlt, featured, action }: PackageCardProps) => (
+  const PackageCard = ({ badge, title, description, price, originalPrice, savings, discount, features, delivery, rating, sold, cover, coverAlt, featured, diwaliGift, action }: PackageCardProps) => (
     <article className={`report-package-card group relative flex h-full flex-col overflow-hidden border bg-card transition-all duration-500 ${featured ? "border-accent shadow-card-hover" : "border-border shadow-card"}`}>
       <div className="relative flex min-h-[250px] gap-5 p-5 pb-6 sm:min-h-[270px] md:flex-col md:gap-4 md:p-6">
         <span className={`absolute left-4 top-4 z-10 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest ${featured ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"}`}>
@@ -85,6 +86,14 @@ const PricingSection = () => {
             <span className="rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-bold text-success">Save {formatPrice(savings)}</span>
             <span className="text-[11px] font-bold text-success">({discount}% OFF)</span>
           </div>
+
+          {diwaliGift && (
+            <div className="mt-4 border-y border-accent/50 py-2.5 text-center">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Diwali Offer</p>
+              <p className="mt-0.5 text-sm font-semibold text-foreground">FREE Customized 140+ Page Kundli</p>
+            </div>
+          )}
+
 
           <Button variant={featured ? "hero" : "default"} className="mt-5 h-11 w-full gap-2 font-bold" onClick={action}>
             Get Report <ArrowRight className="h-4 w-4" />
@@ -137,8 +146,8 @@ const PricingSection = () => {
 
         <div className="mx-auto grid max-w-7xl grid-cols-1 items-stretch gap-5 md:grid-cols-3">
           <div className={activePackage === "name-check" ? "block" : "hidden md:block"}><PackageCard badge="Quick Check" title="Name Check" description="Check whether one chosen name aligns with the person's birth date and numerological profile." price={pricing.nameCheckTiers[1].price} originalPrice={1100} savings={627} discount={57} rating="4.9" sold="18k" cover="/assets/reports/name-check.webp" coverAlt="Name Check Report cover" features={["Quick Name Compatibility Check", "Mulank & Bhagyank Overview", "Clear Yes/No Recommendation", "Expert Analysis Summary"]} delivery="12 Hours" action={() => scrollToForm("name-check")} /></div>
-          <div className={activePackage === "perfect-baby-name-report" ? "block" : "hidden md:block"}><PackageCard badge="Best Value" title="Perfect Baby Name Report" description="A hand-crafted naming analysis with aligned options and clear numerological guidance." price={pricing.single.price} originalPrice={7500} savings={4063} discount={54} rating="5.0" sold="14k" cover="/assets/reports/perfect-baby-name.webp" coverAlt="Perfect Baby Name Report cover" features={["10+ Numerologically Aligned Names", "Existing Name Correction Included", "Mulank & Bhagyank Analysis", "First, Full & Compound Number Analysis", "Personal Loshu Grid", "Call Consultation Included"]} delivery="24 Hours" featured action={() => scrollToForm("perfect-baby-name-report")} /></div>
-          <div className={activePackage === "complete-baby-name-blueprint" ? "block" : "hidden md:block"}><PackageCard badge="Full Blueprint" title="Complete Baby Name Blueprint" description="Expanded naming choices and deeper guidance for your baby's lifelong alignment." price={pricing.premium.price} originalPrice={15051} savings={9094} discount={60} rating="5.0" sold="8k" cover="/assets/reports/complete-baby.webp" coverAlt="Complete Baby Name Blueprint cover" features={["Everything in Perfect Baby Name Report", "10+ Extra Aligned Names", "Nickname Analysis", "Ideal Career Path Analysis", "Lucky Direction (Feng Shui)", "Lucky Colors & Numbers Analysis"]} delivery="24 Hours" action={() => scrollToForm("complete-baby-name-blueprint")} /></div>
+          <div className={activePackage === "perfect-baby-name-report" ? "block" : "hidden md:block"}><PackageCard badge="Best Value" title="Perfect Baby Name Report" description="A hand-crafted naming analysis with aligned options and clear numerological guidance." price={pricing.single.price} originalPrice={7500} savings={4063} discount={54} rating="5.0" sold="14k" cover="/assets/reports/perfect-baby-name.webp" coverAlt="Perfect Baby Name Report cover" features={["10+ Numerologically Aligned Names", "Existing Name Correction Included", "Mulank & Bhagyank Analysis", "First, Full & Compound Number Analysis", "Personal Loshu Grid", "Call Consultation Included"]} delivery="24 Hours" featured diwaliGift action={() => scrollToForm("perfect-baby-name-report")} /></div>
+          <div className={activePackage === "complete-baby-name-blueprint" ? "block" : "hidden md:block"}><PackageCard badge="Full Blueprint" title="Complete Baby Name Blueprint" description="Expanded naming choices and deeper guidance for your baby's lifelong alignment." price={pricing.premium.price} originalPrice={15051} savings={9094} discount={60} rating="5.0" sold="8k" cover="/assets/reports/complete-baby.webp" coverAlt="Complete Baby Name Blueprint cover" features={["Everything in Perfect Baby Name Report", "10+ Extra Aligned Names", "Nickname Analysis", "Ideal Career Path Analysis", "Lucky Direction (Feng Shui)", "Lucky Colors & Numbers Analysis"]} delivery="24 Hours" diwaliGift action={() => scrollToForm("complete-baby-name-blueprint")} /></div>
         </div>
       </div>
     </section>

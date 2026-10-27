@@ -46,7 +46,7 @@ const HeroSection = () => {
           >
             <span className="block text-[11px] font-bold uppercase tracking-[0.25em]">🪔 Diwali Special Offer 🪔</span>
             <span className="mt-1 block font-heading text-lg font-bold leading-snug sm:text-xl">FREE Customized 140+ Page Kundli</span>
-            <span className="mt-0.5 block text-xs font-semibold opacity-90">With ₹3,437 & ₹5,957 baby name reports →</span>
+            <span className="mt-0.5 block text-xs font-semibold opacity-90">Worth ₹1,100 · With Perfect Baby Name &amp; Complete Blueprint Reports →</span>
           </button>
           <div className="flex items-center justify-center gap-3 mb-6">
             <div className="h-px w-16 gold-divider-right" />

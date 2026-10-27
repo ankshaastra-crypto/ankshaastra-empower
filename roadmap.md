@@ -40,3 +40,4 @@
 - [x] Remove duplicate payment-initiation saves and unconfigured Redis waits with user permission; verify complete order data is saved once before responding using mocked gateway tests
 - [ ] Verify live payment opening speed and affected admin email — requires the updated code on the user's external deployment and production duration logs; no real payment executed
 - [x] Correct shared email classification and verify synthetic emails for all three services; screenshot's exact template is absent from this checkout, so the deployed email source remains unverified
+- [x] Remove the exit-intent "wait before you go" popup and the tab-return coach toast permanently

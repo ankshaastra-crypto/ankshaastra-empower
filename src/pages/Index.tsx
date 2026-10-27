@@ -8,8 +8,6 @@ import SectionDivider from "@/components/SectionDivider";
 const FloatingElements = lazy(() => import("@/components/FloatingElements"));
 const LiveTicker = lazy(() => import("@/components/LiveTicker"));
 const SelectedPackageBar = lazy(() => import("@/components/SelectedPackageBar"));
-const ExitIntentNudge = lazy(() => import("@/components/ExitIntentNudge"));
-const TabReturnToast = lazy(() => import("@/components/TabReturnToast"));
 
 // Lazy-load below-fold sections for better page speed
 const ProblemSection = lazy(() => import("@/components/sections/ProblemSection"));
@@ -81,8 +79,6 @@ const Index = () => {
         <FloatingElements />
         <LiveTicker />
         <SelectedPackageBar />
-        <ExitIntentNudge />
-        <TabReturnToast />
       </Suspense>
 
       {/* 1 — Hero (light) */}

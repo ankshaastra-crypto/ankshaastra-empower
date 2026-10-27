@@ -12,7 +12,7 @@ const HeroSection = () => {
         alt=""
         aria-hidden="true"
         decoding="async"
-        fetchPriority="high"
+        {...({ fetchpriority: "high" } as any)}
         width={1600}
         height={1066}
         className="absolute inset-0 w-full h-full object-cover opacity-35 pointer-events-none select-none"

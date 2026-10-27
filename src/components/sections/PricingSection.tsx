@@ -88,9 +88,9 @@ const PricingSection = () => {
           </div>
 
           {diwaliGift && (
-            <div className="mt-4 border-y border-accent/50 py-2.5 text-center">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-accent">Diwali Offer</p>
-              <p className="mt-0.5 text-sm font-semibold text-foreground">FREE Customized 140+ Page Kundli</p>
+            <div className="mt-4 rounded-lg border-2 border-accent bg-gold-cta px-3 py-3 text-center text-accent-foreground shadow-lg">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em]">🪔 Diwali Special · Free Gift</p>
+              <p className="mt-1 font-heading text-base font-bold leading-snug md:text-lg">FREE Customized 140+ Page Kundli</p>
             </div>
           )}
 

@@ -60,17 +60,17 @@ const PricingSection = () => {
 
   const PackageCard = ({ badge, title, description, price, originalPrice, savings, discount, features, delivery, rating, sold, cover, coverAlt, featured, diwaliGift, action }: PackageCardProps) => (
     <article className={`report-package-card group relative flex h-full flex-col overflow-hidden border bg-card transition-all duration-500 ${featured ? "border-accent shadow-card-hover" : "border-border shadow-card"}`}>
-      <div className="relative flex min-h-[250px] gap-5 p-5 pb-6 sm:min-h-[270px] md:flex-col md:gap-4 md:p-6">
+      <div className="relative flex min-h-[250px] flex-col gap-4 p-5 pb-6 sm:min-h-[270px] md:gap-4 md:p-6">
         <span className={`absolute left-4 top-4 z-10 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest ${featured ? "bg-accent text-accent-foreground" : "bg-primary text-primary-foreground"}`}>
           {badge}
         </span>
 
-        <div className="relative mt-8 w-[38%] shrink-0 self-start md:mx-auto md:mt-7 md:w-[48%]">
+        <div className="relative mx-auto mt-8 w-[38%] shrink-0 md:mt-7 md:w-[48%]">
           <div className="absolute -inset-2 rotate-2 border border-accent/25 bg-accent/5 transition-transform duration-500 group-hover:rotate-0" />
           <img src={cover} alt={coverAlt} loading="lazy" width="760" height="1080" className="relative aspect-[.72] w-full object-cover shadow-card transition-transform duration-500 group-hover:-translate-y-1" />
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col pt-7 md:pt-0">
+        <div className="flex min-w-0 flex-1 flex-col pt-1 md:pt-0">
           <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
             <span className="inline-flex items-center gap-1 font-bold text-foreground"><Star className="h-4 w-4 fill-accent text-accent" /> {rating}</span>
             <span className="text-muted-foreground">({sold} sold)</span>
@@ -89,7 +89,7 @@ const PricingSection = () => {
 
           {diwaliGift && (
             <div className="mt-4 rounded-lg border-2 border-accent bg-gold-cta px-3 py-3 text-center text-accent-foreground shadow-lg">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em]">🪔 Diwali Special · Free Gift</p>
+              <p className="text-[11px] font-bold uppercase tracking-[0.15em]">🪔 Diwali Special · Free Gift</p>
               <p className="mt-1 font-heading text-base font-bold leading-snug md:text-lg">FREE Customized 140+ Page Kundli</p>
               <p className="mt-1 text-[11px] font-bold uppercase tracking-wide">Worth ₹1,100 — Absolutely Free</p>
             </div>

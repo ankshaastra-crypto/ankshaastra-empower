@@ -20,7 +20,11 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: false, skipped: 'no orderId' });
     }
 
-    const ok = await saveFormProgress(body.orderId, body.packageType, body);
+        const ok = await saveFormProgress(body.orderId, body.packageType, body);
+    if (ok) {
+      const { notifyHubSheetSync } = await import('../_utils/notify-hub-sheet.js');
+      await notifyHubSheetSync();
+    }
     return res.status(200).json({ ok });
   } catch (e) {
     // Never surface this as a hard failure to the browser — it's a

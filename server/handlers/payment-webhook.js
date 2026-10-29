@@ -1695,7 +1695,11 @@ export default async function handler(req, res) {
         console.error('[payment-webhook] Hub CRM sync failed (non-fatal):', hubSyncError?.message || hubSyncError);
       }
     }
-
+        // Payment done -> this order is no longer "abandoned"; refresh the sheet.
+    if (status === 'SUCCESS') {
+      const { notifyHubSheetSync } = await import('../_utils/notify-hub-sheet.js');
+      await notifyHubSheetSync();
+    }
     // Empower's own PDF-generation + email-sending (sendPaymentEmail) has
     // been removed here. Now that Empower is connected to the Ankshaastra
     // hub, the hub's CRM sync (above) generates its own invoice and sends
